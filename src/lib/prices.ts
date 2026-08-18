@@ -88,6 +88,27 @@ export async function batchFetchPrices(
   );
 }
 
+// Known verified token contract addresses to prevent fake token spoofing
+const VERIFIED_TOKEN_ADDRESSES: Record<string, string> = {
+  // WETH
+  '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2': 'ethereum',
+  '0x82af49447d8a07e3bd95bd0d56f35241523fbab1': 'ethereum',
+  '0x4200000000000000000000000000000000000006': 'ethereum',
+  // WBTC
+  '0x2260fac5e5542a773aa44fbcfedf7c193bc2c599': 'wrapped-bitcoin',
+  '0x2f2a2543b76a4166549f7aab2e75bef0aefc5b0f': 'wrapped-bitcoin',
+  // UNI
+  '0x1f9840a85d5af5bf1d1762f925bdaddc4201f984': 'uniswap',
+  // LINK
+  '0x514910771af9ca656af840dff83e8264ecf986ca': 'chainlink',
+  // AAVE
+  '0x7fc66500c84a76ad7e9c93437bfc5ac33e2ddae9': 'aave',
+  // ARB
+  '0x912ce59144191c1204e64559fe8253a0e49e6548': 'arbitrum',
+  // OP
+  '0x4200000000000000000000000000000000000042': 'optimism',
+};
+
 export function resolveCoingeckoId(
   contractAddress?: string | null,
   tokenSymbol?: string | null
@@ -97,12 +118,8 @@ export function resolveCoingeckoId(
     if (STABLECOINS[lower]) {
       return STABLECOINS[lower].coingeckoId;
     }
-  }
-
-  if (tokenSymbol && typeof tokenSymbol === 'string') {
-    const symbolUpper = tokenSymbol.toUpperCase();
-    if (TOKEN_COINGECKO_IDS[symbolUpper]) {
-      return TOKEN_COINGECKO_IDS[symbolUpper];
+    if (VERIFIED_TOKEN_ADDRESSES[lower]) {
+      return VERIFIED_TOKEN_ADDRESSES[lower];
     }
   }
 

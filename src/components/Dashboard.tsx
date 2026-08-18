@@ -22,6 +22,16 @@ interface DashboardProps {
 
 type TabId = 'dna' | 'flow' | 'protocols' | 'gas' | 'transfers' | 'approvals' | 'graveyard';
 
+export function formatCompactUSD(val: number): string {
+  if (!val || isNaN(val) || !isFinite(val)) return '$0';
+  const abs = Math.abs(val);
+  if (abs >= 1e12) return `$${(val / 1e12).toFixed(2)}T`;
+  if (abs >= 1e9) return `$${(val / 1e9).toFixed(2)}B`;
+  if (abs >= 1e6) return `$${(val / 1e6).toFixed(2)}M`;
+  if (abs >= 1e3) return `$${(val / 1e3).toFixed(1)}K`;
+  return `$${val.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
+}
+
 export default function Dashboard({ data }: DashboardProps) {
   const [activeTab, setActiveTab] = useState<TabId>('dna');
 
@@ -46,7 +56,7 @@ export default function Dashboard({ data }: DashboardProps) {
   // Radar Data for Recharts
   const fingerprint = data.chains[0]?.fingerprint;
   const radarData = fingerprint?.dimensions ? fingerprint.dimensions.map(d => ({
-    subject: d.axis,
+    subject: d.axis.replace('Multi-Chain Breadth', 'Cross-Chain').replace('Capital Efficiency', 'Capital Eff.'),
     value: d.score,
     fullMark: 100,
   })) : [
@@ -55,7 +65,7 @@ export default function Dashboard({ data }: DashboardProps) {
     { subject: 'Capital Eff.', value: 85, fullMark: 100 },
     { subject: 'Risk Appetite', value: 60, fullMark: 100 },
     { subject: 'Maturity', value: 90, fullMark: 100 },
-    { subject: 'Multi-Chain', value: 70, fullMark: 100 },
+    { subject: 'Cross-Chain', value: 70, fullMark: 100 },
   ];
 
   const tabs: { id: TabId; label: string; count?: number }[] = [
@@ -306,21 +316,21 @@ export default function Dashboard({ data }: DashboardProps) {
                   <span className="text-[11px] font-extrabold text-[#555555] uppercase tracking-wider block">
                     LIFETIME GAS
                   </span>
-                  <div className="text-3xl font-black text-[#ff5500] font-mono">
+                  <div className="text-3xl font-black text-[#ff5500] font-mono truncate">
                     {totalGasETH >= 10 ? totalGasETH.toFixed(2) : totalGasETH.toFixed(3)} ETH
                   </div>
                   <div className="text-xs font-bold text-[#555555] font-mono">
-                    Total Spent (≈ ${totalGasUSD.toLocaleString('en-US', { maximumFractionDigits: 0 })})
+                    Total Spent (≈ {formatCompactUSD(totalGasUSD)})
                   </div>
                 </div>
 
                 {/* Right: Capital Flow */}
-                <div className="p-6 bg-[#dedede] border border-[#cecece] text-[#0a0a0a] space-y-2 shadow-sm">
+                <div className="p-6 bg-[#dedede] border border-[#cecece] text-[#0a0a0a] space-y-2 shadow-sm overflow-hidden">
                   <span className="text-[11px] font-extrabold text-[#555555] uppercase tracking-wider block">
                     CAPITAL FLOW
                   </span>
-                  <div className="text-3xl font-black text-[#0a0a0a] font-mono">
-                    ${(totalInflowUSD || 142904).toLocaleString('en-US', { maximumFractionDigits: 0 })}
+                  <div className="text-3xl font-black text-[#0a0a0a] font-mono truncate" title={`$${totalInflowUSD.toLocaleString('en-US')}`}>
+                    {formatCompactUSD(totalInflowUSD)}
                   </div>
                   <div className="text-xs font-bold text-[#555555] font-mono">
                     Total Inflow Across Chains
@@ -370,16 +380,16 @@ export default function Dashboard({ data }: DashboardProps) {
               </div>
 
               {/* Real Interactive Behavioral Radar */}
-              <div className="p-6 bg-[#dedede] border border-[#cecece] text-[#0a0a0a] space-y-4 shadow-sm">
+              <div className="p-6 bg-[#dedede] border border-[#cecece] text-[#0a0a0a] space-y-4 shadow-sm overflow-hidden">
                 <span className="text-[11px] font-extrabold text-[#555555] uppercase tracking-wider block">
                   BEHAVIORAL RADAR
                 </span>
 
-                <div className="w-full h-52 flex items-center justify-center">
+                <div className="w-full h-52 flex items-center justify-center -mx-2">
                   <ResponsiveContainer width="100%" height="100%">
-                    <RadarChart data={radarData} outerRadius="75%">
+                    <RadarChart data={radarData} outerRadius="70%" margin={{ top: 10, right: 25, bottom: 10, left: 25 }}>
                       <PolarGrid stroke="#cecece" />
-                      <PolarAngleAxis dataKey="subject" tick={{ fill: '#555555', fontSize: 9, fontWeight: 700 }} />
+                      <PolarAngleAxis dataKey="subject" tick={{ fill: '#555555', fontSize: 8.5, fontWeight: 700 }} />
                       <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
                       <Radar
                         name="Wallet Score"

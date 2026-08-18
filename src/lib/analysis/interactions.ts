@@ -2,113 +2,93 @@ import {
   ProcessedTransaction,
   ProcessedTokenTransfer,
   ProtocolInteraction,
-  ProtocolContractDetail,
   AddressInteraction,
   InteractionsSummary,
+  TransactionCategory,
 } from '../types';
-import { getAddressLabel, getProtocolMeta, isPureTokenContract, isCEXAddress, isDEXAddress, isBridgeAddress, isBurnAddress } from '../labels';
-
-const APPROVE_METHOD_ID = '0x095ea7b3';
+import {
+  getAddressLabel,
+  getProtocolMeta,
+  isCEXAddress,
+  isDEXAddress,
+  isBridgeAddress,
+  isPureTokenContract,
+  isBurnAddress,
+} from '../labels';
 
 export function analyzeInteractions(
-  transactions: ProcessedTransaction[] = [],
-  tokenTransfers: ProcessedTokenTransfer[] = [],
+  transactions: ProcessedTransaction[],
+  tokenTransfers: ProcessedTokenTransfer[],
   walletAddress: string,
   chainId: number,
   knownWallets: Record<string, string> = {}
 ): InteractionsSummary {
-  const lower = (walletAddress || '').toLowerCase();
+  const lower = walletAddress.toLowerCase();
 
-  // 1. Group individual contract interactions
+  // 1. Map contracts from direct calls & transactions
   const contractMap = new Map<string, {
-    name: string;
-    protocolBrand: string;
-    contractAddress: string;
-    category: string;
+    address: string;
+    label: string | null;
     txCount: number;
     totalGasETH: number;
     totalGasUSD: number;
     totalVolumeUSD: number;
     lastTimestamp: number;
     lastDate: string;
+    protocol: string;
+    name: string;
+    category: string;
   }>();
 
   for (const tx of transactions) {
-    const isOutbound = (tx.from || '').toLowerCase() === lower;
-    if (!isOutbound) continue;
+    const toAddr = (tx.to || '').toLowerCase();
+    if (!toAddr || toAddr === lower || isBurnAddress(toAddr)) continue;
 
-    let targetContract = (tx.to || '').toLowerCase();
-    if (!targetContract || isBurnAddress(targetContract)) continue;
+    const isContract =
+      tx.category === 'contract_interaction' ||
+      (tx.methodId && tx.methodId !== '0x' && tx.methodId !== '') ||
+      Boolean(tx.functionName) ||
+      tx.category === 'swap' ||
+      tx.category === 'approval' ||
+      tx.category === 'bridge' ||
+      tx.category === 'lending' ||
+      tx.category === 'staking';
 
-    // Check if this is an approval call -> attribute to the SPENDER protocol!
-    const input = (tx as any).input || '';
-    const isApproval = tx.methodId === APPROVE_METHOD_ID || input.toLowerCase().startsWith(APPROVE_METHOD_ID);
-    if (isApproval && input.length >= 74) {
-      const spender = `0x${input.slice(34, 74)}`.toLowerCase();
-      if (spender && !isBurnAddress(spender)) {
-        targetContract = spender;
+    if (isContract) {
+      const meta = getProtocolMeta(toAddr);
+      const label = getAddressLabel(toAddr, knownWallets);
+      const protocolName = meta?.protocol || (label ? label.split(':')[0].trim() : 'Other');
+      const contractName = meta?.name || label || `Contract (${toAddr.slice(0, 6)}...${toAddr.slice(-4)})`;
+      const category = meta?.category || tx.category || 'other';
+
+      const existing = contractMap.get(toAddr) || {
+        address: toAddr,
+        label,
+        txCount: 0,
+        totalGasETH: 0,
+        totalGasUSD: 0,
+        totalVolumeUSD: 0,
+        lastTimestamp: tx.timestamp,
+        lastDate: tx.date,
+        protocol: protocolName,
+        name: contractName,
+        category,
+      };
+
+      existing.txCount++;
+      existing.totalGasETH += tx.gasCostETH || 0;
+      existing.totalGasUSD += tx.gasCostUSD || 0;
+      existing.totalVolumeUSD += tx.valueUSD || 0;
+      if (tx.timestamp > existing.lastTimestamp) {
+        existing.lastTimestamp = tx.timestamp;
+        existing.lastDate = tx.date;
       }
+
+      contractMap.set(toAddr, existing);
     }
-
-    // Skip pure ERC-20 token contracts from being displayed as DApp protocols
-    if (isPureTokenContract(targetContract)) {
-      continue;
-    }
-
-    const meta = getProtocolMeta(targetContract);
-    const label = getAddressLabel(targetContract, knownWallets);
-
-    let name = meta?.name || label || '';
-    const protocolBrand = meta?.protocol || (label ? label.split(' ')[0] : 'Other');
-    let category = meta?.category || tx.category || 'other';
-
-    if (!name) {
-      if (tx.functionName && tx.functionName.length > 2) {
-        const cleanFn = tx.functionName.split('(')[0];
-        name = `${cleanFn}() on ${targetContract.slice(0, 8)}...`;
-      } else {
-        name = `Contract ${targetContract.slice(0, 8)}...${targetContract.slice(-4)}`;
-      }
-    }
-
-    // Skip if it is an EOA or CEX deposit address
-    if (isCEXAddress(targetContract, knownWallets)) {
-      continue;
-    }
-
-    const existing = contractMap.get(targetContract) || {
-      name,
-      protocolBrand,
-      contractAddress: targetContract,
-      category,
-      txCount: 0,
-      totalGasETH: 0,
-      totalGasUSD: 0,
-      totalVolumeUSD: 0,
-      lastTimestamp: 0,
-      lastDate: tx.date,
-    };
-
-    existing.txCount++;
-    existing.totalGasETH += tx.gasCostETH || 0;
-    existing.totalGasUSD += tx.gasCostUSD || 0;
-    existing.totalVolumeUSD += tx.valueUSD || 0;
-
-    if (tx.timestamp > existing.lastTimestamp) {
-      existing.lastTimestamp = tx.timestamp;
-      existing.lastDate = tx.date;
-    }
-
-    if (meta) {
-      existing.name = meta.name;
-      existing.protocolBrand = meta.protocol;
-      existing.category = meta.category;
-    }
-
-    contractMap.set(targetContract, existing);
   }
 
-  // 2. Roll up individual contracts by Protocol Brand / Family
+  // 2. Rollup Protocol Families
   const protocolGroupMap = new Map<string, {
     name: string;
     protocol: string;
@@ -119,44 +99,41 @@ export function analyzeInteractions(
     totalVolumeUSD: number;
     lastTimestamp: number;
     lastDate: string;
-    contracts: Map<string, ProtocolContractDetail>;
+    contracts: Map<string, any>;
   }>();
 
-  for (const c of contractMap.values()) {
-    const brand = c.protocolBrand || c.name;
-    const groupKey = brand.toLowerCase();
-
+  for (const [cAddr, cData] of contractMap.entries()) {
+    const groupKey = cData.protocol.toLowerCase();
     const group = protocolGroupMap.get(groupKey) || {
-      name: brand,
-      protocol: brand,
-      category: c.category,
+      name: cData.protocol,
+      protocol: cData.protocol,
+      category: cData.category,
       txCount: 0,
       totalGasETH: 0,
       totalGasUSD: 0,
       totalVolumeUSD: 0,
-      lastTimestamp: 0,
-      lastDate: c.lastDate,
-      contracts: new Map<string, ProtocolContractDetail>(),
+      lastTimestamp: cData.lastTimestamp,
+      lastDate: cData.lastDate,
+      contracts: new Map(),
     };
 
-    group.txCount += c.txCount;
-    group.totalGasETH += c.totalGasETH;
-    group.totalGasUSD += c.totalGasUSD;
-    group.totalVolumeUSD += c.totalVolumeUSD;
-
-    if (c.lastTimestamp > group.lastTimestamp) {
-      group.lastTimestamp = c.lastTimestamp;
-      group.lastDate = c.lastDate;
+    group.txCount += cData.txCount;
+    group.totalGasETH += cData.totalGasETH;
+    group.totalGasUSD += cData.totalGasUSD;
+    group.totalVolumeUSD += cData.totalVolumeUSD;
+    if (cData.lastTimestamp > group.lastTimestamp) {
+      group.lastTimestamp = cData.lastTimestamp;
+      group.lastDate = cData.lastDate;
     }
 
-    group.contracts.set(c.contractAddress, {
-      name: c.name,
-      contractAddress: c.contractAddress,
-      txCount: c.txCount,
-      totalGasETH: c.totalGasETH,
-      totalGasUSD: c.totalGasUSD,
-      totalVolumeUSD: c.totalVolumeUSD,
-      lastInteractionDate: c.lastDate,
+    group.contracts.set(cAddr, {
+      name: cData.name,
+      contractAddress: cAddr,
+      txCount: cData.txCount,
+      totalGasETH: cData.totalGasETH,
+      totalGasUSD: cData.totalGasUSD,
+      totalVolumeUSD: cData.totalVolumeUSD,
+      lastInteractionDate: cData.lastDate,
       chainId,
     });
 
@@ -167,7 +144,7 @@ export function analyzeInteractions(
     .map(g => ({
       name: g.name,
       protocol: g.protocol,
-      category: g.category,
+      category: g.category as any,
       txCount: g.txCount,
       totalGasETH: g.totalGasETH,
       totalGasUSD: g.totalGasUSD,
@@ -179,7 +156,7 @@ export function analyzeInteractions(
     .sort((a, b) => b.txCount - a.txCount || b.totalGasETH - a.totalGasETH)
     .slice(0, 40);
 
-  // 3. Top Counterparty Addresses
+  // 3. Top Counterparty Addresses (Strictly distinguishing EOAs vs Contracts)
   const counterpartyMap = new Map<string, {
     address: string;
     label: string | null;
@@ -192,20 +169,27 @@ export function analyzeInteractions(
     lastDate: string;
   }>();
 
+  // Process Native Transactions
   for (const tx of transactions) {
     const fromAddr = (tx.from || '').toLowerCase();
     const toAddr = (tx.to || '').toLowerCase();
 
+    const isContractCall =
+      tx.category === 'contract_interaction' ||
+      (tx.methodId && tx.methodId !== '0x' && tx.methodId !== '') ||
+      Boolean(tx.functionName);
+
     if (fromAddr === lower && toAddr && toAddr !== lower && !isBurnAddress(toAddr)) {
-      const existing = getOrCreateCounterparty(counterpartyMap, toAddr, knownWallets, tx.date, tx.timestamp);
+      const existing = getOrCreateCounterparty(counterpartyMap, toAddr, knownWallets, tx.date, tx.timestamp, isContractCall);
       existing.outboundCount++;
       existing.outboundUSD += tx.valueUSD || 0;
+      if (isContractCall) existing.type = 'contract';
       if (tx.timestamp > existing.lastTimestamp) {
         existing.lastTimestamp = tx.timestamp;
         existing.lastDate = tx.date;
       }
     } else if (toAddr === lower && fromAddr && fromAddr !== lower) {
-      const existing = getOrCreateCounterparty(counterpartyMap, fromAddr, knownWallets, tx.date, tx.timestamp);
+      const existing = getOrCreateCounterparty(counterpartyMap, fromAddr, knownWallets, tx.date, tx.timestamp, false);
       existing.inboundCount++;
       existing.inboundUSD += tx.valueUSD || 0;
       if (tx.timestamp > existing.lastTimestamp) {
@@ -215,22 +199,27 @@ export function analyzeInteractions(
     }
   }
 
+  // Process Token Transfers
   for (const t of tokenTransfers) {
     const fromAddr = (t.from || '').toLowerCase();
     const toAddr = (t.to || '').toLowerCase();
 
     if (fromAddr === lower && toAddr && toAddr !== lower && !isBurnAddress(toAddr)) {
-      const existing = getOrCreateCounterparty(counterpartyMap, toAddr, knownWallets, t.date, t.timestamp);
+      const isContract = contractMap.has(toAddr) || isPureTokenContract(toAddr);
+      const existing = getOrCreateCounterparty(counterpartyMap, toAddr, knownWallets, t.date, t.timestamp, isContract);
       existing.outboundCount++;
       existing.outboundUSD += t.valueUSD || 0;
+      if (isContract) existing.type = 'contract';
       if (t.timestamp > existing.lastTimestamp) {
         existing.lastTimestamp = t.timestamp;
         existing.lastDate = t.date;
       }
     } else if (toAddr === lower && fromAddr && fromAddr !== lower) {
-      const existing = getOrCreateCounterparty(counterpartyMap, fromAddr, knownWallets, t.date, t.timestamp);
+      const isContract = contractMap.has(fromAddr) || isPureTokenContract(fromAddr);
+      const existing = getOrCreateCounterparty(counterpartyMap, fromAddr, knownWallets, t.date, t.timestamp, isContract);
       existing.inboundCount++;
       existing.inboundUSD += t.valueUSD || 0;
+      if (isContract) existing.type = 'contract';
       if (t.timestamp > existing.lastTimestamp) {
         existing.lastTimestamp = t.timestamp;
         existing.lastDate = t.date;
@@ -272,10 +261,17 @@ function getOrCreateCounterparty(
   address: string,
   knownWallets: Record<string, string>,
   date: string,
-  timestamp: number
+  timestamp: number,
+  isContractCall: boolean = false
 ) {
   const addr = address.toLowerCase();
-  if (map.has(addr)) return map.get(addr)!;
+  if (map.has(addr)) {
+    const existing = map.get(addr)!;
+    if (isContractCall && existing.type === 'eoa') {
+      existing.type = 'contract';
+    }
+    return existing;
+  }
 
   const label = getAddressLabel(addr, knownWallets);
   let type: 'cex' | 'dex' | 'bridge' | 'contract' | 'eoa' = 'eoa';
@@ -283,7 +279,7 @@ function getOrCreateCounterparty(
   if (isCEXAddress(addr, knownWallets)) type = 'cex';
   else if (isDEXAddress(addr, knownWallets)) type = 'dex';
   else if (isBridgeAddress(addr, knownWallets)) type = 'bridge';
-  else if (label) type = 'contract';
+  else if (label || isContractCall) type = 'contract';
 
   const entry = {
     address: addr,

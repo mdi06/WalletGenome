@@ -467,3 +467,52 @@ export interface WalletIdentityReport {
   domains: DomainIdentityItem[];
   hasIdentity: boolean;
 }
+
+// ── Bulk / Cluster Scan Types ──
+export interface BulkWrappedWallet {
+  address: string;
+  primaryName?: string;
+  avatar?: string | null;
+  persona: string;
+  riskGrade: string;
+  riskScore: number;
+  sybilProbability: number;
+  isFlagged: boolean;
+  flaggedDatabases: string[];
+  totalGasETH: number;
+  totalGasUSD: number;
+  totalInflowUSD: number;
+  totalOutflowUSD: number;
+  transactionCount: number;
+  highRiskApprovalsCount: number;
+  unlimitedApprovalsCount: number;
+  deadAssetsCount: number;
+  socialsCount: number;
+  counterparties: { address: string; inboundCount: number; outboundCount: number; inboundUSD: number; outboundUSD: number; txHash?: string; lastDate?: string; chainId?: number }[];
+}
+
+export interface ClusterLinkage {
+  source: string;
+  target: string;
+  type: 'direct_transfer' | 'shared_funding' | 'shared_counterparty';
+  txCount: number;
+  volumeUSD: number;
+  txHash?: string;
+  chainId?: number;
+  lastDate?: string;
+  detail: string;
+}
+
+export interface ClusterScanResult {
+  totalWallets: number;
+  totalTransactions: number;
+  totalGasUSD: number;
+  totalInflowUSD: number;
+  avgSybilProbability: number;
+  flaggedCount: number;
+  totalHighRiskApprovals: number;
+  wallets: BulkWrappedWallet[];
+  linkages: ClusterLinkage[];
+  sharedCounterparties: { address: string; label: string | null; sharedCount: number }[];
+  scannedAt: number;
+}
