@@ -1,92 +1,104 @@
 'use client';
 
-import { Shield, ShieldAlert, ShieldCheck, ExternalLink, DollarSign } from 'lucide-react';
 import { ScanResult, TokenApproval } from '@/lib/types';
-import { getExplorerAddressUrl, getChainConfig } from '@/lib/chains';
+import { getExplorerAddressUrl } from '@/lib/chains';
+import { ExternalLink } from 'lucide-react';
 
-interface ApprovalAuditProps {
+interface Props {
   results: ScanResult[];
 }
 
-function truncAddr(addr: string): string {
-  return `${addr.slice(0, 8)}...${addr.slice(-6)}`;
-}
-
-function formatUSD(val: number): string {
-  if (val >= 1000000) return `$${(val / 1000000).toFixed(2)}M`;
-  if (val >= 1000) return `$${(val / 1000).toFixed(2)}K`;
-  return `$${val.toFixed(2)}`;
-}
-
-export default function ApprovalAudit({ results }: ApprovalAuditProps) {
-  const allApprovals = results.flatMap(r => r.approvalSummary.activeApprovals);
-  const highRisk = allApprovals.filter(a => a.riskLevel === 'high');
-  const totalExposure = results.reduce(
-    (sum, r) => sum + (r.approvalSummary.totalExposureUSD || 0),
-    0
-  );
-
-  if (allApprovals.length === 0) {
-    return (
-      <div className="glass-card animate-fade-in-up" style={styles.emptyCard}>
-        <ShieldCheck size={40} color="var(--accent-emerald)" />
-        <h3 style={styles.emptyTitle}>No Active Approvals</h3>
-        <p style={styles.emptyText}>
-          No token approvals detected for this wallet. Either no approvals were made or they&apos;ve all been revoked.
-        </p>
-      </div>
-    );
+export default function ApprovalAudit({ results }: Props) {
+  const allApprovals: (TokenApproval & { chainName: string })[] = [];
+  for (const r of results) {
+    if (r.approvalSummary?.activeApprovals) {
+      for (const a of r.approvalSummary.activeApprovals) {
+        allApprovals.push({ ...a, chainName: r.chainName });
+      }
+    }
   }
 
+  const totalApprovals = allApprovals.length;
+  const highRisk = allApprovals.filter(a => a.riskLevel === 'high').length;
+  const unlimited = allApprovals.filter(a => a.isUnlimited).length;
+
   return (
-    <div className="animate-fade-in-up" style={styles.container}>
-      {/* Stats */}
-      <div style={styles.statsRow}>
-        <div className="glass-card" style={styles.stat}>
-          <Shield size={18} color="var(--text-secondary)" />
-          <span style={styles.statValue}>{allApprovals.length}</span>
-          <span style={styles.statLabel}>Active approvals</span>
+    <div className="space-y-6">
+      {/* Top Metric Cards (Sharp Square Toned Gray Cards) */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="p-5 bg-[#dedede] border border-[#cecece] text-[#0a0a0a] space-y-1 shadow-sm">
+          <div className="text-[11px] font-extrabold text-[#555555] uppercase tracking-wider">TOTAL ACTIVE PERMISSIONS</div>
+          <div className="text-3xl font-black text-[#0a0a0a] font-mono">{totalApprovals}</div>
         </div>
-        {highRisk.length > 0 && (
-          <div className="glass-card" style={{ ...styles.stat, borderColor: 'rgba(248,113,113,0.3)' }}>
-            <ShieldAlert size={18} color="var(--accent-red)" />
-            <span style={{ ...styles.statValue, color: 'var(--accent-red)' }}>{highRisk.length}</span>
-            <span style={styles.statLabel}>High risk</span>
-          </div>
-        )}
-        <div className="glass-card" style={styles.stat}>
-          <span style={{ ...styles.statValue, color: 'var(--accent-amber)' }}>
-            {allApprovals.filter(a => a.isUnlimited).length}
-          </span>
-          <span style={styles.statLabel}>Unlimited</span>
+
+        <div className="p-5 bg-[#dedede] border border-[#cecece] text-[#0a0a0a] space-y-1 shadow-sm">
+          <div className="text-[11px] font-extrabold text-[#555555] uppercase tracking-wider">HIGH RISK EXPOSURE</div>
+          <div className="text-3xl font-black text-[#dc2626] font-mono">{highRisk}</div>
         </div>
-        {totalExposure > 0 && (
-          <div className="glass-card" style={{ ...styles.stat, borderColor: 'rgba(251,191,36,0.3)' }}>
-            <DollarSign size={18} color="var(--accent-amber)" />
-            <span style={{ ...styles.statValue, color: 'var(--accent-amber)' }}>{formatUSD(totalExposure)}</span>
-            <span style={styles.statLabel}>Est. Exposed Value</span>
-          </div>
-        )}
+
+        <div className="p-5 bg-[#dedede] border border-[#cecece] text-[#0a0a0a] space-y-1 shadow-sm">
+          <div className="text-[11px] font-extrabold text-[#555555] uppercase tracking-wider">UNLIMITED ALLOWANCES</div>
+          <div className="text-3xl font-black text-[#ff5500] font-mono">{unlimited}</div>
+        </div>
       </div>
 
-      {/* Table */}
-      <div className="glass-card table-container">
-        <table style={styles.table}>
+      {/* Approvals Table */}
+      <div className="border border-[#cecece] bg-[#dedede] overflow-hidden overflow-x-auto">
+        <table className="w-full text-left border-collapse">
           <thead>
-            <tr>
-              <th style={styles.th}>Risk</th>
-              <th style={styles.th}>Token</th>
-              <th style={styles.th}>Spender</th>
-              <th style={styles.th}>Allowance</th>
-              <th style={styles.th}>Est. Exposure</th>
-              <th style={styles.th}>Chain</th>
-              <th style={styles.th}>Date</th>
-              <th style={styles.th}></th>
+            <tr className="bg-[#d4d4d4] border-b border-[#cecece] text-[10px] font-extrabold text-[#555555] uppercase tracking-wider">
+              <th className="py-3 px-4">TOKEN</th>
+              <th className="py-3 px-4">SPENDER DAPP</th>
+              <th className="py-3 px-4">ALLOWANCE</th>
+              <th className="py-3 px-4">RISK LEVEL</th>
+              <th className="py-3 px-4">LAST UPDATED</th>
+              <th className="py-3 px-4 text-right">ACTION</th>
             </tr>
           </thead>
-          <tbody>
-            {allApprovals.map((approval, i) => (
-              <ApprovalRow key={`${approval.hash}-${i}`} approval={approval} />
+          <tbody className="divide-y divide-[#cecece] text-xs font-bold text-[#0a0a0a]">
+            {allApprovals.map((a, i) => (
+              <tr key={i} className="hover:bg-[#d5d5d5] transition-colors">
+                <td className="py-3.5 px-4 font-mono font-black text-[#0a0a0a]">
+                  {a.tokenSymbol}
+                </td>
+                <td className="py-3.5 px-4 font-mono">
+                  <div className="font-bold text-[#0a0a0a]">{a.spenderLabel || `${a.spender.slice(0, 6)}...${a.spender.slice(-4)}`}</div>
+                  {a.spenderLabel && <div className="text-[10px] text-[#555555] font-mono">{a.spender}</div>}
+                </td>
+                <td className="py-3.5 px-4 font-mono font-bold">
+                  {a.isUnlimited ? (
+                    <span className="text-[#ff5500]">UNLIMITED (∞)</span>
+                  ) : (
+                    <span className="text-[#0a0a0a]">{a.allowance}</span>
+                  )}
+                </td>
+                <td className="py-3.5 px-4">
+                  <span
+                    className={`text-[10px] font-bold px-2 py-0.5 uppercase ${
+                      a.riskLevel === 'high'
+                        ? 'bg-[#dc2626]/10 text-[#dc2626] border border-[#dc2626]/30'
+                        : a.riskLevel === 'medium'
+                        ? 'bg-[#f59e0b]/10 text-[#f59e0b] border border-[#f59e0b]/30'
+                        : 'bg-[#059669]/10 text-[#059669] border border-[#059669]/30'
+                    }`}
+                  >
+                    {a.riskLevel}
+                  </span>
+                </td>
+                <td className="py-3.5 px-4 font-mono text-[#555555] text-[11px]">
+                  {a.timestamp ? new Date(a.timestamp * 1000).toLocaleDateString() : a.date || '—'}
+                </td>
+                <td className="py-3.5 px-4 text-right">
+                  <a
+                    href={getExplorerAddressUrl(a.chainId, a.spender)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[#555555] hover:text-black"
+                  >
+                    <ExternalLink size={13} className="ml-auto" />
+                  </a>
+                </td>
+              </tr>
             ))}
           </tbody>
         </table>
@@ -94,119 +106,3 @@ export default function ApprovalAudit({ results }: ApprovalAuditProps) {
     </div>
   );
 }
-
-function ApprovalRow({ approval }: { approval: TokenApproval }) {
-  const chain = getChainConfig(approval.chainId);
-
-  return (
-    <tr style={styles.tr}>
-      <td style={styles.td}>
-        <span className={`badge badge-${approval.riskLevel}`}>
-          {approval.riskLevel === 'high' ? '🔴' : approval.riskLevel === 'medium' ? '🟡' : '🟢'}
-          {' '}{approval.riskLevel}
-        </span>
-      </td>
-      <td style={{ ...styles.td, fontWeight: 600 }}>{approval.tokenSymbol}</td>
-      <td style={styles.td}>
-        {approval.spenderLabel ? (
-          <span style={styles.labelBadge}>{approval.spenderLabel}</span>
-        ) : (
-          <span className="mono truncate-address">{truncAddr(approval.spender)}</span>
-        )}
-      </td>
-      <td style={styles.td}>
-        {approval.isUnlimited ? (
-          <span style={{ color: 'var(--accent-amber)', fontWeight: 600, fontSize: '0.8rem' }}>∞ Unlimited</span>
-        ) : (
-          <span style={{ fontSize: '0.8rem' }}>{approval.allowance}</span>
-        )}
-      </td>
-      <td style={{ ...styles.td, fontFamily: 'var(--font-mono)', fontSize: '0.82rem' }}>
-        {approval.estimatedExposureUSD && approval.estimatedExposureUSD > 0
-          ? formatUSD(approval.estimatedExposureUSD)
-          : '—'}
-      </td>
-      <td style={styles.td}>
-        <span style={{ ...styles.chainBadge, background: `${chain.color}20`, color: chain.color }}>
-          {chain.shortName}
-        </span>
-      </td>
-      <td style={{ ...styles.td, fontSize: '0.8rem', color: 'var(--text-tertiary)' }}>{approval.date}</td>
-      <td style={styles.td}>
-        <a
-          href={getExplorerAddressUrl(approval.chainId, approval.spender)}
-          target="_blank"
-          rel="noopener noreferrer"
-          style={styles.link}
-          title="View spender on explorer"
-        >
-          <ExternalLink size={14} />
-        </a>
-      </td>
-    </tr>
-  );
-}
-
-const styles: Record<string, React.CSSProperties> = {
-  container: { display: 'flex', flexDirection: 'column', gap: 'var(--space-lg)' },
-  statsRow: {
-    display: 'flex',
-    gap: 'var(--space-md)',
-    flexWrap: 'wrap' as const,
-  },
-  stat: {
-    padding: 'var(--space-md) var(--space-lg)',
-    display: 'flex',
-    alignItems: 'center',
-    gap: 'var(--space-sm)',
-    borderWidth: 1,
-    borderStyle: 'solid',
-    borderColor: 'var(--border-primary)',
-  },
-  statValue: { fontSize: '1.3rem', fontWeight: 700 },
-  statLabel: { fontSize: '0.8rem', color: 'var(--text-secondary)' },
-  table: { width: '100%', borderCollapse: 'collapse', fontSize: '0.85rem' },
-  th: {
-    padding: '12px 16px',
-    textAlign: 'left',
-    fontWeight: 600,
-    fontSize: '0.75rem',
-    color: 'var(--text-tertiary)',
-    textTransform: 'uppercase' as const,
-    letterSpacing: '0.05em',
-    borderBottomWidth: 1,
-    borderBottomStyle: 'solid',
-    borderBottomColor: 'var(--border-primary)',
-  },
-  tr: {
-    borderBottomWidth: 1,
-    borderBottomStyle: 'solid',
-    borderBottomColor: 'var(--border-primary)',
-  },
-  td: { padding: '12px 16px', color: 'var(--text-secondary)', whiteSpace: 'nowrap' as const },
-  labelBadge: {
-    padding: '2px 8px',
-    background: 'var(--accent-indigo-dim)',
-    color: 'var(--accent-indigo)',
-    borderRadius: 'var(--radius-full)',
-    fontSize: '0.75rem',
-    fontWeight: 500,
-  },
-  chainBadge: {
-    padding: '2px 8px',
-    borderRadius: 'var(--radius-full)',
-    fontSize: '0.72rem',
-    fontWeight: 600,
-  },
-  link: { color: 'var(--text-tertiary)', display: 'flex', alignItems: 'center' },
-  emptyCard: {
-    padding: 'var(--space-2xl)',
-    textAlign: 'center',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    gap: 'var(--space-md)',
-  },
-  emptyTitle: { fontSize: '1.2rem', fontWeight: 600 },
-  emptyText: { fontSize: '0.9rem', color: 'var(--text-secondary)', maxWidth: 400 },
-};

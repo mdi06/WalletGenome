@@ -2,9 +2,9 @@
 
 import React, { useState, useMemo } from 'react';
 import { ScanResult } from '@/lib/types';
-import { getChainConfig, getExplorerAddressUrl } from '@/lib/chains';
-import { Network, Filter, ExternalLink } from 'lucide-react';
-import { isBurnAddress } from '@/lib/labels';
+import { getExplorerAddressUrl } from '@/lib/chains';
+import { ExternalLink, ArrowUpRight, ArrowDownLeft, Trophy } from 'lucide-react';
+import { isBurnAddress, isPureTokenContract, PROTOCOL_REGISTRY } from '@/lib/labels';
 
 interface Props {
   results: ScanResult[];
@@ -22,6 +22,7 @@ interface GraphNode {
   address: string;
   x: number;
   y: number;
+  isTopRecipient?: boolean;
 }
 
 interface GraphLink {
@@ -45,30 +46,92 @@ function truncAddr(addr: string): string {
   return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
 }
 
+function isKnownSmartContractOrToken(address: string, type: string): boolean {
+  const lower = address.toLowerCase();
+  if (isPureTokenContract(lower)) return true;
+  if (isBurnAddress(lower)) return true;
+  if (PROTOCOL_REGISTRY[lower]) return true;
+  if (type === 'contract' || type === 'dex' || type === 'bridge') return true;
+  return false;
+}
+
 export default function CapitalFlowGraph({ results }: Props) {
-  const [minVolume, setMinVolume] = useState<number>(100);
+  const [minVolume, setMinVolume] = useState<number>(0);
   const [selectedChain, setSelectedChain] = useState<number | 'all'>('all');
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
 
   const userAddress = results[0]?.address?.toLowerCase() || '';
 
-  const handleNodeClick = (node: GraphNode) => {
+  const handleNodeClick = (node: GraphNode | { chainId: number; address: string }) => {
     if (node.address) {
       const url = getExplorerAddressUrl(node.chainId || 1, node.address);
       window.open(url, '_blank', 'noopener,noreferrer');
     }
   };
 
-  // Extract graph nodes and links from results
-  const { nodes, links, totalInflowUSD, totalOutflowUSD, totalDeFiVolumeUSD } = useMemo(() => {
+  // 1. Calculate Top Interacted Wallets (Excluding Smart Contracts and Token Contracts)
+  const { topOutboundWallets, topInboundWallets, mostInteractedWallet } = useMemo(() => {
+    const outboundMap = new Map<string, { address: string; label: string | null; type: string; txCount: number; volumeUSD: number; chainId: number }>();
+    const inboundMap = new Map<string, { address: string; label: string | null; type: string; txCount: number; volumeUSD: number; chainId: number }>();
+
+    const activeResults = selectedChain === 'all'
+      ? results
+      : results.filter(r => r.chainId === selectedChain);
+
+    activeResults.forEach(r => {
+      r.interactionsSummary?.topCounterparties?.forEach(c => {
+        const cAddr = c.address.toLowerCase();
+        if (cAddr === userAddress || isBurnAddress(cAddr)) return;
+
+        const isContract = isKnownSmartContractOrToken(cAddr, c.type);
+
+        // Outbound Recipient Wallets (EOA / CEX Wallets)
+        if (!isContract && (c.outboundCount > 0 || c.outboundUSD > 0)) {
+          const existing = outboundMap.get(cAddr) || {
+            address: c.address,
+            label: c.label,
+            type: c.type,
+            txCount: 0,
+            volumeUSD: 0,
+            chainId: r.chainId,
+          };
+          existing.txCount += c.outboundCount;
+          existing.volumeUSD += c.outboundUSD;
+          outboundMap.set(cAddr, existing);
+        }
+
+        // Inbound Funding Wallets
+        if (!isContract && (c.inboundCount > 0 || c.inboundUSD > 0)) {
+          const existing = inboundMap.get(cAddr) || {
+            address: c.address,
+            label: c.label,
+            type: c.type,
+            txCount: 0,
+            volumeUSD: 0,
+            chainId: r.chainId,
+          };
+          existing.txCount += c.inboundCount;
+          existing.volumeUSD += c.inboundUSD;
+          inboundMap.set(cAddr, existing);
+        }
+      });
+    });
+
+    const sortedOutbound = Array.from(outboundMap.values()).sort((a, b) => b.txCount - a.txCount || b.volumeUSD - a.volumeUSD);
+    const sortedInbound = Array.from(inboundMap.values()).sort((a, b) => b.txCount - a.txCount || b.volumeUSD - a.volumeUSD);
+
+    return {
+      topOutboundWallets: sortedOutbound,
+      topInboundWallets: sortedInbound,
+      mostInteractedWallet: sortedOutbound[0] || null,
+    };
+  }, [results, selectedChain, userAddress]);
+
+  // 2. Extract Graph Topology
+  const { nodes, links } = useMemo(() => {
     const nodeMap = new Map<string, GraphNode>();
     const linkList: GraphLink[] = [];
 
-    let sumInflow = 0;
-    let sumOutflow = 0;
-    let sumDeFi = 0;
-
-    // 1. Central Wallet Node
     nodeMap.set('center', {
       id: 'center',
       label: 'Your Wallet',
@@ -86,7 +149,7 @@ export default function CapitalFlowGraph({ results }: Props) {
       ? results
       : results.filter(r => r.chainId === selectedChain);
 
-    // 2. Extract Protocols & DApps
+    // Protocols
     for (const r of activeResults) {
       for (const p of r.interactionsSummary?.topProtocols || []) {
         if (p.totalVolumeUSD < minVolume && p.txCount < 2) continue;
@@ -111,7 +174,6 @@ export default function CapitalFlowGraph({ results }: Props) {
 
         existing.volumeUSD += p.totalVolumeUSD;
         existing.txCount += p.txCount;
-        sumDeFi += p.totalVolumeUSD;
         nodeMap.set(pId, existing);
 
         linkList.push({
@@ -120,18 +182,18 @@ export default function CapitalFlowGraph({ results }: Props) {
           volumeUSD: p.totalVolumeUSD,
           txCount: p.txCount,
           chainId: p.chainId,
-          color: getCategoryColor(p.category as string),
+          color: '#3b82f6',
         });
       }
     }
 
-    // 3. Extract Inflows & Outflows from Counterparties
+    // Counterparties
     for (const r of activeResults) {
       for (const c of r.interactionsSummary?.topCounterparties || []) {
         const cAddr = c.address.toLowerCase();
-        if (cAddr === userAddress || isBurnAddress(cAddr)) continue;
+        if (cAddr === userAddress || isBurnAddress(cAddr) || isPureTokenContract(cAddr)) continue;
 
-        // Inflow Source Node
+        // Inflows
         if (c.inboundUSD >= minVolume || (c.inboundCount > 0 && minVolume === 0)) {
           const inId = `in-${cAddr}`;
           const label = c.label || truncAddr(c.address);
@@ -152,7 +214,6 @@ export default function CapitalFlowGraph({ results }: Props) {
 
           existing.volumeUSD += c.inboundUSD;
           existing.txCount += c.inboundCount;
-          sumInflow += c.inboundUSD;
           nodeMap.set(inId, existing);
 
           linkList.push({
@@ -161,14 +222,15 @@ export default function CapitalFlowGraph({ results }: Props) {
             volumeUSD: c.inboundUSD,
             txCount: c.inboundCount,
             chainId: c.chainId,
-            color: 'var(--accent-emerald)',
+            color: '#059669',
           });
         }
 
-        // Outflow Destination Node
+        // Outflows
         if (c.outboundUSD >= minVolume || (c.outboundCount > 0 && minVolume === 0)) {
           const outId = `out-${cAddr}`;
           const label = c.label || truncAddr(c.address);
+          const isTop = mostInteractedWallet && mostInteractedWallet.address.toLowerCase() === cAddr;
 
           const existing = nodeMap.get(outId) || {
             id: outId,
@@ -180,13 +242,13 @@ export default function CapitalFlowGraph({ results }: Props) {
             txCount: 0,
             chainId: c.chainId,
             address: c.address,
+            isTopRecipient: isTop,
             x: 0,
             y: 0,
           };
 
           existing.volumeUSD += c.outboundUSD;
           existing.txCount += c.outboundCount;
-          sumOutflow += c.outboundUSD;
           nodeMap.set(outId, existing);
 
           linkList.push({
@@ -195,25 +257,22 @@ export default function CapitalFlowGraph({ results }: Props) {
             volumeUSD: c.outboundUSD,
             txCount: c.outboundCount,
             chainId: c.chainId,
-            color: 'var(--accent-amber)',
+            color: isTop ? '#ff5500' : '#f59e0b',
           });
         }
       }
     }
 
-    // 4. Calculate Positions for 3-Column Visual Layout
     const inflowNodes = Array.from(nodeMap.values()).filter(n => n.type === 'inflow').slice(0, 7);
     const protocolNodes = Array.from(nodeMap.values()).filter(n => n.type === 'protocol').slice(0, 8);
     const outflowNodes = Array.from(nodeMap.values()).filter(n => n.type === 'outflow').slice(0, 7);
 
-    // Layout Inflows on Left (X: 100)
     inflowNodes.forEach((node, i) => {
       const step = 500 / (inflowNodes.length + 1);
-      node.x = 100;
+      node.x = 110;
       node.y = 40 + (i + 1) * step;
     });
 
-    // Layout Protocols Top & Bottom (X: 450, Y: staggered top and bottom)
     const protoTop = protocolNodes.slice(0, Math.ceil(protocolNodes.length / 2));
     const protoBottom = protocolNodes.slice(Math.ceil(protocolNodes.length / 2));
 
@@ -229,10 +288,9 @@ export default function CapitalFlowGraph({ results }: Props) {
       node.y = 490;
     });
 
-    // Layout Outflows on Right (X: 800)
     outflowNodes.forEach((node, i) => {
       const step = 500 / (outflowNodes.length + 1);
-      node.x = 800;
+      node.x = 790;
       node.y = 40 + (i + 1) * step;
     });
 
@@ -251,81 +309,92 @@ export default function CapitalFlowGraph({ results }: Props) {
     return {
       nodes: activeNodes,
       links: activeLinks,
-      totalInflowUSD: sumInflow,
-      totalOutflowUSD: sumOutflow,
-      totalDeFiVolumeUSD: sumDeFi,
     };
-  }, [results, minVolume, selectedChain, userAddress]);
+  }, [results, minVolume, selectedChain, userAddress, mostInteractedWallet]);
 
   const activeNodeMap = useMemo(() => new Map(nodes.map(n => [n.id, n])), [nodes]);
-
-  // Filter highlights
-  const highlightedLinks = useMemo(() => {
-    if (!hoveredNodeId) return new Set<string>();
-    const set = new Set<string>();
-    for (const l of links) {
-      if (l.source === hoveredNodeId || l.target === hoveredNodeId) {
-        set.add(`${l.source}->${l.target}`);
-      }
-    }
-    return set;
-  }, [hoveredNodeId, links]);
-
   const hoveredNode = hoveredNodeId ? activeNodeMap.get(hoveredNodeId) : null;
 
   return (
-    <div style={styles.container} className="animate-fade-in-up">
-      {/* Top Banner & Stats */}
-      <div style={styles.headerCard} className="glass-card">
-        <div style={styles.headerLeft}>
-          <div style={styles.headerIcon}>
-            <Network size={22} color="var(--accent-indigo)" />
+    <div className="space-y-6">
+      {/* ── Top Hero: Most Interacted Recipient Wallet Banner (Sharp Square Toned Gray Card) ── */}
+      {mostInteractedWallet ? (
+        <div className="p-5 bg-[#dedede] border border-[#cecece] text-[#0a0a0a] shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div className="flex items-center gap-3.5">
+            <div className="w-12 h-12 bg-[#ff5500] text-white flex items-center justify-center font-black text-xl flex-shrink-0">
+              <Trophy size={24} />
+            </div>
+            <div className="space-y-0.5">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-extrabold tracking-widest text-[#ff5500] uppercase">
+                  MOST INTERACTED RECIPIENT WALLET
+                </span>
+                <span className="text-[10px] font-mono font-bold px-2 py-0.5 bg-[#d0d0d0] text-[#0a0a0a]">
+                  {mostInteractedWallet.type.toUpperCase()} WALLET
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-base font-black font-mono tracking-tight text-[#0a0a0a]">
+                  {mostInteractedWallet.label || mostInteractedWallet.address}
+                </span>
+                <button
+                  onClick={() => handleNodeClick(mostInteractedWallet)}
+                  className="text-[#555555] hover:text-[#ff5500] transition-colors cursor-pointer"
+                  title="View on Explorer"
+                >
+                  <ExternalLink size={13} />
+                </button>
+              </div>
+            </div>
           </div>
-          <div>
-            <h3 style={styles.headerTitle}>Arkham-Style Capital Flow Graph</h3>
-            <p style={styles.headerDesc}>
-              Visual on-chain bridge and fund intelligence. Click on any node or address to open its block explorer scan.
-            </p>
+
+          <div className="flex items-center gap-6 font-mono self-start md:self-center border-t md:border-t-0 border-[#cecece] pt-2 md:pt-0 w-full md:w-auto justify-between md:justify-end">
+            <div>
+              <div className="text-[10px] font-bold text-[#555555] uppercase">TRANSACTIONS SENT</div>
+              <div className="text-xl font-black text-[#ff5500]">{mostInteractedWallet.txCount} TXS</div>
+            </div>
+            <div>
+              <div className="text-[10px] font-bold text-[#555555] uppercase">TOTAL CAPITAL SENT</div>
+              <div className="text-xl font-black text-[#0a0a0a]">{formatUSD(mostInteractedWallet.volumeUSD)}</div>
+            </div>
           </div>
         </div>
-
-        <div style={styles.flowMetrics}>
-          <FlowMetric label="Total Inflow" value={formatUSD(totalInflowUSD)} color="var(--accent-emerald)" />
-          <FlowMetric label="DeFi Volume" value={formatUSD(totalDeFiVolumeUSD)} color="var(--accent-indigo)" />
-          <FlowMetric label="Total Outflow" value={formatUSD(totalOutflowUSD)} color="var(--accent-amber)" />
+      ) : (
+        <div className="p-4 bg-[#dedede] text-[#555555] border border-[#cecece] text-xs font-mono font-bold">
+          No external recipient EOA wallets recorded in outbound transfer events.
         </div>
-      </div>
+      )}
 
-      {/* Graph Filter Controls */}
-      <div style={styles.controlsRow}>
-        <div style={styles.filterGroup}>
-          <span style={styles.filterLabel}><Filter size={14} /> Min Volume:</span>
+      {/* ── Controls Row ── */}
+      <div className="flex flex-wrap items-center justify-between gap-4 pt-1">
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-bold text-[#555555] uppercase">Min Volume:</span>
           {[0, 100, 500, 2000, 10000].map(amt => (
             <button
               key={amt}
               onClick={() => setMinVolume(amt)}
-              style={{
-                ...styles.filterBtn,
-                background: minVolume === amt ? 'var(--accent-indigo)' : 'var(--bg-glass)',
-                color: minVolume === amt ? '#fff' : 'var(--text-secondary)',
-              }}
+              className={`px-3 py-1 text-xs font-bold transition-all cursor-pointer ${
+                minVolume === amt
+                  ? 'bg-black text-white shadow-sm'
+                  : 'bg-[#d8d8d8] text-[#333333] hover:bg-black hover:text-white'
+              }`}
             >
               {amt === 0 ? 'All' : `$${amt >= 1000 ? amt/1000 + 'K' : amt}+`}
             </button>
           ))}
         </div>
 
-        <div style={styles.filterGroup}>
-          <span style={styles.filterLabel}>Network:</span>
-          {[{ id: 'all', label: 'All Chains' }, { id: 1, label: 'Ethereum' }, { id: 42161, label: 'Arbitrum' }, { id: 8453, label: 'Base' }, { id: 10, label: 'Optimism' }].map(c => (
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-bold text-[#555555] uppercase">Network:</span>
+          {[{ id: 'all', label: 'All' }, { id: 1, label: 'Ethereum' }, { id: 42161, label: 'Arbitrum' }, { id: 8453, label: 'Base' }, { id: 10, label: 'Optimism' }].map(c => (
             <button
               key={c.id}
               onClick={() => setSelectedChain(c.id as any)}
-              style={{
-                ...styles.filterBtn,
-                background: selectedChain === c.id ? 'var(--accent-indigo)' : 'var(--bg-glass)',
-                color: selectedChain === c.id ? '#fff' : 'var(--text-secondary)',
-              }}
+              className={`px-3 py-1 text-xs font-bold transition-all cursor-pointer ${
+                selectedChain === c.id
+                  ? 'bg-black text-white shadow-sm'
+                  : 'bg-[#d8d8d8] text-[#333333] hover:bg-black hover:text-white'
+              }`}
             >
               {c.label}
             </button>
@@ -333,50 +402,26 @@ export default function CapitalFlowGraph({ results }: Props) {
         </div>
       </div>
 
-      {/* Interactive SVG Canvas */}
-      <div className="glass-card" style={styles.canvasCard}>
-        <svg viewBox="0 0 900 560" style={styles.svgCanvas}>
+      {/* ── Interactive SVG Topology Canvas ── */}
+      <div className="relative bg-[#0d0f17] p-4 overflow-hidden border border-[#cecece] shadow-inner">
+        <svg viewBox="0 0 900 560" className="w-full h-auto max-h-[560px] block">
           <defs>
-            {/* Background Grid Pattern */}
-            <pattern id="graph-grid" width="30" height="30" patternUnits="userSpaceOnUse">
-              <circle cx="15" cy="15" r="1" fill="rgba(255, 255, 255, 0.04)" />
+            <pattern id="flow-grid" width="30" height="30" patternUnits="userSpaceOnUse">
+              <circle cx="15" cy="15" r="1" fill="rgba(255, 255, 255, 0.05)" />
             </pattern>
-
-            {/* Gradients */}
-            <linearGradient id="inflowGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#34d399" stopOpacity="0.8" />
-              <stop offset="100%" stopColor="#818cf8" stopOpacity="0.8" />
-            </linearGradient>
-
-            <linearGradient id="outflowGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="#818cf8" stopOpacity="0.8" />
-              <stop offset="100%" stopColor="#fbbf24" stopOpacity="0.8" />
-            </linearGradient>
-
-            {/* Glow Filter */}
-            <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-              <feGaussianBlur stdDeviation="3" result="blur" />
-              <feComposite in="SourceGraphic" in2="blur" operator="over" />
-            </filter>
           </defs>
 
-          {/* Grid Background */}
-          <rect width="900" height="560" fill="url(#graph-grid)" />
+          <rect width="900" height="560" fill="url(#flow-grid)" />
 
-          {/* Column Header Annotations */}
-          <text x="100" y="24" textAnchor="middle" style={styles.colHeader}>INFLOW SOURCES (CEX / WALLETS)</text>
-          <text x="450" y="24" textAnchor="middle" style={styles.colHeader}>DEFI PROTOCOLS & CORE WALLET</text>
-          <text x="800" y="24" textAnchor="middle" style={styles.colHeader}>OUTFLOW DESTINATIONS</text>
+          <text x="110" y="24" textAnchor="middle" fill="#8b92a5" style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.08em' }}>INFLOW SOURCES (CEX / WALLETS)</text>
+          <text x="450" y="24" textAnchor="middle" fill="#8b92a5" style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.08em' }}>DEFI PROTOCOLS & CORE WALLET</text>
+          <text x="790" y="24" textAnchor="middle" fill="#8b92a5" style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.08em' }}>OUTFLOW DESTINATIONS</text>
 
-          {/* Directed Links with Curved Bezier & Particle Animation */}
+          {/* Links */}
           {links.map((link, i) => {
             const src = activeNodeMap.get(link.source);
             const tgt = activeNodeMap.get(link.target);
             if (!src || !tgt) return null;
-
-            const isHovered = hoveredNodeId && (link.source === hoveredNodeId || link.target === hoveredNodeId);
-            const linkKey = `${link.source}->${link.target}`;
-            const isDimmed = hoveredNodeId && !isHovered;
 
             const dx = tgt.x - src.x;
             const dy = tgt.y - src.y;
@@ -386,35 +431,32 @@ export default function CapitalFlowGraph({ results }: Props) {
             const cy2 = tgt.y;
 
             const pathD = `M ${src.x} ${src.y} C ${cx1} ${cy1}, ${cx2} ${cy2}, ${tgt.x} ${tgt.y}`;
-            const strokeWidth = Math.max(2, Math.min(8, Math.log10(link.volumeUSD + 10) * 1.5));
 
             return (
-              <g key={i} style={{ opacity: isDimmed ? 0.15 : 1, transition: 'all 0.3s ease' }}>
+              <g key={i}>
                 <path
                   d={pathD}
                   fill="none"
                   stroke={link.color}
-                  strokeWidth={strokeWidth}
-                  strokeOpacity={isHovered ? 0.9 : 0.35}
-                  filter={isHovered ? 'url(#glow)' : undefined}
+                  strokeWidth="2.5"
+                  strokeOpacity="0.4"
                 />
                 <path
                   d={pathD}
                   fill="none"
                   stroke="#ffffff"
-                  strokeWidth={Math.max(1.5, strokeWidth * 0.6)}
-                  strokeOpacity={isHovered ? 0.9 : 0.6}
-                  strokeDasharray="6, 12"
+                  strokeWidth="1.5"
+                  strokeOpacity="0.8"
+                  strokeDasharray="4, 8"
                   className="graph-flow-line"
                 />
               </g>
             );
           })}
 
-          {/* Render Nodes */}
+          {/* Nodes */}
           {nodes.map(node => {
             const isHovered = hoveredNodeId === node.id;
-            const isDimmed = hoveredNodeId && !isHovered && !highlightedLinks.has(`center->${node.id}`) && !highlightedLinks.has(`${node.id}->center`);
 
             if (node.type === 'center') {
               return (
@@ -424,21 +466,26 @@ export default function CapitalFlowGraph({ results }: Props) {
                   onMouseEnter={() => setHoveredNodeId(node.id)}
                   onMouseLeave={() => setHoveredNodeId(null)}
                   onClick={() => handleNodeClick(node)}
-                  style={{ cursor: 'pointer', opacity: isDimmed ? 0.3 : 1, transition: 'all 0.3s ease' }}
+                  style={{ cursor: 'pointer' }}
                 >
-                  <circle r="44" fill="rgba(129, 140, 248, 0.15)" className="pulse-center" />
-                  <circle r="34" fill="var(--bg-tertiary)" stroke="var(--accent-indigo)" strokeWidth="3" filter="url(#glow)" />
-                  <text y="-6" textAnchor="middle" fill="#ffffff" style={{ fontSize: 12, fontWeight: 700, fontFamily: 'var(--font-sans)' }}>
+                  <circle r="36" fill="#000000" stroke="#ff5500" strokeWidth="3" />
+                  <text y="-4" textAnchor="middle" fill="#ffffff" style={{ fontSize: 11, fontWeight: 800 }}>
                     Your Wallet
                   </text>
-                  <text y="12" textAnchor="middle" fill="var(--accent-indigo)" style={{ fontSize: 10, fontWeight: 600, fontFamily: 'var(--font-mono)' }}>
+                  <text y="12" textAnchor="middle" fill="#ff5500" style={{ fontSize: 10, fontWeight: 700, fontFamily: 'monospace' }}>
                     {node.subLabel}
                   </text>
                 </g>
               );
             }
 
-            const nodeColor = getNodeColor(node);
+            const nodeBorder = node.isTopRecipient
+              ? '#ff5500'
+              : node.type === 'inflow'
+              ? '#059669'
+              : node.type === 'outflow'
+              ? '#f59e0b'
+              : '#3b82f6';
 
             return (
               <g
@@ -447,318 +494,182 @@ export default function CapitalFlowGraph({ results }: Props) {
                 onMouseEnter={() => setHoveredNodeId(node.id)}
                 onMouseLeave={() => setHoveredNodeId(null)}
                 onClick={() => handleNodeClick(node)}
-                style={{ cursor: 'pointer', opacity: isDimmed ? 0.25 : 1, transition: 'all 0.3s ease' }}
+                style={{ cursor: 'pointer' }}
               >
-                {/* Node Box */}
                 <rect
-                  x="-75"
-                  y="-22"
-                  width="150"
-                  height="44"
-                  rx="10"
-                  fill="var(--bg-secondary)"
-                  stroke={isHovered ? '#ffffff' : nodeColor}
-                  strokeWidth={isHovered ? 2 : 1.2}
-                  filter={isHovered ? 'url(#glow)' : undefined}
+                  x="-65"
+                  y="-18"
+                  width="130"
+                  height="36"
+                  fill="#11131a"
+                  stroke={isHovered ? '#ffffff' : nodeBorder}
+                  strokeWidth={node.isTopRecipient || isHovered ? 2 : 1}
                 />
-
-                {/* Node Dot */}
-                <circle cx="-58" cy="0" r="5" fill={nodeColor} />
-
-                {/* Node Title */}
-                <text x="-46" y="-3" fill="#ffffff" style={{ fontSize: 11, fontWeight: 600, fontFamily: 'var(--font-sans)' }}>
-                  {node.label.length > 14 ? node.label.slice(0, 13) + '…' : node.label}
+                <text x="0" y="-2" textAnchor="middle" fill="#ffffff" style={{ fontSize: 11, fontWeight: 700 }}>
+                  {node.label.length > 13 ? node.label.slice(0, 12) + '…' : node.label}
                 </text>
-
-                {/* Node Value */}
-                <text x="-46" y="12" fill={nodeColor} style={{ fontSize: 10, fontWeight: 700, fontFamily: 'var(--font-mono)' }}>
-                  {formatUSD(node.volumeUSD)} · {node.txCount} txs
+                <text x="0" y="11" textAnchor="middle" fill={nodeBorder} style={{ fontSize: 9, fontWeight: 700, fontFamily: 'monospace' }}>
+                  {node.isTopRecipient ? `★ TOP (${node.txCount} txs)` : `${formatUSD(node.volumeUSD)} · ${node.txCount} txs`}
                 </text>
               </g>
             );
           })}
         </svg>
 
-        {/* Hover Inspector Card with Clickable Explorer Action */}
+        {/* Hover Inspector Card */}
         {hoveredNode && (
-          <div style={styles.tooltipCard}>
-            <div style={styles.tooltipHeader}>
-              <span style={{ ...styles.tooltipDot, background: getNodeColor(hoveredNode) }} />
-              <span style={styles.tooltipTitle}>{hoveredNode.label}</span>
-              <span style={styles.tooltipBadge}>{hoveredNode.type.toUpperCase()}</span>
+          <div className="absolute bottom-4 right-4 bg-[#dedede] text-[#0a0a0a] p-4 shadow-2xl border border-[#cecece] min-w-[220px] space-y-2 z-10">
+            <div className="flex items-center justify-between">
+              <span className="font-extrabold text-sm text-[#0a0a0a]">{hoveredNode.label}</span>
+              <span className="text-[10px] font-bold px-2 py-0.5 bg-[#d0d0d0] uppercase">{hoveredNode.type}</span>
             </div>
-            <div style={styles.tooltipMetrics}>
-              {hoveredNode.address && (
-                <div>
-                  <span style={styles.tooltipLabel}>Address:</span>
-                  <span className="mono" style={{ ...styles.tooltipVal, fontSize: '0.74rem' }}>
-                    {truncAddr(hoveredNode.address)}
-                  </span>
-                </div>
-              )}
-              <div>
-                <span style={styles.tooltipLabel}>Total Volume:</span>
-                <span style={styles.tooltipVal}>{formatUSD(hoveredNode.volumeUSD)}</span>
+            <div className="text-xs space-y-1 font-mono">
+              <div className="flex justify-between text-[#555555]">
+                <span>Address:</span>
+                <span className="font-bold text-[#0a0a0a]">{truncAddr(hoveredNode.address)}</span>
               </div>
-              <div>
-                <span style={styles.tooltipLabel}>Transactions:</span>
-                <span style={styles.tooltipVal}>{hoveredNode.txCount} calls</span>
+              <div className="flex justify-between text-[#555555]">
+                <span>Volume:</span>
+                <span className="font-bold text-[#0a0a0a]">{formatUSD(hoveredNode.volumeUSD)}</span>
               </div>
-              {hoveredNode.category && (
-                <div>
-                  <span style={styles.tooltipLabel}>Category:</span>
-                  <span style={styles.tooltipVal}>{hoveredNode.category}</span>
-                </div>
-              )}
+              <div className="flex justify-between text-[#555555]">
+                <span>Transactions:</span>
+                <span className="font-bold text-[#ff5500]">{hoveredNode.txCount} calls</span>
+              </div>
             </div>
-
-            {/* Clickable Action */}
             {hoveredNode.address && (
               <button
                 type="button"
                 onClick={() => handleNodeClick(hoveredNode)}
-                style={styles.explorerBtn}
+                className="w-full mt-2 bg-black hover:bg-[#ff5500] text-white text-xs font-bold py-1.5 px-3 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
               >
                 <span>Open Block Explorer</span>
-                <ExternalLink size={13} />
+                <ExternalLink size={12} />
               </button>
             )}
           </div>
         )}
       </div>
 
+      {/* ── Ranked Counterparties Tables (Square Toned Gray Cards) ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-2">
+        
+        {/* Left: Top Outbound Wallets (You Sent To) */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-black text-[#0a0a0a] uppercase tracking-wider flex items-center gap-1.5">
+              <ArrowUpRight size={15} className="text-[#ff5500]" />
+              TOP RECIPIENT WALLETS (MOST SENT TO)
+            </span>
+            <span className="text-xs font-bold font-mono text-[#555555]">
+              {topOutboundWallets.length} EOA Wallets
+            </span>
+          </div>
+
+          <div className="border border-[#cecece] bg-[#dedede] overflow-hidden overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-[#d4d4d4] border-b border-[#cecece] text-[10px] font-extrabold text-[#555555] uppercase tracking-wider">
+                  <th className="py-2.5 px-3">#</th>
+                  <th className="py-2.5 px-3">RECIPIENT WALLET</th>
+                  <th className="py-2.5 px-3 text-right">TXS SENT</th>
+                  <th className="py-2.5 px-3 text-right">VOLUME</th>
+                  <th className="py-2.5 px-3 text-right">ACTION</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#cecece] text-xs font-bold text-[#0a0a0a]">
+                {topOutboundWallets.slice(0, 7).map((w, i) => (
+                  <tr key={w.address} className="hover:bg-[#d5d5d5] transition-colors">
+                    <td className="py-2.5 px-3 font-mono text-[#777777]">{i + 1}</td>
+                    <td className="py-2.5 px-3 font-mono">
+                      <div className="font-bold text-[#0a0a0a]">{w.label || truncAddr(w.address)}</div>
+                      {w.label && <div className="text-[10px] text-[#555555]">{truncAddr(w.address)}</div>}
+                    </td>
+                    <td className="py-2.5 px-3 text-right font-mono font-black text-[#ff5500]">
+                      {w.txCount} txs
+                    </td>
+                    <td className="py-2.5 px-3 text-right font-mono font-bold text-[#0a0a0a]">
+                      {formatUSD(w.volumeUSD)}
+                    </td>
+                    <td className="py-2.5 px-3 text-right">
+                      <button
+                        onClick={() => handleNodeClick(w)}
+                        className="text-[#555555] hover:text-black cursor-pointer"
+                        title="View on Explorer"
+                      >
+                        <ExternalLink size={13} className="ml-auto" />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Right: Top Inbound Wallets (Sent Funds to You) */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-black text-[#0a0a0a] uppercase tracking-wider flex items-center gap-1.5">
+              <ArrowDownLeft size={15} className="text-[#059669]" />
+              TOP FUNDING WALLETS (MOST RECEIVED FROM)
+            </span>
+            <span className="text-xs font-bold font-mono text-[#555555]">
+              {topInboundWallets.length} Senders
+            </span>
+          </div>
+
+          <div className="border border-[#cecece] bg-[#dedede] overflow-hidden overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-[#d4d4d4] border-b border-[#cecece] text-[10px] font-extrabold text-[#555555] uppercase tracking-wider">
+                  <th className="py-2.5 px-3">#</th>
+                  <th className="py-2.5 px-3">SENDER WALLET</th>
+                  <th className="py-2.5 px-3 text-right">TXS RECEIVED</th>
+                  <th className="py-2.5 px-3 text-right">VOLUME</th>
+                  <th className="py-2.5 px-3 text-right">ACTION</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#cecece] text-xs font-bold text-[#0a0a0a]">
+                {topInboundWallets.slice(0, 7).map((w, i) => (
+                  <tr key={w.address} className="hover:bg-[#d5d5d5] transition-colors">
+                    <td className="py-2.5 px-3 font-mono text-[#777777]">{i + 1}</td>
+                    <td className="py-2.5 px-3 font-mono">
+                      <div className="font-bold text-[#0a0a0a]">{w.label || truncAddr(w.address)}</div>
+                      {w.label && <div className="text-[10px] text-[#555555]">{truncAddr(w.address)}</div>}
+                    </td>
+                    <td className="py-2.5 px-3 text-right font-mono font-black text-[#059669]">
+                      {w.txCount} txs
+                    </td>
+                    <td className="py-2.5 px-3 text-right font-mono font-bold text-[#0a0a0a]">
+                      {formatUSD(w.volumeUSD)}
+                    </td>
+                    <td className="py-2.5 px-3 text-right">
+                      <button
+                        onClick={() => handleNodeClick(w)}
+                        className="text-[#555555] hover:text-black cursor-pointer"
+                        title="View on Explorer"
+                      >
+                        <ExternalLink size={13} className="ml-auto" />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
       <style jsx>{`
         @keyframes flowDash {
-          to {
-            stroke-dashoffset: -36;
-          }
+          to { stroke-dashoffset: -24; }
         }
         .graph-flow-line {
           animation: flowDash 1.2s linear infinite;
-        }
-        @keyframes pulseGlow {
-          0%, 100% { transform: scale(1); opacity: 0.2; }
-          50% { transform: scale(1.15); opacity: 0.4; }
-        }
-        .pulse-center {
-          animation: pulseGlow 2.5s ease-in-out infinite;
-          transform-origin: center;
         }
       `}</style>
     </div>
   );
 }
-
-function FlowMetric({ label, value, color }: { label: string; value: string; color: string }) {
-  return (
-    <div style={styles.flowMetricItem}>
-      <span style={styles.flowMetricLabel}>{label}</span>
-      <span style={{ ...styles.flowMetricValue, color }}>{value}</span>
-    </div>
-  );
-}
-
-function getNodeColor(node: GraphNode): string {
-  if (node.type === 'inflow') return 'var(--accent-emerald)';
-  if (node.type === 'outflow') return 'var(--accent-amber)';
-  if (node.type === 'protocol') return getCategoryColor(node.category || '');
-  return 'var(--accent-indigo)';
-}
-
-function getCategoryColor(cat: string): string {
-  switch (cat) {
-    case 'swap': return 'var(--accent-blue)';
-    case 'bridge': return 'var(--accent-purple)';
-    case 'lending': return 'var(--accent-emerald)';
-    case 'perps': return '#f97316';
-    case 'staking': return 'var(--accent-amber)';
-    case 'nft': return '#ec4899';
-    default: return 'var(--accent-indigo)';
-  }
-}
-
-const styles: Record<string, React.CSSProperties> = {
-  container: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 'var(--space-md)',
-  },
-  headerCard: {
-    padding: 'var(--space-lg)',
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    flexWrap: 'wrap' as const,
-    gap: 'var(--space-md)',
-  },
-  headerLeft: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 'var(--space-md)',
-    maxWidth: 500,
-  },
-  headerIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 'var(--radius-md)',
-    background: 'var(--accent-indigo-dim)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
-  },
-  headerTitle: {
-    fontSize: '1.1rem',
-    fontWeight: 700,
-    color: 'var(--text-primary)',
-    marginBottom: 2,
-  },
-  headerDesc: {
-    fontSize: '0.8rem',
-    color: 'var(--text-secondary)',
-    lineHeight: 1.4,
-  },
-  flowMetrics: {
-    display: 'flex',
-    gap: 'var(--space-lg)',
-    flexWrap: 'wrap' as const,
-  },
-  flowMetricItem: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 2,
-  },
-  flowMetricLabel: {
-    fontSize: '0.72rem',
-    color: 'var(--text-tertiary)',
-    textTransform: 'uppercase' as const,
-    letterSpacing: '0.05em',
-    fontWeight: 500,
-  },
-  flowMetricValue: {
-    fontSize: '1.25rem',
-    fontWeight: 700,
-    fontFamily: 'var(--font-mono)',
-  },
-  controlsRow: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    gap: 'var(--space-md)',
-    flexWrap: 'wrap' as const,
-  },
-  filterGroup: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 'var(--space-xs)',
-    flexWrap: 'wrap' as const,
-  },
-  filterLabel: {
-    fontSize: '0.75rem',
-    color: 'var(--text-tertiary)',
-    display: 'flex',
-    alignItems: 'center',
-    gap: 4,
-    marginRight: 4,
-  },
-  filterBtn: {
-    padding: '4px 12px',
-    borderRadius: 'var(--radius-full)',
-    border: '1px solid var(--border-primary)',
-    fontSize: '0.75rem',
-    fontWeight: 500,
-    cursor: 'pointer',
-    transition: 'all var(--transition-fast)',
-    fontFamily: 'var(--font-sans)',
-  },
-  canvasCard: {
-    padding: 'var(--space-md)',
-    position: 'relative' as const,
-    overflow: 'hidden' as const,
-    borderRadius: 'var(--radius-lg)',
-    background: 'radial-gradient(ellipse at center, rgba(30, 41, 59, 0.5) 0%, rgba(15, 23, 42, 0.9) 100%)',
-  },
-  svgCanvas: {
-    width: '100%',
-    height: 'auto',
-    maxHeight: 560,
-    display: 'block',
-  },
-  colHeader: {
-    fill: 'var(--text-tertiary)',
-    fontSize: 10,
-    fontWeight: 700,
-    letterSpacing: '0.08em',
-    fontFamily: 'var(--font-sans)',
-  },
-  tooltipCard: {
-    position: 'absolute' as const,
-    bottom: 20,
-    right: 20,
-    background: 'var(--bg-secondary)',
-    border: '1px solid var(--border-secondary)',
-    borderRadius: 'var(--radius-md)',
-    padding: '14px 16px',
-    boxShadow: '0 8px 30px rgba(0, 0, 0, 0.6)',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 10,
-    minWidth: 230,
-    zIndex: 10,
-  },
-  tooltipHeader: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 6,
-  },
-  tooltipDot: {
-    width: 8,
-    height: 8,
-    borderRadius: '50%',
-  },
-  tooltipTitle: {
-    fontSize: '0.85rem',
-    fontWeight: 700,
-    color: 'var(--text-primary)',
-    flex: 1,
-  },
-  tooltipBadge: {
-    fontSize: '0.68rem',
-    padding: '2px 6px',
-    borderRadius: 'var(--radius-full)',
-    background: 'var(--bg-tertiary)',
-    color: 'var(--text-tertiary)',
-    fontWeight: 600,
-  },
-  tooltipMetrics: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 4,
-    fontSize: '0.78rem',
-  },
-  tooltipLabel: {
-    color: 'var(--text-tertiary)',
-    marginRight: 6,
-  },
-  tooltipVal: {
-    fontWeight: 600,
-    color: 'var(--text-primary)',
-    fontFamily: 'var(--font-mono)',
-  },
-  explorerBtn: {
-    marginTop: 4,
-    padding: '6px 12px',
-    background: 'var(--accent-indigo-dim)',
-    border: '1px solid var(--accent-indigo)',
-    borderRadius: 'var(--radius-sm)',
-    color: 'var(--accent-indigo)',
-    fontSize: '0.78rem',
-    fontWeight: 600,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    cursor: 'pointer',
-    transition: 'all var(--transition-fast)',
-  },
-};

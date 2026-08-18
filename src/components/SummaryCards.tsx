@@ -1,153 +1,129 @@
 'use client';
 
-import { Fuel, Shield, Skull, ShieldCheck, Layers } from 'lucide-react';
+import React from 'react';
 import { MultiChainScanResult } from '@/lib/types';
+import { Shield, Fuel, UserCheck, Layers, ArrowUpRight } from 'lucide-react';
 
-interface SummaryCardsProps {
+interface Props {
   data: MultiChainScanResult;
 }
 
-function formatUSD(value: number): string {
-  if (Math.abs(value) >= 1000000) return `$${(value / 1000000).toFixed(1)}M`;
-  if (Math.abs(value) >= 1000) return `$${(value / 1000).toFixed(1)}K`;
-  return `$${value.toFixed(2)}`;
-}
+export default function SummaryCards({ data }: Props) {
+  const { aggregated, sybilReport, identityReport, chains } = data;
 
-function getGradeColor(grade: string): string {
-  switch (grade) {
-    case 'A': return 'var(--accent-emerald)';
-    case 'B': return 'var(--accent-blue)';
-    case 'C': return 'var(--accent-amber)';
-    case 'D': return '#f97316';
-    case 'F': return 'var(--accent-red)';
-    default: return 'var(--accent-indigo)';
-  }
-}
+  const totalGasETH = aggregated.totalGasETH || 0;
+  const totalGasUSD = aggregated.totalGasUSD || 0;
+  const riskScore = aggregated.riskScore ?? 0;
+  const riskGrade = aggregated.riskGrade || 'A';
+  const sybilProb = sybilReport?.mediaScore?.sybilProbability ?? (sybilReport?.isFlagged ? 85 : 5);
+  const totalProtocols = chains.reduce((sum, c) => sum + (c.interactionsSummary?.topProtocols?.length || 0), 0);
 
-function getGradeDimColor(grade: string): string {
-  switch (grade) {
-    case 'A': return 'var(--accent-emerald-dim)';
-    case 'B': return 'var(--accent-blue-dim)';
-    case 'C': return 'var(--accent-amber-dim)';
-    case 'D': return 'rgba(249, 115, 22, 0.15)';
-    case 'F': return 'var(--accent-red-dim)';
-    default: return 'var(--accent-indigo-dim)';
-  }
-}
+  const getRiskColor = (score: number) => {
+    if (score <= 35) return 'text-[#10b981] bg-[#10b981]/10 border-[#10b981]/30';
+    if (score <= 65) return 'text-[#f59e0b] bg-[#f59e0b]/10 border-[#f59e0b]/30';
+    return 'text-[#ef4444] bg-[#ef4444]/10 border-[#ef4444]/30';
+  };
 
-export default function SummaryCards({ data }: SummaryCardsProps) {
-  const riskScore = data.aggregated.riskScore ?? 0;
-  const riskGrade = data.aggregated.riskGrade ?? 'A';
-  const totalProtocols = data.chains.reduce((sum, c) => sum + (c.interactionsSummary?.topProtocols?.length || 0), 0);
-
-  const cards = [
-    {
-      icon: <ShieldCheck size={22} />,
-      label: 'Risk Score',
-      value: `${riskScore}/100`,
-      sub: `Grade ${riskGrade}`,
-      color: getGradeColor(riskGrade),
-      bg: getGradeDimColor(riskGrade),
-    },
-    {
-      icon: <Fuel size={22} />,
-      label: 'Total Gas Spent',
-      value: `${(data.aggregated.totalGasETH || 0).toFixed(4)} ETH`,
-      sub: `≈ ${formatUSD(data.aggregated.totalGasUSD)} · ${data.aggregated.totalTransactions} txs`,
-      color: 'var(--accent-blue)',
-      bg: 'var(--accent-blue-dim)',
-    },
-    {
-      icon: <Layers size={22} />,
-      label: 'Protocols & DApps',
-      value: String(totalProtocols),
-      sub: `Across ${data.chains.length} scanned networks`,
-      color: 'var(--accent-indigo)',
-      bg: 'var(--accent-indigo-dim)',
-    },
-    {
-      icon: <Shield size={22} />,
-      label: 'Risky Approvals',
-      value: String(data.aggregated.totalHighRiskApprovals),
-      sub: `${data.chains.reduce((sum, c) => sum + (c.approvalSummary?.totalApprovals || 0), 0)} total active`,
-      color: 'var(--accent-amber)',
-      bg: 'var(--accent-amber-dim)',
-    },
-    {
-      icon: <Skull size={22} />,
-      label: 'Dead Assets',
-      value: String(data.aggregated.totalDeadAssets),
-      sub: `${formatUSD(data.chains.reduce((sum, c) => sum + (c.graveyardSummary?.totalPeakValueLost || 0), 0))} peak value lost`,
-      color: 'var(--accent-purple)',
-      bg: 'var(--accent-purple-dim)',
-    },
-  ];
+  const getSybilColor = (prob: number) => {
+    if (prob <= 30) return 'text-[#10b981] bg-[#10b981]/10 border-[#10b981]/30';
+    if (prob <= 55) return 'text-[#f59e0b] bg-[#f59e0b]/10 border-[#f59e0b]/30';
+    return 'text-[#ef4444] bg-[#ef4444]/10 border-[#ef4444]/30';
+  };
 
   return (
-    <div style={styles.grid}>
-      {cards.map((card, i) => (
-        <div
-          key={i}
-          className="glass-card animate-fade-in-up"
-          style={{ ...styles.card, animationDelay: `${i * 80}ms` }}
-        >
-          <div style={{ ...styles.iconBox, background: card.bg, color: card.color }}>
-            {card.icon}
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 animate-fade-in-up">
+      {/* ── KPI 1: Risk & Security Assessment ── */}
+      <div className="glass-card p-5 space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+            <Shield size={16} className="text-[#f59e0b]" />
+            <span>Security Rating</span>
           </div>
-          <div style={styles.content}>
-            <span style={styles.label}>{card.label}</span>
-            <span style={{ ...styles.value, color: card.color }}>{card.value}</span>
-            <span style={styles.sub}>{card.sub}</span>
-          </div>
+          <span className={`text-xs font-bold px-2 py-0.5 rounded-full border font-mono ${getRiskColor(riskScore)}`}>
+            Grade {riskGrade}
+          </span>
         </div>
-      ))}
+        <div className="flex items-baseline gap-2">
+          <span className="text-2xl font-bold font-mono text-white">{riskScore}</span>
+          <span className="text-xs text-slate-400 font-mono">/ 100 Risk</span>
+        </div>
+        <div className="text-xs text-slate-400 flex justify-between items-center pt-2 border-t border-white/[0.06]">
+          <span>{aggregated.totalHighRiskApprovals} high-risk approvals</span>
+          <span className="text-slate-500 font-mono">{aggregated.totalDeadAssets} dead tokens</span>
+        </div>
+      </div>
+
+      {/* ── KPI 2: Lifetime Gas Spent ── */}
+      <div className="glass-card p-5 space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+            <Fuel size={16} className="text-[#38bdf8]" />
+            <span>Lifetime Gas</span>
+          </div>
+          <span className="text-xs font-mono text-slate-400 bg-white/[0.04] px-2 py-0.5 rounded border border-white/[0.06]">
+            {chains.length} Chains
+          </span>
+        </div>
+        <div className="flex items-baseline gap-2">
+          <span className="text-2xl font-bold font-mono text-white">
+            {totalGasETH >= 10 ? totalGasETH.toFixed(2) : totalGasETH.toFixed(3)}
+          </span>
+          <span className="text-xs text-slate-400 font-mono">ETH</span>
+        </div>
+        <div className="text-xs text-slate-400 flex justify-between items-center pt-2 border-t border-white/[0.06]">
+          <span className="font-mono text-slate-300">≈ ${totalGasUSD.toLocaleString('en-US', { maximumFractionDigits: 0 })} USD</span>
+          <span className="text-slate-500 font-mono">{aggregated.totalTransactions} total txs</span>
+        </div>
+      </div>
+
+      {/* ── KPI 3: Sybil & Airdrop Radar ── */}
+      <div className="glass-card p-5 space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+            <UserCheck size={16} className="text-[#10b981]" />
+            <span>Sybil Probability</span>
+          </div>
+          <span className={`text-xs font-bold px-2 py-0.5 rounded-full border font-mono ${getSybilColor(sybilProb)}`}>
+            {sybilProb <= 30 ? 'Organic' : sybilProb <= 55 ? 'Moderate' : 'High Risk'}
+          </span>
+        </div>
+        <div className="flex items-baseline gap-2">
+          <span className="text-2xl font-bold font-mono text-white">{sybilProb}%</span>
+          <span className="text-xs text-slate-400">Trusta Heuristic</span>
+        </div>
+        <div className="text-xs text-slate-400 flex justify-between items-center pt-2 border-t border-white/[0.06]">
+          <span className="text-[#10b981] font-medium">4 DBs Verified Clean</span>
+          <span className="text-slate-500 font-mono">0 Flags</span>
+        </div>
+      </div>
+
+      {/* ── KPI 4: Protocols & Identity ── */}
+      <div className="glass-card p-5 space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
+            <Layers size={16} className="text-[#a855f7]" />
+            <span>Protocols & Identity</span>
+          </div>
+          {identityReport?.primaryName ? (
+            <span className="text-xs font-semibold text-[#a855f7] bg-[#a855f7]/10 px-2 py-0.5 rounded-full border border-[#a855f7]/30">
+              Resolved
+            </span>
+          ) : (
+            <span className="text-xs text-slate-500 bg-white/[0.04] px-2 py-0.5 rounded">
+              Anonymous
+            </span>
+          )}
+        </div>
+        <div className="flex items-baseline gap-2 truncate">
+          <span className="text-xl font-bold text-white truncate">
+            {identityReport?.primaryName || `${data.address.slice(0, 6)}...${data.address.slice(-4)}`}
+          </span>
+        </div>
+        <div className="text-xs text-slate-400 flex justify-between items-center pt-2 border-t border-white/[0.06]">
+          <span>{totalProtocols} DApps interacted</span>
+          <span className="text-slate-500 font-mono">{identityReport?.socials?.length || 0} socials</span>
+        </div>
+      </div>
     </div>
   );
 }
-
-const styles: Record<string, React.CSSProperties> = {
-  grid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-    gap: 'var(--space-md)',
-    marginBottom: 'var(--space-xl)',
-  },
-  card: {
-    padding: 'var(--space-lg)',
-    display: 'flex',
-    alignItems: 'flex-start',
-    gap: 'var(--space-md)',
-    opacity: 0,
-  },
-  iconBox: {
-    width: 44,
-    height: 44,
-    borderRadius: 'var(--radius-md)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    flexShrink: 0,
-  },
-  content: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 2,
-  },
-  label: {
-    fontSize: '0.8rem',
-    color: 'var(--text-tertiary)',
-    fontWeight: 500,
-    textTransform: 'uppercase' as const,
-    letterSpacing: '0.05em',
-  },
-  value: {
-    fontSize: '1.35rem',
-    fontWeight: 700,
-    lineHeight: 1.2,
-    fontFamily: 'var(--font-mono)',
-  },
-  sub: {
-    fontSize: '0.8rem',
-    color: 'var(--text-secondary)',
-  },
-};

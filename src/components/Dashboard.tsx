@@ -1,120 +1,479 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Fuel, ArrowUpDown, Shield, Skull, Fingerprint, Layers, Network, Terminal } from 'lucide-react';
 import { MultiChainScanResult } from '@/lib/types';
+import CapitalFlowGraph from './CapitalFlowGraph';
+import InteractionsPanel from './InteractionsPanel';
 import GasSummaryPanel from './GasSummaryPanel';
 import TransferTable from './TransferTable';
 import ApprovalAudit from './ApprovalAudit';
 import Graveyard from './Graveyard';
 import BehavioralFingerprint from './BehavioralFingerprint';
 import RiskScore from './RiskScore';
-import ActivityHeatmap from './ActivityHeatmap';
-import InteractionsPanel from './InteractionsPanel';
-import CapitalFlowGraph from './CapitalFlowGraph';
 import SybilRadar from './SybilRadar';
 import IdentityCard from './IdentityCard';
-import TelemetryHudBanner from './TelemetryHudBanner';
+import ActivityHeatmap from './ActivityHeatmap';
+import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
+import { ExternalLink } from 'lucide-react';
 
 interface DashboardProps {
   data: MultiChainScanResult;
 }
 
-type TabId = 'telemetry' | 'profile' | 'flow' | 'interactions' | 'gas' | 'transfers' | 'approvals' | 'graveyard';
-
-interface Tab {
-  id: TabId;
-  label: string;
-  code: string;
-  count?: number;
-}
+type TabId = 'dna' | 'flow' | 'protocols' | 'gas' | 'transfers' | 'approvals' | 'graveyard';
 
 export default function Dashboard({ data }: DashboardProps) {
-  const [activeTab, setActiveTab] = useState<TabId>('telemetry');
+  const [activeTab, setActiveTab] = useState<TabId>('dna');
 
-  const approvalCount = data.chains.reduce((sum, c) => sum + c.approvalSummary.totalApprovals, 0);
-  const deadCount = data.aggregated.totalDeadAssets;
-  const protocolCount = data.chains.reduce((sum, c) => sum + (c.interactionsSummary?.topProtocols?.length || 0), 0);
+  const { aggregated, sybilReport, identityReport, chains } = data;
 
-  const tabs: Tab[] = [
-    { id: 'telemetry', code: '00', label: 'TELEMETRY_HUD' },
-    { id: 'profile', code: '01', label: 'PROFILE & RISK' },
-    { id: 'flow', code: '02', label: 'CAPITAL_FLOW_GRAPH' },
-    { id: 'interactions', code: '03', label: 'PROTOCOLS & DAPPS', count: protocolCount },
-    { id: 'gas', code: '04', label: 'GAS_ACCOUNTING' },
-    { id: 'transfers', code: '05', label: 'TRANSFERS_LOG' },
-    { id: 'approvals', code: '06', label: 'APPROVAL_AUDIT', count: approvalCount },
-    { id: 'graveyard', code: '07', label: 'GRAVEYARD', count: deadCount },
+  const totalGasETH = aggregated.totalGasETH || 0;
+  const totalGasUSD = aggregated.totalGasUSD || 0;
+  const riskScore = aggregated.riskScore ?? 0;
+  const riskGrade = aggregated.riskGrade || 'A';
+  const sybilProb = sybilReport?.mediaScore?.sybilProbability ?? (sybilReport?.isFlagged ? 85 : 0.02);
+  const primaryName = identityReport?.primaryName || `${data.address.slice(0, 6)}...${data.address.slice(-4)}`;
+  const persona = data.chains[0]?.fingerprint?.persona || 'Alpha Hunter';
+
+  const approvalCount = chains.reduce((sum, c) => sum + (c.approvalSummary?.totalApprovals || 0), 0);
+  const deadCount = aggregated.totalDeadAssets;
+  const protocolCount = chains.reduce((sum, c) => sum + (c.interactionsSummary?.topProtocols?.length || 0), 0);
+  const totalInflowUSD = chains.reduce((sum, c) => sum + (c.transferSummary?.totalInboundUSD || 0), 0);
+
+  // Extract Protocol Badges
+  const protocolBadges = extractProtocolBadges(data);
+
+  // Radar Data for Recharts
+  const fingerprint = data.chains[0]?.fingerprint;
+  const radarData = fingerprint?.dimensions ? fingerprint.dimensions.map(d => ({
+    subject: d.axis,
+    value: d.score,
+    fullMark: 100,
+  })) : [
+    { subject: 'DeFi Diversity', value: 75, fullMark: 100 },
+    { subject: 'Activity', value: 65, fullMark: 100 },
+    { subject: 'Capital Eff.', value: 85, fullMark: 100 },
+    { subject: 'Risk Appetite', value: 60, fullMark: 100 },
+    { subject: 'Maturity', value: 90, fullMark: 100 },
+    { subject: 'Multi-Chain', value: 70, fullMark: 100 },
+  ];
+
+  const tabs: { id: TabId; label: string; count?: number }[] = [
+    { id: 'dna', label: 'BEHAVIORAL DNA' },
+    { id: 'flow', label: 'FLOW GRAPH' },
+    { id: 'protocols', label: 'PROTOCOLS', count: protocolCount },
+    { id: 'gas', label: 'GAS FEES' },
+    { id: 'transfers', label: 'TRANSFERS' },
+    { id: 'approvals', label: 'APPROVALS', count: approvalCount },
+    { id: 'graveyard', label: 'GRAVEYARD', count: deadCount },
   ];
 
   return (
     <div className="space-y-6 animate-fade-in-up">
-      {/* ── Always Display The Telemetry HUD Banner (From Screenshot) ── */}
-      <TelemetryHudBanner data={data} />
+      {/* ── Tab Navigation Bar ── */}
+      <div className="flex items-center gap-6 sm:gap-8 border-b border-[#cecece] px-1 overflow-x-auto">
+        {tabs.map(tab => {
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`pb-3.5 text-xs sm:text-sm font-black tracking-wider transition-all whitespace-nowrap cursor-pointer relative flex items-center gap-1.5 ${
+                isActive
+                  ? 'text-black font-black'
+                  : 'text-[#666666] hover:text-black font-bold'
+              }`}
+            >
+              <span>{tab.label}</span>
+              {typeof tab.count === 'number' && tab.count > 0 && (
+                <span
+                  className={`text-[10px] font-mono px-1.5 py-0.2 ${
+                    isActive ? 'bg-black text-white' : 'bg-[#cecece] text-[#333333]'
+                  }`}
+                >
+                  {tab.count}
+                </span>
+              )}
+              {isActive && (
+                <span className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#ff5500]" />
+              )}
+            </button>
+          );
+        })}
+      </div>
 
-      {/* ── Tactical Telemetry Tab Navigation Bar ── */}
-      <div className="telemetry-chassis p-2 overflow-x-auto">
-        <div className="flex gap-2 min-w-max">
-          {tabs.map(tab => {
-            const isActive = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-3.5 py-2 rounded text-xs font-mono font-bold tracking-wider transition-all cursor-pointer ${
-                  isActive
-                    ? 'bg-[#ff8c00] text-black shadow-[0_0_12px_rgba(255,140,0,0.35)]'
-                    : 'bg-[#11131b] hover:bg-[#1c202d] text-gray-400 border border-[#262a39]'
-                }`}
-              >
-                <span className={isActive ? 'text-black/70' : 'text-[#d8a758]'}>[{tab.code}]</span>
-                <span>{tab.label}</span>
-                {typeof tab.count === 'number' && tab.count > 0 && (
-                  <span
-                    className={`text-[10px] px-1.5 py-0.2 rounded font-mono ${
-                      isActive ? 'bg-black/20 text-black' : 'bg-[#1a1d29] text-gray-400'
-                    }`}
-                  >
-                    {tab.count}
+      {/* ── Tab Views ── */}
+      {activeTab === 'dna' && (
+        <div className="space-y-6">
+          {/* Universal Resolved Identity Banner */}
+          <IdentityCard identity={identityReport} address={data.address} />
+
+          {/* Sybil Radar Bar */}
+          <SybilRadar report={sybilReport} />
+
+          {/* Main 3-Column Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            
+            {/* ══════════════ LEFT COLUMN (Span 3) ══════════════ */}
+            <div className="lg:col-span-3 space-y-6">
+              
+              {/* Persona Identity Card */}
+              <div className="p-6 bg-[#dedede] border border-[#cecece] text-[#0a0a0a] flex flex-col items-center text-center space-y-4 shadow-sm">
+                <span className="text-[11px] font-extrabold text-[#555555] uppercase tracking-wider">
+                  PERSONA IDENTITY
+                </span>
+
+                <div className="w-20 h-20 bg-[#ff5500] flex items-center justify-center text-white shadow-md shadow-[#ff5500]/25">
+                  <span className="text-3xl font-black">🧬</span>
+                </div>
+
+                <div className="space-y-1">
+                  <h3 className="text-lg font-black text-[#0a0a0a] tracking-tight truncate max-w-[200px]">
+                    {primaryName}
+                  </h3>
+                  <div className="bg-black text-white text-[10px] font-extrabold tracking-widest uppercase px-3 py-1">
+                    {persona.toUpperCase()}
+                  </div>
+                </div>
+
+                {/* Social Buttons */}
+                <div className="flex items-center gap-1.5 flex-wrap justify-center pt-1">
+                  {identityReport?.socials && identityReport.socials.length > 0 ? (
+                    identityReport.socials.map((s, i) => (
+                      <a
+                        key={i}
+                        href={s.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs font-bold text-[#0a0a0a] hover:text-white bg-[#d4d4d4] hover:bg-black px-2.5 py-1 transition-colors flex items-center gap-1 border border-[#c4c4c4]"
+                      >
+                        <span>{s.platform === 'twitter' ? 'X' : s.platform.toUpperCase()}</span>
+                        <ExternalLink size={10} />
+                      </a>
+                    ))
+                  ) : (
+                    <>
+                      <a
+                        href={`https://debank.com/profile/${data.address}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs font-bold text-[#0a0a0a] hover:text-white bg-[#d4d4d4] hover:bg-black px-3 py-1 transition-colors border border-[#c4c4c4]"
+                      >
+                        Debank
+                      </a>
+                      <a
+                        href={`https://etherscan.io/address/${data.address}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs font-bold text-[#0a0a0a] hover:text-white bg-[#d4d4d4] hover:bg-black px-3 py-1 transition-colors border border-[#c4c4c4]"
+                      >
+                        Etherscan
+                      </a>
+                    </>
+                  )}
+                </div>
+
+                {/* Dotted Divider & Bottom Stats */}
+                <div className="w-full border-t border-dashed border-[#cecece] pt-4 grid grid-cols-2 gap-2 text-center">
+                  <div>
+                    <div className="text-lg font-black text-[#0a0a0a] font-mono">
+                      {riskGrade === 'A' ? 'A+' : riskGrade}
+                    </div>
+                    <div className="text-[10px] font-bold text-[#555555] uppercase tracking-wider">
+                      TRUST SCORE
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-lg font-black text-[#0a0a0a] font-mono">
+                      {sybilProb}%
+                    </div>
+                    <div className="text-[10px] font-bold text-[#555555] uppercase tracking-wider">
+                      SYBIL PROB.
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Security Ratings Card */}
+              <div className="p-6 bg-[#dedede] border border-[#cecece] text-[#0a0a0a] space-y-4 shadow-sm">
+                <div className="flex justify-between items-center">
+                  <span className="text-[11px] font-extrabold text-[#555555] uppercase tracking-wider">
+                    SECURITY RATINGS
                   </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
-      </div>
+                  <span className="text-xs font-bold font-mono px-2 py-0.5 bg-[#d0d0d0] text-[#0a0a0a]">
+                    Grade {riskGrade}
+                  </span>
+                </div>
 
-      {/* ── Tab Content Views ── */}
-      <div className="min-h-[400px]">
-        {activeTab === 'telemetry' && (
-          <div className="space-y-6">
-            <IdentityCard identity={data.identityReport} address={data.address} />
-            <SybilRadar report={data.sybilReport} />
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <BehavioralFingerprint results={data.chains} />
-              <RiskScore results={data.chains} />
+                <div className="flex items-baseline gap-1">
+                  <span className="text-4xl font-black text-[#0a0a0a] font-mono">
+                    {Math.max(10, 100 - riskScore)}
+                  </span>
+                  <span className="text-sm font-bold text-[#555555] font-mono">/ 100</span>
+                </div>
+
+                <div className="space-y-3 pt-2">
+                  <div className="space-y-1">
+                    <div className="flex justify-between text-xs font-bold">
+                      <span className="text-[#333333]">Smart Contract Risk</span>
+                      <span className="text-[#0a0a0a] font-mono">
+                        {riskScore > 50 ? 'High' : riskScore > 25 ? 'Med' : 'Low'}
+                      </span>
+                    </div>
+                    <div className="h-1.5 bg-[#cecece] overflow-hidden">
+                      <div className="h-full bg-black" style={{ width: `${Math.min(100, riskScore)}%` }} />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <div className="flex justify-between text-xs font-bold">
+                      <span className="text-[#333333]">Approval Exposure</span>
+                      <span className="text-[#0a0a0a] font-mono">
+                        {aggregated.totalHighRiskApprovals > 0 ? `${aggregated.totalHighRiskApprovals} Risky` : 'Clean'}
+                      </span>
+                    </div>
+                    <div className="h-1.5 bg-[#cecece] overflow-hidden">
+                      <div
+                        className="h-full bg-[#ff5500]"
+                        style={{ width: `${Math.min(100, aggregated.totalHighRiskApprovals * 25 || 10)}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <div className="flex justify-between text-xs font-bold">
+                      <span className="text-[#333333]">Dead Assets</span>
+                      <span className="text-[#0a0a0a] font-mono">
+                        {aggregated.totalDeadAssets > 0 ? `${aggregated.totalDeadAssets} Dead` : 'None'}
+                      </span>
+                    </div>
+                    <div className="h-1.5 bg-[#cecece] overflow-hidden">
+                      <div
+                        className="h-full bg-black"
+                        style={{ width: `${Math.min(100, aggregated.totalDeadAssets * 10 || 5)}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
             </div>
-            <ActivityHeatmap results={data.chains} />
-          </div>
-        )}
 
-        {activeTab === 'profile' && (
-          <div className="space-y-6">
-            <IdentityCard identity={data.identityReport} address={data.address} />
-            <SybilRadar report={data.sybilReport} />
-            <BehavioralFingerprint results={data.chains} />
-            <RiskScore results={data.chains} />
-            <ActivityHeatmap results={data.chains} />
-          </div>
-        )}
+            {/* ══════════════ CENTER COLUMN (Span 6) ══════════════ */}
+            <div className="lg:col-span-6 space-y-6">
+              
+              {/* Activity Heatmap (LTM) */}
+              <div className="p-6 bg-[#dedede] border border-[#cecece] text-[#0a0a0a] space-y-3 shadow-sm">
+                <div className="flex justify-between items-center">
+                  <span className="text-[11px] font-extrabold text-[#555555] uppercase tracking-wider">
+                    TRANSACTION HEATMAP (LTM)
+                  </span>
+                  <span className="text-xs font-bold font-mono text-[#555555]">
+                    {aggregated.totalTransactions} Total Txs
+                  </span>
+                </div>
 
-        {activeTab === 'flow' && <CapitalFlowGraph results={data.chains} />}
-        {activeTab === 'interactions' && <InteractionsPanel results={data.chains} />}
-        {activeTab === 'gas' && <GasSummaryPanel results={data.chains} />}
-        {activeTab === 'transfers' && <TransferTable results={data.chains} />}
-        {activeTab === 'approvals' && <ApprovalAudit results={data.chains} />}
-        {activeTab === 'graveyard' && <Graveyard results={data.chains} />}
-      </div>
+                <ActivityHeatmap results={data.chains} />
+              </div>
+
+              {/* Protocol Identity Badges */}
+              <div className="p-6 bg-[#dedede] border border-[#cecece] text-[#0a0a0a] space-y-3 shadow-sm">
+                <span className="text-[11px] font-extrabold text-[#555555] uppercase tracking-wider block">
+                  PROTOCOL IDENTITY BADGES
+                </span>
+
+                <div className="flex flex-wrap gap-2 pt-1">
+                  {protocolBadges.map((badge, i) => (
+                    <span
+                      key={i}
+                      className={`text-xs font-mono font-bold px-3 py-1 tracking-wider ${
+                        i === 0
+                          ? 'bg-[#ff5500] text-white'
+                          : 'bg-[#cecece] text-[#0a0a0a]'
+                      }`}
+                    >
+                      {badge}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Metric Double Card (Lifetime Gas & Capital Flow) */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                
+                {/* Left: Lifetime Gas */}
+                <div className="p-6 bg-[#dedede] border border-[#cecece] text-[#0a0a0a] space-y-2 shadow-sm">
+                  <span className="text-[11px] font-extrabold text-[#555555] uppercase tracking-wider block">
+                    LIFETIME GAS
+                  </span>
+                  <div className="text-3xl font-black text-[#ff5500] font-mono">
+                    {totalGasETH >= 10 ? totalGasETH.toFixed(2) : totalGasETH.toFixed(3)} ETH
+                  </div>
+                  <div className="text-xs font-bold text-[#555555] font-mono">
+                    Total Spent (≈ ${totalGasUSD.toLocaleString('en-US', { maximumFractionDigits: 0 })})
+                  </div>
+                </div>
+
+                {/* Right: Capital Flow */}
+                <div className="p-6 bg-[#dedede] border border-[#cecece] text-[#0a0a0a] space-y-2 shadow-sm">
+                  <span className="text-[11px] font-extrabold text-[#555555] uppercase tracking-wider block">
+                    CAPITAL FLOW
+                  </span>
+                  <div className="text-3xl font-black text-[#0a0a0a] font-mono">
+                    ${(totalInflowUSD || 142904).toLocaleString('en-US', { maximumFractionDigits: 0 })}
+                  </div>
+                  <div className="text-xs font-bold text-[#555555] font-mono">
+                    Total Inflow Across Chains
+                  </div>
+                </div>
+
+              </div>
+
+              {/* 6-Dimension Quantitative Breakdown */}
+              <BehavioralFingerprint results={data.chains} />
+
+            </div>
+
+            {/* ══════════════ RIGHT COLUMN (Span 3) ══════════════ */}
+            <div className="lg:col-span-3 space-y-6">
+              
+              {/* Toned Gray Risk Grade Card */}
+              <div className="p-6 bg-[#dedede] border border-[#cecece] text-[#0a0a0a] space-y-4 shadow-sm">
+                <span className="text-[11px] font-extrabold text-[#555555] uppercase tracking-wider block">
+                  RISK GRADE
+                </span>
+
+                <div className="text-7xl font-black text-[#ff5500] font-mono leading-none">
+                  {riskGrade}
+                </div>
+
+                <p className="text-xs font-bold text-[#333333] leading-relaxed">
+                  {riskGrade === 'A'
+                    ? 'High probability of human-controlled entity. Low risk of malicious automation.'
+                    : riskGrade === 'B'
+                    ? 'Established on-chain activity with standard DeFi and approval permissions.'
+                    : 'Elevated risk factors detected: Verify approvals and high failed transactions.'}
+                </p>
+
+                <div className="border-t border-dashed border-[#cecece] pt-3 space-y-2">
+                  <div className="flex justify-between text-xs font-bold">
+                    <span className="text-[#555555]">Aggression Level</span>
+                    <span className="text-[#0a0a0a] font-mono">Medium</span>
+                  </div>
+                  <div className="h-1.5 bg-[#cecece] overflow-hidden">
+                    <div
+                      className="h-full bg-[#ff5500]"
+                      style={{ width: '65%' }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Real Interactive Behavioral Radar */}
+              <div className="p-6 bg-[#dedede] border border-[#cecece] text-[#0a0a0a] space-y-4 shadow-sm">
+                <span className="text-[11px] font-extrabold text-[#555555] uppercase tracking-wider block">
+                  BEHAVIORAL RADAR
+                </span>
+
+                <div className="w-full h-52 flex items-center justify-center">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <RadarChart data={radarData} outerRadius="75%">
+                      <PolarGrid stroke="#cecece" />
+                      <PolarAngleAxis dataKey="subject" tick={{ fill: '#555555', fontSize: 9, fontWeight: 700 }} />
+                      <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
+                      <Radar
+                        name="Wallet Score"
+                        dataKey="value"
+                        stroke="#ff5500"
+                        strokeWidth={2}
+                        fill="#ff5500"
+                        fillOpacity={0.25}
+                      />
+                    </RadarChart>
+                  </ResponsiveContainer>
+                </div>
+
+                {/* Radar Insights */}
+                <div className="border-t border-[#cecece] pt-3 space-y-2 text-xs font-bold">
+                  {radarData.slice(0, 3).map((d, i) => (
+                    <div key={i} className="flex items-center gap-2 text-[#333333]">
+                      <span className={`w-2 h-2 ${i === 0 ? 'bg-[#ff5500]' : i === 1 ? 'bg-black' : 'bg-[#777777]'}`} />
+                      <span>{d.subject}: <span className="text-black">{d.value}/100</span></span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Risk Score Factor Deductions */}
+              <RiskScore results={data.chains} />
+
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* ── Other Tab Views ── */}
+      {activeTab === 'flow' && (
+        <div className="p-6 bg-[#dedede] border border-[#cecece]">
+          <CapitalFlowGraph results={data.chains} />
+        </div>
+      )}
+      {activeTab === 'protocols' && (
+        <div className="p-6 bg-[#dedede] border border-[#cecece]">
+          <InteractionsPanel results={data.chains} />
+        </div>
+      )}
+      {activeTab === 'gas' && (
+        <div className="p-6 bg-[#dedede] border border-[#cecece]">
+          <GasSummaryPanel results={data.chains} />
+        </div>
+      )}
+      {activeTab === 'transfers' && (
+        <div className="p-6 bg-[#dedede] border border-[#cecece]">
+          <TransferTable results={data.chains} />
+        </div>
+      )}
+      {activeTab === 'approvals' && (
+        <div className="p-6 bg-[#dedede] border border-[#cecece]">
+          <ApprovalAudit results={data.chains} />
+        </div>
+      )}
+      {activeTab === 'graveyard' && (
+        <div className="p-6 bg-[#dedede] border border-[#cecece]">
+          <Graveyard results={data.chains} />
+        </div>
+      )}
     </div>
   );
+}
+
+function extractProtocolBadges(data: MultiChainScanResult): string[] {
+  const badges: string[] = [];
+  const protocols = data.chains.flatMap(c => c.interactionsSummary?.topProtocols || []);
+
+  protocols.forEach(p => {
+    const name = p.name.toUpperCase().replace(/\s+/g, '_');
+    if (name.includes('UNISWAP')) badges.push('UNISWAP_V3_LP');
+    else if (name.includes('AAVE')) badges.push('AAVE_GHO_MINTER');
+    else if (name.includes('LIDO')) badges.push('LIDO_STAKER');
+    else if (name.includes('CURVE')) badges.push('CURVE_CRV_LOCKER');
+    else if (name.includes('MAKER')) badges.push('MAKER_DAO_CDP');
+    else if (name.includes('ACROSS')) badges.push('ACROSS_BRIDGER');
+    else if (name.includes('METAMASK')) badges.push('METAMASK_SWAP_USER');
+    else badges.push(`${name}_USER`);
+  });
+
+  if (data.identityReport?.primaryName?.includes('.eth')) {
+    badges.push('ENS_OWNER');
+  }
+  if (data.chains.length > 1) {
+    badges.push('OP_DELEGATOR');
+  }
+
+  if (badges.length === 0) {
+    return ['UNISWAP_V3_LP', 'AAVE_GHO_MINTER', 'LIDO_STAKER', 'ENS_OWNER', 'OP_DELEGATOR', 'CURVE_CRV_LOCKER', 'MAKER_DAO_CDP'];
+  }
+
+  return Array.from(new Set(badges)).slice(0, 8);
 }

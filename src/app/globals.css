@@ -3,244 +3,98 @@
 @tailwind utilities;
 
 :root {
-  --bg-space: #090a10;
-  --panel-chassis: #141620;
-  --panel-module: #191b26;
-  --panel-border: #262a39;
-  --panel-border-glow: #383f55;
+  --bg-page: #ebebeb;
+  --bg-card: #dedede;
+  --bg-card-dark: #d5d5d5;
   
-  --bg-primary: #090a10;
-  --bg-secondary: #141620;
-  --bg-tertiary: #191b26;
-  --bg-card: #141620;
-  --bg-glass: rgba(20, 22, 32, 0.95);
+  --border-card: #cecece;
+  --border-card-subtle: #d8d8d8;
   
-  --border-primary: #262a39;
-  --border-secondary: #353b50;
+  --color-orange: #ff5500;
+  --color-orange-light: #fff2eb;
+  --color-orange-dim: rgba(255, 85, 0, 0.12);
   
-  --accent-indigo: #ff8c00;
-  --accent-indigo-dim: rgba(255, 140, 0, 0.15);
-  
-  --accent-blue: #38bdf8;
-  --accent-blue-dim: rgba(56, 189, 248, 0.15);
-  
-  --accent-emerald: #9ec098;
-  --accent-emerald-dim: rgba(158, 192, 152, 0.15);
-  
-  --accent-amber: #e2b868;
-  --accent-amber-dim: rgba(226, 184, 104, 0.15);
-  
-  --accent-purple: #c084fc;
-  --accent-purple-dim: rgba(192, 132, 252, 0.15);
-  
-  --accent-red: #ef4444;
-  --accent-red-dim: rgba(239, 68, 68, 0.15);
+  --text-main: #0a0a0a;
+  --text-muted: #555555;
+  --text-subtle: #777777;
 
-  --text-primary: #f3f4f6;
-  --text-secondary: #9ca3af;
-  --text-tertiary: #6b7280;
-  
-  --color-sage: #9ec098;
-  --color-sage-track: #182217;
-  --color-sage-glow: rgba(158, 192, 152, 0.35);
-  
-  --color-amber: #ff8c00;
-  --color-amber-dim: rgba(255, 140, 0, 0.15);
-  
-  --color-ochre: #e2b868;
-  --color-red: #ef4444;
-  --color-tape: #faf6ee;
-  --color-tape-text: #1a1c24;
-
-  --space-xs: 4px;
-  --space-sm: 8px;
-  --space-md: 16px;
-  --space-lg: 24px;
-  --space-xl: 32px;
-  --space-2xl: 48px;
-
-  --radius-sm: 4px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-  --radius-xl: 16px;
-  --radius-full: 9999px;
-
-  --font-sans: var(--font-space-mono), 'JetBrains Mono', monospace;
-  --font-mono: var(--font-space-mono), 'JetBrains Mono', monospace;
-  --font-display: var(--font-share-tech), var(--font-space-mono), monospace;
-  --transition-fast: 0.15s ease;
+  --font-sans: var(--font-sans), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: var(--font-mono), 'JetBrains Mono', monospace;
 }
 
-/* ── Starfield / Cosmic Grid Background ── */
 body {
-  background-color: var(--bg-space);
-  background-image: 
-    radial-gradient(circle at 50% 0%, rgba(35, 28, 65, 0.35) 0%, transparent 65%),
-    radial-gradient(1.5px 1.5px at 40px 60px, rgba(255, 255, 255, 0.15), transparent),
-    radial-gradient(1px 1px at 120px 180px, rgba(255, 255, 255, 0.1), transparent),
-    radial-gradient(1.5px 1.5px at 280px 240px, rgba(255, 255, 255, 0.12), transparent),
-    radial-gradient(1px 1px at 450px 90px, rgba(255, 255, 255, 0.08), transparent),
-    radial-gradient(1.5px 1.5px at 600px 320px, rgba(255, 255, 255, 0.12), transparent),
-    radial-gradient(1px 1px at 800px 150px, rgba(255, 255, 255, 0.1), transparent),
-    radial-gradient(1.5px 1.5px at 950px 280px, rgba(255, 255, 255, 0.15), transparent);
-  background-size: 100% 100%, 300px 300px, 400px 400px, 350px 350px, 500px 500px, 450px 450px, 600px 600px, 550px 550px;
-  color: #d1d5db;
-  font-family: var(--font-mono);
+  background-color: var(--bg-page);
+  color: var(--text-main);
+  font-family: var(--font-sans);
   min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
 }
 
-/* ── Tactical Chassis Containers ── */
-.telemetry-chassis,
-.glass-card {
-  background: var(--panel-chassis);
-  border: 1px solid var(--panel-border);
-  box-shadow: 0 20px 50px -10px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.04);
-  border-radius: 0.85rem;
+/* ── Sharp Square Industrial Card System (Slightly Darker than Background #ebebeb) ── */
+.variant-card {
+  background: #dedede;
+  color: #0a0a0a;
+  border: 1px solid #cecece;
+  border-radius: 0px !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
-.telemetry-module {
-  background: var(--panel-module);
-  border: 1px solid var(--panel-border);
-  border-radius: 0.5rem;
+.variant-card-dark {
+  background: #d4d4d4;
+  color: #0a0a0a;
+  border: 1px solid #c4c4c4;
+  border-radius: 0px !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
-/* ── Segmented Phosphor LCD Progress Bars (From Screenshot) ── */
-.segmented-bar-track {
-  height: 22px;
-  background: var(--color-sage-track);
-  border: 1px solid rgba(158, 192, 152, 0.25);
-  border-radius: 3px;
-  position: relative;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  padding: 2px;
-}
-
-.segmented-bar-fill {
-  height: 100%;
-  background: var(--color-sage);
-  border-radius: 2px;
-  position: relative;
-  background-image: repeating-linear-gradient(
-    90deg,
-    transparent,
-    transparent 3px,
-    rgba(0, 0, 0, 0.4) 3px,
-    rgba(0, 0, 0, 0.4) 4px
-  );
-  box-shadow: 0 0 12px var(--color-sage-glow);
-  transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.segmented-bar-fill-amber {
-  height: 100%;
-  background: var(--color-amber);
-  border-radius: 2px;
-  position: relative;
-  background-image: repeating-linear-gradient(
-    90deg,
-    transparent,
-    transparent 3px,
-    rgba(0, 0, 0, 0.4) 3px,
-    rgba(0, 0, 0, 0.4) 4px
-  );
-  box-shadow: 0 0 12px rgba(255, 140, 0, 0.4);
-  transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-/* ── Inverted Orange Title Badge (From Screenshot) ── */
-.telemetry-title-badge {
-  background: var(--color-amber);
-  color: #0c0d12;
-  font-weight: 800;
-  font-size: 0.85rem;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  padding: 4px 14px;
-  border-radius: 2px;
-  display: inline-block;
-  font-family: var(--font-mono);
-  box-shadow: 0 0 15px rgba(255, 140, 0, 0.35);
-}
-
-/* ── Receipt / Paper Event Tape (The White Card in Screenshot) ── */
-.event-tape-card {
-  background: var(--color-tape);
-  color: var(--color-tape-text);
-  border-radius: 4px;
-  padding: 1.25rem 1.5rem;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(0, 0, 0, 0.04);
-  font-family: var(--font-mono);
-  position: relative;
-}
-
-.event-tape-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: repeating-linear-gradient(
-    90deg,
-    #e8e2d5,
-    #e8e2d5 6px,
-    transparent 6px,
-    transparent 10px
-  );
-}
-
-/* ── Crimson Tactical Grid HUD (From Screenshot) ── */
-.tactical-grid-table {
-  background: #101219;
-  background-image: 
-    linear-gradient(rgba(185, 28, 28, 0.15) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(185, 28, 28, 0.15) 1px, transparent 1px);
-  background-size: 24px 24px;
-  border: 1px solid rgba(185, 28, 28, 0.25);
-  border-radius: 4px;
-}
-
-.hud-chip {
-  background: #000000;
-  border: 1px solid #2a2e3d;
-  color: #ffffff;
+/* ── Sharp Tactical Pill Badges ── */
+.tactical-pill {
+  background: #d4d4d4;
+  color: #0a0a0a;
+  font-size: 0.72rem;
   font-weight: 700;
-  font-size: 0.78rem;
-  letter-spacing: 0.08em;
-  padding: 3px 10px;
+  letter-spacing: 0.05em;
+  padding: 4px 8px;
+  border-radius: 0px !important;
   display: inline-flex;
   align-items: center;
-  justifyContent: center;
-  border-radius: 2px;
-  font-family: var(--font-mono);
+  gap: 4px;
 }
 
-.hud-chip-green {
-  background: #0d1a10;
-  border: 1px solid rgba(158, 192, 152, 0.4);
-  color: var(--color-sage);
+/* ── Mono Utilities ── */
+.mono,
+.font-mono {
+  font-family: var(--font-mono) !important;
 }
 
-.hud-chip-amber {
-  background: #1f1406;
-  border: 1px solid rgba(255, 140, 0, 0.4);
-  color: var(--color-amber);
-}
-
-/* ── Custom Telemetry Scrollbar ── */
+/* ── Custom Scrollbar ── */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--bg-space);
+  background: var(--bg-page);
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--panel-border);
-  border-radius: 3px;
+  background: #bbbbbb;
+  border-radius: 0px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-ochre);
+  background: var(--color-orange);
+}
+
+/* ── Animations ── */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.15s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }

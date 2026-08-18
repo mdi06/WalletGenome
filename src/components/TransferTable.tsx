@@ -1,252 +1,138 @@
 'use client';
 
 import { useState } from 'react';
-import { ArrowUpRight, ArrowDownLeft, ExternalLink } from 'lucide-react';
-import { ScanResult } from '@/lib/types';
-import { getExplorerTxUrl, getChainConfig } from '@/lib/chains';
-import { getAddressLabel } from '@/lib/labels';
+import { ScanResult, ProcessedTokenTransfer } from '@/lib/types';
+import { getExplorerTxUrl } from '@/lib/chains';
+import { ArrowDownLeft, ArrowUpRight, ExternalLink } from 'lucide-react';
 
-interface TransferTableProps {
+interface Props {
   results: ScanResult[];
 }
 
-function formatUSD(v: number): string {
-  if (v >= 1000000) return `$${(v / 1000000).toFixed(2)}M`;
-  if (v >= 1000) return `$${(v / 1000).toFixed(1)}K`;
-  return `$${v.toFixed(2)}`;
-}
+export default function TransferTable({ results }: Props) {
+  const [filter, setFilter] = useState<'all' | 'in' | 'out'>('all');
+  const [selectedChain, setSelectedChain] = useState<number | 'all'>('all');
 
-function truncAddr(addr: string): string {
-  return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
-}
+  const allTransfers: (ProcessedTokenTransfer & { chainName: string })[] = [];
+  for (const r of results) {
+    if (selectedChain !== 'all' && r.chainId !== selectedChain) continue;
+    if (r.transferSummary) {
+      if (filter === 'all' || filter === 'in') {
+        for (const t of r.transferSummary.topInbound || []) {
+          allTransfers.push({ ...t, chainName: r.chainName });
+        }
+      }
+      if (filter === 'all' || filter === 'out') {
+        for (const t of r.transferSummary.topOutbound || []) {
+          allTransfers.push({ ...t, chainName: r.chainName });
+        }
+      }
+    }
+  }
 
-type Tab = 'outbound' | 'inbound';
-
-export default function TransferTable({ results }: TransferTableProps) {
-  const [tab, setTab] = useState<Tab>('outbound');
-
-  // Merge transfers across chains
-  const allOutbound = results.flatMap(r => [
-    ...r.transferSummary.topOutbound.map(t => ({
-      date: t.date,
-      token: t.tokenSymbol,
-      amount: t.valueFormatted,
-      valueUSD: t.valueUSD ?? 0,
-      counterparty: t.to,
-      label: t.toLabel,
-      hash: t.hash,
-      chainId: t.chainId,
-    })),
-    ...r.transferSummary.topNativeOutbound.map(t => ({
-      date: t.date,
-      token: 'ETH',
-      amount: t.valueFormatted,
-      valueUSD: t.valueUSD ?? 0,
-      counterparty: t.to,
-      label: t.toLabel,
-      hash: t.hash,
-      chainId: t.chainId,
-    })),
-  ]).sort((a, b) => b.valueUSD - a.valueUSD).slice(0, 25);
-
-  const allInbound = results.flatMap(r => [
-    ...r.transferSummary.topInbound.map(t => ({
-      date: t.date,
-      token: t.tokenSymbol,
-      amount: t.valueFormatted,
-      valueUSD: t.valueUSD ?? 0,
-      counterparty: t.from,
-      label: t.fromLabel,
-      hash: t.hash,
-      chainId: t.chainId,
-    })),
-    ...r.transferSummary.topNativeInbound.map(t => ({
-      date: t.date,
-      token: 'ETH',
-      amount: t.valueFormatted,
-      valueUSD: t.valueUSD ?? 0,
-      counterparty: t.from,
-      label: t.fromLabel,
-      hash: t.hash,
-      chainId: t.chainId,
-    })),
-  ]).sort((a, b) => b.valueUSD - a.valueUSD).slice(0, 25);
-
-  const data = tab === 'outbound' ? allOutbound : allInbound;
+  allTransfers.sort((a, b) => (b.valueUSD || 0) - (a.valueUSD || 0));
 
   return (
-    <div className="animate-fade-in-up">
-      {/* Tabs */}
-      <div style={styles.tabs}>
-        <button
-          onClick={() => setTab('outbound')}
-          style={{
-            ...styles.tab,
-            background: tab === 'outbound' ? 'var(--accent-indigo-dim)' : 'var(--bg-glass)',
-            borderColor: tab === 'outbound' ? 'var(--accent-indigo)' : 'var(--border-primary)',
-            color: tab === 'outbound' ? 'var(--accent-indigo)' : 'var(--text-secondary)',
-          }}
-        >
-          <ArrowUpRight size={16} /> Sent
-        </button>
-        <button
-          onClick={() => setTab('inbound')}
-          style={{
-            ...styles.tab,
-            background: tab === 'inbound' ? 'var(--accent-indigo-dim)' : 'var(--bg-glass)',
-            borderColor: tab === 'inbound' ? 'var(--accent-indigo)' : 'var(--border-primary)',
-            color: tab === 'inbound' ? 'var(--accent-indigo)' : 'var(--text-secondary)',
-          }}
-        >
-          <ArrowDownLeft size={16} /> Received
-        </button>
+    <div className="space-y-4">
+      {/* ── Controls Row ── */}
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-2">
+          {(['all', 'in', 'out'] as const).map(f => (
+            <button
+              key={f}
+              onClick={() => setFilter(f)}
+              className={`px-3.5 py-1.5 text-xs font-bold transition-all cursor-pointer ${
+                filter === f
+                  ? 'bg-black text-white shadow-sm'
+                  : 'bg-[#d8d8d8] text-[#333333] hover:bg-black hover:text-white'
+              }`}
+            >
+              {f === 'all' ? 'All Transfers' : f === 'in' ? 'Inbound' : 'Outbound'}
+            </button>
+          ))}
+        </div>
+
+        <div className="flex items-center gap-2">
+          {[{ id: 'all', label: 'All Chains' }, { id: 1, label: 'Ethereum' }, { id: 42161, label: 'Arbitrum' }, { id: 8453, label: 'Base' }, { id: 10, label: 'Optimism' }].map(c => (
+            <button
+              key={c.id}
+              onClick={() => setSelectedChain(c.id as any)}
+              className={`px-3 py-1 text-xs font-bold transition-all cursor-pointer ${
+                selectedChain === c.id
+                  ? 'bg-black text-white shadow-sm'
+                  : 'bg-[#d8d8d8] text-[#333333] hover:bg-black hover:text-white'
+              }`}
+            >
+              {c.label}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* Table */}
-      <div className="glass-card table-container">
-        <table style={styles.table}>
+      {/* ── Table Container ── */}
+      <div className="border border-[#cecece] bg-[#dedede] overflow-hidden overflow-x-auto">
+        <table className="w-full text-left border-collapse">
           <thead>
-            <tr>
-              <th style={styles.th}>Date</th>
-              <th style={styles.th}>Token</th>
-              <th style={{ ...styles.th, textAlign: 'right' }}>Amount</th>
-              <th style={{ ...styles.th, textAlign: 'right' }}>USD Value</th>
-              <th style={styles.th}>{tab === 'outbound' ? 'To' : 'From'}</th>
-              <th style={styles.th}>Chain</th>
-              <th style={styles.th}></th>
+            <tr className="bg-[#d4d4d4] border-b border-[#cecece] text-[10px] font-extrabold text-[#555555] uppercase tracking-wider">
+              <th className="py-3 px-4">DIRECTION</th>
+              <th className="py-3 px-4">TOKEN</th>
+              <th className="py-3 px-4 text-right">AMOUNT</th>
+              <th className="py-3 px-4 text-right">USD VALUE</th>
+              <th className="py-3 px-4">COUNTERPARTY</th>
+              <th className="py-3 px-4">TIME</th>
+              <th className="py-3 px-4 text-right">ACTION</th>
             </tr>
           </thead>
-          <tbody>
-            {data.length === 0 ? (
-              <tr>
-                <td colSpan={7} style={styles.noData}>No transfers found</td>
-              </tr>
-            ) : (
-              data.map((row, i) => {
-                const label = row.label || getAddressLabel(row.counterparty);
-                const chain = getChainConfig(row.chainId);
-                return (
-                  <tr key={`${row.hash}-${i}`} style={styles.tr}>
-                    <td style={styles.td}>{row.date}</td>
-                    <td style={{ ...styles.td, fontWeight: 600 }}>{row.token}</td>
-                    <td style={{ ...styles.td, textAlign: 'right', fontFamily: 'var(--font-mono)' }}>
-                      {row.amount >= 1000 ? row.amount.toLocaleString(undefined, { maximumFractionDigits: 2 }) : row.amount.toFixed(4)}
-                    </td>
-                    <td style={{ ...styles.td, textAlign: 'right', fontWeight: 600, color: 'var(--text-primary)' }}>
-                      {row.valueUSD > 0 ? formatUSD(row.valueUSD) : '—'}
-                    </td>
-                    <td style={styles.td}>
-                      <span style={styles.address}>
-                        {label ? (
-                          <span style={styles.labelBadge}>{label}</span>
-                        ) : (
-                          <span className="mono truncate-address">{truncAddr(row.counterparty)}</span>
-                        )}
+          <tbody className="divide-y divide-[#cecece] text-xs font-bold text-[#0a0a0a]">
+            {allTransfers.map((t, i) => {
+              const counterparty = t.direction === 'in' ? t.from : t.to;
+              const counterpartyLabel = t.direction === 'in' ? t.fromLabel : t.toLabel;
+
+              return (
+                <tr key={i} className="hover:bg-[#d5d5d5] transition-colors">
+                  <td className="py-3.5 px-4">
+                    {t.direction === 'in' ? (
+                      <span className="inline-flex items-center gap-1 text-[#059669] bg-[#059669]/10 px-2 py-0.5 font-mono font-bold text-[11px] border border-[#059669]/30">
+                        <ArrowDownLeft size={12} /> IN
                       </span>
-                    </td>
-                    <td style={styles.td}>
-                      <span style={{ ...styles.chainBadge, background: `${chain.color}20`, color: chain.color }}>
-                        {chain.shortName}
+                    ) : (
+                      <span className="inline-flex items-center gap-1 text-[#ff5500] bg-[#ff5500]/10 px-2 py-0.5 font-mono font-bold text-[11px] border border-[#ff5500]/30">
+                        <ArrowUpRight size={12} /> OUT
                       </span>
-                    </td>
-                    <td style={styles.td}>
-                      <a
-                        href={getExplorerTxUrl(row.chainId, row.hash)}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={styles.link}
-                      >
-                        <ExternalLink size={14} />
-                      </a>
-                    </td>
-                  </tr>
-                );
-              })
-            )}
+                    )}
+                  </td>
+                  <td className="py-3.5 px-4 font-mono font-black text-[#0a0a0a]">
+                    {t.tokenSymbol}
+                  </td>
+                  <td className="py-3.5 px-4 text-right font-mono text-[#0a0a0a]">
+                    {t.valueFormatted.toFixed(4)}
+                  </td>
+                  <td className="py-3.5 px-4 text-right font-mono font-black text-[#0a0a0a]">
+                    {t.valueUSD ? `$${t.valueUSD.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '—'}
+                  </td>
+                  <td className="py-3.5 px-4 font-mono">
+                    <div className="font-bold text-[#0a0a0a]">{counterpartyLabel || `${counterparty.slice(0, 6)}...${counterparty.slice(-4)}`}</div>
+                    {counterpartyLabel && <div className="text-[10px] text-[#555555] font-mono">{counterparty}</div>}
+                  </td>
+                  <td className="py-3.5 px-4 text-[#555555] font-mono text-[11px]">
+                    {t.timestamp ? new Date(t.timestamp * 1000).toLocaleDateString() : t.date || '—'}
+                  </td>
+                  <td className="py-3.5 px-4 text-right">
+                    <a
+                      href={getExplorerTxUrl(t.chainId, t.hash)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[#555555] hover:text-black"
+                    >
+                      <ExternalLink size={13} className="ml-auto" />
+                    </a>
+                  </td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
     </div>
   );
 }
-
-const styles: Record<string, React.CSSProperties> = {
-  tabs: {
-    display: 'flex',
-    gap: 'var(--space-sm)',
-    marginBottom: 'var(--space-md)',
-  },
-  tab: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 6,
-    padding: '8px 16px',
-    borderRadius: 'var(--radius-full)',
-    borderWidth: 1,
-    borderStyle: 'solid',
-    borderColor: 'var(--border-primary)',
-    background: 'var(--bg-glass)',
-    color: 'var(--text-secondary)',
-    fontSize: '0.85rem',
-    fontWeight: 500,
-    cursor: 'pointer',
-    transition: 'all var(--transition-fast)',
-  },
-  table: {
-    width: '100%',
-    borderCollapse: 'collapse',
-    fontSize: '0.85rem',
-  },
-  th: {
-    padding: '12px 16px',
-    textAlign: 'left',
-    fontWeight: 600,
-    fontSize: '0.75rem',
-    color: 'var(--text-tertiary)',
-    textTransform: 'uppercase' as const,
-    letterSpacing: '0.05em',
-    borderBottomWidth: 1,
-    borderBottomStyle: 'solid',
-    borderBottomColor: 'var(--border-primary)',
-  },
-  tr: {
-    borderBottomWidth: 1,
-    borderBottomStyle: 'solid',
-    borderBottomColor: 'var(--border-primary)',
-    transition: 'background var(--transition-fast)',
-  },
-  td: {
-    padding: '12px 16px',
-    color: 'var(--text-secondary)',
-    whiteSpace: 'nowrap' as const,
-  },
-  noData: {
-    padding: 'var(--space-xl)',
-    textAlign: 'center',
-    color: 'var(--text-tertiary)',
-  },
-  address: {
-    display: 'flex',
-    alignItems: 'center',
-  },
-  labelBadge: {
-    padding: '2px 8px',
-    background: 'var(--accent-indigo-dim)',
-    color: 'var(--accent-indigo)',
-    borderRadius: 'var(--radius-full)',
-    fontSize: '0.75rem',
-    fontWeight: 500,
-  },
-  chainBadge: {
-    padding: '2px 8px',
-    borderRadius: 'var(--radius-full)',
-    fontSize: '0.72rem',
-    fontWeight: 600,
-  },
-  link: {
-    color: 'var(--text-tertiary)',
-    display: 'flex',
-    alignItems: 'center',
-    transition: 'color var(--transition-fast)',
-  },
-};
