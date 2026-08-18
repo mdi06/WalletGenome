@@ -290,6 +290,7 @@ export interface MultiChainScanResult {
   chains: ScanResult[];
   sybilReport?: SybilReport;
   identityReport?: WalletIdentityReport;
+  notice?: string;
   aggregated: {
     totalGasETH: number;
     totalGasUSD: number;

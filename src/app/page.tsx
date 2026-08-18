@@ -1,47 +1,39 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
+import { MultiChainScanResult } from '@/lib/types';
 import WalletInput from '@/components/WalletInput';
 import Dashboard from '@/components/Dashboard';
 import ProgressBar from '@/components/ProgressBar';
 import BatchScanResults from '@/components/BatchScanResults';
-import { MultiChainScanResult } from '@/lib/types';
-import { Info, Search, Loader2 } from 'lucide-react';
-
-interface ExtendedScanResult extends MultiChainScanResult {
-  isDemo?: boolean;
-  notice?: string;
-}
+import { Info, Search, Loader2, Terminal, Shield, Activity, Network, Fingerprint, Fuel, Layers } from 'lucide-react';
 
 export default function Home() {
+  const [result, setResult] = useState<MultiChainScanResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [progress, setProgress] = useState('');
-  const [error, setError] = useState('');
-  const [result, setResult] = useState<ExtendedScanResult | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   // Batch scan state
   const [isBatchScanning, setIsBatchScanning] = useState(false);
   const [batchProgress, setBatchProgress] = useState('');
   const [batchResult, setBatchResult] = useState<any>(null);
-  const [batchError, setBatchError] = useState('');
+  const [batchError, setBatchError] = useState<string | null>(null);
 
-  const handleScan = async (
-    address: string,
-    chainIds: number[],
-    isDemo: boolean = false,
-    customApiKey?: string
-  ) => {
+  const handleScan = async (address: string, chainIds: number[]) => {
     setIsLoading(true);
-    setError('');
+    setError(null);
     setResult(null);
     setBatchResult(null);
-    setProgress('Connecting to EVM nodes & querying ledger...');
+    setProgress('INITIALIZING_EVM_INDEXER...');
 
     try {
+      setProgress(`SCANNING ${chainIds.length} CHAINS // DECODING CALLDATA...`);
+
       const response = await fetch('/api/scan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ address, chainIds, isDemo, customApiKey }),
+        body: JSON.stringify({ address, chainIds, isDemo: false }),
       });
 
       if (!response.ok) {
@@ -49,23 +41,23 @@ export default function Home() {
         throw new Error(data.error || `HTTP ${response.status}`);
       }
 
-      const data = await response.json();
+      setProgress('CALCULATING_BEHAVIORAL_ENTROPY_AND_SYBIL_RADAR...');
+      const data: MultiChainScanResult = await response.json();
       setResult(data);
-      setProgress('');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An unexpected error occurred');
-      setProgress('');
+      setError(err instanceof Error ? err.message : 'An unexpected error occurred during scan.');
     } finally {
       setIsLoading(false);
+      setProgress('');
     }
   };
 
   const handleBatchScan = async () => {
     setIsBatchScanning(true);
-    setBatchError('');
+    setBatchError(null);
     setBatchResult(null);
     setResult(null);
-    setBatchProgress('Scanning all wallets from known_wallets.txt across 5 chains... This may take several minutes.');
+    setBatchProgress('INITIALIZING_BATCH_SWEEPER (362 WALLETS)...');
 
     try {
       const response = await fetch('/api/batch-scan', {
@@ -81,257 +73,163 @@ export default function Home() {
 
       const data = await response.json();
       setBatchResult(data);
-      setBatchProgress('');
     } catch (err) {
-      setBatchError(err instanceof Error ? err.message : 'Batch scan failed');
-      setBatchProgress('');
+      setBatchError(err instanceof Error ? err.message : 'Batch sweep failed.');
     } finally {
       setIsBatchScanning(false);
+      setBatchProgress('');
     }
   };
 
   return (
-    <div className="page-container">
-      <WalletInput onScan={handleScan} isLoading={isLoading} />
-
-      {/* Batch Scan Button */}
-      {!isLoading && !isBatchScanning && !result && !batchResult && (
-        <div style={styles.batchSection}>
-          <div style={styles.divider}>
-            <span style={styles.dividerLine} />
-            <span style={styles.dividerText}>or</span>
-            <span style={styles.dividerLine} />
+    <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      {/* ── Top Sci-Fi Telemetry Brand Header ── */}
+      <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-[#242838] pb-6">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 bg-[#ff8c00] rounded-sm shadow-[0_0_8px_#ff8c00]" />
+            <h1 className="text-xl md:text-2xl font-bold tracking-widest text-white font-mono uppercase">
+              WALLET_GENOME <span className="text-[#9ec098] font-normal text-sm">// V2.4</span>
+            </h1>
           </div>
-          <button onClick={handleBatchScan} style={styles.batchButton}>
-            <Search size={18} />
-            Scan All My Wallets — Find Lost Funds
-          </button>
-          <p style={styles.batchHint}>
-            Reads all 362 addresses from known_wallets.txt and scans across Ethereum, Base, Arbitrum, BSC & Optimism for suspicious outbound stablecoin transfers.
+          <p className="text-xs text-gray-400 font-mono tracking-wider mt-1">
+            ON-CHAIN BEHAVIORAL FORENSICS · CAPITAL FLOW TOPOLOGY · SYBIL RADAR
           </p>
         </div>
-      )}
 
+        <div className="flex items-center gap-3">
+          <span className="text-[11px] font-mono text-[#9ec098] bg-[#121c13] px-3 py-1 rounded border border-[#203f23]">
+            ● MULTICHAIN_INDEXER: ONLINE
+          </span>
+        </div>
+      </header>
+
+      {/* ── Main Interactive Scan Console ── */}
+      <WalletInput onScan={handleScan} isLoading={isLoading} />
+
+      {/* Loading Progress */}
       {isLoading && <ProgressBar message={progress} />}
 
+      {/* Batch Sweeper Loading */}
       {isBatchScanning && (
-        <div style={styles.batchLoadingCard} className="glass-card animate-fade-in">
-          <Loader2 size={24} className="animate-spin" style={{ animation: 'spin 1s linear infinite', color: 'var(--accent-indigo)' }} />
-          <div>
-            <p style={styles.batchLoadingTitle}>Batch Scan in Progress</p>
-            <p style={styles.batchLoadingText}>{batchProgress}</p>
-            <p style={styles.batchLoadingSubtext}>Scanning 362 wallets × 5 chains = 1,810 wallet-chain pairs. Please wait...</p>
+        <div className="telemetry-chassis p-6 flex items-start gap-4 border-l-4 border-l-[#ff8c00] animate-fade-in">
+          <Loader2 size={22} className="animate-spin text-[#ff8c00] flex-shrink-0" />
+          <div className="space-y-1">
+            <h3 className="text-sm font-bold text-white tracking-wider">BATCH_SWEEP_IN_PROGRESS</h3>
+            <p className="text-xs text-gray-300 font-mono">{batchProgress}</p>
+            <p className="text-[11px] text-gray-500 font-mono">362 wallets × 5 chains = 1,810 execution pairs. Please hold...</p>
           </div>
         </div>
       )}
 
+      {/* Error Alert */}
       {error && (
-        <div style={styles.errorCard} className="glass-card animate-fade-in">
-          <span style={styles.errorIcon}>⚠️</span>
-          <div>
-            <p style={styles.errorTitle}>Scan Failed</p>
-            <p style={styles.errorMessage}>{error}</p>
-          </div>
+        <div className="telemetry-chassis p-5 border-l-4 border-l-[#ef4444] animate-fade-in space-y-1">
+          <div className="text-xs font-bold text-[#ef4444] tracking-wider">ERR // SCAN_FAILED</div>
+          <p className="text-xs text-gray-300 font-mono">{error}</p>
         </div>
       )}
 
+      {/* Batch Error */}
       {batchError && (
-        <div style={styles.errorCard} className="glass-card animate-fade-in">
-          <span style={styles.errorIcon}>⚠️</span>
-          <div>
-            <p style={styles.errorTitle}>Batch Scan Failed</p>
-            <p style={styles.errorMessage}>{batchError}</p>
-          </div>
+        <div className="telemetry-chassis p-5 border-l-4 border-l-[#ef4444] animate-fade-in space-y-1">
+          <div className="text-xs font-bold text-[#ef4444] tracking-wider">ERR // BATCH_SWEEP_FAILED</div>
+          <p className="text-xs text-gray-300 font-mono">{batchError}</p>
         </div>
       )}
 
-      {batchResult && (
-        <div className="animate-fade-in">
-          <BatchScanResults result={batchResult} />
-        </div>
-      )}
-
+      {/* Scan Results View */}
       {result && (
-        <div className="animate-fade-in">
+        <div className="space-y-6 animate-fade-in">
           {result.notice && (
-            <div className="glass-card" style={styles.noticeCard}>
-              <Info size={18} color="var(--accent-blue)" style={{ flexShrink: 0 }} />
-              <span style={styles.noticeText}>{result.notice}</span>
+            <div className="telemetry-chassis p-3.5 border-l-4 border-l-[#38bdf8] flex items-center gap-3">
+              <Info size={16} className="text-[#38bdf8] flex-shrink-0" />
+              <span className="text-xs font-mono text-gray-300">{result.notice}</span>
             </div>
           )}
           <Dashboard data={result} />
         </div>
       )}
 
+      {/* Batch Results View */}
+      {batchResult && (
+        <div className="animate-fade-in">
+          <BatchScanResults result={batchResult} />
+        </div>
+      )}
+
+      {/* ── Feature Matrix When Idle ── */}
       {!isLoading && !isBatchScanning && !result && !batchResult && !error && !batchError && (
-        <div style={styles.features}>
-          <div style={styles.featureGrid}>
-            {FEATURES.map((f, i) => (
-              <div key={i} className="glass-card" style={{ ...styles.featureCard, animationDelay: `${i * 80}ms` }}>
-                <span style={styles.featureIcon}>{f.icon}</span>
-                <h3 style={styles.featureName}>{f.name}</h3>
-                <p style={styles.featureDesc}>{f.desc}</p>
+        <section className="space-y-6 pt-4">
+          <div className="flex items-center justify-between border-b border-[#242838] pb-3">
+            <span className="text-xs font-bold text-[#e2b868] tracking-widest uppercase">
+              // TELEMETRY_CAPABILITIES_MANIFEST
+            </span>
+            <span className="text-[10px] text-gray-500 font-mono">MODULES_ONLINE: 07</span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {TELEMETRY_FEATURES.map((feat, i) => (
+              <div
+                key={i}
+                className="telemetry-module p-5 space-y-3 hover:border-[#ff8c00]/40 transition-colors"
+              >
+                <div className="flex justify-between items-start">
+                  <span className="text-xs font-bold text-[#ff8c00] font-mono">[{feat.code}]</span>
+                  <span className="text-xs text-[#9ec098] font-mono bg-[#141f15] px-2 py-0.5 rounded border border-[#213f24]">
+                    {feat.badge}
+                  </span>
+                </div>
+                <h3 className="text-sm font-bold text-white tracking-wider font-mono">
+                  {feat.title}
+                </h3>
+                <p className="text-xs text-gray-400 font-mono leading-relaxed">
+                  {feat.desc}
+                </p>
               </div>
             ))}
           </div>
-        </div>
+        </section>
       )}
-    </div>
+    </main>
   );
 }
 
-const FEATURES = [
+const TELEMETRY_FEATURES = [
   {
-    icon: '🧬',
-    name: 'Behavioral Profiling',
-    desc: '6-dimension radar fingerprint analyzing DeFi diversity, capital efficiency, risk appetite, and trading personas.',
+    code: 'MOD_01',
+    badge: 'SHANNON_ENTROPY',
+    title: 'BEHAVIORAL_GENOME_RADAR',
+    desc: '6-dimension quantitative radar measuring DeFi diversity, capital efficiency, execution cadence, and trading personas.',
   },
   {
-    icon: '🛡️',
-    name: 'Composite Risk Score',
-    desc: '0–100 risk engine evaluating approval exposure, failed transactions, and contract vulnerabilities.',
+    code: 'MOD_02',
+    badge: 'ARKHAM_TOPOLOGY',
+    title: 'CAPITAL_FLOW_GRAPH',
+    desc: 'Directed Bezier flow network mapping fund origins from CEX on-ramps through DeFi protocol routing to exit destinations.',
   },
   {
-    icon: '⛽',
-    name: 'Deep Gas Forensics',
-    desc: 'Accurate multi-chain gas fee calculations in ETH and USD with monthly volume and category breakdowns.',
+    code: 'MOD_03',
+    badge: 'AUTO_SYNC_24H',
+    title: 'SYBIL_&_SANCTION_RADAR',
+    desc: 'In-memory O(1) cross-referencing against LayerZero, Hop Protocol, Umbra, OFAC, and Trusta MEDIA models.',
   },
   {
-    icon: '🕒',
-    name: 'Activity Heatmap',
-    desc: '24×7 UTC temporal distribution grid uncovering timezone patterns and execution habits.',
+    code: 'MOD_04',
+    badge: 'WEB3_BIO_GRAPH',
+    title: 'UNIVERSAL_IDENTITY_RESOLVER',
+    desc: 'Resolves linked ENS domains, Farcaster Warpcast handles, Lens profiles, Twitter/X, Discord, and GitHub accounts.',
   },
   {
-    icon: '🕵️',
-    name: 'Sybil & Blacklist Radar',
-    desc: 'Auto-syncs with LayerZero, Hop Protocol, Umbra, and OFAC sanctions databases in-memory with 0ms lookups.',
+    code: 'MOD_05',
+    badge: 'MULTICHAIN_DEEP',
+    title: 'GAS_ACCOUNTING_ENGINE',
+    desc: '10,000-tx deep pagination computing lifetime gas expenditure in native tokens and historical USD valuation across L1/L2s.',
   },
   {
-    icon: '🗺️',
-    name: 'Arkham-Style Flow Graph',
-    desc: 'Interactive 3-column network topology visualizing liquidity origins, bridge hops, and DeFi routing.',
-  },
-  {
-    icon: '🔓',
-    name: 'Approval & Exposure Audit',
-    desc: 'Audit unlimited token permissions and calculate estimated USD capital at risk.',
+    code: 'MOD_06',
+    badge: 'CALLDATA_SPENDER',
+    title: 'PROTOCOL_ATTRIBUTION_ROLLUP',
+    desc: 'Decodes ERC-20 approval spenders to attribute interactions to true DApp brands rather than pure token assets.',
   },
 ];
-
-const styles: Record<string, React.CSSProperties> = {
-  errorCard: {
-    padding: 'var(--space-lg)',
-    display: 'flex',
-    alignItems: 'flex-start',
-    gap: 'var(--space-md)',
-    borderLeft: '3px solid var(--accent-red)',
-    maxWidth: 600,
-    margin: '0 auto',
-  },
-  errorIcon: { fontSize: '1.5rem', flexShrink: 0 },
-  errorTitle: { fontWeight: 600, marginBottom: 4 },
-  errorMessage: { fontSize: '0.9rem', color: 'var(--text-secondary)' },
-  noticeCard: {
-    padding: '12px 18px',
-    display: 'flex',
-    alignItems: 'center',
-    gap: 'var(--space-sm)',
-    borderLeft: '3px solid var(--accent-blue)',
-    marginBottom: 'var(--space-md)',
-  },
-  noticeText: {
-    fontSize: '0.85rem',
-    color: 'var(--text-secondary)',
-    lineHeight: 1.5,
-  },
-  features: {
-    padding: 'var(--space-xl) 0',
-  },
-  featureGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-    gap: 'var(--space-md)',
-  },
-  featureCard: {
-    padding: 'var(--space-lg)',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 'var(--space-sm)',
-    animation: 'fadeInUp 0.5s ease-out forwards',
-    opacity: 0,
-  },
-  featureIcon: { fontSize: '1.8rem' },
-  featureName: { fontSize: '1rem', fontWeight: 600 },
-  featureDesc: { fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.6 },
-  // Batch scan styles
-  batchSection: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    gap: '1rem',
-    margin: '1.5rem auto 0',
-    maxWidth: 560,
-  },
-  divider: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '1rem',
-    width: '100%',
-  },
-  dividerLine: {
-    flex: 1,
-    height: '1px',
-    background: 'rgba(255,255,255,0.1)',
-  },
-  dividerText: {
-    fontSize: '0.85rem',
-    color: 'rgba(255,255,255,0.35)',
-    textTransform: 'uppercase',
-    letterSpacing: '1px',
-  },
-  batchButton: {
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: '0.5rem',
-    padding: '14px 28px',
-    fontSize: '1rem',
-    fontWeight: 600,
-    color: '#fff',
-    background: 'linear-gradient(135deg, #f97316 0%, #ef4444 100%)',
-    border: 'none',
-    borderRadius: '12px',
-    cursor: 'pointer',
-    transition: 'all 0.2s ease',
-    boxShadow: '0 4px 20px rgba(249,115,22,0.3)',
-  },
-  batchHint: {
-    fontSize: '0.8rem',
-    color: 'rgba(255,255,255,0.4)',
-    textAlign: 'center',
-    maxWidth: '480px',
-    lineHeight: 1.5,
-  },
-  batchLoadingCard: {
-    padding: '2rem',
-    display: 'flex',
-    alignItems: 'flex-start',
-    gap: '1rem',
-    maxWidth: 600,
-    margin: '2rem auto 0',
-    borderLeft: '3px solid var(--accent-indigo)',
-  },
-  batchLoadingTitle: {
-    fontWeight: 600,
-    fontSize: '1.1rem',
-    marginBottom: '0.25rem',
-  },
-  batchLoadingText: {
-    fontSize: '0.9rem',
-    color: 'var(--text-secondary)',
-  },
-  batchLoadingSubtext: {
-    fontSize: '0.8rem',
-    color: 'rgba(255,255,255,0.35)',
-    marginTop: '0.5rem',
-  },
-};

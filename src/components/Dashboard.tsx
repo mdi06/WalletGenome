@@ -1,9 +1,8 @@
 'use client';
 
-import { useState } from 'react';
-import { Fuel, ArrowUpDown, Shield, Skull, Fingerprint, Layers, Network } from 'lucide-react';
+import React, { useState } from 'react';
+import { Fuel, ArrowUpDown, Shield, Skull, Fingerprint, Layers, Network, Terminal } from 'lucide-react';
 import { MultiChainScanResult } from '@/lib/types';
-import SummaryCards from './SummaryCards';
 import GasSummaryPanel from './GasSummaryPanel';
 import TransferTable from './TransferTable';
 import ApprovalAudit from './ApprovalAudit';
@@ -15,92 +14,92 @@ import InteractionsPanel from './InteractionsPanel';
 import CapitalFlowGraph from './CapitalFlowGraph';
 import SybilRadar from './SybilRadar';
 import IdentityCard from './IdentityCard';
+import TelemetryHudBanner from './TelemetryHudBanner';
 
 interface DashboardProps {
   data: MultiChainScanResult;
 }
 
-type TabId = 'profile' | 'flow' | 'interactions' | 'gas' | 'transfers' | 'approvals' | 'graveyard';
+type TabId = 'telemetry' | 'profile' | 'flow' | 'interactions' | 'gas' | 'transfers' | 'approvals' | 'graveyard';
 
 interface Tab {
   id: TabId;
   label: string;
-  icon: React.ReactNode;
+  code: string;
   count?: number;
 }
 
 export default function Dashboard({ data }: DashboardProps) {
-  const [activeTab, setActiveTab] = useState<TabId>('profile');
+  const [activeTab, setActiveTab] = useState<TabId>('telemetry');
 
   const approvalCount = data.chains.reduce((sum, c) => sum + c.approvalSummary.totalApprovals, 0);
   const deadCount = data.aggregated.totalDeadAssets;
   const protocolCount = data.chains.reduce((sum, c) => sum + (c.interactionsSummary?.topProtocols?.length || 0), 0);
 
   const tabs: Tab[] = [
-    { id: 'profile', label: 'Profile & Risk', icon: <Fingerprint size={16} /> },
-    { id: 'flow', label: 'Flow Graph', icon: <Network size={16} /> },
-    { id: 'interactions', label: 'Protocols & Addresses', icon: <Layers size={16} />, count: protocolCount },
-    { id: 'gas', label: 'Gas Fees', icon: <Fuel size={16} /> },
-    { id: 'transfers', label: 'Transfers', icon: <ArrowUpDown size={16} /> },
-    { id: 'approvals', label: 'Approvals', icon: <Shield size={16} />, count: approvalCount },
-    { id: 'graveyard', label: 'Graveyard', icon: <Skull size={16} />, count: deadCount },
+    { id: 'telemetry', code: '00', label: 'TELEMETRY_HUD' },
+    { id: 'profile', code: '01', label: 'PROFILE & RISK' },
+    { id: 'flow', code: '02', label: 'CAPITAL_FLOW_GRAPH' },
+    { id: 'interactions', code: '03', label: 'PROTOCOLS & DAPPS', count: protocolCount },
+    { id: 'gas', code: '04', label: 'GAS_ACCOUNTING' },
+    { id: 'transfers', code: '05', label: 'TRANSFERS_LOG' },
+    { id: 'approvals', code: '06', label: 'APPROVAL_AUDIT', count: approvalCount },
+    { id: 'graveyard', code: '07', label: 'GRAVEYARD', count: deadCount },
   ];
 
   return (
-    <div style={styles.container} className="animate-fade-in-up">
-      {/* Wallet info */}
-      <div style={styles.walletInfo}>
-        <div style={styles.walletAddress}>
-          {data.identityReport?.primaryName ? (
-            <span style={styles.primaryNameHighlight}>{data.identityReport.primaryName}</span>
-          ) : null}
-          <span className="mono" style={{ color: 'var(--text-secondary)' }}>
-            {data.address.slice(0, 6)}...{data.address.slice(-4)}
-          </span>
+    <div className="space-y-6 animate-fade-in-up">
+      {/* ── Always Display The Telemetry HUD Banner (From Screenshot) ── */}
+      <TelemetryHudBanner data={data} />
+
+      {/* ── Tactical Telemetry Tab Navigation Bar ── */}
+      <div className="telemetry-chassis p-2 overflow-x-auto">
+        <div className="flex gap-2 min-w-max">
+          {tabs.map(tab => {
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center gap-2 px-3.5 py-2 rounded text-xs font-mono font-bold tracking-wider transition-all cursor-pointer ${
+                  isActive
+                    ? 'bg-[#ff8c00] text-black shadow-[0_0_12px_rgba(255,140,0,0.35)]'
+                    : 'bg-[#11131b] hover:bg-[#1c202d] text-gray-400 border border-[#262a39]'
+                }`}
+              >
+                <span className={isActive ? 'text-black/70' : 'text-[#d8a758]'}>[{tab.code}]</span>
+                <span>{tab.label}</span>
+                {typeof tab.count === 'number' && tab.count > 0 && (
+                  <span
+                    className={`text-[10px] px-1.5 py-0.2 rounded font-mono ${
+                      isActive ? 'bg-black/20 text-black' : 'bg-[#1a1d29] text-gray-400'
+                    }`}
+                  >
+                    {tab.count}
+                  </span>
+                )}
+              </button>
+            );
+          })}
         </div>
-        <span style={styles.chainList}>
-          {data.chains.map(c => c.chainName).join(' · ')}
-        </span>
       </div>
 
-      {/* Summary cards */}
-      <SummaryCards data={data} />
+      {/* ── Tab Content Views ── */}
+      <div className="min-h-[400px]">
+        {activeTab === 'telemetry' && (
+          <div className="space-y-6">
+            <IdentityCard identity={data.identityReport} address={data.address} />
+            <SybilRadar report={data.sybilReport} />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <BehavioralFingerprint results={data.chains} />
+              <RiskScore results={data.chains} />
+            </div>
+            <ActivityHeatmap results={data.chains} />
+          </div>
+        )}
 
-      {/* Tab navigation */}
-      <div style={styles.tabBar}>
-        {tabs.map(tab => {
-          const isActive = activeTab === tab.id;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              style={{
-                ...styles.tab,
-                borderBottom: isActive ? '2px solid var(--accent-indigo)' : '2px solid transparent',
-                color: isActive ? 'var(--accent-indigo)' : 'var(--text-secondary)',
-              }}
-            >
-              {tab.icon}
-              <span>{tab.label}</span>
-              {typeof tab.count === 'number' && tab.count > 0 && (
-                <span
-                  style={{
-                    ...styles.tabCount,
-                    ...(isActive ? styles.tabCountActive : {}),
-                  }}
-                >
-                  {tab.count}
-                </span>
-              )}
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Tab content */}
-      <div style={styles.tabContent}>
         {activeTab === 'profile' && (
-          <div style={styles.profileContent}>
+          <div className="space-y-6">
             <IdentityCard identity={data.identityReport} address={data.address} />
             <SybilRadar report={data.sybilReport} />
             <BehavioralFingerprint results={data.chains} />
@@ -108,6 +107,7 @@ export default function Dashboard({ data }: DashboardProps) {
             <ActivityHeatmap results={data.chains} />
           </div>
         )}
+
         {activeTab === 'flow' && <CapitalFlowGraph results={data.chains} />}
         {activeTab === 'interactions' && <InteractionsPanel results={data.chains} />}
         {activeTab === 'gas' && <GasSummaryPanel results={data.chains} />}
@@ -118,80 +118,3 @@ export default function Dashboard({ data }: DashboardProps) {
     </div>
   );
 }
-
-const styles: Record<string, React.CSSProperties> = {
-  container: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 'var(--space-lg)',
-    paddingTop: 'var(--space-xl)',
-  },
-  walletInfo: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 'var(--space-md)',
-    flexWrap: 'wrap' as const,
-  },
-  walletAddress: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 8,
-    fontSize: '0.95rem',
-    fontWeight: 600,
-    padding: '6px 16px',
-    background: 'var(--bg-card)',
-    border: '1px solid var(--border-primary)',
-    borderRadius: 'var(--radius-full)',
-  },
-  primaryNameHighlight: {
-    color: 'var(--accent-indigo)',
-    fontWeight: 700,
-  },
-  chainList: {
-    fontSize: '0.85rem',
-    color: 'var(--text-secondary)',
-  },
-  tabBar: {
-    display: 'flex',
-    gap: 'var(--space-xs)',
-    overflowX: 'auto',
-    paddingBottom: 2,
-    borderBottom: '1px solid var(--border-primary)',
-  },
-  tab: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 6,
-    padding: '10px 16px',
-    borderTop: 'none',
-    borderLeft: 'none',
-    borderRight: 'none',
-    background: 'none',
-    fontSize: '0.85rem',
-    fontWeight: 500,
-    cursor: 'pointer',
-    transition: 'all var(--transition-fast)',
-    whiteSpace: 'nowrap' as const,
-    fontFamily: 'var(--font-sans)',
-  },
-  tabCount: {
-    padding: '1px 7px',
-    borderRadius: 'var(--radius-full)',
-    background: 'var(--bg-tertiary)',
-    fontSize: '0.72rem',
-    fontWeight: 600,
-    color: 'var(--text-tertiary)',
-  },
-  tabCountActive: {
-    background: 'var(--accent-indigo-dim)',
-    color: 'var(--accent-indigo)',
-  },
-  tabContent: {
-    minHeight: 300,
-  },
-  profileContent: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 'var(--space-lg)',
-  },
-};
