@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Known Wallets private list
+known_wallets.txt
+known_wallets*.txt
