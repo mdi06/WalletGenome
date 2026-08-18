@@ -35,9 +35,17 @@ export default function SybilRadar({ report }: Props) {
     ? 'Moderate Activity / Farmer'
     : 'High Sybil Risk';
 
+  const explanation = report.mediaScore?.explanation || (
+    isClean
+      ? 'Multi-month activity, high protocol diversity, and capital depth confirm authentic human usage.'
+      : isSuspicious
+      ? 'Moderate on-chain footprint; exhibits repetitive interaction patterns or lower capital retention.'
+      : 'Elevated automation risk: Short activity lifespan, scripted execution bursts, or flagged in public airdrop exclusions.'
+  );
+
   return (
     <div className="glass-card animate-fade-in-up" style={styles.card}>
-      {/* Left: Sybil Probability Hero */}
+      {/* Left: Sybil Probability Hero & Explanation */}
       <div style={styles.heroSection}>
         <div style={{ ...styles.iconBox, background: statusBg, color: statusColor }}>
           {isClean ? <ShieldCheck size={26} /> : isSuspicious ? <AlertTriangle size={26} /> : <ShieldAlert size={26} />}
@@ -57,6 +65,9 @@ export default function SybilRadar({ report }: Props) {
               {verdictLabel}
             </span>
           </div>
+          <span style={styles.explanationText}>
+            {explanation}
+          </span>
         </div>
       </div>
 
@@ -112,22 +123,24 @@ const styles: Record<string, React.CSSProperties> = {
   },
   heroSection: {
     display: 'flex',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     gap: 'var(--space-md)',
+    maxWidth: 480,
   },
   iconBox: {
-    width: 46,
-    height: 46,
+    width: 44,
+    height: 44,
     borderRadius: 'var(--radius-md)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
+    marginTop: 2,
   },
   heroText: {
     display: 'flex',
     flexDirection: 'column',
-    gap: 2,
+    gap: 3,
   },
   heroLabel: {
     fontSize: '0.72rem',
@@ -142,7 +155,7 @@ const styles: Record<string, React.CSSProperties> = {
     gap: 'var(--space-sm)',
   },
   probValue: {
-    fontSize: '1.6rem',
+    fontSize: '1.55rem',
     fontWeight: 800,
     fontFamily: 'var(--font-mono)',
     lineHeight: 1,
@@ -155,6 +168,12 @@ const styles: Record<string, React.CSSProperties> = {
     borderWidth: 1,
     borderStyle: 'solid',
     letterSpacing: '0.02em',
+  },
+  explanationText: {
+    fontSize: '0.75rem',
+    color: 'var(--text-secondary)',
+    lineHeight: 1.35,
+    marginTop: 2,
   },
   divider: {
     width: 1,
