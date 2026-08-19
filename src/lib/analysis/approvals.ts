@@ -1,6 +1,7 @@
-import { ProcessedTransaction, TokenApproval, ApprovalSummary, RiskLevel } from '../types';
-import { EtherscanTokenTransfer } from '../types';
+import { ProcessedTransaction, TokenApproval, ApprovalSummary, RiskLevel, EtherscanTokenTransfer } from '../types';
 import { getAddressLabel, isDEXAddress, isBridgeAddress } from '../labels';
+import { STABLECOINS } from '../chains';
+import { resolveCoingeckoId, getCachedPrice } from '../prices';
 
 const APPROVE_METHOD_ID = '0x095ea7b3';
 
@@ -33,68 +34,78 @@ export function analyzeApprovals(
       existing.balance += amt;
     }
 
+    if (!existing.lastPriceUSD) {
+      if (STABLECOINS[cAddr]) {
+        existing.lastPriceUSD = 1.0;
+      } else {
+        const coingeckoId = resolveCoingeckoId(cAddr, t.tokenSymbol);
+        if (coingeckoId) {
+          const ts = parseInt(t.timeStamp || '0') || Math.floor(Date.now() / 1000);
+          existing.lastPriceUSD = getCachedPrice(coingeckoId, ts);
+        }
+      }
+    }
+
     tokenBalances.set(cAddr, existing);
   }
 
-  const approvalTxs = transactions.filter(
-    tx => (tx.from || '').toLowerCase() === lower &&
-      (tx.methodId === APPROVE_METHOD_ID ||
-       (tx.functionName || '').toLowerCase().includes('approve'))
-  );
+  const approvalTxs = transactions
+    .filter(
+      tx => (tx.from || '').toLowerCase() === lower &&
+        !tx.isError &&
+        (tx.methodId?.toLowerCase() === APPROVE_METHOD_ID ||
+         (tx.input || '').toLowerCase().startsWith(APPROVE_METHOD_ID) ||
+         (tx.functionName || '').toLowerCase().includes('approve'))
+    )
+    .sort((a, b) => b.timestamp - a.timestamp);
 
   for (const tx of approvalTxs) {
     const tokenAddress = (tx.to || '').toLowerCase();
     if (!tokenAddress) continue;
 
-    // Decode spender from calldata (0x095ea7b3 + 32-byte spender + 32-byte amount)
-    let spender = tx.to.toLowerCase();
+    // Decode spender and allowance from ERC-20 approve(address,uint256) calldata
+    let spender = tokenAddress;
     let isUnlimited = true;
     let allowanceStr = 'Unlimited';
 
-    const input = (tx as any).input || '';
-    if (input && input.length >= 74 && input.toLowerCase().startsWith(APPROVE_METHOD_ID)) {
+    const input = tx.input || '';
+    if (input.length >= 74 && input.toLowerCase().startsWith(APPROVE_METHOD_ID)) {
       const spenderHex = input.slice(34, 74);
       spender = `0x${spenderHex}`.toLowerCase();
-      const amountHex = input.slice(74, 138);
-      if (amountHex) {
-        // If amount starts with ffff or is very large
-        if (amountHex.toLowerCase().startsWith('ffff') || amountHex.toLowerCase() === 'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff') {
-          isUnlimited = true;
-          allowanceStr = 'Unlimited';
-        } else {
-          // Check if zero (revocation)
-          if (amountHex.replace(/^0+/, '') === '') {
-            allowanceStr = '0';
-            isUnlimited = false;
-          } else {
-            allowanceStr = 'Custom';
-            isUnlimited = false;
-          }
-        }
+      const amountHex = input.slice(74, 138).toLowerCase();
+      
+      if (!amountHex || /^0+$/.test(amountHex)) {
+        // Zero allowance = Revocation
+        isUnlimited = false;
+        allowanceStr = '0';
+      } else if (
+        amountHex.startsWith('ffff') ||
+        amountHex === 'f'.repeat(64) ||
+        (amountHex.length === 64 && amountHex[0] >= '8')
+      ) {
+        isUnlimited = true;
+        allowanceStr = 'Unlimited';
+      } else {
+        isUnlimited = false;
+        allowanceStr = 'Custom';
       }
     }
 
-    const tokenInfo = findTokenInfo(tokenAddress, tokenTransfers);
     const key = `${tokenAddress}-${spender}`;
+    // Because approvalTxs is sorted descending (newest first), skip older states for the same token-spender pair
+    if (approvalMap.has(key)) {
+      continue;
+    }
+
+    const tokenInfo = findTokenInfo(tokenAddress, tokenTransfers);
     const spenderLabel = getAddressLabel(spender);
     const riskLevel = assessApprovalRisk(spender, isUnlimited, spenderLabel);
 
     // Calculate estimated USD value exposed
     const tokenBal = tokenBalances.get(tokenAddress);
     let estimatedExposureUSD: number | null = null;
-    if (tokenBal && tokenBal.balance > 0) {
-      // Find historical USD valuation if available
-      const relatedTransfer = tokenTransfers.find(
-        t => (t.contractAddress || '').toLowerCase() === tokenAddress
-      );
-      if (relatedTransfer) {
-        // Estimate token price
-        const valUSD = (relatedTransfer as any).valueUSD;
-        const valFmt = (relatedTransfer as any).valueFormatted;
-        if (valUSD && valFmt && valFmt > 0) {
-          estimatedExposureUSD = tokenBal.balance * (valUSD / valFmt);
-        }
-      }
+    if (tokenBal && tokenBal.balance > 0 && tokenBal.lastPriceUSD) {
+      estimatedExposureUSD = tokenBal.balance * tokenBal.lastPriceUSD;
     }
 
     approvalMap.set(key, {

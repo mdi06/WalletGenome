@@ -1,4 +1,6 @@
 import { ProcessedTokenTransfer, DeadAsset, GraveyardSummary } from '../types';
+import { resolveCoingeckoId, getCachedPrice } from '../prices';
+import { STABLECOINS, TOKEN_COINGECKO_IDS } from '../chains';
 
 export function analyzeDeadAssets(
   tokenTransfers: ProcessedTokenTransfer[] = [],
@@ -52,27 +54,59 @@ export function analyzeDeadAssets(
   }
 
   const deadAssets: DeadAsset[] = [];
-  const commonTokens = new Set(['USDT', 'USDC', 'DAI', 'WETH', 'WBTC', 'ETH', 'BUSD', 'FRAX']);
+  const now = Math.floor(Date.now() / 1000);
 
   for (const [, data] of holdings) {
+    // Only evaluate assets where the user holds a positive balance
     if (data.balance <= 0.001) continue;
 
-    const sym = (data.tokenSymbol || '').toUpperCase();
-    if (commonTokens.has(sym)) continue;
+    const sym = (data.tokenSymbol || '').toUpperCase().trim();
+    const cAddr = (data.contractAddress || '').toLowerCase();
 
-    const sixMonthsAgo = Math.floor(Date.now() / 1000) - (180 * 24 * 60 * 60);
-    const isOld = data.lastActivityTimestamp < sixMonthsAgo;
-    const hasNoValue = data.totalInValue === 0;
-    const isLikelyDead = isOld || hasNoValue;
+    // Skip stablecoins and major market/ecosystem tokens (these are not dead assets)
+    if (STABLECOINS[cAddr] || TOKEN_COINGECKO_IDS[sym]) continue;
 
-    if (isLikelyDead) {
-      const peakValue = data.peakValuePerUnit * data.balance;
+    const coingeckoId = resolveCoingeckoId(data.contractAddress, data.tokenSymbol);
+    const currentPrice = coingeckoId ? getCachedPrice(coingeckoId, now) : null;
+
+    // If the token currently has an active market price
+    if (currentPrice !== null && currentPrice > 0) {
+      // If we recorded a peak price per unit, check if it crashed > 95%
+      if (data.peakValuePerUnit > 0) {
+        const drawdownRatio = currentPrice / data.peakValuePerUnit;
+        if (drawdownRatio < 0.05) {
+          // Collapsed by > 95% from peak (rugged or defunct token)
+          const peakValue = data.peakValuePerUnit * data.balance;
+          const currentValue = currentPrice * data.balance;
+          deadAssets.push({
+            contractAddress: data.contractAddress,
+            tokenName: data.tokenName,
+            tokenSymbol: data.tokenSymbol,
+            balance: data.balance,
+            peakValueUSD: peakValue > 0 ? peakValue : null,
+            currentValueUSD: currentValue,
+            chainId,
+            lastActivityDate: data.lastActivityTimestamp > 0
+              ? new Date(data.lastActivityTimestamp * 1000).toISOString().split('T')[0]
+              : 'Unknown',
+          });
+        }
+      }
+      // If current price is healthy (not >95% collapsed), it is an active asset, not dead.
+      continue;
+    }
+
+    // If current price is unresolvable:
+    // Only classify as a dead asset if it had confirmed historical peak value (> $1.00 total)
+    // and trading value has vanished
+    const peakValue = data.peakValuePerUnit * data.balance;
+    if (peakValue >= 1.0 && data.totalInValue > 0) {
       deadAssets.push({
         contractAddress: data.contractAddress,
         tokenName: data.tokenName,
         tokenSymbol: data.tokenSymbol,
         balance: data.balance,
-        peakValueUSD: peakValue > 0 ? peakValue : null,
+        peakValueUSD: peakValue,
         currentValueUSD: 0,
         chainId,
         lastActivityDate: data.lastActivityTimestamp > 0

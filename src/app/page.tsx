@@ -1,16 +1,33 @@
 'use client';
 
-import React, { useState } from 'react';
-import { MultiChainScanResult, ClusterScanResult } from '@/lib/types';
+import React from 'react';
+import dynamic from 'next/dynamic';
 import WalletInput from '@/components/WalletInput';
 import BulkScanInput from '@/components/BulkScanInput';
-import Dashboard from '@/components/Dashboard';
-import BulkDashboard from '@/components/BulkDashboard';
 import ProgressBar from '@/components/ProgressBar';
 import WelcomeGuide from '@/components/WelcomeGuide';
 import { SUPPORTED_CHAIN_IDS } from '@/lib/chains';
 import Link from 'next/link';
 import { HelpCircle, LayoutDashboard, Search, Layers, BookOpen } from 'lucide-react';
+import { useWalletScanner } from '@/hooks/useWalletScanner';
+
+const Dashboard = dynamic(() => import('@/components/Dashboard'), {
+  loading: () => (
+    <div className="p-12 text-center text-xs font-mono font-bold text-gray-500 uppercase tracking-wider animate-pulse">
+      Rendering Multi-Chain Forensic Dashboard...
+    </div>
+  ),
+  ssr: false,
+});
+
+const BulkDashboard = dynamic(() => import('@/components/BulkDashboard'), {
+  loading: () => (
+    <div className="p-12 text-center text-xs font-mono font-bold text-gray-500 uppercase tracking-wider animate-pulse">
+      Rendering Cluster Intelligence Matrix...
+    </div>
+  ),
+  ssr: false,
+});
 
 const PRESET_WALLETS = [
   { label: '0xd8dA6...6045 (Vitalik.eth · Multi-Chain · 6 Socials)', address: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045' },
@@ -19,86 +36,25 @@ const PRESET_WALLETS = [
 ];
 
 export default function Home() {
-  const [scanMode, setScanMode] = useState<'single' | 'cluster'>('single');
-  
-  // Single scan state
-  const [singleResult, setSingleResult] = useState<MultiChainScanResult | null>(null);
-  const [currentAddress, setCurrentAddress] = useState('');
-  
-  // Cluster scan state
-  const [clusterResult, setClusterResult] = useState<ClusterScanResult | null>(null);
-  
-  // Global scan state
-  const [isLoading, setIsLoading] = useState(false);
-  const [progress, setProgress] = useState('');
-  const [error, setError] = useState<string | null>(null);
-  const [showGuide, setShowGuide] = useState(true);
-
-  // ── Single Wallet Scan ──
-  const handleSingleScan = async (address: string, chainIds: number[]) => {
-    setIsLoading(true);
-    setError(null);
-    setShowGuide(false);
-    setScanMode('single');
-    setCurrentAddress(address);
-    setProgress(`Indexing EVM block state & resolving multi-chain forensics...`);
-
-    try {
-      setProgress(`Scanning ${chainIds.length} active chains & Web3.bio identity graph...`);
-
-      const response = await fetch('/api/scan', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ address, chainIds, isDemo: false }),
-      });
-
-      if (!response.ok) {
-        const data = await response.json().catch(() => ({ error: 'Unknown error' }));
-        throw new Error(data.error || `HTTP ${response.status}`);
-      }
-
-      const data: MultiChainScanResult = await response.json();
-      setSingleResult(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Scan execution failed.');
-    } finally {
-      setIsLoading(false);
-      setProgress('');
-    }
-  };
-
-  // ── Cluster Batch Scan ──
-  const handleClusterScan = async (addresses: string[], chainIds: number[]) => {
-    setIsLoading(true);
-    setError(null);
-    setShowGuide(false);
-    setProgress(`Scanning cluster of ${addresses.length} wallets across ${chainIds.length} chains...`);
-
-    try {
-      const response = await fetch('/api/batch-scan', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ addresses, chainIds }),
-      });
-
-      if (!response.ok) {
-        const data = await response.json().catch(() => ({ error: 'Unknown error' }));
-        throw new Error(data.error || `HTTP ${response.status}`);
-      }
-
-      const data: ClusterScanResult = await response.json();
-      setClusterResult(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Cluster scan execution failed.');
-    } finally {
-      setIsLoading(false);
-      setProgress('');
-    }
-  };
+  const {
+    scanMode,
+    setScanMode,
+    singleResult,
+    currentAddress,
+    setCurrentAddress,
+    clusterResult,
+    isLoading,
+    progress,
+    error,
+    showGuide,
+    setShowGuide,
+    handleSingleScan,
+    handleClusterScan
+  } = useWalletScanner();
 
   const handleSelectFromGuide = (address: string) => {
     setCurrentAddress(address);
-    handleSingleScan(address, [...SUPPORTED_CHAIN_IDS]);
+    handleSingleScan(address, [...SUPPORTED_CHAIN_IDS], true);
   };
 
   const handleInspectFromCluster = (address: string) => {
@@ -212,7 +168,7 @@ export default function Home() {
                   type="button"
                   onClick={() => {
                     setCurrentAddress(p.address);
-                    handleSingleScan(p.address, [...SUPPORTED_CHAIN_IDS]);
+                    handleSingleScan(p.address, [...SUPPORTED_CHAIN_IDS], true);
                   }}
                   className="text-xs font-mono font-bold text-gray-700 hover:text-black bg-white hover:bg-gray-100 px-3 py-1 border border-gray-200 shadow-sm transition-colors cursor-pointer"
                 >

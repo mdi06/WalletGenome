@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { ScanResult } from '@/lib/types';
+import { getChainConfig } from '@/lib/chains';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, PieChart, Pie, Cell } from 'recharts';
 
 interface Props {
@@ -9,10 +10,18 @@ interface Props {
 }
 
 export default function GasSummaryPanel({ results }: Props) {
-  const totalGasETH = results.reduce((sum, r) => sum + (r.gasSummary?.totalGasETH || 0), 0);
+  const ethChains = results.filter(r => {
+    try {
+      return getChainConfig(r.chainId).nativeToken.symbol === 'ETH';
+    } catch {
+      return true;
+    }
+  });
+
+  const totalGasETH = ethChains.reduce((sum, r) => sum + (r.gasSummary?.totalGasETH || 0), 0);
   const totalGasUSD = results.reduce((sum, r) => sum + (r.gasSummary?.totalGasUSD || 0), 0);
   const failedTxsCount = results.reduce((sum, r) => sum + (r.gasSummary?.failedTransactionCount || 0), 0);
-  const failedGasETH = results.reduce((sum, r) => sum + (r.gasSummary?.failedGasETH || 0), 0);
+  const failedGasETH = ethChains.reduce((sum, r) => sum + (r.gasSummary?.failedGasETH || 0), 0);
   const failedGasUSD = results.reduce((sum, r) => sum + (r.gasSummary?.failedGasUSD || 0), 0);
 
   // Merge monthly gas trends
@@ -100,20 +109,23 @@ export default function GasSummaryPanel({ results }: Props) {
           GAS SPENT BY NETWORK
         </span>
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-          {results.map(r => (
-            <div key={r.chainId} className="p-3.5 bg-[#dedede] border border-[#cecece] text-[#0a0a0a] space-y-1">
-              <div className="flex justify-between items-center text-xs font-bold">
-                <span className="text-[#0a0a0a]">{r.chainName}</span>
-                <span className="text-[#555555] font-mono text-[10px]">{r.transactionCount} txs</span>
+          {results.map(r => {
+            const nativeSymbol = getChainConfig(r.chainId)?.nativeToken?.symbol || 'ETH';
+            return (
+              <div key={r.chainId} className="p-3.5 bg-[#dedede] border border-[#cecece] text-[#0a0a0a] space-y-1">
+                <div className="flex justify-between items-center text-xs font-bold">
+                  <span className="text-[#0a0a0a]">{r.chainName}</span>
+                  <span className="text-[#555555] font-mono text-[10px]">{r.transactionCount} txs</span>
+                </div>
+                <div className="text-base font-black text-[#0a0a0a] font-mono">
+                  {(r.gasSummary?.totalGasETH || 0).toFixed(4)} {nativeSymbol}
+                </div>
+                <div className="text-[11px] font-bold text-[#555555] font-mono">
+                  ≈ ${(r.gasSummary?.totalGasUSD || 0).toFixed(2)}
+                </div>
               </div>
-              <div className="text-base font-black text-[#0a0a0a] font-mono">
-                {(r.gasSummary?.totalGasETH || 0).toFixed(4)} ETH
-              </div>
-              <div className="text-[11px] font-bold text-[#555555] font-mono">
-                ≈ ${(r.gasSummary?.totalGasUSD || 0).toFixed(2)}
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 

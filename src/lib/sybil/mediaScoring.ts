@@ -90,10 +90,13 @@ export function computeMediaScore(input: MediaInput): MediaScoreBreakdown {
 
   // ── 4. I (Identity & Cross-Chain Breadth) (Weight: 15%) ──
   let identityScore = 30;
-  if (activeChainsCount >= 4) identityScore = 95;
-  else if (activeChainsCount >= 3) identityScore = 80;
-  else if (activeChainsCount >= 2) identityScore = 60;
-  else identityScore = 40;
+  const totalActivity = totalTxCount + tokenTransfers.length;
+  const isDeepCrossChain = totalActivity >= activeChainsCount * 2;
+  if (activeChainsCount >= 4 && isDeepCrossChain) identityScore = 95;
+  else if (activeChainsCount >= 3 && isDeepCrossChain) identityScore = 80;
+  else if (activeChainsCount >= 2 && isDeepCrossChain) identityScore = 60;
+  else if (activeChainsCount >= 2) identityScore = 45;
+  else identityScore = 30;
 
   // Bonus for non-trivial token transfer counterparties
   if (tokenTransfers.length >= 15) identityScore = Math.min(100, identityScore + 10);

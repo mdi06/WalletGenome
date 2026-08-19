@@ -1,4 +1,5 @@
 import { WalletIdentityReport, SocialLinkItem, DomainIdentityItem } from '../types';
+import { identityCache, getDomainLimiter } from '../cache';
 
 interface Web3BioProfile {
   platform: string;
@@ -9,11 +10,30 @@ interface Web3BioProfile {
   links?: Record<string, { link: string; handle?: string }>;
 }
 
+function sanitizeHttpUrl(rawUrl?: string | null): string | null {
+  if (!rawUrl || typeof rawUrl !== 'string') return null;
+  const trimmed = rawUrl.trim();
+  if (trimmed.startsWith('https://') || trimmed.startsWith('http://')) {
+    return trimmed;
+  }
+  return null;
+}
+
 export async function resolveWalletIdentity(address: string): Promise<WalletIdentityReport> {
   const lower = (address || '').toLowerCase();
   if (!lower || !lower.startsWith('0x')) {
     return getEmptyReport();
   }
+
+  // Check LRU in-memory identity cache
+  const cachedReport = identityCache.get(lower);
+  if (cachedReport) {
+    return cachedReport;
+  }
+
+  // Respect API rate limits with Token Bucket
+  const limiter = getDomainLimiter('api.web3.bio', 5);
+  await limiter.acquire(2000);
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 3500);
@@ -22,7 +42,6 @@ export async function resolveWalletIdentity(address: string): Promise<WalletIden
     const res = await fetch(`https://api.web3.bio/profile/${lower}`, {
       signal: controller.signal,
       headers: { 'User-Agent': 'Wallet-Analytics-Identity/1.0' },
-      cache: 'force-cache',
     });
 
     if (!res.ok) {
@@ -31,7 +50,9 @@ export async function resolveWalletIdentity(address: string): Promise<WalletIden
 
     const profiles: Web3BioProfile[] = await res.json();
     if (!Array.isArray(profiles) || profiles.length === 0) {
-      return getEmptyReport();
+      const empty = getEmptyReport();
+      identityCache.set(lower, empty, 600); // 10 min cache for empty
+      return empty;
     }
 
     let primaryName: string | null = null;
@@ -109,8 +130,11 @@ export async function resolveWalletIdentity(address: string): Promise<WalletIden
       if (p.links) {
         for (const [linkKey, linkObj] of Object.entries(p.links)) {
           if (!linkObj || !linkObj.link) continue;
+          const sanitizedLink = sanitizeHttpUrl(linkObj.link);
+          if (!sanitizedLink) continue;
+
           const k = linkKey.toLowerCase();
-          const handle = linkObj.handle || linkObj.link.split('/').filter(Boolean).pop() || '';
+          const handle = linkObj.handle || sanitizedLink.split('/').filter(Boolean).pop() || '';
 
           let platform: SocialLinkItem['platform'] = 'other';
           if (k.includes('twitter') || k.includes('x.com')) platform = 'twitter';
@@ -129,7 +153,7 @@ export async function resolveWalletIdentity(address: string): Promise<WalletIden
               handle: platform === 'twitter' || platform === 'farcaster' || platform === 'lens'
                 ? (handle.startsWith('@') ? handle : `@${handle}`)
                 : handle,
-              link: linkObj.link,
+              link: sanitizedLink,
             });
           }
         }
@@ -139,7 +163,7 @@ export async function resolveWalletIdentity(address: string): Promise<WalletIden
     const socials = Array.from(socialMap.values());
     const hasIdentity = Boolean(primaryName || socials.length > 0 || domains.length > 0);
 
-    return {
+    const report: WalletIdentityReport = {
       primaryName,
       primaryAvatar,
       description,
@@ -147,6 +171,9 @@ export async function resolveWalletIdentity(address: string): Promise<WalletIden
       domains,
       hasIdentity,
     };
+
+    identityCache.set(lower, report, 1800); // 30 min cache
+    return report;
   } catch (err) {
     return getEmptyReport();
   } finally {

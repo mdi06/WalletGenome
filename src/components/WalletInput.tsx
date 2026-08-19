@@ -32,11 +32,11 @@ export default function WalletInput({ onScan, isLoading, initialAddress }: Props
   const handleScan = (addrToScan?: string) => {
     const target = (addrToScan || inputAddress).trim();
     if (!target) {
-      setError('Please enter an EVM address.');
+      setError('Please enter an EVM address or ENS domain.');
       return;
     }
-    if (!/^0x[a-fA-F0-9]{40}$/.test(target) && !target.endsWith('.eth')) {
-      setError('Invalid EVM address or domain format.');
+    if (!/^0x[a-fA-F0-9]{40}$/.test(target) && !/^[a-zA-Z0-9-.]+\.eth$/i.test(target) && !target.includes('.')) {
+      setError('Invalid EVM address (0x...) or ENS domain (.eth) format.');
       return;
     }
     setError(null);

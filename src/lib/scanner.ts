@@ -1,6 +1,7 @@
 import {
   EtherscanTransaction,
   EtherscanTokenTransfer,
+  EtherscanInternalTransaction,
   ProcessedTransaction,
   ProcessedTokenTransfer,
   TransactionCategory,
@@ -65,18 +66,38 @@ function categorizeTransaction(tx: EtherscanTransaction, walletAddress: string):
 
   if (!tx.to || tx.to === '') return 'contract_deploy';
   if (methodId === '0x095ea7b3' || funcName.includes('approve')) return 'approval';
+  if (methodId === '0xa9059cbb' || methodId === '0x23b872dd' || (!tx.input || tx.input === '0x' || tx.input === '')) return 'transfer';
   if (isBridgeAddress(to) || isBridgeMethod(methodId, funcName)) return 'bridge';
-  if (isDEXAddress(to) || funcName.includes('swap') || funcName.includes('exactinput') ||
-      funcName.includes('multicall') || funcName.includes('execute')) return 'swap';
+  if (isDEXAddress(to) || funcName.includes('swap') || funcName.includes('exactinput')) return 'swap';
   if (funcName.includes('supply') || funcName.includes('borrow') || funcName.includes('repay') ||
       funcName.includes('withdraw') || funcName.includes('lend')) return 'lending';
   if (funcName.includes('stake') || funcName.includes('unstake') || funcName.includes('delegate')) return 'staking';
   if (funcName.includes('mint') || funcName.includes('safetransferfrom') ||
       funcName.includes('setapprovalforall')) return 'nft';
-  if (!tx.input || tx.input === '0x' || tx.input === '') return 'transfer';
   if (tx.input.length > 2) return 'contract_interaction';
 
   return 'unknown';
+}
+
+export function formatSafeUnits(valueRaw: string | number, decimals = 18): number {
+  try {
+    const str = String(valueRaw || '0').trim();
+    if (!str || str === '0') return 0;
+    if (!/^\d+$/.test(str)) {
+      const num = parseFloat(str);
+      return isNaN(num) ? 0 : num;
+    }
+    if (decimals === 0) return Number(str);
+    if (str.length <= decimals) {
+      const padded = str.padStart(decimals, '0');
+      return parseFloat(`0.${padded}`) || 0;
+    }
+    const whole = str.slice(0, str.length - decimals);
+    const frac = str.slice(str.length - decimals);
+    return parseFloat(`${whole}.${frac}`) || 0;
+  } catch {
+    return (parseFloat(String(valueRaw)) || 0) / Math.pow(10, decimals) || 0;
+  }
 }
 
 export function processTransactions(
@@ -94,8 +115,7 @@ export function processTransactions(
     const gasCostWei = gasUsed * gasPrice;
     const gasCostETH = gasCostWei / WEI;
     const timestamp = parseInt(tx.timeStamp || '0') || Math.floor(Date.now() / 1000);
-    const rawVal = parseFloat(tx.value || '0') || 0;
-    const valueFormatted = rawVal / Math.pow(10, chain.nativeToken.decimals);
+    const valueFormatted = formatSafeUnits(tx.value || '0', chain.nativeToken.decimals);
 
     const ethPrice = getCachedPrice(chain.nativeToken.coingeckoId, timestamp);
 
@@ -117,6 +137,7 @@ export function processTransactions(
       isError: tx.isError === '1' || tx.txreceipt_status === '0',
       methodId: tx.methodId || '',
       functionName: tx.functionName || '',
+      input: tx.input || '',
       category: categorizeTransaction(tx, walletAddress),
       chainId,
     };
@@ -133,8 +154,7 @@ export function processTokenTransfers(
 
   return rawTransfers.map(t => {
     const decimals = parseInt(t.tokenDecimal || '18') || 18;
-    const rawVal = parseFloat(t.value || '0') || 0;
-    const valueFormatted = rawVal / Math.pow(10, decimals);
+    const valueFormatted = formatSafeUnits(t.value || '0', decimals);
     const timestamp = parseInt(t.timeStamp || '0') || Math.floor(Date.now() / 1000);
     const fromAddr = (t.from || '').toLowerCase();
     const direction = fromAddr === lower ? 'out' : 'in';
@@ -171,6 +191,44 @@ export function processTokenTransfers(
       valueFormatted,
       valueUSD,
       direction,
+      chainId,
+    };
+  });
+}
+
+export function processInternalTransactions(
+  rawInternals: EtherscanInternalTransaction[] = [],
+  walletAddress: string,
+  chainId: number,
+  knownWallets: Record<string, string> = {}
+): ProcessedTransaction[] {
+  const chain = getChainConfig(chainId);
+
+  return rawInternals.map(itx => {
+    const timestamp = parseInt(itx.timeStamp || '0') || Math.floor(Date.now() / 1000);
+    const valueFormatted = formatSafeUnits(itx.value || '0', chain.nativeToken.decimals);
+    const ethPrice = getCachedPrice(chain.nativeToken.coingeckoId, timestamp);
+
+    return {
+      hash: itx.hash || '',
+      timestamp,
+      date: timestampToDate(timestamp),
+      from: itx.from || '',
+      to: itx.to || '',
+      fromLabel: getAddressLabel(itx.from, knownWallets),
+      toLabel: getAddressLabel(itx.to, knownWallets),
+      value: itx.value || '0',
+      valueFormatted,
+      valueUSD: ethPrice ? valueFormatted * ethPrice : null,
+      gasUsed: parseInt(itx.gasUsed || '0') || 0,
+      gasPrice: 0,
+      gasCostETH: 0,
+      gasCostUSD: null,
+      isError: itx.isError === '1',
+      methodId: '',
+      functionName: itx.type || 'internal_transfer',
+      input: itx.input || '',
+      category: 'transfer',
       chainId,
     };
   });
@@ -217,23 +275,27 @@ export async function runAnalysis(
   rawTokenTransfers: EtherscanTokenTransfer[] = [],
   walletAddress: string,
   chainId: number,
-  knownWallets: Record<string, string> = {}
+  knownWallets: Record<string, string> = {},
+  rawInternalTxs: EtherscanInternalTransaction[] = []
 ): Promise<ScanResult> {
   const chain = getChainConfig(chainId);
   const lower = (walletAddress || '').toLowerCase();
 
   const processedTxs = processTransactions(rawTxs, walletAddress, chainId, knownWallets);
   const processedTransfers = processTokenTransfers(rawTokenTransfers, walletAddress, chainId, knownWallets);
+  const processedInternals = processInternalTransactions(rawInternalTxs, walletAddress, chainId, knownWallets);
+
+  // Combine external normal transactions and smart contract internal transfers for cashflow & counterparties
+  const allTxs = [...processedTxs, ...processedInternals];
 
   const outboundTxs = processedTxs.filter(
     tx => (tx.from || '').toLowerCase() === lower
   );
 
   const gasSummary = analyzeGasFees(outboundTxs);
-  const transferSummary = analyzeTransfers(processedTxs, processedTransfers, walletAddress);
+  const transferSummary = analyzeTransfers(allTxs, processedTransfers, walletAddress);
   const approvalSummary = analyzeApprovals(processedTxs, rawTokenTransfers, walletAddress, chainId);
   const graveyardSummary = analyzeDeadAssets(processedTransfers, chainId);
-
 
   return {
     address: walletAddress,
@@ -246,28 +308,43 @@ export async function runAnalysis(
     fingerprint: analyzeBehavioralFingerprint(processedTxs, processedTransfers, walletAddress),
     riskAssessment: computeRiskScore(approvalSummary, gasSummary, graveyardSummary, processedTxs),
     activityProfile: analyzeActivityProfile(processedTxs),
-    interactionsSummary: analyzeInteractions(processedTxs, processedTransfers, walletAddress, chainId, knownWallets),
+    interactionsSummary: analyzeInteractions(allTxs, processedTransfers, walletAddress, chainId, knownWallets),
     scannedAt: Date.now(),
     transactionCount: rawTxs.length,
     tokenTransferCount: rawTokenTransfers.length,
   };
 }
 
+const GRADE_ORDER: Record<string, number> = { F: 5, D: 4, C: 3, B: 2, A: 1 };
+
 export function aggregateResults(
   address: string,
   chainResults: ScanResult[]
 ): MultiChainScanResult {
+  const worstRiskGrade = chainResults.reduce((worst, r) => {
+    const g = r.riskAssessment?.grade || 'A';
+    return (GRADE_ORDER[g] || 1) > (GRADE_ORDER[worst] || 1) ? g : worst;
+  }, 'A');
+
+  const ethChains = chainResults.filter(r => {
+    try {
+      return getChainConfig(r.chainId).nativeToken.symbol === 'ETH';
+    } catch {
+      return true;
+    }
+  });
+
   return {
     address,
     chains: chainResults,
     aggregated: {
-      totalGasETH: chainResults.reduce((sum, r) => sum + (r.gasSummary?.totalGasETH || 0), 0),
+      totalGasETH: ethChains.reduce((sum, r) => sum + (r.gasSummary?.totalGasETH || 0), 0),
       totalGasUSD: chainResults.reduce((sum, r) => sum + (r.gasSummary?.totalGasUSD || 0), 0),
       totalHighRiskApprovals: chainResults.reduce((sum, r) => sum + (r.approvalSummary?.highRiskCount || 0), 0),
       totalDeadAssets: chainResults.reduce((sum, r) => sum + (r.graveyardSummary?.totalTokensDead || 0), 0),
       totalTransactions: chainResults.reduce((sum, r) => sum + (r.transactionCount || 0), 0),
-      riskScore: chainResults.length > 0 ? Math.round(chainResults.reduce((sum, r) => sum + (r.riskAssessment?.score || 0), 0) / chainResults.length) : 0,
-      riskGrade: chainResults.length > 0 ? chainResults[0]?.riskAssessment?.grade || "A" : "A",
+      riskScore: chainResults.length > 0 ? Math.max(...chainResults.map(r => r.riskAssessment?.score || 0)) : 0,
+      riskGrade: worstRiskGrade,
     },
   };
 }

@@ -94,6 +94,7 @@ export interface ProcessedTransaction {
   isError: boolean;
   methodId: string;
   functionName: string;
+  input?: string;
   category: TransactionCategory;
   chainId: number;
 }
@@ -283,6 +284,7 @@ export interface ScanResult {
   scannedAt: number;
   transactionCount: number;
   tokenTransferCount: number;
+  warning?: string | null;
 }
 
 export interface MultiChainScanResult {
@@ -291,6 +293,7 @@ export interface MultiChainScanResult {
   sybilReport?: SybilReport;
   identityReport?: WalletIdentityReport;
   notice?: string;
+  chainWarnings?: Array<{ chainId: number; chainName: string; message: string }>;
   aggregated: {
     totalGasETH: number;
     totalGasUSD: number;

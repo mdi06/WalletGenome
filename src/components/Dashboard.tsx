@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
+import dynamic from 'next/dynamic';
 import { MultiChainScanResult } from '@/lib/types';
-import CapitalFlowGraph from './CapitalFlowGraph';
 import InteractionsPanel from './InteractionsPanel';
 import GasSummaryPanel from './GasSummaryPanel';
 import TransferTable from './TransferTable';
@@ -12,25 +12,35 @@ import BehavioralFingerprint from './BehavioralFingerprint';
 import RiskScore from './RiskScore';
 import SybilRadar from './SybilRadar';
 import IdentityCard from './IdentityCard';
-import ActivityHeatmap from './ActivityHeatmap';
 import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
-import { ExternalLink } from 'lucide-react';
+import { ExternalLink, Download } from 'lucide-react';
+import { formatCompactUSD, extractProtocolBadges, computeAggregatedRadarData } from '@/lib/utils/dashboardUtils';
+
+export { formatCompactUSD, extractProtocolBadges };
+
+const CapitalFlowGraph = dynamic(() => import('./CapitalFlowGraph'), {
+  loading: () => (
+    <div className="p-12 text-center text-xs font-mono font-bold text-gray-500 uppercase tracking-wider animate-pulse">
+      Rendering Capital Flow Topology Graph...
+    </div>
+  ),
+  ssr: false,
+});
+
+const ActivityHeatmap = dynamic(() => import('./ActivityHeatmap'), {
+  loading: () => (
+    <div className="p-8 text-center text-xs font-mono font-bold text-gray-500 uppercase tracking-wider animate-pulse">
+      Rendering Activity Heatmap...
+    </div>
+  ),
+  ssr: false,
+});
 
 interface DashboardProps {
   data: MultiChainScanResult;
 }
 
 type TabId = 'dna' | 'flow' | 'protocols' | 'gas' | 'transfers' | 'approvals' | 'graveyard';
-
-export function formatCompactUSD(val: number): string {
-  if (!val || isNaN(val) || !isFinite(val)) return '$0';
-  const abs = Math.abs(val);
-  if (abs >= 1e12) return `$${(val / 1e12).toFixed(2)}T`;
-  if (abs >= 1e9) return `$${(val / 1e9).toFixed(2)}B`;
-  if (abs >= 1e6) return `$${(val / 1e6).toFixed(2)}M`;
-  if (abs >= 1e3) return `$${(val / 1e3).toFixed(1)}K`;
-  return `$${val.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
-}
 
 export default function Dashboard({ data }: DashboardProps) {
   const [activeTab, setActiveTab] = useState<TabId>('dna');
@@ -43,7 +53,7 @@ export default function Dashboard({ data }: DashboardProps) {
   const riskGrade = aggregated.riskGrade || 'A';
   const sybilProb = sybilReport?.mediaScore?.sybilProbability ?? (sybilReport?.isFlagged ? 85 : 0.02);
   const primaryName = identityReport?.primaryName || `${data.address.slice(0, 6)}...${data.address.slice(-4)}`;
-  const persona = data.chains[0]?.fingerprint?.persona || 'Alpha Hunter';
+  const persona = chains.find(c => c.fingerprint?.persona && c.fingerprint.persona !== 'New Wallet')?.fingerprint?.persona || chains[0]?.fingerprint?.persona || 'Alpha Hunter';
 
   const approvalCount = chains.reduce((sum, c) => sum + (c.approvalSummary?.totalApprovals || 0), 0);
   const deadCount = aggregated.totalDeadAssets;
@@ -53,20 +63,8 @@ export default function Dashboard({ data }: DashboardProps) {
   // Extract Protocol Badges
   const protocolBadges = extractProtocolBadges(data);
 
-  // Radar Data for Recharts
-  const fingerprint = data.chains[0]?.fingerprint;
-  const radarData = fingerprint?.dimensions ? fingerprint.dimensions.map(d => ({
-    subject: d.axis.replace('Multi-Chain Breadth', 'Cross-Chain').replace('Capital Efficiency', 'Capital Eff.'),
-    value: d.score,
-    fullMark: 100,
-  })) : [
-    { subject: 'DeFi Diversity', value: 75, fullMark: 100 },
-    { subject: 'Activity', value: 65, fullMark: 100 },
-    { subject: 'Capital Eff.', value: 85, fullMark: 100 },
-    { subject: 'Risk Appetite', value: 60, fullMark: 100 },
-    { subject: 'Maturity', value: 90, fullMark: 100 },
-    { subject: 'Cross-Chain', value: 70, fullMark: 100 },
-  ];
+  // Radar Data for Recharts aggregated across all chains
+  const radarData = computeAggregatedRadarData(chains);
 
   const tabs: { id: TabId; label: string; count?: number }[] = [
     { id: 'dna', label: 'BEHAVIORAL DNA' },
@@ -78,38 +76,74 @@ export default function Dashboard({ data }: DashboardProps) {
     { id: 'graveyard', label: 'GRAVEYARD', count: deadCount },
   ];
 
+  const handleExportJson = () => {
+    const jsonStr = JSON.stringify(data, null, 2);
+    const blob = new Blob([jsonStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `walletgenome-forensics-${data.address.slice(0, 8)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div className="space-y-6 animate-fade-in-up">
-      {/* ── Tab Navigation Bar ── */}
-      <div className="flex items-center gap-6 sm:gap-8 border-b border-[#cecece] px-1 overflow-x-auto">
-        {tabs.map(tab => {
-          const isActive = activeTab === tab.id;
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`pb-3.5 text-xs sm:text-sm font-black tracking-wider transition-all whitespace-nowrap cursor-pointer relative flex items-center gap-1.5 ${
-                isActive
-                  ? 'text-black font-black'
-                  : 'text-[#666666] hover:text-black font-bold'
-              }`}
-            >
-              <span>{tab.label}</span>
-              {typeof tab.count === 'number' && tab.count > 0 && (
-                <span
-                  className={`text-[10px] font-mono px-1.5 py-0.2 ${
-                    isActive ? 'bg-black text-white' : 'bg-[#cecece] text-[#333333]'
-                  }`}
-                >
-                  {tab.count}
-                </span>
-              )}
-              {isActive && (
-                <span className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#ff5500]" />
-              )}
-            </button>
-          );
-        })}
+      {/* ── Chain Warnings / Degradation Alert ── */}
+      {data.chainWarnings && data.chainWarnings.length > 0 && (
+        <div className="bg-[#fffbeb] border-l-4 border-l-[#f59e0b] p-3 space-y-1 text-xs border border-[#fde68a]">
+          {data.chainWarnings.map((w, idx) => (
+            <div key={idx} className="font-bold text-[#92400e] flex items-center gap-2">
+              <span>⚠️</span>
+              <span>{w.message}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* ── Tab Navigation Bar & Export Action ── */}
+      <div className="flex items-center justify-between border-b border-[#cecece] px-1 overflow-x-auto gap-4">
+        <div className="flex items-center gap-6 sm:gap-8">
+          {tabs.map(tab => {
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`pb-3.5 text-xs sm:text-sm font-black tracking-wider transition-all whitespace-nowrap cursor-pointer relative flex items-center gap-1.5 ${
+                  isActive
+                    ? 'text-black font-black'
+                    : 'text-[#666666] hover:text-black font-bold'
+                }`}
+              >
+                <span>{tab.label}</span>
+                {typeof tab.count === 'number' && tab.count > 0 && (
+                  <span
+                    className={`text-[10px] font-mono px-1.5 py-0.2 ${
+                      isActive ? 'bg-black text-white' : 'bg-[#cecece] text-[#333333]'
+                    }`}
+                  >
+                    {tab.count}
+                  </span>
+                )}
+                {isActive && (
+                  <span className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#ff5500]" />
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+        <button
+          type="button"
+          onClick={handleExportJson}
+          className="mb-2 bg-[#dedede] hover:bg-black hover:text-white border border-[#cecece] text-[#0a0a0a] text-[11px] font-bold px-2.5 py-1.5 flex items-center gap-1.5 transition-colors cursor-pointer shrink-0"
+          title="Export Complete Forensic JSON Report"
+        >
+          <Download size={12} className="text-[#ff5500]" />
+          <span className="hidden sm:inline">EXPORT REPORT (.JSON)</span>
+          <span className="sm:hidden">EXPORT</span>
+        </button>
       </div>
 
       {/* ── Tab Views ── */}
@@ -286,27 +320,33 @@ export default function Dashboard({ data }: DashboardProps) {
                 <ActivityHeatmap results={data.chains} />
               </div>
 
-              {/* Protocol Identity Badges */}
-              <div className="p-6 bg-[#dedede] border border-[#cecece] text-[#0a0a0a] space-y-3 shadow-sm">
-                <span className="text-[11px] font-extrabold text-[#555555] uppercase tracking-wider block">
-                  PROTOCOL IDENTITY BADGES
-                </span>
+                {/* Protocol Identity Badges */}
+                <div className="p-6 bg-[#dedede] border border-[#cecece] text-[#0a0a0a] space-y-3 shadow-sm">
+                  <span className="text-[11px] font-extrabold text-[#555555] uppercase tracking-wider block">
+                    PROTOCOL IDENTITY BADGES
+                  </span>
 
-                <div className="flex flex-wrap gap-2 pt-1">
-                  {protocolBadges.map((badge, i) => (
-                    <span
-                      key={i}
-                      className={`text-xs font-mono font-bold px-3 py-1 tracking-wider ${
-                        i === 0
-                          ? 'bg-[#ff5500] text-white'
-                          : 'bg-[#cecece] text-[#0a0a0a]'
-                      }`}
-                    >
-                      {badge}
-                    </span>
-                  ))}
+                  {protocolBadges.length > 0 ? (
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      {protocolBadges.map((badge, i) => (
+                        <span
+                          key={i}
+                          className={`text-xs font-mono font-bold px-3 py-1 tracking-wider ${
+                            i === 0
+                              ? 'bg-[#ff5500] text-white'
+                              : 'bg-[#cecece] text-[#0a0a0a]'
+                          }`}
+                        >
+                          {badge}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-xs font-mono font-bold text-[#777777] pt-1">
+                      NO DIRECT PROTOCOL BADGES DETECTED ON SCANNED CHAINS
+                    </p>
+                  )}
                 </div>
-              </div>
 
               {/* Metric Double Card (Lifetime Gas & Capital Flow) */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -456,34 +496,4 @@ export default function Dashboard({ data }: DashboardProps) {
       )}
     </div>
   );
-}
-
-function extractProtocolBadges(data: MultiChainScanResult): string[] {
-  const badges: string[] = [];
-  const protocols = data.chains.flatMap(c => c.interactionsSummary?.topProtocols || []);
-
-  protocols.forEach(p => {
-    const name = p.name.toUpperCase().replace(/\s+/g, '_');
-    if (name.includes('UNISWAP')) badges.push('UNISWAP_V3_LP');
-    else if (name.includes('AAVE')) badges.push('AAVE_GHO_MINTER');
-    else if (name.includes('LIDO')) badges.push('LIDO_STAKER');
-    else if (name.includes('CURVE')) badges.push('CURVE_CRV_LOCKER');
-    else if (name.includes('MAKER')) badges.push('MAKER_DAO_CDP');
-    else if (name.includes('ACROSS')) badges.push('ACROSS_BRIDGER');
-    else if (name.includes('METAMASK')) badges.push('METAMASK_SWAP_USER');
-    else badges.push(`${name}_USER`);
-  });
-
-  if (data.identityReport?.primaryName?.includes('.eth')) {
-    badges.push('ENS_OWNER');
-  }
-  if (data.chains.length > 1) {
-    badges.push('OP_DELEGATOR');
-  }
-
-  if (badges.length === 0) {
-    return ['UNISWAP_V3_LP', 'AAVE_GHO_MINTER', 'LIDO_STAKER', 'ENS_OWNER', 'OP_DELEGATOR', 'CURVE_CRV_LOCKER', 'MAKER_DAO_CDP'];
-  }
-
-  return Array.from(new Set(badges)).slice(0, 8);
 }

@@ -97,4 +97,7 @@ export const TOKEN_COINGECKO_IDS: Record<string, string> = {
   SUSHI: 'sushi', GRT: 'the-graph', ENS: 'ethereum-name-service',
   RPL: 'rocket-pool', BLUR: 'blur', STG: 'stargate-finance',
   BNB: 'binancecoin', BUSD: 'binance-usd',
+  AERO: 'aerodrome-finance', VELO: 'velodrome-finance',
+  GMX: 'gmx', PENDLE: 'pendle', BAL: 'balancer',
+  '1INCH': '1inch', DYDX: 'dydx', FXS: 'frax-share',
 };
