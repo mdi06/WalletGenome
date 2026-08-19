@@ -168,7 +168,7 @@ export default function DocsPage() {
   return (
     <main className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
       {/* ── Top Brand Header (Identical Sizing & Alignment as Main Page) ── */}
-      <header className="flex items-center justify-between">
+      <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <Link
           href="/"
           className="flex items-center text-left cursor-pointer group"
@@ -178,7 +178,7 @@ export default function DocsPage() {
           </span>
         </Link>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {/* Back to Scanner Link */}
           <Link
             href="/"
@@ -194,9 +194,6 @@ export default function DocsPage() {
             <span>DOCS / METHODOLOGY</span>
           </div>
 
-          <span className="bg-black text-white text-[11px] font-bold tracking-wider px-3 py-1.5 hidden sm:inline-block">
-            NODE: V4.2.0
-          </span>
           <span className="bg-[#ff5500] text-white text-[11px] font-bold tracking-wider px-3 py-1.5">
             LIVE INDEXING
           </span>
@@ -213,7 +210,7 @@ export default function DocsPage() {
           How WalletGenome Computes On-Chain Intelligence
         </h1>
         <p className="text-sm sm:text-base text-[#555555] font-medium max-w-4xl leading-relaxed">
-          An exhaustive technical breakdown of every mathematical model, classification heuristic, multi-chain data pipeline, and security risk formula powering the WalletGenome forensics engine.
+          A clear breakdown of the core algorithms, data pipelines, and security checks powering WalletGenome's on-chain analysis.
         </p>
 
         {/* Live Search & Filter */}
@@ -328,16 +325,16 @@ export default function DocsPage() {
             </div>
 
             <p className="text-xs sm:text-sm text-[#444444] leading-relaxed">
-              Standard block explorer APIs are prone to aggressive rate limits (e.g. 5 requests/sec on free tiers) and sudden network throttles. WalletGenome implements a <strong>failover dual-gateway strategy</strong> with intelligent in-memory price caching and batch concurrency controls.
+              We use a <strong>dual-gateway system</strong> and caching to bypass block explorer rate limits, ensuring fast and reliable data retrieval.
             </p>
 
             {/* Architecture Card */}
-            <div className="bg-[#dedede] border border-[#cecece] p-4 space-y-3 font-mono text-xs">
+            <div className="bg-[#dedede] border border-[#cecece] p-4 space-y-3 font-mono text-xs overflow-hidden">
               <div className="text-xs font-black uppercase text-black flex items-center gap-1.5">
                 <Database size={14} className="text-[#ff5500]" />
                 DUAL-GATEWAY FAILOVER WORKFLOW
               </div>
-              <div className="bg-[#0a0a0a] text-green-400 p-3 text-[11px] leading-relaxed overflow-x-auto">
+              <div className="bg-[#0a0a0a] text-green-400 p-3 text-[11px] leading-relaxed overflow-x-auto whitespace-pre">
 {`Client Request (Single or Cluster Batch)
       │
       ▼
@@ -365,15 +362,15 @@ export default function DocsPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
               <div className="p-3 bg-[#dedede] border border-[#cecece] space-y-1.5">
-                <div className="font-black text-[#0a0a0a] uppercase">Rate Limiting & Concurrency</div>
+                <div className="font-black text-[#0a0a0a] uppercase">Concurrency</div>
                 <p className="text-[#555555] leading-relaxed text-[11px]">
-                  Batch cluster scans chunk requests into parallel workers of size <code className="bg-[#ebebeb] px-1 font-bold">BATCH_SIZE = 3</code> with a 200ms backoff interval. Individual HTTP calls are wrapped with <code className="bg-[#ebebeb] px-1 font-bold">AbortController(15000ms)</code> and automated retry mechanics.
+                  Requests are processed in parallel batches with automated retries and timeouts to guarantee completion without hitting rate limits.
                 </p>
               </div>
               <div className="p-3 bg-[#dedede] border border-[#cecece] space-y-1.5">
-                <div className="font-black text-[#0a0a0a] uppercase">Anti-Spoofing Price Heuristic</div>
+                <div className="font-black text-[#0a0a0a] uppercase">Anti-Spoofing</div>
                 <p className="text-[#555555] leading-relaxed text-[11px]">
-                  Scam tokens frequently emit fake symbols like &quot;USDC&quot; or &quot;WETH&quot; to inflate perceived portfolio values. WalletGenome maps historical prices strictly against verified contract addresses (<code className="bg-[#ebebeb] px-1 font-bold">VERIFIED_TOKEN_ADDRESSES</code>) to prevent spoofing.
+                  Prices are only fetched for strictly verified contract addresses to prevent scam tokens from inflating portfolio values.
                 </p>
               </div>
             </div>
@@ -402,12 +399,12 @@ export default function DocsPage() {
             </div>
 
             <p className="text-xs sm:text-sm text-[#444444] leading-relaxed">
-              Raw EVM transactions only provide binary hex calldata and basic gas parameters. The categorization engine normalizes transactions into 9 distinct semantic categories using method selector decoding and contract registry cross-referencing.
+              Transactions are decoded and categorized into distinct semantic types using their method signatures and contract registries.
             </p>
 
             {/* Table of Categories */}
             <div className="overflow-x-auto border border-[#cecece]">
-              <table className="w-full text-left text-xs font-mono">
+              <table className="w-full text-left text-xs font-mono whitespace-nowrap">
                 <thead className="bg-black text-white text-[11px] uppercase">
                   <tr>
                     <th className="p-2.5">Category</th>
@@ -466,7 +463,7 @@ export default function DocsPage() {
                 <div>{'Gas Cost (USD) = Gas Cost (ETH) × Historical Daily Price(t)'}</div>
               </div>
               <p className="text-[11px] text-[#555555] font-mono leading-relaxed">
-                Where <code className="bg-[#ebebeb] px-1 font-bold">Price(t)</code> is dynamically resolved from historical daily OHLC feeds matching the exact timestamp of execution.
+                Gas costs are calculated using historical prices matching the exact timestamp of execution.
               </p>
             </div>
           </section>
@@ -494,7 +491,7 @@ export default function DocsPage() {
             </div>
 
             <p className="text-xs sm:text-sm text-[#444444] leading-relaxed">
-              WalletGenome constructs a normalized multi-axial radar vector across 6 independent behavioral dimensions, scoring each axis from 0 to 100.
+              Wallets are analyzed across 6 behavioral dimensions, each scored from 0 to 100.
             </p>
 
             {/* 6 Dimensions Breakdown */}
@@ -502,96 +499,68 @@ export default function DocsPage() {
               
               {/* Dim 1 */}
               <div className="p-3.5 bg-[#dedede] border border-[#cecece] space-y-2">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between flex-wrap gap-2">
                   <span className="font-black text-black uppercase">1. DeFi Diversity</span>
-                  <span className="text-[10px] bg-[#ff5500] text-white px-1.5 py-0.5">0–100 PTS</span>
+                  <span className="text-[10px] bg-[#ff5500] text-white px-1.5 py-0.5 whitespace-nowrap">0–100 PTS</span>
                 </div>
                 <p className="text-[11px] text-[#555555] leading-relaxed">
-                  Measures breadth of smart contracts, distinct protocol families, and Shannon entropy across transaction categories:
+                  Measures breadth of smart contracts and distinct protocols used.
                 </p>
-                <div className="bg-[#ebebeb] p-2 border border-[#cecece] text-[10px] space-y-1">
-                  <div>{'H(X) = -Σ (p_i × log2(p_i))'}</div>
-                  <div>{'Score = clamp(ContractDepthScore + ProtocolScore + EntropyScore)'}</div>
-                  <div className="text-[#777777] pt-1">
-                    • Contract Depth: up to 45 pts (40 contracts = max)<br/>
-                    • Protocol Families: up to 30 pts<br/>
-                    • Category Entropy: up to 25 pts (normalized to log2(9))
-                  </div>
-                </div>
               </div>
 
               {/* Dim 2 */}
               <div className="p-3.5 bg-[#dedede] border border-[#cecece] space-y-2">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between flex-wrap gap-2">
                   <span className="font-black text-black uppercase">2. Activity Intensity</span>
-                  <span className="text-[10px] bg-black text-white px-1.5 py-0.5">0–100 PTS</span>
+                  <span className="text-[10px] bg-black text-white px-1.5 py-0.5 whitespace-nowrap">0–100 PTS</span>
                 </div>
                 <p className="text-[11px] text-[#555555] leading-relaxed">
-                  Evaluates transaction execution frequency normalized by the active lifespan of the address:
+                  Evaluates transaction execution frequency.
                 </p>
-                <div className="bg-[#ebebeb] p-2 border border-[#cecece] text-[10px] space-y-1">
-                  <div>{'TxsPerMonth = Total Transactions / Active Months'}</div>
-                  <div>{'Activity Score = clamp((TxsPerMonth / 40) × 100)'}</div>
-                </div>
               </div>
 
               {/* Dim 3 */}
               <div className="p-3.5 bg-[#dedede] border border-[#cecece] space-y-2">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between flex-wrap gap-2">
                   <span className="font-black text-black uppercase">3. Capital Efficiency</span>
-                  <span className="text-[10px] bg-black text-white px-1.5 py-0.5">0–100 PTS</span>
+                  <span className="text-[10px] bg-black text-white px-1.5 py-0.5 whitespace-nowrap">0–100 PTS</span>
                 </div>
                 <p className="text-[11px] text-[#555555] leading-relaxed">
-                  Ratio of total transferred economic value to total gas fees consumed:
+                  Ratio of transferred economic value to gas fees consumed.
                 </p>
-                <div className="bg-[#ebebeb] p-2 border border-[#cecece] text-[10px] space-y-1">
-                  <div>{'Efficiency Ratio = Total USD Volume Transferred / Total Gas USD Spent'}</div>
-                  <div>{'Efficiency Score = clamp(min(Efficiency Ratio / 100, 1) × 100)'}</div>
-                </div>
               </div>
 
               {/* Dim 4 */}
               <div className="p-3.5 bg-[#dedede] border border-[#cecece] space-y-2">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between flex-wrap gap-2">
                   <span className="font-black text-black uppercase">4. Risk Appetite</span>
-                  <span className="text-[10px] bg-black text-white px-1.5 py-0.5">0–100 PTS</span>
+                  <span className="text-[10px] bg-black text-white px-1.5 py-0.5 whitespace-nowrap">0–100 PTS</span>
                 </div>
                 <p className="text-[11px] text-[#555555] leading-relaxed">
-                  Measures tolerance for unverified contracts, volatile interactions, and failed transactions:
+                  Measures tolerance for unverified contracts and failed transactions.
                 </p>
-                <div className="bg-[#ebebeb] p-2 border border-[#cecece] text-[10px] space-y-1">
-                  <div>{'FailedRatio = Failed Txs / Total Txs'}</div>
-                  <div>{'Score = clamp((FailedRatio × 150) + min(UnknownRatio × 30, 20))'}</div>
-                </div>
               </div>
 
               {/* Dim 5 */}
               <div className="p-3.5 bg-[#dedede] border border-[#cecece] space-y-2">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between flex-wrap gap-2">
                   <span className="font-black text-black uppercase">5. Maturity</span>
-                  <span className="text-[10px] bg-black text-white px-1.5 py-0.5">0–100 PTS</span>
+                  <span className="text-[10px] bg-black text-white px-1.5 py-0.5 whitespace-nowrap">0–100 PTS</span>
                 </div>
                 <p className="text-[11px] text-[#555555] leading-relaxed">
-                  Longevity from first transaction date combined with monthly active consistency:
+                  Longevity from first transaction combined with active consistency.
                 </p>
-                <div className="bg-[#ebebeb] p-2 border border-[#cecece] text-[10px] space-y-1">
-                  <div>{'AgeScore = clamp((WalletAgeMonths / 36) × 60)'}</div>
-                  <div>{'Maturity Score = AgeScore + ((ActiveMonths / WalletAgeMonths) × 40)'}</div>
-                </div>
               </div>
 
               {/* Dim 6 */}
               <div className="p-3.5 bg-[#dedede] border border-[#cecece] space-y-2">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between flex-wrap gap-2">
                   <span className="font-black text-black uppercase">6. Network Breadth</span>
-                  <span className="text-[10px] bg-black text-white px-1.5 py-0.5">0–100 PTS</span>
+                  <span className="text-[10px] bg-black text-white px-1.5 py-0.5 whitespace-nowrap">0–100 PTS</span>
                 </div>
                 <p className="text-[11px] text-[#555555] leading-relaxed">
-                  Measures counterparty diversity across both native transaction peers and ERC-20 token transfer addresses:
+                  Diversity of peers across native transactions and token transfers.
                 </p>
-                <div className="bg-[#ebebeb] p-2 border border-[#cecece] text-[10px] space-y-1">
-                  <div>{'Breadth Score = clamp((Unique Counterparties / 50) × 100)'}</div>
-                </div>
               </div>
 
             </div>
@@ -648,12 +617,12 @@ export default function DocsPage() {
             </div>
 
             <p className="text-xs sm:text-sm text-[#444444] leading-relaxed">
-              The risk engine evaluates vulnerability vectors and outputs a normalized risk score from <strong>0 (Pristine / Lowest Risk) to 100 (Maximum Vulnerability)</strong>, mapped to security grades A through F.
+              The risk engine scores vulnerabilities from <strong>0 (Safe) to 100 (Critical)</strong>, mapping them to security grades A through F based on key risk factors.
             </p>
 
             {/* Risk Factor Breakdown Table */}
             <div className="overflow-x-auto border border-[#cecece]">
-              <table className="w-full text-left text-xs font-mono">
+              <table className="w-full text-left text-xs font-mono whitespace-nowrap">
                 <thead className="bg-black text-white text-[11px] uppercase">
                   <tr>
                     <th className="p-2.5">Risk Factor</th>
@@ -750,45 +719,45 @@ export default function DocsPage() {
             </div>
 
             <p className="text-xs sm:text-sm text-[#444444] leading-relaxed">
-              Sybil defense integrates a dual-layer strategy: <strong>Layer 1</strong> queries 800,000+ authoritative addresses in an in-memory hash set cache, while <strong>Layer 2</strong> evaluates the multi-variable Trusta AI MEDIA heuristic model.
+              Sybil defense checks an 800K+ blacklist cache and uses the Trusta AI MEDIA model to identify bot-like behavior.
             </p>
 
             {/* In-Memory Datasets */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs font-mono">
               <div className="p-3 bg-[#dedede] border border-[#cecece] space-y-1.5">
-                <div className="font-black text-[#0a0a0a] flex items-center justify-between">
+                <div className="font-black text-[#0a0a0a] flex items-center justify-between flex-wrap gap-2">
                   <span>1. LayerZero Sybil Database</span>
-                  <span className="text-[9px] bg-black text-white px-1">800K+ ADDR</span>
+                  <span className="text-[9px] bg-black text-white px-1 whitespace-nowrap">800K+ ADDR</span>
                 </div>
                 <p className="text-[11px] text-[#555555]">
-                  Official community bounty hunter reports, algorithmic script execution loops, and CEX deposit pooling trees.
+                  Official community bounty hunter reports and algorithmic script execution loops.
                 </p>
               </div>
               <div className="p-3 bg-[#dedede] border border-[#cecece] space-y-1.5">
-                <div className="font-black text-[#0a0a0a] flex items-center justify-between">
+                <div className="font-black text-[#0a0a0a] flex items-center justify-between flex-wrap gap-2">
                   <span>2. Hop Protocol Sybil Defense</span>
-                  <span className="text-[9px] bg-black text-white px-1">GRAPH DEFENSE</span>
+                  <span className="text-[9px] bg-black text-white px-1 whitespace-nowrap">GRAPH DEFENSE</span>
                 </div>
                 <p className="text-[11px] text-[#555555]">
-                  Union-find graph analysis flagging co-funded multi-sig parent roots and simultaneous bridge routing.
+                  Graph analysis flagging co-funded multi-sig parent roots.
                 </p>
               </div>
               <div className="p-3 bg-[#dedede] border border-[#cecece] space-y-1.5">
-                <div className="font-black text-[#0a0a0a] flex items-center justify-between">
+                <div className="font-black text-[#0a0a0a] flex items-center justify-between flex-wrap gap-2">
                   <span>3. Umbra Privacy Mixer Clusters</span>
-                  <span className="text-[9px] bg-black text-white px-1">STEALTH POOLS</span>
+                  <span className="text-[9px] bg-black text-white px-1 whitespace-nowrap">STEALTH POOLS</span>
                 </div>
                 <p className="text-[11px] text-[#555555]">
-                  Identified stealth address routing clusters attempting to disguise funding origins across airdrop campaigns.
+                  Identified stealth address routing clusters.
                 </p>
               </div>
               <div className="p-3 bg-[#dedede] border border-[#cecece] space-y-1.5">
-                <div className="font-black text-[#0a0a0a] flex items-center justify-between">
+                <div className="font-black text-[#0a0a0a] flex items-center justify-between flex-wrap gap-2">
                   <span>4. US Treasury OFAC SDN</span>
-                  <span className="text-[9px] bg-red-700 text-white px-1">SANCTIONED</span>
+                  <span className="text-[9px] bg-red-700 text-white px-1 whitespace-nowrap">SANCTIONED</span>
                 </div>
                 <p className="text-[11px] text-[#555555]">
-                  Specially Designated Nationals (SDN) registry: Tornado Cash contracts, bridge exploiters, and state actors.
+                  Specially Designated Nationals registry.
                 </p>
               </div>
             </div>
@@ -846,7 +815,7 @@ export default function DocsPage() {
             </div>
 
             <p className="text-xs sm:text-sm text-[#444444] leading-relaxed">
-              Standard wallet checkers only list approvals. WalletGenome computes <strong>actual capital at risk in USD</strong> by reconstructing historical balance sheets from ERC-20 transfer logs.
+              WalletGenome calculates your actual <strong>capital at risk in USD</strong> by tracking token allowances and historical balances.
             </p>
 
             <div className="p-4 bg-[#dedede] border border-[#cecece] space-y-3 font-mono text-xs">
@@ -899,7 +868,7 @@ export default function DocsPage() {
             </div>
 
             <p className="text-xs sm:text-sm text-[#444444] leading-relaxed">
-              The Graveyard engine uncovers dormant and rugged ERC-20 tokens that lost 100% of liquidity, quantifying the exact historical peak dollar value lost.
+              The Graveyard engine identifies dead tokens and calculates the exact value lost from their historical peak.
             </p>
 
             <div className="bg-[#dedede] border border-[#cecece] p-4 space-y-3 font-mono text-xs">
@@ -940,7 +909,7 @@ export default function DocsPage() {
             </div>
 
             <p className="text-xs sm:text-sm text-[#444444] leading-relaxed">
-              Every on-chain timestamp is projected onto a 7×24 (168-cell) UTC matrix to detect human vs. bot execution footprints and geographic timezone biases.
+              Transaction times are mapped to a 24x7 matrix to identify bot patterns and timezone activity.
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs font-mono">
@@ -986,7 +955,7 @@ export default function DocsPage() {
             </div>
 
             <p className="text-xs sm:text-sm text-[#444444] leading-relaxed">
-              WalletGenome provides dual graph visualizers: the <strong>Arkham-style Capital Flow Graph</strong> for single address inflows/outflows, and the <strong>Cluster Multi-Body Matrix</strong> for batch cluster coordination.
+              We visualize funds using Capital Flow Graphs for single addresses and Cluster Matrices for multiple wallets.
             </p>
 
             <div className="p-4 bg-[#dedede] border border-[#cecece] space-y-3 font-mono text-xs">
@@ -1033,11 +1002,11 @@ export default function DocsPage() {
             </div>
 
             <p className="text-xs sm:text-sm text-[#444444] leading-relaxed">
-              Resolves verified Web3 identities and social backlinks using the Web3.bio identity federation API. When multiple domains exist for a single address, a strict authority weighting matrix selects the primary display handle.
+              Web3 identities (like ENS, Farcaster) are resolved using Web3.bio, picking the most trusted handle based on our priority matrix.
             </p>
 
             <div className="overflow-x-auto border border-[#cecece]">
-              <table className="w-full text-left text-xs font-mono">
+              <table className="w-full text-left text-xs font-mono whitespace-nowrap">
                 <thead className="bg-black text-white text-[11px] uppercase">
                   <tr>
                     <th className="p-2.5">Platform</th>
@@ -1099,11 +1068,11 @@ export default function DocsPage() {
             </div>
 
             <p className="text-xs sm:text-sm text-[#444444] leading-relaxed">
-              Summary of time complexity, space complexity, execution runtime layer, and caching policies across all subsystems.
+              Performance summary of our algorithms and caching policies.
             </p>
 
             <div className="overflow-x-auto border border-[#cecece]">
-              <table className="w-full text-left text-xs font-mono">
+              <table className="w-full text-left text-xs font-mono whitespace-nowrap">
                 <thead className="bg-black text-white text-[11px] uppercase">
                   <tr>
                     <th className="p-2.5">Subsystem</th>

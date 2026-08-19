@@ -107,9 +107,6 @@ export default function Home() {
             <span>DOCS / METHODOLOGY</span>
           </Link>
 
-          <span className="bg-black text-white text-[11px] font-bold tracking-wider px-3 py-1.5 hidden sm:inline-block">
-            NODE: V4.2.0
-          </span>
           <span className="bg-[#ff5500] text-white text-[11px] font-bold tracking-wider px-3 py-1.5">
             LIVE INDEXING
           </span>

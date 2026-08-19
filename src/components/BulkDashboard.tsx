@@ -193,7 +193,7 @@ export default function BulkDashboard({ data, onInspectWallet }: Props) {
             AVG SYBIL PROBABILITY
           </div>
           <div className={`text-2xl font-black font-mono ${data.flaggedCount > 0 ? 'text-[#dc2626]' : 'text-[#059669]'}`}>
-            {data.avgSybilProbability}%
+            {typeof data.avgSybilProbability === 'number' ? data.avgSybilProbability.toFixed(2) : Number(data.avgSybilProbability || 0).toFixed(2)}%
           </div>
           <div className="text-[11px] font-bold text-[#555555] font-mono">
             {data.flaggedCount > 0 ? `${data.flaggedCount} Flagged Wallets` : 'All Wallets Clean'}
