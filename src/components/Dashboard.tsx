@@ -161,7 +161,7 @@ export default function Dashboard({ data }: DashboardProps) {
       )}
 
       {/* ── Tab Navigation Bar & Export Action ── */}
-      <div className="flex items-center justify-between border-b border-[#c8c8c8] pb-2.5 px-1 overflow-x-auto gap-3">
+      <div className="flex items-center justify-between border-b border-[#c8c8c8] pt-2 pb-2.5 px-1 overflow-x-auto gap-3">
         <div className="flex items-center gap-2 sm:gap-3">
           {tabs.map(tab => {
             const isActive = activeTab === tab.id;

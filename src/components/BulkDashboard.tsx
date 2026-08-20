@@ -292,7 +292,7 @@ export default function BulkDashboard({ data, onInspectWallet }: Props) {
       </div>
 
       {/* ── 3. Cluster Sub-Tabs Navigation ── */}
-      <div className="flex items-center gap-3 border-b border-[#c8c8c8] pb-2.5 px-1 overflow-x-auto">
+      <div className="flex items-center gap-3 border-b border-[#c8c8c8] pt-2 pb-2.5 px-1 overflow-x-auto">
         <button
           type="button"
           onClick={() => setActiveTab('leaderboard')}
