@@ -2,15 +2,20 @@ import { MultiChainScanResult, ScanResult } from '../types';
 
 export function formatCompactUSD(val: any): string {
   try {
-    let num = typeof val === 'string' ? parseFloat(val.replace(/[^0-9.-]+/g, '')) : Number(val);
-    if (!num || isNaN(num) || !isFinite(num)) return '$0';
+    if (val === null || val === undefined) return '$0';
+    const num = typeof val === 'number' ? val : parseFloat(String(val).replace(/[^0-9.-]+/g, ''));
+    if (isNaN(num) || !isFinite(num) || num === 0) return '$0';
     const abs = Math.abs(num);
-    if (abs >= 1e12) return `$${(num / 1e12).toFixed(2)}T`;
+    if (abs >= 1e12) {
+      const inT = num / 1e12;
+      if (inT > 999.99) return '>$999T';
+      return `$${inT.toFixed(2)}T`;
+    }
     if (abs >= 1e9) return `$${(num / 1e9).toFixed(2)}B`;
     if (abs >= 1e6) return `$${(num / 1e6).toFixed(2)}M`;
-    if (abs >= 1e3) return `$${(num / 1e3).toFixed(1)}K`;
-    if (abs >= 1) return `$${num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-    return `$${num.toFixed(2)}`;
+    if (abs >= 1e3) return `$${(num / 1e3).toFixed(2)}K`;
+    if (abs >= 1) return `$${num.toFixed(2)}`;
+    return `$${num.toFixed(3)}`;
   } catch (e) {
     return '$0';
   }

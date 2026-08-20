@@ -60,6 +60,26 @@ export default function Dashboard({ data }: DashboardProps) {
   const protocolCount = chains.reduce((sum, c) => sum + (c.interactionsSummary?.topProtocols?.length || 0), 0);
   const totalInflowUSD = chains.reduce((sum, c) => sum + (c.transferSummary?.totalInboundUSD || 0), 0);
 
+  const formatCurrencyValue = (val: any): string => {
+    if (val === null || val === undefined) return '$0';
+    const num = typeof val === 'number' ? val : parseFloat(String(val).replace(/[^0-9.-]+/g, ''));
+    if (isNaN(num) || !isFinite(num) || num === 0) return '$0';
+    const abs = Math.abs(num);
+    if (abs >= 1e12) {
+      const inT = num / 1e12;
+      if (inT > 999.99) return '>$999T';
+      return `$${inT.toFixed(2)}T`;
+    }
+    if (abs >= 1e9) return `$${(num / 1e9).toFixed(2)}B`;
+    if (abs >= 1e6) return `$${(num / 1e6).toFixed(2)}M`;
+    if (abs >= 1e3) return `$${(num / 1e3).toFixed(2)}K`;
+    if (abs >= 1) return `$${num.toFixed(2)}`;
+    return `$${num.toFixed(3)}`;
+  };
+
+  const formattedInflowUSD = formatCurrencyValue(totalInflowUSD);
+  const formattedGasUSD = formatCurrencyValue(totalGasUSD);
+
   // Extract Protocol Badges
   const protocolBadges = extractProtocolBadges(data);
 
@@ -341,7 +361,7 @@ export default function Dashboard({ data }: DashboardProps) {
                     {totalGasETH >= 10 ? totalGasETH.toFixed(2) : totalGasETH.toFixed(3)} ETH
                   </div>
                   <div className="text-xs font-bold text-[#555555] font-mono">
-                    Total Spent (≈ {formatCompactUSD(totalGasUSD)})
+                    Total Spent (≈ {formattedGasUSD})
                   </div>
                 </div>
 
@@ -351,7 +371,7 @@ export default function Dashboard({ data }: DashboardProps) {
                     CAPITAL FLOW
                   </span>
                   <div className="text-3xl font-black text-[#0a0a0a] font-mono truncate" title={`$${Number(totalInflowUSD || 0).toLocaleString('en-US')}`}>
-                    {formatCompactUSD(Number(totalInflowUSD || 0))}
+                    {formattedInflowUSD}
                   </div>
                   <div className="text-xs font-bold text-[#555555] font-mono">
                     Total Inflow Across Chains

@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { extractProtocolBadges } from './Dashboard';
+import { extractProtocolBadges, formatCompactUSD } from './Dashboard';
 import { MultiChainScanResult, ScanResult } from '@/lib/types';
 
 function createMockScan(overrides: Partial<ScanResult> = {}): ScanResult {
@@ -196,5 +196,42 @@ describe('Protocol Identity Badges Genuine Extraction Tests', () => {
     assert.ok(badges.includes('ACROSS_BRIDGER'));
     assert.ok(badges.includes('ENS_OWNER'));
     assert.ok(!badges.includes('OP_DELEGATOR'));
+  });
+});
+
+describe('Dashboard Currency & Capital Flow Formatter Tests', () => {
+  it('should format small dollar amounts (e.g. 3.692471) to exactly 2 decimal places ($3.69)', () => {
+    assert.strictEqual(formatCompactUSD(3.692471), '$3.69');
+    assert.strictEqual(formatCompactUSD('3.692471'), '$3.69');
+    assert.strictEqual(formatCompactUSD(3.700817), '$3.70');
+    assert.strictEqual(formatCompactUSD('3.700817'), '$3.70');
+    assert.strictEqual(formatCompactUSD(15.5), '$15.50');
+  });
+
+  it('should format thousands ($X.XXK)', () => {
+    assert.strictEqual(formatCompactUSD(1250), '$1.25K');
+    assert.strictEqual(formatCompactUSD('142904'), '$142.90K');
+  });
+
+  it('should format millions ($X.XXM)', () => {
+    assert.strictEqual(formatCompactUSD(3700817), '$3.70M');
+    assert.strictEqual(formatCompactUSD('3700817.45'), '$3.70M');
+  });
+
+  it('should format billions ($X.XXB)', () => {
+    assert.strictEqual(formatCompactUSD(4525340186), '$4.53B');
+    assert.strictEqual(formatCompactUSD('4525340186.12'), '$4.53B');
+  });
+
+  it('should format trillions ($X.XXT)', () => {
+    assert.strictEqual(formatCompactUSD(1234567890000), '$1.23T');
+  });
+
+  it('should handle zero, null, undefined and invalid strings gracefully', () => {
+    assert.strictEqual(formatCompactUSD(0), '$0');
+    assert.strictEqual(formatCompactUSD(null), '$0');
+    assert.strictEqual(formatCompactUSD(undefined), '$0');
+    assert.strictEqual(formatCompactUSD(''), '$0');
+    assert.strictEqual(formatCompactUSD('invalid'), '$0');
   });
 });

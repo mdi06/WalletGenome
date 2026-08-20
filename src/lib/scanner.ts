@@ -129,7 +129,7 @@ export function processTransactions(
       toLabel: getAddressLabel(tx.to, knownWallets),
       value: tx.value || '0',
       valueFormatted,
-      valueUSD: ethPrice ? valueFormatted * ethPrice : null,
+      valueUSD: (ethPrice && isFinite(valueFormatted * ethPrice) && valueFormatted * ethPrice < 1e11) ? valueFormatted * ethPrice : null,
       gasUsed,
       gasPrice,
       gasCostETH,
@@ -168,10 +168,12 @@ export function processTokenTransfers(
 
     if (coingeckoId) {
       const price = getCachedPrice(coingeckoId, timestamp);
-      if (price) valueUSD = valueFormatted * price;
+      if (price && isFinite(valueFormatted * price) && valueFormatted * price < 1e11) {
+        valueUSD = valueFormatted * price;
+      }
     }
 
-    if (STABLECOINS[tokenContract]) {
+    if (STABLECOINS[tokenContract] && valueFormatted < 1e11) {
       valueUSD = valueFormatted;
     }
 
@@ -219,7 +221,7 @@ export function processInternalTransactions(
       toLabel: getAddressLabel(itx.to, knownWallets),
       value: itx.value || '0',
       valueFormatted,
-      valueUSD: ethPrice ? valueFormatted * ethPrice : null,
+      valueUSD: (ethPrice && isFinite(valueFormatted * ethPrice) && valueFormatted * ethPrice < 1e11) ? valueFormatted * ethPrice : null,
       gasUsed: Number(itx.gasUsed || itx.gas || '0') || 0,
       gasPrice: 0,
       gasCostETH: 0,
