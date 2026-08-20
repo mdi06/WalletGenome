@@ -71,22 +71,24 @@ export default function SybilRadar({ report }: Props) {
         </div>
       </div>
 
-      {/* Right: Database Sync 3D Pills */}
+      {/* Right: Database Sync 3D Pills (Uniform Sized Boxes) */}
       <div className="flex items-center gap-2 flex-wrap justify-start md:justify-end">
         {report.matches.map(m => {
           const isFlagged = m.flagged;
           return (
             <div
               key={m.databaseId}
-              className="btn-3d-neutral inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold text-[#0a0a0a]"
+              className="btn-3d-neutral w-[180px] h-[32px] inline-flex items-center justify-between px-3 text-xs font-bold text-[#0a0a0a]"
             >
-              {isFlagged ? (
-                <span className="w-2 h-2 rounded-full bg-[#dc2626] shadow-sm animate-pulse" />
-              ) : (
-                <span className="led-clean rounded-full" />
-              )}
-              <span>{formatDbName(m.databaseId)}</span>
-              <span className={`text-[10px] font-mono font-bold ${isFlagged ? 'text-[#dc2626]' : 'text-[#047857]'}`}>
+              <div className="flex items-center gap-1.5 min-w-0">
+                {isFlagged ? (
+                  <span className="w-2 h-2 rounded-full bg-[#dc2626] shadow-sm animate-pulse flex-shrink-0" />
+                ) : (
+                  <span className="led-clean rounded-full flex-shrink-0" />
+                )}
+                <span className="truncate">{formatDbName(m.databaseId)}</span>
+              </div>
+              <span className={`text-[10px] font-mono font-bold flex-shrink-0 ${isFlagged ? 'text-[#dc2626]' : 'text-[#047857]'}`}>
                 {isFlagged ? 'FLAGGED' : 'CLEAN'}
               </span>
             </div>
