@@ -49,53 +49,38 @@ const SHOWCASE_PROFILES = [
 export default function WelcomeGuide({ onSelectAddress }: Props) {
   return (
     <div className="space-y-10 py-2 animate-fade-in-up">
-      
-      {/* ── 1. Hero Headline & Overview ── */}
-      <div className="text-center space-y-3 max-w-3xl mx-auto pt-2 pb-1">
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#dcdcdc] border border-[#c8c8c8] text-xs font-mono font-bold text-[#0a0a0a]">
-          <Zap size={13} className="text-[#ff5500]" />
-          <span>INSTANT MULTI-CHAIN BEHAVIORAL FORENSICS</span>
-        </div>
-        <h1 className="text-3xl sm:text-4xl md:text-5xl font-black text-[#0a0a0a] tracking-tight leading-tight uppercase font-sans">
-          See the Complete Story Behind Any Crypto Wallet
-        </h1>
-        <p className="text-sm sm:text-base text-[#444444] font-medium leading-relaxed max-w-2xl mx-auto">
-          Analyze on-chain behavior, map capital flows, resolve verified social identities, and audit security risks across 5 major blockchains in seconds.
-        </p>
-      </div>
-
-      {/* ── 2. One-Click Interactive Showcase Profiles ── */}
-      <div className="space-y-3">
+      {/* ── 1. One-Click Interactive Showcase Profiles ── */}
+      <section aria-labelledby="demo-profiles-heading" className="space-y-3">
         <div className="flex items-center justify-between">
-          <div className="text-xs font-extrabold text-[#4b5563] uppercase tracking-wider flex items-center gap-1.5">
+          <h2 id="demo-profiles-heading" className="text-xs font-extrabold text-[#4b5563] uppercase tracking-wider flex items-center gap-1.5">
             <Activity size={14} className="text-[#ff5500]" />
-            TRY INSTANT DEMO PROFILES (1-CLICK SCAN)
-          </div>
-          <span className="text-[11px] font-bold text-[#4b5563] hidden sm:inline">
+            <span>TRY INSTANT DEMO PROFILES (1-CLICK SCAN)</span>
+          </h2>
+          <span className="text-[11px] font-bold text-[#6b7280] hidden sm:inline">
             Click any profile to test-drive live intelligence
           </span>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {SHOWCASE_PROFILES.map((p, idx) => (
             <div
               key={idx}
-              className="card-3d-interactive p-5 text-[#0a0a0a] space-y-3 flex flex-col justify-between group cursor-pointer"
+              className="card-3d-interactive p-4 text-[#0a0a0a] space-y-3 flex flex-col justify-between group cursor-pointer"
               onClick={() => onSelectAddress(p.address)}
             >
               <div className="space-y-2">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-[10px] font-mono font-extrabold text-[#4b5563] uppercase tracking-wider">
+                  <span className="text-[9px] font-mono font-extrabold text-[#4b5563] uppercase tracking-wider truncate">
                     {p.role}
                   </span>
-                  <span className={`badge-3d text-[9px] font-mono font-black px-2 py-0.5 border ${p.badgeColor}`}>
+                  <span className={`badge-3d text-[9px] font-mono font-black px-1.5 py-0.2 border ${p.badgeColor} flex-shrink-0`}>
                     {p.badge}
                   </span>
                 </div>
 
-                <div className="text-lg font-black text-[#0a0a0a] font-mono group-hover:text-[#ff5500] transition-colors">
+                <h3 className="text-base font-black text-[#0a0a0a] font-mono group-hover:text-[#ff5500] transition-colors">
                   {p.name}
-                </div>
+                </h3>
 
                 <p className="text-xs text-[#4b5563] leading-relaxed line-clamp-3 text-pretty">
                   {p.description}
@@ -108,27 +93,28 @@ export default function WelcomeGuide({ onSelectAddress }: Props) {
                 </span>
                 <button
                   type="button"
+                  aria-label={`Explore ${p.name}`}
                   onClick={(e) => {
                     e.stopPropagation();
                     onSelectAddress(p.address);
                   }}
-                  className="btn-3d-black text-white font-bold text-xs px-3 py-1.5 flex items-center gap-1 flex-shrink-0 cursor-pointer"
+                  className="btn-3d-black text-white font-bold text-xs px-2.5 py-1 flex items-center gap-1 flex-shrink-0 cursor-pointer"
                 >
                   <span>Explore</span>
-                  <ArrowRight size={12} />
+                  <ArrowRight size={11} />
                 </button>
               </div>
             </div>
           ))}
         </div>
-      </div>
+      </section>
 
-      {/* ── 3. How Does It Work? (3-Step Visual Guide) ── */}
-      <div className="space-y-4 pt-4">
-        <div className="text-xs font-extrabold text-[#4b5563] uppercase tracking-wider flex items-center gap-1.5">
+      {/* ── 2. How Does It Work? (3-Step Visual Guide) ── */}
+      <section aria-labelledby="how-it-works-heading" className="space-y-4 pt-2">
+        <h2 id="how-it-works-heading" className="text-xs font-extrabold text-[#4b5563] uppercase tracking-wider flex items-center gap-1.5">
           <HelpCircle size={14} className="text-[#ff5500]" />
-          HOW DOES WALLETGENOME WORK?
-        </div>
+          <span>HOW DOES WALLETGENOME WORK?</span>
+        </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           
@@ -172,14 +158,14 @@ export default function WelcomeGuide({ onSelectAddress }: Props) {
           </div>
 
         </div>
-      </div>
+      </section>
 
-      {/* ── 4. Core Capabilities (4 Feature Bento Cards) ── */}
-      <div className="space-y-4 pt-4">
-        <div className="text-xs font-extrabold text-[#4b5563] uppercase tracking-wider flex items-center gap-1.5">
+      {/* ── 3. Core Capabilities (4 Feature Bento Cards) ── */}
+      <section aria-labelledby="core-capabilities-heading" className="space-y-4 pt-2">
+        <h2 id="core-capabilities-heading" className="text-xs font-extrabold text-[#4b5563] uppercase tracking-wider flex items-center gap-1.5">
           <Layers size={14} className="text-[#ff5500]" />
-          WHAT YOU CAN UNCOVER ON ANY WALLET
-        </div>
+          <span>WHAT YOU CAN UNCOVER ON ANY WALLET</span>
+        </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           
@@ -190,9 +176,9 @@ export default function WelcomeGuide({ onSelectAddress }: Props) {
                 <Dna size={20} />
               </div>
               <div>
-                <h4 className="text-sm font-black uppercase text-[#0a0a0a]">
+                <h3 className="text-sm font-black uppercase text-[#0a0a0a]">
                   Behavioral DNA & Personas
-                </h4>
+                </h3>
                 <span className="text-[10px] font-bold text-[#4b5563]">
                   Quantitative archetype classification
                 </span>
@@ -210,9 +196,9 @@ export default function WelcomeGuide({ onSelectAddress }: Props) {
                 <GitFork size={20} />
               </div>
               <div>
-                <h4 className="text-sm font-black uppercase text-[#0a0a0a]">
+                <h3 className="text-sm font-black uppercase text-[#0a0a0a]">
                   Interactive Capital Flow Topology
-                </h4>
+                </h3>
                 <span className="text-[10px] font-bold text-[#4b5563]">
                   Follow where the capital really travels
                 </span>
@@ -230,9 +216,9 @@ export default function WelcomeGuide({ onSelectAddress }: Props) {
                 <UserCheck size={20} />
               </div>
               <div>
-                <h4 className="text-sm font-black uppercase text-[#0a0a0a]">
+                <h3 className="text-sm font-black uppercase text-[#0a0a0a]">
                   Universal Social Identities
-                </h4>
+                </h3>
                 <span className="text-[10px] font-bold text-[#4b5563]">
                   Bridge hex addresses to real-world accounts
                 </span>
@@ -250,9 +236,9 @@ export default function WelcomeGuide({ onSelectAddress }: Props) {
                 <ShieldCheck size={20} />
               </div>
               <div>
-                <h4 className="text-sm font-black uppercase text-[#0a0a0a]">
+                <h3 className="text-sm font-black uppercase text-[#0a0a0a]">
                   Security & Approval Audit
-                </h4>
+                </h3>
                 <span className="text-[10px] font-bold text-[#4b5563]">
                   Identify wallet vulnerabilities & blacklist status
                 </span>
@@ -264,7 +250,7 @@ export default function WelcomeGuide({ onSelectAddress }: Props) {
           </div>
 
         </div>
-      </div>
+      </section>
 
       {/* ── 4.5. Methodology & Algorithmic Docs Callout Banner ── */}
       <div className="card-3d-dark p-5 flex flex-col sm:flex-row items-center justify-between gap-4">

@@ -52,11 +52,16 @@ export default function WalletInput({ onScan, isLoading, initialAddress }: Props
         
         {/* Left: Search Icon & Recessed Address Input Well */}
         <div className="well-recessed-light flex items-center gap-3 flex-1 w-full px-3 py-2">
-          <Search size={18} className={`flex-shrink-0 transition-colors ${isLoading ? 'text-[#ff5500]' : 'text-gray-500'}`} />
+          <Search size={18} aria-hidden="true" className={`flex-shrink-0 transition-colors ${isLoading ? 'text-[#ff5500]' : 'text-gray-500'}`} />
+          <label htmlFor="wallet-address-input" className="sr-only">
+            Enter EVM address (0x...) or ENS name (vitalik.eth)
+          </label>
           <input
+            id="wallet-address-input"
             type="text"
             value={inputAddress}
             disabled={isLoading}
+            aria-label="EVM address or ENS domain"
             onChange={e => {
               setInputAddress(e.target.value);
               if (error) setError(null);
@@ -68,7 +73,7 @@ export default function WalletInput({ onScan, isLoading, initialAddress }: Props
         </div>
 
         {/* Right: Network Filter Pills & 3D Scan Action Button */}
-        <div className="flex items-center gap-2 flex-wrap justify-end">
+        <div role="group" aria-label="Select target EVM networks" className="flex items-center gap-2 flex-wrap justify-end">
           {SUPPORTED_CHAIN_IDS.map(id => {
             const c = CHAINS[id];
             const isSelected = selectedChains.includes(id);
@@ -76,6 +81,8 @@ export default function WalletInput({ onScan, isLoading, initialAddress }: Props
               <button
                 key={id}
                 type="button"
+                aria-pressed={isSelected}
+                aria-label={`Toggle ${c.name} network`}
                 disabled={isLoading}
                 onClick={() => toggleChain(id)}
                 className={`text-xs font-bold px-3 py-1.5 cursor-pointer flex items-center gap-1.5 ${
@@ -84,7 +91,7 @@ export default function WalletInput({ onScan, isLoading, initialAddress }: Props
                     : 'btn-3d-neutral text-[#4b5563]'
                 } ${isLoading ? 'opacity-80' : ''}`}
               >
-                <span className={isSelected ? 'led-live rounded-full' : 'w-1.5 h-1.5 rounded-full bg-gray-400'} />
+                <span aria-hidden="true" className={isSelected ? 'led-live rounded-full' : 'w-1.5 h-1.5 rounded-full bg-gray-400'} />
                 <span>{c.shortName}</span>
               </button>
             );
@@ -92,6 +99,8 @@ export default function WalletInput({ onScan, isLoading, initialAddress }: Props
 
           <button
             type="button"
+            aria-label="Scan wallet address"
+            aria-busy={isLoading}
             onClick={() => handleScan()}
             disabled={isLoading}
             className={`ml-1.5 font-mono font-black text-xs px-5 py-2.5 flex items-center gap-2 cursor-pointer select-none ${

@@ -85,7 +85,12 @@ export default function BulkScanInput({ onScanCluster, isLoading }: Props) {
 
       {/* ── Textarea Input Well ── */}
       <div className="relative well-recessed-light p-1">
+        <label htmlFor="bulk-address-input" className="sr-only">
+          Paste EVM addresses separated by new lines, commas, or spaces
+        </label>
         <textarea
+          id="bulk-address-input"
+          aria-label="Paste EVM addresses to scan"
           value={rawText}
           disabled={isLoading}
           onChange={e => {
@@ -114,7 +119,7 @@ export default function BulkScanInput({ onScanCluster, isLoading }: Props) {
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-1">
         
         {/* Network Selector Pills */}
-        <div className="flex items-center gap-1.5 flex-wrap">
+        <div role="group" aria-label="Select target EVM networks for cluster" className="flex items-center gap-1.5 flex-wrap">
           <span className="text-[11px] font-extrabold text-[#4b5563] uppercase pr-1">
             Networks:
           </span>
@@ -125,6 +130,8 @@ export default function BulkScanInput({ onScanCluster, isLoading }: Props) {
               <button
                 key={id}
                 type="button"
+                aria-pressed={isSelected}
+                aria-label={`Toggle ${c.name} network`}
                 disabled={isLoading}
                 onClick={() => toggleChain(id)}
                 className={`text-xs font-bold px-3 py-1 cursor-pointer flex items-center gap-1.5 ${
@@ -133,7 +140,7 @@ export default function BulkScanInput({ onScanCluster, isLoading }: Props) {
                     : 'btn-3d-neutral text-[#4b5563]'
                 }`}
               >
-                <span className={isSelected ? 'led-live rounded-full' : 'w-1.5 h-1.5 rounded-full bg-gray-400'} />
+                <span aria-hidden="true" className={isSelected ? 'led-live rounded-full' : 'w-1.5 h-1.5 rounded-full bg-gray-400'} />
                 <span>{c.shortName}</span>
               </button>
             );

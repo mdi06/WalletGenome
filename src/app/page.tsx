@@ -8,7 +8,7 @@ import ProgressBar from '@/components/ProgressBar';
 import WelcomeGuide from '@/components/WelcomeGuide';
 import { SUPPORTED_CHAIN_IDS } from '@/lib/chains';
 import Link from 'next/link';
-import { HelpCircle, LayoutDashboard, Search, Layers, BookOpen } from 'lucide-react';
+import { HelpCircle, LayoutDashboard, Search, Layers, BookOpen, Zap } from 'lucide-react';
 import { useWalletScanner } from '@/hooks/useWalletScanner';
 
 const Dashboard = dynamic(() => import('@/components/Dashboard'), {
@@ -68,6 +68,7 @@ export default function Home() {
           type="button"
           onClick={() => setShowGuide(true)}
           className="flex items-center text-left cursor-pointer group transition-transform active:scale-95"
+          aria-label="WalletGenome Home"
         >
           <span className="text-xl sm:text-2xl font-black tracking-tight text-black font-sans uppercase">
             WALLET<span className="text-[#ff5500]">.</span>GENOME
@@ -105,18 +106,36 @@ export default function Home() {
             <span>DOCS / METHODOLOGY</span>
           </Link>
 
-          <span className="btn-3d-orange text-white text-[11px] font-bold tracking-wider px-3 py-1.5 flex items-center gap-1.5">
-            <span className="led-live rounded-full animate-pulse" />
+          <span className="badge-3d bg-[#ff5500] text-white text-[11px] font-bold tracking-wider px-3 py-1.5 flex items-center gap-1.5">
+            <span className="led-live" />
             <span>LIVE INDEXING</span>
           </span>
         </div>
       </header>
 
+      {/* ── Hero Headline & Overview (Displayed on Default Landing View) ── */}
+      {showGuide && (
+        <section aria-labelledby="main-hero-title" className="text-center space-y-3 max-w-3xl mx-auto pt-4 pb-2">
+          <div className="badge-3d inline-flex items-center gap-1.5 px-3 py-1 text-xs font-mono font-bold text-[#0a0a0a]">
+            <Zap size={13} className="text-[#ff5500]" />
+            <span>INSTANT MULTI-CHAIN BEHAVIORAL FORENSICS</span>
+          </div>
+          <h1 id="main-hero-title" className="text-3xl sm:text-4xl md:text-5xl font-black text-[#0a0a0a] tracking-tight leading-tight uppercase font-sans text-balance">
+            See the Complete Story Behind Any Crypto Wallet
+          </h1>
+          <p className="text-sm sm:text-base text-[#4b5563] font-medium leading-relaxed max-w-2xl mx-auto text-pretty">
+            Analyze on-chain behavior, map capital flows, resolve verified social identities, and audit security risks across 5 major blockchains in seconds.
+          </p>
+        </section>
+      )}
+
       {/* ── Mode Switcher & Input Section ── */}
-      <div className="space-y-3">
+      <section aria-label="Wallet Forensics Console" className="space-y-3">
         {/* Mode Selector Tabs */}
-        <div className="flex items-center gap-2.5 border-b border-[#c8c8c8] pb-2.5">
+        <div role="tablist" aria-label="Forensics Scan Mode" className="flex items-center gap-2.5 border-b border-[#c8c8c8] pb-2.5">
           <button
+            role="tab"
+            aria-selected={scanMode === 'single'}
             type="button"
             onClick={() => setScanMode('single')}
             className={`px-4 py-2 text-xs font-black uppercase tracking-wider flex items-center gap-2 cursor-pointer ${
@@ -130,6 +149,8 @@ export default function Home() {
           </button>
 
           <button
+            role="tab"
+            aria-selected={scanMode === 'cluster'}
             type="button"
             onClick={() => setScanMode('cluster')}
             className={`px-4 py-2 text-xs font-black uppercase tracking-wider flex items-center gap-2 cursor-pointer ${
@@ -179,14 +200,14 @@ export default function Home() {
             isLoading={isLoading}
           />
         )}
-      </div>
+      </section>
 
       {/* Loading Progress Bar */}
       {isLoading && <ProgressBar message={progress} />}
 
       {/* Error Alert */}
       {error && (
-        <div className="card-3d border-l-4 border-l-[#ef4444] p-4 text-xs font-bold text-[#ef4444]">
+        <div role="alert" className="card-3d border-l-4 border-l-[#ef4444] p-4 text-xs font-bold text-[#ef4444]">
           {error}
         </div>
       )}
