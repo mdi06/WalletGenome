@@ -101,12 +101,12 @@ export default function ActivityHeatmap({ results }: Props) {
 
       {/* Heatmap Grid in Warm Orange Intensity */}
       <div className="overflow-x-auto pt-1">
-        <div className="min-w-[500px] space-y-1">
+        <div className="min-w-[540px] space-y-1">
           {/* Hour labels */}
-          <div className="flex gap-1 mb-1">
-            <div className="w-8" />
+          <div className="flex gap-1 mb-1 items-center">
+            <div className="w-9 shrink-0 flex-none" />
             {HOUR_LABELS.map((label, i) => (
-              <div key={i} className="w-5 text-center text-[9px] font-mono font-bold text-[#555555]">
+              <div key={i} className="w-5 shrink-0 flex-none text-center text-[9px] font-mono font-bold text-[#555555]">
                 {label}
               </div>
             ))}
@@ -115,7 +115,7 @@ export default function ActivityHeatmap({ results }: Props) {
           {/* Grid rows */}
           {DAY_LABELS.map((dayLabel, dayIdx) => (
             <div key={dayIdx} className="flex gap-1 items-center">
-              <div className="w-8 text-[10px] font-bold text-[#555555] font-mono text-right pr-2">
+              <div className="w-9 shrink-0 flex-none text-[10px] font-bold text-[#555555] font-mono text-right pr-2 select-none">
                 {dayLabel}
               </div>
               {Array.from({ length: 24 }, (_, hourIdx) => {
@@ -130,7 +130,7 @@ export default function ActivityHeatmap({ results }: Props) {
                 return (
                   <div
                     key={hourIdx}
-                    className="w-5 h-5 transition-transform hover:scale-110 cursor-default"
+                    className="w-5 h-5 shrink-0 flex-none transition-transform hover:scale-110 cursor-default rounded-[1px]"
                     style={bgStyle}
                     title={`${dayLabel} ${hourIdx}:00 UTC — ${count} txs`}
                   />

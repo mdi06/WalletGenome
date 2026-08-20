@@ -13,7 +13,7 @@ import RiskScore from './RiskScore';
 import SybilRadar from './SybilRadar';
 import IdentityCard from './IdentityCard';
 import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
-import { ExternalLink, Download } from 'lucide-react';
+import { ExternalLink } from 'lucide-react';
 import { formatCompactUSD, extractProtocolBadges, computeAggregatedRadarData } from '@/lib/utils/dashboardUtils';
 
 export { formatCompactUSD, extractProtocolBadges };
@@ -76,16 +76,7 @@ export default function Dashboard({ data }: DashboardProps) {
     { id: 'graveyard', label: 'GRAVEYARD', count: deadCount },
   ];
 
-  const handleExportJson = () => {
-    const jsonStr = JSON.stringify(data, null, 2);
-    const blob = new Blob([jsonStr], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `walletgenome-forensics-${data.address.slice(0, 8)}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
+
 
   return (
     <div className="space-y-6 animate-fade-in-up">
@@ -134,16 +125,6 @@ export default function Dashboard({ data }: DashboardProps) {
           })}
         </div>
 
-        <button
-          type="button"
-          onClick={handleExportJson}
-          className="mb-2 bg-[#dedede] hover:bg-black hover:text-white border border-[#cecece] text-[#0a0a0a] text-[11px] font-bold px-2.5 py-1.5 flex items-center gap-1.5 transition-colors cursor-pointer shrink-0"
-          title="Export Complete Forensic JSON Report"
-        >
-          <Download size={12} className="text-[#ff5500]" />
-          <span className="hidden sm:inline">EXPORT REPORT (.JSON)</span>
-          <span className="sm:hidden">EXPORT</span>
-        </button>
       </div>
 
       {/* ── Tab Views ── */}
@@ -369,8 +350,8 @@ export default function Dashboard({ data }: DashboardProps) {
                   <span className="text-[11px] font-extrabold text-[#555555] uppercase tracking-wider block">
                     CAPITAL FLOW
                   </span>
-                  <div className="text-3xl font-black text-[#0a0a0a] font-mono truncate" title={`$${totalInflowUSD.toLocaleString('en-US')}`}>
-                    {formatCompactUSD(totalInflowUSD)}
+                  <div className="text-3xl font-black text-[#0a0a0a] font-mono truncate" title={`$${Number(totalInflowUSD || 0).toLocaleString('en-US')}`}>
+                    {formatCompactUSD(Number(totalInflowUSD || 0))}
                   </div>
                   <div className="text-xs font-bold text-[#555555] font-mono">
                     Total Inflow Across Chains
@@ -497,3 +478,4 @@ export default function Dashboard({ data }: DashboardProps) {
     </div>
   );
 }
+// Force recompile

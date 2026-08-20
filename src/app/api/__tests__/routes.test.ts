@@ -17,10 +17,10 @@ describe('ENS Resolution & API Route Integration Tests', () => {
     assert.strictEqual(vitalik, '0xd8da6bf26964af9d7eed9e03e53415d37aa96045');
 
     const hayden = await resolveEnsOrAddress('hayden.eth');
-    assert.strictEqual(hayden, '0x11e4857bb9993a50c685a79affb4f1a64ffb44e4');
+    assert.strictEqual(hayden, '0x50ec05ad9d29a73367175e26e962d714e96896c3');
 
     const stani = await resolveEnsOrAddress('stani.eth');
-    assert.strictEqual(stani, '0x2e21f5d32841cf8c73797824da4f8ab080003a0c');
+    assert.strictEqual(stani, '0x2e21f5d34208a3d5483f9829f2709e9005bf15f2');
 
     // 3. Invalid/unresolvable inputs
     const unresolvable = await resolveEnsOrAddress('some-totally-invalid-domain-xyz-not-real.eth');
@@ -33,13 +33,11 @@ describe('ENS Resolution & API Route Integration Tests', () => {
       method: 'POST',
       body: JSON.stringify({
         address: 'vitalik.eth',
-        isDemo: true,
       }),
     });
     const ensRes = await scanPOST(ensReq);
     assert.strictEqual(ensRes.status, 200, 'POST /api/scan with vitalik.eth should resolve and succeed');
     const data = await ensRes.json();
-    assert.strictEqual(data.isDemo, true);
     assert.strictEqual(data.address, '0xd8da6bf26964af9d7eed9e03e53415d37aa96045');
   });
 

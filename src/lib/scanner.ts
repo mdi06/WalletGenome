@@ -110,8 +110,8 @@ export function processTransactions(
   const lower = (walletAddress || '').toLowerCase();
 
   return rawTxs.map(tx => {
-    const gasUsed = parseInt(tx.gasUsed || '0') || 0;
-    const gasPrice = parseInt(tx.gasPrice || '0') || 0;
+    const gasUsed = Number(tx.gasUsed || tx.gas || '0') || 0;
+    const gasPrice = Number(tx.gasPrice || '0') || 0;
     const gasCostWei = gasUsed * gasPrice;
     const gasCostETH = gasCostWei / WEI;
     const timestamp = parseInt(tx.timeStamp || '0') || Math.floor(Date.now() / 1000);
@@ -220,7 +220,7 @@ export function processInternalTransactions(
       value: itx.value || '0',
       valueFormatted,
       valueUSD: ethPrice ? valueFormatted * ethPrice : null,
-      gasUsed: parseInt(itx.gasUsed || '0') || 0,
+      gasUsed: Number(itx.gasUsed || itx.gas || '0') || 0,
       gasPrice: 0,
       gasCostETH: 0,
       gasCostUSD: null,

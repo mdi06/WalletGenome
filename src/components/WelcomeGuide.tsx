@@ -20,7 +20,7 @@ const SHOWCASE_PROFILES = [
   {
     role: 'PROTOCOL FOUNDER',
     name: 'hayden.eth',
-    address: '0x11E4857Bb9993a50c685A79AFfb4F1a64Ffb44E4',
+    address: '0x50EC05AD9D29a73367175E26E962D714E96896C3',
     badge: 'UNISWAP CREATOR',
     badgeColor: 'bg-[#ff5500]/10 text-[#ff5500] border-[#ff5500]/30',
     description: 'Creator of Uniswap. Demonstrates high capital efficiency, continuous liquidity deployment, and DEX routing.',
@@ -29,11 +29,20 @@ const SHOWCASE_PROFILES = [
   {
     role: 'LENDING & SOCIAL ARCHITECT',
     name: 'stani.eth',
-    address: '0x2e21f5d32841cf8c73797824da4f8ab080003a0c',
+    address: '0x2e21f5d34208a3d5483f9829f2709e9005bf15f2',
     badge: 'AAVE & LENS FOUNDER',
     badgeColor: 'bg-black text-white border-black',
     description: 'Founder of Aave & Lens Protocol. Multi-year on-chain lending footprint, governance delegation, and Web3 social presence.',
     stats: 'Lending Pioneer · Web3 Social Graph',
+  },
+  {
+    role: 'DEFI MEGA-WHALE',
+    name: 'justinsun.eth',
+    address: '0x3DdfA8eC3052539b6C9549F12cEA2C295cfF5296',
+    badge: 'HIGH CAPITAL FLOW',
+    badgeColor: 'bg-[#f59e0b]/10 text-[#f59e0b] border-[#f59e0b]/30',
+    description: 'Founder of Tron. High-velocity multi-million dollar liquidity deposits, staking, and cross-chain capital routing.',
+    stats: 'Institutional Scale · High Liquidity',
   },
 ];
 

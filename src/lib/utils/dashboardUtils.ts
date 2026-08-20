@@ -1,13 +1,19 @@
 import { MultiChainScanResult, ScanResult } from '../types';
 
-export function formatCompactUSD(val: number): string {
-  if (!val || isNaN(val) || !isFinite(val)) return '$0';
-  const abs = Math.abs(val);
-  if (abs >= 1e12) return `$${(val / 1e12).toFixed(2)}T`;
-  if (abs >= 1e9) return `$${(val / 1e9).toFixed(2)}B`;
-  if (abs >= 1e6) return `$${(val / 1e6).toFixed(2)}M`;
-  if (abs >= 1e3) return `$${(val / 1e3).toFixed(1)}K`;
-  return `$${val.toLocaleString('en-US', { maximumFractionDigits: 0 })}`;
+export function formatCompactUSD(val: any): string {
+  try {
+    let num = typeof val === 'string' ? parseFloat(val.replace(/[^0-9.-]+/g, '')) : Number(val);
+    if (!num || isNaN(num) || !isFinite(num)) return '$0';
+    const abs = Math.abs(num);
+    if (abs >= 1e12) return `$${(num / 1e12).toFixed(2)}T`;
+    if (abs >= 1e9) return `$${(num / 1e9).toFixed(2)}B`;
+    if (abs >= 1e6) return `$${(num / 1e6).toFixed(2)}M`;
+    if (abs >= 1e3) return `$${(num / 1e3).toFixed(1)}K`;
+    if (abs >= 1) return `$${num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    return `$${num.toFixed(2)}`;
+  } catch (e) {
+    return '$0';
+  }
 }
 
 export function extractProtocolBadges(data: MultiChainScanResult): string[] {
@@ -101,3 +107,4 @@ export function computeAggregatedRadarData(chains: ScanResult[]): RadarPoint[] {
     };
   });
 }
+// Force recompile

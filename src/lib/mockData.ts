@@ -1,20 +1,30 @@
 import { ScanResult, MultiChainScanResult } from './types';
 
 export function getMockScanResult(address: string = '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045'): MultiChainScanResult {
+  const pseudoRandom = (str: string) => {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      hash = (hash << 5) - hash + str.charCodeAt(i);
+      hash |= 0;
+    }
+    return Math.abs(hash) / 2147483648;
+  };
+  const m = 0.5 + pseudoRandom(address); // Multiplier between 0.5 and 1.5
+
   const ethScanResult: ScanResult = {
     address,
     chainId: 1,
     chainName: 'Ethereum',
     scannedAt: Date.now(),
-    transactionCount: 238,
-    tokenTransferCount: 142,
+    transactionCount: Math.floor(238 * m),
+    tokenTransferCount: Math.floor(142 * m),
     gasSummary: {
-      totalGasETH: 1.423,
-      totalGasUSD: 3984.47,
-      transactionCount: 238,
-      failedTransactionCount: 5,
-      failedGasETH: 0.0023,
-      failedGasUSD: 6.44,
+      totalGasETH: 1.423 * m,
+      totalGasUSD: 3984.47 * m,
+      transactionCount: Math.floor(238 * m),
+      failedTransactionCount: Math.floor(5 * m),
+      failedGasETH: 0.0023 * m,
+      failedGasUSD: 6.44 * m,
       averageGasPerTx: 0.00598,
       worstDay: {
         date: '2024-03-05',
@@ -124,8 +134,8 @@ export function getMockScanResult(address: string = '0xd8dA6BF26964aF9D7eEd9e03E
           chainId: 1,
         }
       ],
-      totalInboundUSD: 20240,
-      totalOutboundUSD: 12580,
+      totalInboundUSD: 20240 * m,
+      totalOutboundUSD: 12580 * m,
     },
     approvalSummary: {
       activeApprovals: [
@@ -167,12 +177,12 @@ export function getMockScanResult(address: string = '0xd8dA6BF26964aF9D7eEd9e03E
     },
     fingerprint: {
       dimensions: [
-        { axis: 'DeFi Diversity', score: 72, detail: '45 DeFi txs across 4 categories' },
-        { axis: 'Activity', score: 58, detail: '29.0 txs/month avg' },
-        { axis: 'Capital Efficiency', score: 65, detail: '$45,000 moved / $312 gas' },
-        { axis: 'Risk Appetite', score: 25, detail: '2.1% failed, 15.0% unknown contracts' },
-        { axis: 'Maturity', score: 80, detail: '24mo old, 18 active months' },
-        { axis: 'Network Breadth', score: 45, detail: '45 unique counterparties' },
+        { axis: 'DeFi Diversity', score: Math.min(100, Math.floor(72 * m)), detail: '45 DeFi txs across 4 categories' },
+        { axis: 'Activity', score: Math.min(100, Math.floor(58 * m)), detail: '29.0 txs/month avg' },
+        { axis: 'Capital Efficiency', score: Math.min(100, Math.floor(65 * m)), detail: '$45,000 moved / $312 gas' },
+        { axis: 'Risk Appetite', score: Math.min(100, Math.floor(25 * m)), detail: '2.1% failed, 15.0% unknown contracts' },
+        { axis: 'Maturity', score: Math.min(100, Math.floor(80 * m)), detail: '24mo old, 18 active months' },
+        { axis: 'Network Breadth', score: Math.min(100, Math.floor(45 * m)), detail: '45 unique counterparties' },
       ],
       persona: 'DeFi Power User',
       personaDescription: 'Highly active across multiple DeFi protocols — swaps, lending, staking, and bridging. Sophisticated on-chain operator.',
@@ -183,8 +193,8 @@ export function getMockScanResult(address: string = '0xd8dA6BF26964aF9D7eEd9e03E
       uniqueContracts: 38,
     },
     riskAssessment: {
-      score: 18,
-      grade: 'B',
+      score: Math.min(100, Math.floor(18 * m)),
+      grade: m > 1.2 ? 'C' : (m > 0.8 ? 'B' : 'A'),
       factors: [
         { label: '1 Unlimited Approval', impact: 8, description: '1 unlimited approval to Uniswap V3 Router.', severity: 'warning' },
         { label: '2.1% Failed Transactions', impact: 5, description: '5 of 238 transactions failed.', severity: 'info' },

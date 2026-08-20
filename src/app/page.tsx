@@ -31,8 +31,6 @@ const BulkDashboard = dynamic(() => import('@/components/BulkDashboard'), {
 
 const PRESET_WALLETS = [
   { label: '0xd8dA6...6045 (Vitalik.eth · Multi-Chain · 6 Socials)', address: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045' },
-  { label: '0x11E48...44E4 (Hayden.eth · Uniswap Founder)', address: '0x11E4857Bb9993a50c685A79AFfb4F1a64Ffb44E4' },
-  { label: '0x2e21f...3a0c (Stani.eth · Aave Founder)', address: '0x2e21f5d32841cf8c73797824da4f8ab080003a0c' },
 ];
 
 export default function Home() {
@@ -54,7 +52,7 @@ export default function Home() {
 
   const handleSelectFromGuide = (address: string) => {
     setCurrentAddress(address);
-    handleSingleScan(address, [...SUPPORTED_CHAIN_IDS], true);
+    handleSingleScan(address, [...SUPPORTED_CHAIN_IDS], false);
   };
 
   const handleInspectFromCluster = (address: string) => {
@@ -72,7 +70,7 @@ export default function Home() {
           className="flex items-center text-left cursor-pointer group"
         >
           <span className="text-xl sm:text-2xl font-black tracking-tight text-black font-sans uppercase">
-            WALLETGENOME<span className="text-[#ff5500]">.</span>
+            WALLET<span className="text-[#ff5500]">.</span>GENOME
           </span>
         </button>
 
@@ -165,7 +163,7 @@ export default function Home() {
                   type="button"
                   onClick={() => {
                     setCurrentAddress(p.address);
-                    handleSingleScan(p.address, [...SUPPORTED_CHAIN_IDS], true);
+                    handleSingleScan(p.address, [...SUPPORTED_CHAIN_IDS], false);
                   }}
                   className="text-xs font-mono font-bold text-gray-700 hover:text-black bg-white hover:bg-gray-100 px-3 py-1 border border-gray-200 shadow-sm transition-colors cursor-pointer"
                 >

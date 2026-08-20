@@ -30,32 +30,7 @@ export async function processWalletScan(
     address = resolved;
   }
 
-  if (isDemo) {
-    await new Promise(resolve => setTimeout(resolve, 300));
-    const sampleData = getSampleWalletData(address);
-    const demoMediaScore = {
-      monetary: 78,
-      engagement: 82,
-      diversity: 85,
-      identity: 70,
-      age: 80,
-      compositeScore: 79,
-      sybilProbability: 21,
-      classification: 'Organic Human' as const,
-      explanation: 'Multi-month history, diverse protocol usage, and healthy capital depth indicate organic activity.',
-    };
-    const [sybilReport, identityReport] = await Promise.all([
-      checkSybilStatus(address, demoMediaScore),
-      resolveWalletIdentity(address),
-    ]);
-    return {
-      ...sampleData,
-      sybilReport,
-      identityReport,
-      isDemo: true,
-      notice: 'Loaded sample forensic simulation.',
-    };
-  }
+
 
   const etherscanKey = customApiKey || '';
   const coingeckoKey = process.env.COINGECKO_API_KEY || '';
@@ -180,35 +155,7 @@ export async function processWalletScan(
 
   const sybilReport = await checkSybilStatus(address, mediaScore);
 
-  const DEMO_PRESET_ADDRESSES = new Set([
-    '0xd8da6bf26964af9d7eed9e03e53415d37aa96045',
-    '0x11e4857bb9993a50c685a79affb4f1a64ffb44e4',
-    '0x2e21f5d32841cf8c73797824da4f8ab080003a0c',
-  ]);
 
-  if (aggregated.totalTransactions === 0 && DEMO_PRESET_ADDRESSES.has(address.toLowerCase())) {
-    const sampleData = getSampleWalletData(address);
-    const demoMediaScore = {
-      monetary: 78,
-      engagement: 82,
-      diversity: 85,
-      identity: 70,
-      age: 80,
-      compositeScore: 79,
-      sybilProbability: 21,
-      classification: 'Organic Human' as const,
-      explanation: 'Multi-month history, diverse protocol usage, and healthy capital depth indicate organic activity.',
-    };
-    const sybilReport = await checkSybilStatus(address, demoMediaScore);
-    return {
-      ...sampleData,
-      sybilReport,
-      identityReport,
-      chainWarnings: chainWarnings.length > 0 ? chainWarnings : undefined,
-      isDemo: true,
-      notice: 'Loaded sample forensic simulation.',
-    };
-  }
 
   const responseData = {
     address,

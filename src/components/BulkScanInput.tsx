@@ -11,9 +11,9 @@ interface Props {
 
 const SAMPLE_CLUSTER = [
   '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045', // vitalik.eth
-  '0x11E4857Bb9993a50c685A79AFfb4F1a64Ffb44E4', // hayden.eth
-  '0x2e21f5d32841cf8c73797824da4f8ab080003a0c', // stani.eth
-  '0x28c6c06298d514db089934071355e5743bf21d60', // Binance 14
+  '0x3DdfA8eC3052539b6C9549F12cEA2C295cfF5296', // justinsun.eth
+  '0x50EC05AD9D29a73367175E26E962D714E96896C3', // hayden.eth
+  '0x2e21f5d34208a3d5483f9829f2709e9005bf15f2', // stani.eth
 ];
 
 export default function BulkScanInput({ onScanCluster, isLoading }: Props) {
@@ -92,7 +92,7 @@ export default function BulkScanInput({ onScanCluster, isLoading }: Props) {
             setRawText(e.target.value);
             if (error) setError(null);
           }}
-          placeholder="Paste EVM addresses separated by new lines, commas, or spaces:&#10;0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045&#10;0x11E4857Bb9993a50c685A79AFfb4F1a64Ffb44E4"
+          placeholder="Paste EVM addresses separated by new lines, commas, or spaces:&#10;0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045&#10;0x50EC05AD9D29a73367175E26E962D714E96896C3"
           rows={4}
           className="w-full bg-[#fafafa] border border-[#cecece] p-3 text-xs font-mono font-bold text-[#0a0a0a] focus:outline-none focus:border-black placeholder:text-gray-400 placeholder:font-sans resize-none"
         />

@@ -174,7 +174,7 @@ export default function DocsPage() {
           className="flex items-center text-left cursor-pointer group"
         >
           <span className="text-xl sm:text-2xl font-black tracking-tight text-black font-sans uppercase">
-            WALLETGENOME<span className="text-[#ff5500]">.</span>
+            WALLET<span className="text-[#ff5500]">.</span>GENOME
           </span>
         </Link>
 

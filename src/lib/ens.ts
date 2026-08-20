@@ -3,9 +3,11 @@ import { loadKnownWallets } from './knownWalletsServer';
 // Preset fast map for common/demo ENS domains
 export const KNOWN_ENS_MAP: Record<string, string> = {
   'vitalik.eth': '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045',
-  'hayden.eth': '0x11E4857Bb9993a50c685A79AFfb4F1a64Ffb44E4',
-  'stani.eth': '0x2e21f5d32841cf8c73797824da4f8ab080003a0c',
-  'sassal.eth': '0x648a745d440ced143457a998782d43e5c940b329',
+  'justinsun.eth': '0x3DdfA8eC3052539b6C9549F12cEA2C295cfF5296',
+  'hayden.eth': '0x50EC05AD9D29a73367175E26E962D714E96896C3',
+  'stani.eth': '0x2e21f5d34208a3d5483f9829f2709e9005bf15f2',
+  'machibigbrother.eth': '0x020cA66C30beC2c4Fe3861a94E4DB4A498A35872',
+  'sassal.eth': '0x648aA14e4424e0825A5cE739C8C68610e143FB79',
   'danno.eth': '0x163473950fbcfcfc31ac7ad0eec26f5fe549046c',
   'barmstrong.eth': '0x5b3f30f7b44b82d4090b8f411b9a9b2b51203eb6',
   'ricburton.eth': '0x99e52ddb9e2c65febe07ddbe47432720d297a780',
