@@ -49,42 +49,34 @@ export async function processWalletScan(
   // Fetch wallet identity in parallel with chain data
   const identityPromise = resolveWalletIdentity(address);
 
-  // Fetch chain data with controlled concurrency (batches of 2) to avoid rate limits
-  const rawChainsData: Array<{ chainId: number; normalTxs: any[]; tokenTransfers: any[]; internalTxs: any[]; error: any }> = [];
+  // Fetch chain data in parallel across all supported chains
+  // (Domain rate limiters in etherscan.ts & cache.ts protect individual endpoints)
   const chainWarnings: Array<{ chainId: number; chainName: string; message: string }> = [];
 
-  const CHAIN_BATCH_SIZE = 2;
-  for (let i = 0; i < chains.length; i += CHAIN_BATCH_SIZE) {
-    const batch = chains.slice(i, i + CHAIN_BATCH_SIZE);
-    const batchResults = await Promise.all(
-      batch.map(async (chainId) => {
+  const rawChainsData = await Promise.all(
+    chains.map(async (chainId) => {
+      try {
+        getChainConfig(chainId);
+        const [normalTxs, tokenTransfers, internalTxs] = await Promise.all([
+          fetchNormalTransactions(address, chainId, etherscanKey).catch(() => []),
+          fetchTokenTransfers(address, chainId, etherscanKey).catch(() => []),
+          fetchInternalTransactions(address, chainId, etherscanKey).catch(() => []),
+        ]);
+        return { chainId, normalTxs, tokenTransfers, internalTxs, error: null };
+      } catch (err) {
+        let chainName = `Chain ${chainId}`;
         try {
-          getChainConfig(chainId);
-          const [normalTxs, tokenTransfers, internalTxs] = await Promise.all([
-            fetchNormalTransactions(address, chainId, etherscanKey).catch(() => []),
-            fetchTokenTransfers(address, chainId, etherscanKey).catch(() => []),
-            fetchInternalTransactions(address, chainId, etherscanKey).catch(() => []),
-          ]);
-          return { chainId, normalTxs, tokenTransfers, internalTxs, error: null };
-        } catch (err) {
-          let chainName = `Chain ${chainId}`;
-          try {
-            chainName = getChainConfig(chainId).name;
-          } catch {}
-          chainWarnings.push({
-            chainId,
-            chainName,
-            message: `Could not reach indexer for ${chainName}. Some data may be incomplete.`,
-          });
-          return { chainId, normalTxs: [], tokenTransfers: [], internalTxs: [], error: err };
-        }
-      })
-    );
-    rawChainsData.push(...batchResults);
-    if (i + CHAIN_BATCH_SIZE < chains.length) {
-      await new Promise(r => setTimeout(r, 100));
-    }
-  }
+          chainName = getChainConfig(chainId).name;
+        } catch {}
+        chainWarnings.push({
+          chainId,
+          chainName,
+          message: `Could not reach indexer for ${chainName}. Some data may be incomplete.`,
+        });
+        return { chainId, normalTxs: [], tokenTransfers: [], internalTxs: [], error: err };
+      }
+    })
+  );
 
   const identityReport = await identityPromise;
 

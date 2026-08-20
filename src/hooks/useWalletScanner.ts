@@ -38,6 +38,9 @@ export function useWalletScanner() {
     setCurrentAddress(address);
     setProgress(`Indexing EVM block state & resolving multi-chain forensics...`);
 
+    // Preload dashboard bundle during scan to eliminate render delay
+    import('@/components/Dashboard').catch(() => {});
+
     if (typeof window !== 'undefined' && !isDemo) {
       const url = new URL(window.location.href);
       url.searchParams.set('address', address);
@@ -73,6 +76,9 @@ export function useWalletScanner() {
     setError(null);
     setShowGuide(false);
     setProgress(`Scanning cluster of ${addresses.length} wallets across ${chainIds.length} chains...`);
+
+    // Preload bulk dashboard bundle during scan to eliminate render delay
+    import('@/components/BulkDashboard').catch(() => {});
 
     try {
       const response = await fetch('/api/batch-scan', {

@@ -23,6 +23,11 @@ export default function IdentityCard({ identity, address }: Props) {
               <img
                 src={identity.primaryAvatar}
                 alt={identity.primaryName || address}
+                width={48}
+                height={48}
+                // @ts-ignore
+                fetchPriority="high"
+                loading="eager"
                 className="w-full h-full object-cover"
                 onError={(e) => {
                   (e.target as HTMLElement).style.display = 'none';

@@ -3,20 +3,23 @@
 import React, { useState } from 'react';
 import dynamic from 'next/dynamic';
 import { MultiChainScanResult } from '@/lib/types';
-import InteractionsPanel from './InteractionsPanel';
-import GasSummaryPanel from './GasSummaryPanel';
-import TransferTable from './TransferTable';
-import ApprovalAudit from './ApprovalAudit';
-import Graveyard from './Graveyard';
 import BehavioralFingerprint from './BehavioralFingerprint';
 import RiskScore from './RiskScore';
 import SybilRadar from './SybilRadar';
 import IdentityCard from './IdentityCard';
-import { ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar } from 'recharts';
 import { ExternalLink } from 'lucide-react';
 import { formatCompactUSD, extractProtocolBadges, computeAggregatedRadarData } from '@/lib/utils/dashboardUtils';
 
 export { formatCompactUSD, extractProtocolBadges };
+
+const BehavioralRadarChart = dynamic(() => import('./BehavioralRadarChart'), {
+  loading: () => (
+    <div className="w-full h-52 flex items-center justify-center text-xs font-mono font-bold text-gray-400 uppercase tracking-wider animate-pulse">
+      Rendering Radar...
+    </div>
+  ),
+  ssr: false,
+});
 
 const CapitalFlowGraph = dynamic(() => import('./CapitalFlowGraph'), {
   loading: () => (
@@ -31,6 +34,51 @@ const ActivityHeatmap = dynamic(() => import('./ActivityHeatmap'), {
   loading: () => (
     <div className="p-8 text-center text-xs font-mono font-bold text-gray-500 uppercase tracking-wider animate-pulse">
       Rendering Activity Heatmap...
+    </div>
+  ),
+  ssr: false,
+});
+
+const InteractionsPanel = dynamic(() => import('./InteractionsPanel'), {
+  loading: () => (
+    <div className="p-8 text-center text-xs font-mono font-bold text-gray-500 uppercase tracking-wider animate-pulse">
+      Loading Protocols...
+    </div>
+  ),
+  ssr: false,
+});
+
+const GasSummaryPanel = dynamic(() => import('./GasSummaryPanel'), {
+  loading: () => (
+    <div className="p-8 text-center text-xs font-mono font-bold text-gray-500 uppercase tracking-wider animate-pulse">
+      Loading Gas Fees...
+    </div>
+  ),
+  ssr: false,
+});
+
+const TransferTable = dynamic(() => import('./TransferTable'), {
+  loading: () => (
+    <div className="p-8 text-center text-xs font-mono font-bold text-gray-500 uppercase tracking-wider animate-pulse">
+      Loading Transfers...
+    </div>
+  ),
+  ssr: false,
+});
+
+const ApprovalAudit = dynamic(() => import('./ApprovalAudit'), {
+  loading: () => (
+    <div className="p-8 text-center text-xs font-mono font-bold text-gray-500 uppercase tracking-wider animate-pulse">
+      Loading Approvals...
+    </div>
+  ),
+  ssr: false,
+});
+
+const Graveyard = dynamic(() => import('./Graveyard'), {
+  loading: () => (
+    <div className="p-8 text-center text-xs font-mono font-bold text-gray-500 uppercase tracking-wider animate-pulse">
+      Loading Graveyard...
     </div>
   ),
   ssr: false,
@@ -426,23 +474,7 @@ export default function Dashboard({ data }: DashboardProps) {
                   BEHAVIORAL RADAR
                 </span>
 
-                <div className="w-full h-52 flex items-center justify-center -mx-2">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <RadarChart data={radarData} outerRadius="70%" margin={{ top: 10, right: 25, bottom: 10, left: 25 }}>
-                      <PolarGrid stroke="#cecece" />
-                      <PolarAngleAxis dataKey="subject" tick={{ fill: '#555555', fontSize: 8.5, fontWeight: 700 }} />
-                      <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
-                      <Radar
-                        name="Wallet Score"
-                        dataKey="value"
-                        stroke="#ff5500"
-                        strokeWidth={2}
-                        fill="#ff5500"
-                        fillOpacity={0.25}
-                      />
-                    </RadarChart>
-                  </ResponsiveContainer>
-                </div>
+                <BehavioralRadarChart radarData={radarData} />
 
                 {/* Radar Insights */}
                 <div className="border-t border-[#cecece] pt-3 space-y-2 text-xs font-bold">

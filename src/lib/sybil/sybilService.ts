@@ -131,16 +131,16 @@ export async function syncSybilDatabases(): Promise<void> {
     ]);
 
     if (ofacAddrs.status === 'fulfilled' && ofacAddrs.value.length > 0) {
-      cache.ofac = new Set(ofacAddrs.value);
+      cache.ofac = new Set([...BASELINE_OFAC, ...ofacAddrs.value]);
     }
     if (hopAddrs.status === 'fulfilled' && hopAddrs.value.length > 0) {
-      cache.hop = new Set(hopAddrs.value);
+      cache.hop = new Set([...BASELINE_HOP, ...hopAddrs.value]);
     }
     if (lzAddrs.status === 'fulfilled' && lzAddrs.value.length > 0) {
-      cache.layerZero = new Set(lzAddrs.value);
+      cache.layerZero = new Set([...BASELINE_LZ, ...lzAddrs.value]);
     }
     if (umbraAddrs.status === 'fulfilled' && umbraAddrs.value.length > 0) {
-      cache.umbra = new Set(umbraAddrs.value);
+      cache.umbra = new Set([...BASELINE_UMBRA, ...umbraAddrs.value]);
     }
 
     cache.lastSyncedAt = Date.now();

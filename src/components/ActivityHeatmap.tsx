@@ -1,5 +1,4 @@
-'use client';
-
+import React, { useMemo } from 'react';
 import { ScanResult, ActivityCell } from '@/lib/types';
 import { Calendar, Clock, Flame, Zap } from 'lucide-react';
 
@@ -11,50 +10,61 @@ const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const HOUR_LABELS = ['12a', '', '', '3a', '', '', '6a', '', '', '9a', '', '', '12p', '', '', '3p', '', '', '6p', '', '', '9p', '', ''];
 
 export default function ActivityHeatmap({ results }: Props) {
-  const mergedMap = new Map<string, number>();
-  let totalActiveDays = 0;
-  let mostActiveDay = 'N/A';
-  let mostActiveHour = 0;
-  let longestStreak = 0;
-  let avgTxsPerDay = 0;
-  
-  for (const r of results) {
-    if (!r.activityProfile) continue;
-    const ap = r.activityProfile;
+  const { cells, totalActiveDays, mostActiveDay, mostActiveHour, longestStreak, hasActivity } = useMemo(() => {
+    const mergedMap = new Map<string, number>();
+    let totalActive = 0;
+    let peakDay = 'N/A';
+    let peakHour = 0;
+    let maxStreak = 0;
     
-    for (const cell of ap.heatmap) {
-      const key = `${cell.day}-${cell.hour}`;
-      mergedMap.set(key, (mergedMap.get(key) || 0) + cell.count);
+    for (const r of results) {
+      if (!r.activityProfile) continue;
+      const ap = r.activityProfile;
+      
+      for (const cell of ap.heatmap) {
+        const key = `${cell.day}-${cell.hour}`;
+        mergedMap.set(key, (mergedMap.get(key) || 0) + cell.count);
+      }
+      
+      totalActive = Math.max(totalActive, ap.totalActiveDays);
+      if (ap.longestStreakDays > maxStreak) {
+        maxStreak = ap.longestStreakDays;
+        peakDay = ap.mostActiveDay;
+        peakHour = ap.mostActiveHour;
+      }
     }
     
-    totalActiveDays = Math.max(totalActiveDays, ap.totalActiveDays);
-    if (ap.longestStreakDays > longestStreak) {
-      longestStreak = ap.longestStreakDays;
-      mostActiveDay = ap.mostActiveDay;
-      mostActiveHour = ap.mostActiveHour;
-      avgTxsPerDay = ap.avgTxsPerActiveDay;
+    let maxCount = 0;
+    for (const count of mergedMap.values()) {
+      if (count > maxCount) maxCount = count;
     }
-  }
-  
-  let maxCount = 0;
-  for (const count of mergedMap.values()) {
-    if (count > maxCount) maxCount = count;
-  }
-  
-  const cells: ActivityCell[] = [];
-  for (let day = 0; day < 7; day++) {
-    for (let hour = 0; hour < 24; hour++) {
-      const count = mergedMap.get(`${day}-${hour}`) || 0;
-      cells.push({
-        day,
-        hour,
-        count,
-        intensity: maxCount > 0 ? count / maxCount : 0,
-      });
+    
+    const computedCells: ActivityCell[] = [];
+    let anyActivity = false;
+    for (let day = 0; day < 7; day++) {
+      for (let hour = 0; hour < 24; hour++) {
+        const count = mergedMap.get(`${day}-${hour}`) || 0;
+        if (count > 0) anyActivity = true;
+        computedCells.push({
+          day,
+          hour,
+          count,
+          intensity: maxCount > 0 ? count / maxCount : 0,
+        });
+      }
     }
-  }
+
+    return {
+      cells: computedCells,
+      totalActiveDays: totalActive,
+      mostActiveDay: peakDay,
+      mostActiveHour: peakHour,
+      longestStreak: maxStreak,
+      hasActivity: anyActivity,
+    };
+  }, [results]);
   
-  if (cells.every(c => c.count === 0)) {
+  if (!hasActivity) {
     return (
       <div className="p-8 text-center text-[#777777] text-xs font-bold font-mono">
         NO ACTIVITY RECORDED
