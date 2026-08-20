@@ -233,8 +233,8 @@ export default function DocsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         
         {/* ── Left Sticky Sidebar: Table of Contents ── */}
-        <aside className="lg:col-span-4 lg:sticky lg:top-6 space-y-4">
-          <div className="card-3d p-4 space-y-3">
+        <aside className="lg:col-span-4 lg:sticky lg:top-6 space-y-5">
+          <div className="card-3d p-5 space-y-4">
             <div className="flex items-center justify-between text-xs font-black uppercase tracking-wider text-[#4b5563]">
               <span className="flex items-center gap-1.5">
                 <Compass size={14} className="text-[#ff5500]" />
@@ -245,7 +245,7 @@ export default function DocsPage() {
               </span>
             </div>
 
-            <div className="space-y-1.5 max-h-[70vh] overflow-y-auto pr-1">
+            <div className="space-y-3 max-h-[70vh] overflow-y-auto pr-1">
               {filteredSections.map(s => {
                 const IconComponent = s.icon;
                 const isSelected = activeSection === s.id;
@@ -254,17 +254,17 @@ export default function DocsPage() {
                     key={s.id}
                     href={`#${s.id}`}
                     onClick={() => setActiveSection(s.id)}
-                    className={`block p-2.5 text-xs font-bold transition-all ${
+                    className={`block p-3 text-xs font-bold transition-all ${
                       isSelected
                         ? 'btn-3d-black text-white'
                         : 'card-3d-interactive text-[#0a0a0a]'
                     }`}
                   >
                     <div className="flex items-center gap-2">
-                      <IconComponent size={13} className={isSelected ? 'text-[#ff5500]' : 'text-[#ff5500]'} />
+                      <IconComponent size={14} className="text-[#ff5500] flex-shrink-0" />
                       <span className="truncate">{s.title}</span>
                     </div>
-                    <div className={`text-[10px] font-mono mt-0.5 truncate pl-5 ${isSelected ? 'text-gray-300' : 'text-[#6b7280]'}`}>
+                    <div className={`text-[10px] font-mono mt-1 truncate pl-5.5 ${isSelected ? 'text-gray-300' : 'text-[#6b7280]'}`}>
                       {s.category}
                     </div>
                   </a>
@@ -274,25 +274,25 @@ export default function DocsPage() {
           </div>
 
           {/* Quick Technical Summary Card */}
-          <div className="card-3d p-4 space-y-2 text-xs font-mono text-[#0a0a0a]">
+          <div className="card-3d p-5 space-y-3 text-xs font-mono text-[#0a0a0a]">
             <div className="font-black text-[#0a0a0a] flex items-center gap-1.5">
               <Zap size={13} className="text-[#ff5500]" />
               KEY COMPUTATION STATS
             </div>
-            <div className="grid grid-cols-2 gap-2 text-[11px] pt-1">
-              <div className="well-recessed-light p-2 space-y-0.5">
+            <div className="grid grid-cols-2 gap-2.5 text-[11px] pt-1">
+              <div className="well-recessed-light p-2.5 space-y-0.5">
                 <div className="text-[#6b7280]">CHAINS</div>
                 <div className="font-bold text-sm text-[#0a0a0a]">5 EVM Networks</div>
               </div>
-              <div className="well-recessed-light p-2 space-y-0.5">
+              <div className="well-recessed-light p-2.5 space-y-0.5">
                 <div className="text-[#6b7280]">SYBIL CACHE</div>
                 <div className="font-bold text-sm text-[#0a0a0a]">800K+ In-Memory</div>
               </div>
-              <div className="well-recessed-light p-2 space-y-0.5">
+              <div className="well-recessed-light p-2.5 space-y-0.5">
                 <div className="text-[#6b7280]">LOOKUP TIME</div>
                 <div className="font-bold text-sm text-[#059669]">~0.01 ms (Set)</div>
               </div>
-              <div className="well-recessed-light p-2 space-y-0.5">
+              <div className="well-recessed-light p-2.5 space-y-0.5">
                 <div className="text-[#6b7280]">SCORING AXES</div>
                 <div className="font-bold text-sm text-[#0a0a0a]">6 Dimensions</div>
               </div>
