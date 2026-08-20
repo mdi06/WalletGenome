@@ -23,39 +23,39 @@ export default function Graveyard({ results }: Props) {
 
   return (
     <div className="space-y-6">
-      {/* Top Header Card (Sharp Square Toned Gray Cards) */}
+      {/* Top Header Card */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="p-5 bg-[#dedede] border border-[#cecece] text-[#0a0a0a] space-y-1 shadow-sm">
-          <div className="text-[11px] font-extrabold text-[#555555] uppercase tracking-wider">
+        <div className="card-3d p-5 text-[#0a0a0a] space-y-1">
+          <div className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider">
             TOTAL DEAD ASSETS
           </div>
           <div className="text-3xl font-black text-[#0a0a0a] font-mono">
             {allDead.length}
           </div>
-          <div className="text-xs font-bold text-[#555555]">
+          <div className="text-xs font-bold text-[#4b5563]">
             Tokens with zero liquidity, abandoned pools, or dead contracts
           </div>
         </div>
 
-        <div className="p-5 bg-[#dedede] border border-[#cecece] text-[#0a0a0a] space-y-1 shadow-sm">
-          <div className="text-[11px] font-extrabold text-[#555555] uppercase tracking-wider">
+        <div className="card-3d p-5 text-[#0a0a0a] space-y-1">
+          <div className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider">
             PEAK ESTIMATED VALUE LOST
           </div>
           <div className="text-3xl font-black text-[#dc2626] font-mono">
             ${totalPeakValueLost.toLocaleString('en-US', { maximumFractionDigits: 0 })}
           </div>
-          <div className="text-xs font-bold text-[#555555]">
+          <div className="text-xs font-bold text-[#4b5563]">
             Historical peak valuation that has depreciated to $0
           </div>
         </div>
       </div>
 
-      {/* Dead Assets Table */}
+      {/* Dead Assets Table Well */}
       {allDead.length > 0 ? (
-        <div className="border border-[#cecece] bg-[#dedede] overflow-hidden overflow-x-auto">
+        <div className="well-recessed-light overflow-hidden overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-[#d4d4d4] border-b border-[#cecece] text-[10px] font-extrabold text-[#555555] uppercase tracking-wider">
+              <tr className="bg-[#d0d0d0] border-b border-[#c2c2c2] text-[10px] font-extrabold text-[#4b5563] uppercase tracking-wider">
                 <th className="py-3 px-4">TOKEN</th>
                 <th className="py-3 px-4">BALANCE</th>
                 <th className="py-3 px-4 text-right">PEAK VALUE</th>
@@ -63,9 +63,9 @@ export default function Graveyard({ results }: Props) {
                 <th className="py-3 px-4 text-right">CONTRACT</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-[#cecece] text-xs font-bold text-[#0a0a0a]">
+            <tbody className="divide-y divide-[#c8c8c8] text-xs font-bold text-[#0a0a0a]">
               {allDead.map((d, i) => (
-                <tr key={i} className="hover:bg-[#d5d5d5] transition-colors">
+                <tr key={i} className="hover:bg-white/60 transition-colors">
                   <td className="py-3.5 px-4 font-mono font-black text-[#0a0a0a]">
                     {d.tokenSymbol || d.tokenName}
                   </td>
@@ -75,7 +75,7 @@ export default function Graveyard({ results }: Props) {
                   <td className="py-3.5 px-4 text-right font-mono font-black text-[#dc2626]">
                     {d.peakValueUSD ? `$${d.peakValueUSD.toLocaleString('en-US', { maximumFractionDigits: 2 })}` : '—'}
                   </td>
-                  <td className="py-3.5 px-4 font-mono text-[#555555] text-[11px]">
+                  <td className="py-3.5 px-4 font-mono text-[#6b7280] text-[11px]">
                     {d.chainName}
                   </td>
                   <td className="py-3.5 px-4 text-right">
@@ -83,7 +83,7 @@ export default function Graveyard({ results }: Props) {
                       href={getExplorerAddressUrl(d.chainId, d.contractAddress)}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-[#555555] hover:text-black"
+                      className="text-[#6b7280] hover:text-black inline-block p-1"
                     >
                       <ExternalLink size={13} className="ml-auto" />
                     </a>
@@ -94,7 +94,7 @@ export default function Graveyard({ results }: Props) {
           </table>
         </div>
       ) : (
-        <div className="p-8 text-center bg-[#dedede] border border-[#cecece] text-xs font-bold text-[#555555] font-mono">
+        <div className="card-3d p-8 text-center text-xs font-bold text-[#6b7280] font-mono">
           NO DEAD ASSETS DETECTED IN THIS WALLET
         </div>
       )}

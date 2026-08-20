@@ -11,7 +11,7 @@ interface ProgressBarProps {
 
 export default function ProgressBar({ message, progress }: ProgressBarProps) {
   return (
-    <div className="p-6 bg-[#dedede] border border-[#cecece] shadow-sm space-y-5 animate-fade-in-up">
+    <div className="card-3d p-6 text-[#0a0a0a] space-y-5 animate-fade-in-up">
       
       {/* ── Top Status Header & Spinning Radar Wheel ── */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -22,14 +22,14 @@ export default function ProgressBar({ message, progress }: ProgressBarProps) {
             {/* Outer Spinning Dash Ring */}
             <div className="absolute inset-0 border-2 border-dashed border-[#ff5500] animate-radar rounded-none" />
             {/* Inner Rotating Square */}
-            <div className="w-5 h-5 bg-black flex items-center justify-center text-white font-mono text-[9px] font-black">
+            <div className="w-5 h-5 btn-3d-black flex items-center justify-center text-white font-mono text-[9px] font-black">
               <Dna size={12} className="text-[#ff5500] animate-pulse" />
             </div>
           </div>
 
           <div className="space-y-0.5">
             <div className="flex items-center gap-2">
-              <span className="w-2 h-2 bg-[#ff5500] animate-pulse-dot flex-shrink-0" />
+              <span className="led-live" />
               <span className="text-[10px] font-mono font-extrabold tracking-widest text-[#ff5500] uppercase">
                 ACTIVE MULTI-CHAIN PIPELINE
               </span>
@@ -42,7 +42,7 @@ export default function ProgressBar({ message, progress }: ProgressBarProps) {
 
         {/* Right: Security & Sync Badge */}
         <div className="flex items-center gap-1.5 self-start sm:self-center">
-          <span className="text-[11px] font-mono font-bold px-2.5 py-1 bg-[#d4d4d4] border border-[#c4c4c4] text-[#0a0a0a] flex items-center gap-1.5">
+          <span className="badge-3d text-[11px] font-mono font-bold px-2.5 py-1 text-[#0a0a0a] flex items-center gap-1.5">
             <ShieldCheck size={13} className="text-[#059669]" />
             <span>RPC & WEB3.BIO SYNC</span>
           </span>
@@ -52,7 +52,7 @@ export default function ProgressBar({ message, progress }: ProgressBarProps) {
 
       {/* ── High-Tech Animated Laser Progress Bar ── */}
       <div className="space-y-1.5">
-        <div className="h-2 w-full bg-[#cecece] relative overflow-hidden">
+        <div className="well-recessed h-2.5 w-full relative overflow-hidden">
           {typeof progress === 'number' ? (
             <div
               className="h-full bg-[#ff5500] transition-all duration-300 shadow-sm"
@@ -63,15 +63,15 @@ export default function ProgressBar({ message, progress }: ProgressBarProps) {
           )}
         </div>
 
-        <div className="flex justify-between items-center text-[10px] font-mono font-bold text-[#555555]">
+        <div className="flex justify-between items-center text-[10px] font-mono font-bold text-[#4b5563]">
           <span>INDEXING CALLED CONTRACTS & TRANSFERS</span>
-          <span className="text-[#0a0a0a] uppercase">PARALLEL THREADS: 5</span>
+          <span className="text-[#0a0a0a] uppercase font-mono">PARALLEL THREADS: 5</span>
         </div>
       </div>
 
       {/* ── Active Target Chain Chips with Live Pulse Lights ── */}
-      <div className="pt-2 border-t border-[#cecece] flex items-center justify-between gap-2 flex-wrap">
-        <span className="text-[10px] font-extrabold text-[#555555] uppercase tracking-wider">
+      <div className="pt-2.5 border-t border-[#c8c8c8] flex items-center justify-between gap-2 flex-wrap">
+        <span className="text-[10px] font-extrabold text-[#4b5563] uppercase tracking-wider">
           TARGET NETWORKS:
         </span>
         <div className="flex items-center gap-2 flex-wrap">
@@ -80,9 +80,9 @@ export default function ProgressBar({ message, progress }: ProgressBarProps) {
             return (
               <div
                 key={id}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-[#d4d4d4] border border-[#c4c4c4] text-[10px] font-mono font-bold text-[#0a0a0a]"
+                className="badge-3d inline-flex items-center gap-1.5 px-2.5 py-1 text-[10px] font-mono font-bold text-[#0a0a0a]"
               >
-                <span className="w-1.5 h-1.5 bg-[#059669] animate-pulse-dot" />
+                <span className="led-clean" />
                 <span>{chain.name}</span>
               </div>
             );

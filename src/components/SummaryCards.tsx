@@ -33,95 +33,95 @@ export default function SummaryCards({ data }: Props) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 animate-fade-in-up">
       {/* ── KPI 1: Risk & Security Assessment ── */}
-      <div className="glass-card p-5 space-y-3">
+      <div className="card-3d p-5 space-y-3 text-[#0a0a0a]">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
-            <Shield size={16} className="text-[#f59e0b]" />
+          <div className="flex items-center gap-2 text-xs font-bold text-[#4b5563] uppercase tracking-wider">
+            <Shield size={16} className="text-[#ff5500]" />
             <span>Security Rating</span>
           </div>
-          <span className={`text-xs font-bold px-2 py-0.5 rounded-full border font-mono ${getRiskColor(riskScore)}`}>
+          <span className={`badge-3d text-xs font-bold px-2 py-0.5 border font-mono ${getRiskColor(riskScore)}`}>
             Grade {riskGrade}
           </span>
         </div>
         <div className="flex items-baseline gap-2">
-          <span className="text-2xl font-bold font-mono text-white">{riskScore}</span>
-          <span className="text-xs text-slate-400 font-mono">/ 100 Risk</span>
+          <span className="text-2xl font-black font-mono text-[#0a0a0a]">{riskScore}</span>
+          <span className="text-xs text-[#4b5563] font-mono">/ 100 Risk</span>
         </div>
-        <div className="text-xs text-slate-400 flex justify-between items-center pt-2 border-t border-white/[0.06]">
+        <div className="text-xs text-[#4b5563] flex justify-between items-center pt-2 border-t border-[#c8c8c8]">
           <span>{aggregated.totalHighRiskApprovals} high-risk approvals</span>
-          <span className="text-slate-500 font-mono">{aggregated.totalDeadAssets} dead tokens</span>
+          <span className="text-[#6b7280] font-mono">{aggregated.totalDeadAssets} dead tokens</span>
         </div>
       </div>
 
       {/* ── KPI 2: Lifetime Gas Spent ── */}
-      <div className="glass-card p-5 space-y-3">
+      <div className="card-3d p-5 space-y-3 text-[#0a0a0a]">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
-            <Fuel size={16} className="text-[#38bdf8]" />
+          <div className="flex items-center gap-2 text-xs font-bold text-[#4b5563] uppercase tracking-wider">
+            <Fuel size={16} className="text-[#ff5500]" />
             <span>Lifetime Gas</span>
           </div>
-          <span className="text-xs font-mono text-slate-400 bg-white/[0.04] px-2 py-0.5 rounded border border-white/[0.06]">
+          <span className="btn-3d-neutral text-xs font-mono text-[#0a0a0a] px-2 py-0.5">
             {chains.length} Chains
           </span>
         </div>
         <div className="flex items-baseline gap-2">
-          <span className="text-2xl font-bold font-mono text-white">
+          <span className="text-2xl font-black font-mono text-[#ff5500]">
             {totalGasETH >= 10 ? totalGasETH.toFixed(2) : totalGasETH.toFixed(3)}
           </span>
-          <span className="text-xs text-slate-400 font-mono">ETH</span>
+          <span className="text-xs text-[#4b5563] font-mono">ETH</span>
         </div>
-        <div className="text-xs text-slate-400 flex justify-between items-center pt-2 border-t border-white/[0.06]">
-          <span className="font-mono text-slate-300">≈ ${totalGasUSD.toLocaleString('en-US', { maximumFractionDigits: 0 })} USD</span>
-          <span className="text-slate-500 font-mono">{aggregated.totalTransactions} total txs</span>
+        <div className="text-xs text-[#4b5563] flex justify-between items-center pt-2 border-t border-[#c8c8c8]">
+          <span className="font-mono text-[#0a0a0a] font-bold">≈ ${totalGasUSD.toLocaleString('en-US', { maximumFractionDigits: 0 })} USD</span>
+          <span className="text-[#6b7280] font-mono">{aggregated.totalTransactions} total txs</span>
         </div>
       </div>
 
       {/* ── KPI 3: Sybil & Airdrop Radar ── */}
-      <div className="glass-card p-5 space-y-3">
+      <div className="card-3d p-5 space-y-3 text-[#0a0a0a]">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
-            <UserCheck size={16} className="text-[#10b981]" />
+          <div className="flex items-center gap-2 text-xs font-bold text-[#4b5563] uppercase tracking-wider">
+            <UserCheck size={16} className="text-[#059669]" />
             <span>Sybil Probability</span>
           </div>
-          <span className={`text-xs font-bold px-2 py-0.5 rounded-full border font-mono ${getSybilColor(sybilProb)}`}>
+          <span className={`badge-3d text-xs font-bold px-2 py-0.5 border font-mono ${getSybilColor(sybilProb)}`}>
             {sybilProb <= 30 ? 'Organic' : sybilProb <= 55 ? 'Moderate' : 'High Risk'}
           </span>
         </div>
         <div className="flex items-baseline gap-2">
-          <span className="text-2xl font-bold font-mono text-white">{sybilProb}%</span>
-          <span className="text-xs text-slate-400">Trusta Heuristic</span>
+          <span className="text-2xl font-black font-mono text-[#0a0a0a]">{sybilProb}%</span>
+          <span className="text-xs text-[#4b5563]">Trusta Heuristic</span>
         </div>
-        <div className="text-xs text-slate-400 flex justify-between items-center pt-2 border-t border-white/[0.06]">
-          <span className="text-[#10b981] font-medium">4 DBs Verified Clean</span>
-          <span className="text-slate-500 font-mono">0 Flags</span>
+        <div className="text-xs text-[#4b5563] flex justify-between items-center pt-2 border-t border-[#c8c8c8]">
+          <span className="text-[#059669] font-bold">4 DBs Verified Clean</span>
+          <span className="text-[#6b7280] font-mono">0 Flags</span>
         </div>
       </div>
 
       {/* ── KPI 4: Protocols & Identity ── */}
-      <div className="glass-card p-5 space-y-3">
+      <div className="card-3d p-5 space-y-3 text-[#0a0a0a]">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">
-            <Layers size={16} className="text-[#a855f7]" />
+          <div className="flex items-center gap-2 text-xs font-bold text-[#4b5563] uppercase tracking-wider">
+            <Layers size={16} className="text-[#ff5500]" />
             <span>Protocols & Identity</span>
           </div>
           {identityReport?.primaryName ? (
-            <span className="text-xs font-semibold text-[#a855f7] bg-[#a855f7]/10 px-2 py-0.5 rounded-full border border-[#a855f7]/30">
+            <span className="badge-3d text-xs font-bold text-[#059669] bg-[#059669]/15 px-2 py-0.5 border border-[#059669]/40">
               Resolved
             </span>
           ) : (
-            <span className="text-xs text-slate-500 bg-white/[0.04] px-2 py-0.5 rounded">
+            <span className="btn-3d-neutral text-xs text-[#6b7280] px-2 py-0.5">
               Anonymous
             </span>
           )}
         </div>
         <div className="flex items-baseline gap-2 truncate">
-          <span className="text-xl font-bold text-white truncate">
+          <span className="text-xl font-black text-[#0a0a0a] truncate">
             {identityReport?.primaryName || `${data.address.slice(0, 6)}...${data.address.slice(-4)}`}
           </span>
         </div>
-        <div className="text-xs text-slate-400 flex justify-between items-center pt-2 border-t border-white/[0.06]">
+        <div className="text-xs text-[#4b5563] flex justify-between items-center pt-2 border-t border-[#c8c8c8]">
           <span>{totalProtocols} DApps interacted</span>
-          <span className="text-slate-500 font-mono">{identityReport?.socials?.length || 0} socials</span>
+          <span className="text-[#6b7280] font-mono">{identityReport?.socials?.length || 0} socials</span>
         </div>
       </div>
     </div>

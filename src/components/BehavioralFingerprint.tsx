@@ -60,12 +60,12 @@ export default function BehavioralFingerprint({ results }: Props) {
   });
 
   return (
-    <div className="p-6 bg-[#dedede] border border-[#cecece] text-[#0a0a0a] space-y-4 shadow-sm">
+    <div className="card-3d p-6 text-[#0a0a0a] space-y-4">
       <div className="flex justify-between items-center">
-        <span className="text-[11px] font-extrabold text-[#555555] uppercase tracking-wider">
+        <span className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider">
           6-DIMENSION QUANTITATIVE BREAKDOWN
         </span>
-        <span className="text-xs font-bold text-[#555555] font-mono">
+        <span className="btn-3d-neutral text-xs font-bold text-[#0a0a0a] font-mono px-2 py-0.5">
           {totalUniqueContracts} Contracts · {maxActiveMonths} Months
         </span>
       </div>
@@ -77,7 +77,7 @@ export default function BehavioralFingerprint({ results }: Props) {
               <span className="font-bold text-[#0a0a0a]">{dim.axis}</span>
               <span className="font-mono font-bold text-[#0a0a0a]">{dim.score} / 100</span>
             </div>
-            <div className="h-2 bg-[#cecece] overflow-hidden">
+            <div className="h-2.5 well-recessed overflow-hidden">
               <div
                 className={`h-full transition-all ${
                   dim.score > 70 ? 'bg-[#ff5500]' : 'bg-[#0a0a0a]'
@@ -85,7 +85,7 @@ export default function BehavioralFingerprint({ results }: Props) {
                 style={{ width: `${dim.score}%` }}
               />
             </div>
-            <p className="text-[11px] text-[#555555] truncate" title={dim.detail}>{dim.detail}</p>
+            <p className="text-[11px] text-[#4b5563] truncate font-medium" title={dim.detail}>{dim.detail}</p>
           </div>
         ))}
       </div>

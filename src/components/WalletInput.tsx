@@ -45,14 +45,14 @@ export default function WalletInput({ onScan, isLoading, initialAddress }: Props
 
   return (
     <div className="space-y-2">
-      {/* ── Sharp Square Input Bar ── */}
-      <div className={`bg-white border transition-all px-4 sm:px-6 py-3 shadow-sm flex flex-col md:flex-row items-center justify-between gap-3 ${
-        isLoading ? 'border-[#ff5500] shadow-md shadow-[#ff5500]/10' : 'border-[#d4d4d4]'
+      {/* ── 3D Tactile Input Console ── */}
+      <div className={`card-3d transition-all px-4 sm:px-6 py-3.5 flex flex-col md:flex-row items-center justify-between gap-3 ${
+        isLoading ? 'border-[#ff5500] ring-2 ring-[#ff5500]/30' : 'border-[#c2c2c2]'
       }`}>
         
-        {/* Left: Search Icon & Address Input */}
-        <div className="flex items-center gap-3 flex-1 w-full">
-          <Search size={18} className={`flex-shrink-0 transition-colors ${isLoading ? 'text-[#ff5500]' : 'text-gray-400'}`} />
+        {/* Left: Search Icon & Recessed Address Input Well */}
+        <div className="well-recessed-light flex items-center gap-3 flex-1 w-full px-3 py-2">
+          <Search size={18} className={`flex-shrink-0 transition-colors ${isLoading ? 'text-[#ff5500]' : 'text-gray-500'}`} />
           <input
             type="text"
             value={inputAddress}
@@ -67,8 +67,8 @@ export default function WalletInput({ onScan, isLoading, initialAddress }: Props
           />
         </div>
 
-        {/* Right: Network Filter Pills & Interactive Scan Action Button */}
-        <div className="flex items-center gap-1.5 flex-wrap justify-end">
+        {/* Right: Network Filter Pills & 3D Scan Action Button */}
+        <div className="flex items-center gap-2 flex-wrap justify-end">
           {SUPPORTED_CHAIN_IDS.map(id => {
             const c = CHAINS[id];
             const isSelected = selectedChains.includes(id);
@@ -78,13 +78,14 @@ export default function WalletInput({ onScan, isLoading, initialAddress }: Props
                 type="button"
                 disabled={isLoading}
                 onClick={() => toggleChain(id)}
-                className={`text-xs font-bold px-3 py-1.5 transition-all cursor-pointer ${
+                className={`text-xs font-bold px-3 py-1.5 cursor-pointer flex items-center gap-1.5 ${
                   isSelected
-                    ? 'bg-black text-white shadow-sm'
-                    : 'bg-[#f4f4f4] text-gray-600 border border-gray-200 hover:border-black hover:bg-gray-100'
+                    ? 'btn-3d-black text-white'
+                    : 'btn-3d-neutral text-[#4b5563]'
                 } ${isLoading ? 'opacity-80' : ''}`}
               >
-                {c.shortName}
+                <span className={isSelected ? 'led-live rounded-full' : 'w-1.5 h-1.5 rounded-full bg-gray-400'} />
+                <span>{c.shortName}</span>
               </button>
             );
           })}
@@ -93,10 +94,10 @@ export default function WalletInput({ onScan, isLoading, initialAddress }: Props
             type="button"
             onClick={() => handleScan()}
             disabled={isLoading}
-            className={`ml-2 text-white font-mono font-black text-xs px-4 py-2 transition-all flex items-center gap-2 cursor-pointer select-none ${
+            className={`ml-1.5 font-mono font-black text-xs px-5 py-2.5 flex items-center gap-2 cursor-pointer select-none ${
               isLoading
-                ? 'bg-[#ff5500] animate-pulse-glow shadow-md shadow-[#ff5500]/40'
-                : 'bg-[#ff5500] hover:bg-[#e04b00] shadow-sm hover:shadow-md'
+                ? 'btn-3d-orange animate-pulse-glow'
+                : 'btn-3d-orange'
             }`}
           >
             {isLoading ? (
@@ -115,7 +116,7 @@ export default function WalletInput({ onScan, isLoading, initialAddress }: Props
       </div>
 
       {error && (
-        <p className="text-xs text-[#ef4444] font-bold px-1 animate-fade-in-up">
+        <p className="card-3d border-l-4 border-l-[#ef4444] text-xs text-[#ef4444] font-bold p-2.5 animate-fade-in-up">
           {error}
         </p>
       )}

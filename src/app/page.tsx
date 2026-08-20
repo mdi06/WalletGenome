@@ -67,7 +67,7 @@ export default function Home() {
         <button
           type="button"
           onClick={() => setShowGuide(true)}
-          className="flex items-center text-left cursor-pointer group"
+          className="flex items-center text-left cursor-pointer group transition-transform active:scale-95"
         >
           <span className="text-xl sm:text-2xl font-black tracking-tight text-black font-sans uppercase">
             WALLET<span className="text-[#ff5500]">.</span>GENOME
@@ -80,7 +80,7 @@ export default function Home() {
             <button
               type="button"
               onClick={() => setShowGuide(!showGuide)}
-              className="bg-[#dedede] hover:bg-black hover:text-white border border-[#cecece] text-[#0a0a0a] text-xs font-bold px-3 py-1.5 flex items-center gap-1.5 transition-colors cursor-pointer"
+              className="btn-3d-neutral text-[#0a0a0a] text-xs font-bold px-3 py-1.5 flex items-center gap-1.5 cursor-pointer"
             >
               {showGuide ? (
                 <>
@@ -99,14 +99,15 @@ export default function Home() {
           {/* Docs / Methodology Link */}
           <Link
             href="/docs"
-            className="bg-[#dedede] hover:bg-black hover:text-white border border-[#cecece] text-[#0a0a0a] text-xs font-bold px-3 py-1.5 flex items-center gap-1.5 transition-colors cursor-pointer"
+            className="btn-3d-neutral text-[#0a0a0a] text-xs font-bold px-3 py-1.5 flex items-center gap-1.5 cursor-pointer"
           >
             <BookOpen size={13} className="text-[#ff5500]" />
             <span>DOCS / METHODOLOGY</span>
           </Link>
 
-          <span className="bg-[#ff5500] text-white text-[11px] font-bold tracking-wider px-3 py-1.5">
-            LIVE INDEXING
+          <span className="btn-3d-orange text-white text-[11px] font-bold tracking-wider px-3 py-1.5 flex items-center gap-1.5">
+            <span className="led-live rounded-full animate-pulse" />
+            <span>LIVE INDEXING</span>
           </span>
         </div>
       </header>
@@ -114,14 +115,14 @@ export default function Home() {
       {/* ── Mode Switcher & Input Section ── */}
       <div className="space-y-3">
         {/* Mode Selector Tabs */}
-        <div className="flex items-center gap-2 border-b border-[#cecece] pb-2">
+        <div className="flex items-center gap-2.5 border-b border-[#c8c8c8] pb-2.5">
           <button
             type="button"
             onClick={() => setScanMode('single')}
-            className={`px-3.5 py-1.5 text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer ${
+            className={`px-4 py-2 text-xs font-black uppercase tracking-wider flex items-center gap-2 cursor-pointer ${
               scanMode === 'single'
-                ? 'bg-black text-white shadow-sm'
-                : 'bg-[#dedede] text-[#555555] hover:text-black border border-[#cecece]'
+                ? 'btn-3d-black text-white'
+                : 'btn-3d-neutral text-[#4b5563] hover:text-black'
             }`}
           >
             <Search size={13} className={scanMode === 'single' ? 'text-[#ff5500]' : ''} />
@@ -131,15 +132,15 @@ export default function Home() {
           <button
             type="button"
             onClick={() => setScanMode('cluster')}
-            className={`px-3.5 py-1.5 text-xs font-black uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer ${
+            className={`px-4 py-2 text-xs font-black uppercase tracking-wider flex items-center gap-2 cursor-pointer ${
               scanMode === 'cluster'
-                ? 'bg-black text-white shadow-sm'
-                : 'bg-[#dedede] text-[#555555] hover:text-black border border-[#cecece]'
+                ? 'btn-3d-black text-white'
+                : 'btn-3d-neutral text-[#4b5563] hover:text-black'
             }`}
           >
             <Layers size={13} className={scanMode === 'cluster' ? 'text-[#ff5500]' : ''} />
             <span>CLUSTER / BULK MATRIX SCAN</span>
-            <span className="text-[9px] px-1.5 py-0.2 bg-[#ff5500] text-white font-mono">NEW</span>
+            <span className="text-[9px] px-1.5 py-0.2 bg-[#ff5500] text-white font-mono shadow-sm">NEW</span>
           </button>
         </div>
 
@@ -154,7 +155,7 @@ export default function Home() {
 
             {/* Preset Wallets Bar */}
             <div className="flex items-center gap-2 flex-wrap px-1">
-              <span className="text-[10px] font-extrabold text-gray-400 uppercase tracking-wider">
+              <span className="text-[10px] font-extrabold text-[#4b5563] uppercase tracking-wider">
                 FAST DEMO PRESETS:
               </span>
               {PRESET_WALLETS.map((p, i) => (
@@ -165,7 +166,7 @@ export default function Home() {
                     setCurrentAddress(p.address);
                     handleSingleScan(p.address, [...SUPPORTED_CHAIN_IDS], false);
                   }}
-                  className="text-xs font-mono font-bold text-gray-700 hover:text-black bg-white hover:bg-gray-100 px-3 py-1 border border-gray-200 shadow-sm transition-colors cursor-pointer"
+                  className="btn-3d-neutral text-xs font-mono font-bold text-[#0a0a0a] px-3 py-1 cursor-pointer"
                 >
                   {p.label}
                 </button>
@@ -185,7 +186,7 @@ export default function Home() {
 
       {/* Error Alert */}
       {error && (
-        <div className="bg-white border-l-4 border-l-[#ef4444] p-4 text-xs font-bold text-[#ef4444]">
+        <div className="card-3d border-l-4 border-l-[#ef4444] p-4 text-xs font-bold text-[#ef4444]">
           {error}
         </div>
       )}

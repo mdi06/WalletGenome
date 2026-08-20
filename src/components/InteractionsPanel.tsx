@@ -67,10 +67,10 @@ export default function InteractionsPanel({ results }: Props) {
 
   return (
     <div className="space-y-6">
-      {/* ── Top Summary Header Metrics (Sharp Square Toned Gray Cards) ── */}
+      {/* ── Top Summary Header Metrics ── */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="p-5 bg-[#dedede] border border-[#cecece] text-[#0a0a0a] space-y-1 shadow-sm">
-          <div className="text-[11px] font-extrabold text-[#555555] uppercase tracking-wider">
+        <div className="card-3d p-5 text-[#0a0a0a] space-y-1">
+          <div className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider">
             TOTAL PROTOCOL FAMILIES
           </div>
           <div className="text-3xl font-black text-[#0a0a0a] font-mono">
@@ -78,8 +78,8 @@ export default function InteractionsPanel({ results }: Props) {
           </div>
         </div>
 
-        <div className="p-5 bg-[#dedede] border border-[#cecece] text-[#0a0a0a] space-y-1 shadow-sm">
-          <div className="text-[11px] font-extrabold text-[#555555] uppercase tracking-wider">
+        <div className="card-3d p-5 text-[#0a0a0a] space-y-1">
+          <div className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider">
             COUNTERPARTY ADDRESSES
           </div>
           <div className="text-3xl font-black text-[#0a0a0a] font-mono">
@@ -87,14 +87,14 @@ export default function InteractionsPanel({ results }: Props) {
           </div>
         </div>
 
-        <div className="p-5 bg-[#dedede] border border-[#cecece] text-[#0a0a0a] space-y-1 shadow-sm">
-          <div className="text-[11px] font-extrabold text-[#555555] uppercase tracking-wider">
+        <div className="card-3d p-5 text-[#0a0a0a] space-y-1">
+          <div className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider">
             MOST INTERACTED PROTOCOL
           </div>
           <div className="text-xl font-black text-[#ff5500] truncate">
             {protocols[0]?.name || 'N/A'}
           </div>
-          <div className="text-xs font-bold text-[#555555] font-mono">
+          <div className="text-xs font-bold text-[#4b5563] font-mono">
             {protocols[0]?.txCount || 0} calls across {protocols[0]?.contracts?.length || 1} contracts
           </div>
         </div>
@@ -105,52 +105,52 @@ export default function InteractionsPanel({ results }: Props) {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setActiveView('protocols')}
-            className={`px-4 py-2 text-xs font-black transition-all cursor-pointer ${
+            className={`px-4 py-2 text-xs font-black cursor-pointer ${
               activeView === 'protocols'
-                ? 'bg-black text-white shadow-sm'
-                : 'bg-[#d8d8d8] text-[#333333] hover:bg-black hover:text-white'
+                ? 'btn-3d-black text-white'
+                : 'btn-3d-neutral text-[#4b5563] hover:text-black'
             }`}
           >
             Protocols & DApps ({protocols.length})
           </button>
           <button
             onClick={() => setActiveView('counterparties')}
-            className={`px-4 py-2 text-xs font-black transition-all cursor-pointer ${
+            className={`px-4 py-2 text-xs font-black cursor-pointer ${
               activeView === 'counterparties'
-                ? 'bg-black text-white shadow-sm'
-                : 'bg-[#d8d8d8] text-[#333333] hover:bg-black hover:text-white'
+                ? 'btn-3d-black text-white'
+                : 'btn-3d-neutral text-[#4b5563] hover:text-black'
             }`}
           >
             Counterparty Addresses ({counterparties.length})
           </button>
         </div>
 
-        <div className="relative w-full sm:w-64">
-          <Search size={14} className="absolute left-3 top-3 text-[#777777]" />
+        <div className="relative w-full sm:w-64 well-recessed-light">
+          <Search size={14} className="absolute left-3 top-3 text-gray-500" />
           <input
             type="text"
             placeholder="Search Uniswap, Aave..."
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            className="w-full bg-[#dedede] border border-[#cecece] text-xs font-semibold text-[#0a0a0a] pl-8 pr-3 py-2 focus:outline-none focus:border-black"
+            className="w-full bg-transparent text-xs font-bold text-[#0a0a0a] pl-8 pr-3 py-2 focus:outline-none placeholder:text-gray-400"
           />
         </div>
       </div>
 
       {/* ── Category Filter Pills ── */}
       {activeView === 'protocols' && (
-        <div className="flex items-center gap-1.5 flex-wrap pt-1">
-          <span className="text-xs font-bold text-[#555555] uppercase tracking-wider mr-1">
+        <div className="flex items-center gap-2 flex-wrap pt-1">
+          <span className="text-xs font-bold text-[#4b5563] uppercase tracking-wider mr-1">
             Filter Category:
           </span>
           {categories.map(cat => (
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
-              className={`text-xs font-bold px-3 py-1 transition-all cursor-pointer uppercase ${
+              className={`text-xs font-bold px-3 py-1 cursor-pointer uppercase ${
                 selectedCategory === cat
-                  ? 'bg-[#ff5500] text-white shadow-sm'
-                  : 'bg-[#d8d8d8] text-[#333333] hover:bg-black hover:text-white'
+                  ? 'btn-3d-orange text-white'
+                  : 'btn-3d-neutral text-[#4b5563]'
               }`}
             >
               {cat === 'all' ? 'All' : cat}
@@ -159,8 +159,8 @@ export default function InteractionsPanel({ results }: Props) {
         </div>
       )}
 
-      {/* ── Data Table ── */}
-      <div className="border border-[#cecece] bg-[#dedede] overflow-hidden overflow-x-auto">
+      {/* ── Data Table Well ── */}
+      <div className="well-recessed-light overflow-hidden overflow-x-auto">
         {activeView === 'protocols' ? (
           <table className="w-full text-left border-collapse">
             <thead>

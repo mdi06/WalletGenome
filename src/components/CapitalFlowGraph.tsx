@@ -317,11 +317,11 @@ export default function CapitalFlowGraph({ results }: Props) {
 
   return (
     <div className="space-y-6">
-      {/* ── Top Hero: Most Interacted Recipient Wallet Banner (Sharp Square Toned Gray Card) ── */}
+      {/* ── Top Hero: Most Interacted Recipient Wallet Banner ── */}
       {mostInteractedWallet ? (
-        <div className="p-5 bg-[#dedede] border border-[#cecece] text-[#0a0a0a] shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div className="card-3d p-5 text-[#0a0a0a] flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div className="flex items-center gap-3.5">
-            <div className="w-12 h-12 bg-[#ff5500] text-white flex items-center justify-center font-black text-xl flex-shrink-0">
+            <div className="w-12 h-12 btn-3d-orange text-white flex items-center justify-center font-black text-xl flex-shrink-0">
               <Trophy size={24} />
             </div>
             <div className="space-y-0.5">
@@ -329,7 +329,7 @@ export default function CapitalFlowGraph({ results }: Props) {
                 <span className="text-[10px] font-extrabold tracking-widest text-[#ff5500] uppercase">
                   MOST INTERACTED RECIPIENT WALLET
                 </span>
-                <span className="text-[10px] font-mono font-bold px-2 py-0.5 bg-[#d0d0d0] text-[#0a0a0a]">
+                <span className="badge-3d text-[10px] font-mono font-bold px-2 py-0.5 bg-[#d0d0d0] text-[#0a0a0a]">
                   {mostInteractedWallet.type.toUpperCase()} WALLET
                 </span>
               </div>
@@ -339,7 +339,7 @@ export default function CapitalFlowGraph({ results }: Props) {
                 </span>
                 <button
                   onClick={() => handleNodeClick(mostInteractedWallet)}
-                  className="text-[#555555] hover:text-[#ff5500] transition-colors cursor-pointer"
+                  className="text-[#6b7280] hover:text-[#ff5500] transition-colors cursor-pointer"
                   title="View on Explorer"
                 >
                   <ExternalLink size={13} />
@@ -348,19 +348,19 @@ export default function CapitalFlowGraph({ results }: Props) {
             </div>
           </div>
 
-          <div className="flex items-center gap-6 font-mono self-start md:self-center border-t md:border-t-0 border-[#cecece] pt-2 md:pt-0 w-full md:w-auto justify-between md:justify-end">
+          <div className="flex items-center gap-6 font-mono self-start md:self-center border-t md:border-t-0 border-[#c8c8c8] pt-2 md:pt-0 w-full md:w-auto justify-between md:justify-end">
             <div>
-              <div className="text-[10px] font-bold text-[#555555] uppercase">TRANSACTIONS SENT</div>
+              <div className="text-[10px] font-bold text-[#4b5563] uppercase">TRANSACTIONS SENT</div>
               <div className="text-xl font-black text-[#ff5500]">{mostInteractedWallet.txCount} TXS</div>
             </div>
             <div>
-              <div className="text-[10px] font-bold text-[#555555] uppercase">TOTAL CAPITAL SENT</div>
+              <div className="text-[10px] font-bold text-[#4b5563] uppercase">TOTAL CAPITAL SENT</div>
               <div className="text-xl font-black text-[#0a0a0a]">{formatUSD(mostInteractedWallet.volumeUSD)}</div>
             </div>
           </div>
         </div>
       ) : (
-        <div className="p-4 bg-[#dedede] text-[#555555] border border-[#cecece] text-xs font-mono font-bold">
+        <div className="card-3d p-4 text-[#4b5563] text-xs font-mono font-bold">
           No external recipient EOA wallets recorded in outbound transfer events.
         </div>
       )}
@@ -368,15 +368,15 @@ export default function CapitalFlowGraph({ results }: Props) {
       {/* ── Controls Row ── */}
       <div className="flex flex-wrap items-center justify-between gap-4 pt-1">
         <div className="flex items-center gap-2">
-          <span className="text-xs font-bold text-[#555555] uppercase">Min Volume:</span>
+          <span className="text-xs font-bold text-[#4b5563] uppercase">Min Volume:</span>
           {[0, 100, 500, 2000, 10000].map(amt => (
             <button
               key={amt}
               onClick={() => setMinVolume(amt)}
-              className={`px-3 py-1 text-xs font-bold transition-all cursor-pointer ${
+              className={`px-3 py-1 text-xs font-bold cursor-pointer ${
                 minVolume === amt
-                  ? 'bg-black text-white shadow-sm'
-                  : 'bg-[#d8d8d8] text-[#333333] hover:bg-black hover:text-white'
+                  ? 'btn-3d-black text-white'
+                  : 'btn-3d-neutral text-[#4b5563]'
               }`}
             >
               {amt === 0 ? 'All' : `$${amt >= 1000 ? amt/1000 + 'K' : amt}+`}
@@ -385,15 +385,15 @@ export default function CapitalFlowGraph({ results }: Props) {
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="text-xs font-bold text-[#555555] uppercase">Network:</span>
+          <span className="text-xs font-bold text-[#4b5563] uppercase">Network:</span>
           {[{ id: 'all', label: 'All' }, { id: 1, label: 'Ethereum' }, { id: 42161, label: 'Arbitrum' }, { id: 8453, label: 'Base' }, { id: 10, label: 'Optimism' }].map(c => (
             <button
               key={c.id}
               onClick={() => setSelectedChain(c.id as any)}
-              className={`px-3 py-1 text-xs font-bold transition-all cursor-pointer ${
+              className={`px-3 py-1 text-xs font-bold cursor-pointer ${
                 selectedChain === c.id
-                  ? 'bg-black text-white shadow-sm'
-                  : 'bg-[#d8d8d8] text-[#333333] hover:bg-black hover:text-white'
+                  ? 'btn-3d-black text-white'
+                  : 'btn-3d-neutral text-[#4b5563]'
               }`}
             >
               {c.label}
@@ -403,7 +403,7 @@ export default function CapitalFlowGraph({ results }: Props) {
       </div>
 
       {/* ── Interactive SVG Topology Canvas ── */}
-      <div className="relative bg-[#0d0f17] p-4 overflow-hidden border border-[#cecece] shadow-inner">
+      <div className="relative bg-[#0d0f17] p-4 overflow-hidden border border-[#222222] shadow-2xl rounded-sm">
         <svg viewBox="0 0 900 560" className="w-full h-auto max-h-[560px] block">
           <defs>
             <pattern id="flow-grid" width="30" height="30" patternUnits="userSpaceOnUse">

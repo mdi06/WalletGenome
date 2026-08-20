@@ -31,62 +31,62 @@ export default function SybilRadar({ report }: Props) {
   );
 
   return (
-    <div className="p-5 bg-[#dedede] border border-[#cecece] text-[#0a0a0a] flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-sm">
+    <div className="card-3d p-5 text-[#0a0a0a] flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
       {/* Left: Sybil Probability & Verdict */}
       <div className="flex items-center gap-4">
         <div
-          className={`w-11 h-11 border flex items-center justify-center flex-shrink-0 ${
+          className={`w-11 h-11 border flex items-center justify-center flex-shrink-0 badge-3d ${
             isClean
-              ? 'bg-[#059669]/10 text-[#059669] border-[#059669]/30'
+              ? 'bg-[#059669]/15 text-[#047857] border-[#059669]/40'
               : isSuspicious
-              ? 'bg-[#f59e0b]/10 text-[#f59e0b] border-[#f59e0b]/30'
-              : 'bg-[#dc2626]/10 text-[#dc2626] border-[#dc2626]/30'
+              ? 'bg-[#f59e0b]/15 text-[#b45309] border-[#f59e0b]/40'
+              : 'bg-[#dc2626]/15 text-[#b91c1c] border-[#dc2626]/40'
           }`}
         >
           {isClean ? <ShieldCheck size={24} /> : <ShieldAlert size={24} />}
         </div>
         <div>
           <div className="flex items-center gap-2">
-            <span className="text-[11px] font-extrabold text-[#555555] uppercase tracking-wider">
+            <span className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider">
               SYBIL PROBABILITY
             </span>
             <span className="text-sm font-black text-[#0a0a0a] font-mono">
               {sybilProb}%
             </span>
             <span
-              className={`text-[11px] font-bold px-2 py-0.5 border ${
+              className={`badge-3d text-[11px] font-bold px-2 py-0.5 border ${
                 isClean
-                  ? 'bg-[#059669]/10 text-[#059669] border-[#059669]/30'
+                  ? 'bg-[#059669]/15 text-[#047857] border-[#059669]/40'
                   : isSuspicious
-                  ? 'bg-[#f59e0b]/10 text-[#f59e0b] border-[#f59e0b]/30'
-                  : 'bg-[#dc2626]/10 text-[#dc2626] border-[#dc2626]/30'
+                  ? 'bg-[#f59e0b]/15 text-[#b45309] border-[#f59e0b]/40'
+                  : 'bg-[#dc2626]/15 text-[#b91c1c] border-[#dc2626]/40'
               }`}
             >
               {verdictLabel}
             </span>
           </div>
-          <p className="text-xs text-[#444444] max-w-xl pt-0.5 leading-normal font-medium">
+          <p className="text-xs text-[#374151] max-w-xl pt-0.5 leading-normal font-medium text-pretty">
             {explanation}
           </p>
         </div>
       </div>
 
-      {/* Right: Database Sync Pills */}
-      <div className="flex items-center gap-1.5 flex-wrap justify-start md:justify-end">
+      {/* Right: Database Sync 3D Pills */}
+      <div className="flex items-center gap-2 flex-wrap justify-start md:justify-end">
         {report.matches.map(m => {
           const isFlagged = m.flagged;
           return (
             <div
               key={m.databaseId}
-              className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#d4d4d4] border border-[#c4c4c4] text-xs font-bold text-[#0a0a0a]"
+              className="btn-3d-neutral inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold text-[#0a0a0a]"
             >
               {isFlagged ? (
-                <XCircle size={12} className="text-[#dc2626]" />
+                <span className="w-2 h-2 rounded-full bg-[#dc2626] shadow-sm animate-pulse" />
               ) : (
-                <CheckCircle2 size={12} className="text-[#059669]" />
+                <span className="led-clean rounded-full" />
               )}
               <span>{formatDbName(m.databaseId)}</span>
-              <span className={`text-[10px] font-mono font-bold ${isFlagged ? 'text-[#dc2626]' : 'text-[#059669]'}`}>
+              <span className={`text-[10px] font-mono font-bold ${isFlagged ? 'text-[#dc2626]' : 'text-[#047857]'}`}>
                 {isFlagged ? 'FLAGGED' : 'CLEAN'}
               </span>
             </div>

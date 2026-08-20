@@ -75,35 +75,35 @@ export default function ActivityHeatmap({ results }: Props) {
   return (
     <div className="space-y-4">
       {/* Stat Badges */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-        <div className="bg-[#d4d4d4] p-2.5 border border-[#c4c4c4] flex items-center gap-2">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+        <div className="card-3d p-2.5 flex items-center gap-2">
           <Calendar size={14} className="text-[#ff5500]" />
           <div>
-            <div className="text-[10px] font-bold text-[#555555] uppercase">Active Days</div>
+            <div className="text-[10px] font-extrabold text-[#4b5563] uppercase">Active Days</div>
             <div className="text-xs font-black text-[#0a0a0a] font-mono">{totalActiveDays} days</div>
           </div>
         </div>
 
-        <div className="bg-[#d4d4d4] p-2.5 border border-[#c4c4c4] flex items-center gap-2">
+        <div className="card-3d p-2.5 flex items-center gap-2">
           <Flame size={14} className="text-[#ff5500]" />
           <div>
-            <div className="text-[10px] font-bold text-[#555555] uppercase">Streak</div>
+            <div className="text-[10px] font-extrabold text-[#4b5563] uppercase">Streak</div>
             <div className="text-xs font-black text-[#0a0a0a] font-mono">{longestStreak} days</div>
           </div>
         </div>
 
-        <div className="bg-[#d4d4d4] p-2.5 border border-[#c4c4c4] flex items-center gap-2">
+        <div className="card-3d p-2.5 flex items-center gap-2">
           <Clock size={14} className="text-[#0a0a0a]" />
           <div>
-            <div className="text-[10px] font-bold text-[#555555] uppercase">Peak Hour</div>
+            <div className="text-[10px] font-extrabold text-[#4b5563] uppercase">Peak Hour</div>
             <div className="text-xs font-black text-[#0a0a0a] font-mono">{mostActiveHour}:00 UTC</div>
           </div>
         </div>
 
-        <div className="bg-[#d4d4d4] p-2.5 border border-[#c4c4c4] flex items-center gap-2">
-          <Zap size={14} className="text-[#0a0a0a]" />
+        <div className="card-3d p-2.5 flex items-center gap-2">
+          <Zap size={14} className="text-[#ff5500]" />
           <div>
-            <div className="text-[10px] font-bold text-[#555555] uppercase">Peak Day</div>
+            <div className="text-[10px] font-extrabold text-[#4b5563] uppercase">Peak Day</div>
             <div className="text-xs font-black text-[#0a0a0a] font-mono">{mostActiveDay}</div>
           </div>
         </div>

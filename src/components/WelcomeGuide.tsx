@@ -67,11 +67,11 @@ export default function WelcomeGuide({ onSelectAddress }: Props) {
       {/* ── 2. One-Click Interactive Showcase Profiles ── */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <div className="text-xs font-extrabold text-[#555555] uppercase tracking-wider flex items-center gap-1.5">
+          <div className="text-xs font-extrabold text-[#4b5563] uppercase tracking-wider flex items-center gap-1.5">
             <Activity size={14} className="text-[#ff5500]" />
             TRY INSTANT DEMO PROFILES (1-CLICK SCAN)
           </div>
-          <span className="text-[11px] font-bold text-[#555555] hidden sm:inline">
+          <span className="text-[11px] font-bold text-[#4b5563] hidden sm:inline">
             Click any profile to test-drive live intelligence
           </span>
         </div>
@@ -80,14 +80,15 @@ export default function WelcomeGuide({ onSelectAddress }: Props) {
           {SHOWCASE_PROFILES.map((p, idx) => (
             <div
               key={idx}
-              className="p-5 bg-[#dedede] border border-[#cecece] text-[#0a0a0a] space-y-3 flex flex-col justify-between hover:border-black transition-all group shadow-sm"
+              className="card-3d-interactive p-5 text-[#0a0a0a] space-y-3 flex flex-col justify-between group cursor-pointer"
+              onClick={() => onSelectAddress(p.address)}
             >
               <div className="space-y-2">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-[10px] font-mono font-extrabold text-[#555555] uppercase tracking-wider">
+                  <span className="text-[10px] font-mono font-extrabold text-[#4b5563] uppercase tracking-wider">
                     {p.role}
                   </span>
-                  <span className={`text-[9px] font-mono font-black px-2 py-0.5 border ${p.badgeColor}`}>
+                  <span className={`badge-3d text-[9px] font-mono font-black px-2 py-0.5 border ${p.badgeColor}`}>
                     {p.badge}
                   </span>
                 </div>
@@ -96,19 +97,22 @@ export default function WelcomeGuide({ onSelectAddress }: Props) {
                   {p.name}
                 </div>
 
-                <p className="text-xs text-[#555555] leading-relaxed line-clamp-3">
+                <p className="text-xs text-[#4b5563] leading-relaxed line-clamp-3 text-pretty">
                   {p.description}
                 </p>
               </div>
 
-              <div className="pt-2 border-t border-[#cecece] flex items-center justify-between gap-2">
-                <span className="text-[10px] font-mono font-bold text-[#777777] truncate">
+              <div className="pt-2.5 border-t border-[#c8c8c8] flex items-center justify-between gap-2">
+                <span className="text-[10px] font-mono font-bold text-[#6b7280] truncate">
                   {p.stats}
                 </span>
                 <button
                   type="button"
-                  onClick={() => onSelectAddress(p.address)}
-                  className="bg-black group-hover:bg-[#ff5500] text-white font-bold text-xs px-3 py-1.5 transition-colors flex items-center gap-1 flex-shrink-0 cursor-pointer"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onSelectAddress(p.address);
+                  }}
+                  className="btn-3d-black text-white font-bold text-xs px-3 py-1.5 flex items-center gap-1 flex-shrink-0 cursor-pointer"
                 >
                   <span>Explore</span>
                   <ArrowRight size={12} />
@@ -121,7 +125,7 @@ export default function WelcomeGuide({ onSelectAddress }: Props) {
 
       {/* ── 3. How Does It Work? (3-Step Visual Guide) ── */}
       <div className="space-y-4 pt-4">
-        <div className="text-xs font-extrabold text-[#555555] uppercase tracking-wider flex items-center gap-1.5">
+        <div className="text-xs font-extrabold text-[#4b5563] uppercase tracking-wider flex items-center gap-1.5">
           <HelpCircle size={14} className="text-[#ff5500]" />
           HOW DOES WALLETGENOME WORK?
         </div>
@@ -129,40 +133,40 @@ export default function WelcomeGuide({ onSelectAddress }: Props) {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           
           {/* Step 1 */}
-          <div className="p-6 bg-[#dedede] border border-[#cecece] space-y-3 text-[#0a0a0a] shadow-sm relative">
-            <div className="w-8 h-8 bg-black text-white font-mono font-black flex items-center justify-center text-sm">
+          <div className="card-3d p-6 space-y-3 text-[#0a0a0a] relative">
+            <div className="w-8 h-8 btn-3d-black text-white font-mono font-black flex items-center justify-center text-sm">
               01
             </div>
             <h3 className="text-base font-black uppercase text-[#0a0a0a]">
               Multi-Chain Scan
             </h3>
-            <p className="text-xs text-[#555555] leading-relaxed">
+            <p className="text-xs text-[#4b5563] leading-relaxed text-pretty">
               Enter any 0x address or ENS domain. We query Ethereum, Arbitrum, Base, BSC, and Optimism simultaneously—without requiring you to connect a wallet or install extensions.
             </p>
           </div>
 
           {/* Step 2 */}
-          <div className="p-6 bg-[#dedede] border border-[#cecece] space-y-3 text-[#0a0a0a] shadow-sm relative">
-            <div className="w-8 h-8 bg-[#ff5500] text-white font-mono font-black flex items-center justify-center text-sm">
+          <div className="card-3d p-6 space-y-3 text-[#0a0a0a] relative">
+            <div className="w-8 h-8 btn-3d-orange text-white font-mono font-black flex items-center justify-center text-sm">
               02
             </div>
             <h3 className="text-base font-black uppercase text-[#0a0a0a]">
               Forensic Processing
             </h3>
-            <p className="text-xs text-[#555555] leading-relaxed">
+            <p className="text-xs text-[#4b5563] leading-relaxed text-pretty">
               Our indexing engine filters out spoofed/scam meme tokens, verifies legitimate protocol contracts, audits 5 public Sybil databases, and resolves verified social profiles (Web3.bio).
             </p>
           </div>
 
           {/* Step 3 */}
-          <div className="p-6 bg-[#dedede] border border-[#cecece] space-y-3 text-[#0a0a0a] shadow-sm relative">
-            <div className="w-8 h-8 bg-black text-white font-mono font-black flex items-center justify-center text-sm">
+          <div className="card-3d p-6 space-y-3 text-[#0a0a0a] relative">
+            <div className="w-8 h-8 btn-3d-black text-white font-mono font-black flex items-center justify-center text-sm">
               03
             </div>
             <h3 className="text-base font-black uppercase text-[#0a0a0a]">
               Actionable Intelligence
             </h3>
-            <p className="text-xs text-[#555555] leading-relaxed">
+            <p className="text-xs text-[#4b5563] leading-relaxed text-pretty">
               Synthesizes a 6-axis Behavioral Radar, assigns a quantified Persona archetype, renders an interactive money flow graph, and flags open unlimited approval exposures.
             </p>
           </div>
@@ -172,7 +176,7 @@ export default function WelcomeGuide({ onSelectAddress }: Props) {
 
       {/* ── 4. Core Capabilities (4 Feature Bento Cards) ── */}
       <div className="space-y-4 pt-4">
-        <div className="text-xs font-extrabold text-[#555555] uppercase tracking-wider flex items-center gap-1.5">
+        <div className="text-xs font-extrabold text-[#4b5563] uppercase tracking-wider flex items-center gap-1.5">
           <Layers size={14} className="text-[#ff5500]" />
           WHAT YOU CAN UNCOVER ON ANY WALLET
         </div>
@@ -180,81 +184,81 @@ export default function WelcomeGuide({ onSelectAddress }: Props) {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           
           {/* Bento Card 1: Behavioral DNA */}
-          <div className="p-6 bg-[#dedede] border border-[#cecece] space-y-3 text-[#0a0a0a] shadow-sm">
+          <div className="card-3d p-6 space-y-3 text-[#0a0a0a]">
             <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 bg-black text-[#ff5500] flex items-center justify-center flex-shrink-0">
+              <div className="w-9 h-9 btn-3d-black text-[#ff5500] flex items-center justify-center flex-shrink-0">
                 <Dna size={20} />
               </div>
               <div>
                 <h4 className="text-sm font-black uppercase text-[#0a0a0a]">
                   Behavioral DNA & Personas
                 </h4>
-                <span className="text-[10px] font-bold text-[#555555]">
+                <span className="text-[10px] font-bold text-[#4b5563]">
                   Quantitative archetype classification
                 </span>
               </div>
             </div>
-            <p className="text-xs text-[#444444] leading-relaxed">
+            <p className="text-xs text-[#374151] leading-relaxed text-pretty">
               Understand how an entity operates on-chain. Are they a DeFi Power User, Active Trader, or Passive Whale? Our engine computes 6 mathematical dimensions including contract breadth, maturity, and Shannon entropy.
             </p>
           </div>
 
           {/* Bento Card 2: Interactive Capital Flow */}
-          <div className="p-6 bg-[#dedede] border border-[#cecece] space-y-3 text-[#0a0a0a] shadow-sm">
+          <div className="card-3d p-6 space-y-3 text-[#0a0a0a]">
             <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 bg-black text-[#059669] flex items-center justify-center flex-shrink-0">
+              <div className="w-9 h-9 btn-3d-black text-[#059669] flex items-center justify-center flex-shrink-0">
                 <GitFork size={20} />
               </div>
               <div>
                 <h4 className="text-sm font-black uppercase text-[#0a0a0a]">
                   Interactive Capital Flow Topology
                 </h4>
-                <span className="text-[10px] font-bold text-[#555555]">
+                <span className="text-[10px] font-bold text-[#4b5563]">
                   Follow where the capital really travels
                 </span>
               </div>
             </div>
-            <p className="text-xs text-[#444444] leading-relaxed">
+            <p className="text-xs text-[#374151] leading-relaxed text-pretty">
               Visualize inflows from exchanges, DeFi protocol interactions, and outbound destinations in an interactive particle-flow canvas. Automatically uncovers the #1 most-sent-to recipient wallet.
             </p>
           </div>
 
           {/* Bento Card 3: Universal Social Identities */}
-          <div className="p-6 bg-[#dedede] border border-[#cecece] space-y-3 text-[#0a0a0a] shadow-sm">
+          <div className="card-3d p-6 space-y-3 text-[#0a0a0a]">
             <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 bg-black text-[#3b82f6] flex items-center justify-center flex-shrink-0">
+              <div className="w-9 h-9 btn-3d-black text-[#3b82f6] flex items-center justify-center flex-shrink-0">
                 <UserCheck size={20} />
               </div>
               <div>
                 <h4 className="text-sm font-black uppercase text-[#0a0a0a]">
                   Universal Social Identities
                 </h4>
-                <span className="text-[10px] font-bold text-[#555555]">
+                <span className="text-[10px] font-bold text-[#4b5563]">
                   Bridge hex addresses to real-world accounts
                 </span>
               </div>
             </div>
-            <p className="text-xs text-[#444444] leading-relaxed">
+            <p className="text-xs text-[#374151] leading-relaxed text-pretty">
               Connects addresses to public Web2 and Web3 profiles across ENS domains, Farcaster Warpcast, Lens Protocol, Twitter/X, and GitHub with direct verified external links.
             </p>
           </div>
 
           {/* Bento Card 4: Security & Approval Audit */}
-          <div className="p-6 bg-[#dedede] border border-[#cecece] space-y-3 text-[#0a0a0a] shadow-sm">
+          <div className="card-3d p-6 space-y-3 text-[#0a0a0a]">
             <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 bg-black text-[#dc2626] flex items-center justify-center flex-shrink-0">
+              <div className="w-9 h-9 btn-3d-black text-[#dc2626] flex items-center justify-center flex-shrink-0">
                 <ShieldCheck size={20} />
               </div>
               <div>
                 <h4 className="text-sm font-black uppercase text-[#0a0a0a]">
                   Security & Approval Audit
                 </h4>
-                <span className="text-[10px] font-bold text-[#555555]">
+                <span className="text-[10px] font-bold text-[#4b5563]">
                   Identify wallet vulnerabilities & blacklist status
                 </span>
               </div>
             </div>
-            <p className="text-xs text-[#444444] leading-relaxed">
+            <p className="text-xs text-[#374151] leading-relaxed text-pretty">
               Protects assets by highlighting active unlimited token allowances to unverified contracts, calculating dead zero-liquidity tokens, and checking against LayerZero, Hop, and OFAC sanctions lists.
             </p>
           </div>
@@ -263,7 +267,7 @@ export default function WelcomeGuide({ onSelectAddress }: Props) {
       </div>
 
       {/* ── 4.5. Methodology & Algorithmic Docs Callout Banner ── */}
-      <div className="p-5 bg-black text-white border border-black flex flex-col sm:flex-row items-center justify-between gap-4 shadow-sm">
+      <div className="card-3d-dark p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="space-y-1 text-center sm:text-left">
           <div className="flex items-center gap-2 justify-center sm:justify-start">
             <BookOpen size={16} className="text-[#ff5500]" />
@@ -277,7 +281,7 @@ export default function WelcomeGuide({ onSelectAddress }: Props) {
         </div>
         <Link
           href="/docs"
-          className="px-4 py-2 bg-[#ff5500] hover:bg-white hover:text-black text-white text-xs font-mono font-bold uppercase tracking-wider transition-colors flex items-center gap-1.5 flex-shrink-0 cursor-pointer"
+          className="btn-3d-orange text-white text-xs font-mono font-bold uppercase tracking-wider px-4 py-2 flex items-center gap-1.5 flex-shrink-0 cursor-pointer"
         >
           <span>READ THE DOCS</span>
           <ArrowRight size={13} />
@@ -285,7 +289,7 @@ export default function WelcomeGuide({ onSelectAddress }: Props) {
       </div>
 
       {/* ── 5. Trust Indicators & FAQ Bar ── */}
-      <div className="p-5 bg-[#dedede] border border-[#cecece] flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-bold text-[#555555]">
+      <div className="card-3d p-5 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-bold text-[#4b5563]">
         <div className="flex items-center gap-2">
           <Lock size={15} className="text-[#059669]" />
           <span className="text-[#0a0a0a]">100% Read-Only & Safe:</span>

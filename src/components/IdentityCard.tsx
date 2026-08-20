@@ -14,11 +14,11 @@ export default function IdentityCard({ identity, address }: Props) {
   const hasDomains = identity && identity.domains && identity.domains.length > 0;
 
   return (
-    <div className="p-5 bg-[#dedede] border border-[#cecece] text-[#0a0a0a] space-y-4 shadow-sm">
+    <div className="card-3d p-5 text-[#0a0a0a] space-y-4">
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3.5">
-          <div className="w-12 h-12 bg-[#ff5500] flex items-center justify-center text-white font-black flex-shrink-0 overflow-hidden border border-black shadow-sm">
+          <div className="w-12 h-12 btn-3d-orange flex items-center justify-center text-white font-black flex-shrink-0 overflow-hidden">
             {identity?.primaryAvatar ? (
               <img
                 src={identity.primaryAvatar}
@@ -44,27 +44,27 @@ export default function IdentityCard({ identity, address }: Props) {
                 {identity?.primaryName ? identity.primaryName : `${address.slice(0, 6)}...${address.slice(-4)}`}
               </h3>
               {hasDomains && identity.domains.map((d, i) => (
-                <span key={i} className="text-[10px] font-mono font-bold px-2 py-0.5 bg-black text-white">
+                <span key={i} className="btn-3d-black text-[10px] font-mono font-bold px-2 py-0.5 text-white">
                   {d.platform.toUpperCase()}: {d.identity}
                 </span>
               ))}
             </div>
             {identity?.description ? (
-              <p className="text-xs text-[#555555] line-clamp-1">{identity.description}</p>
+              <p className="text-xs text-[#4b5563] line-clamp-1">{identity.description}</p>
             ) : (
-              <p className="text-xs text-[#555555]">Universal Web3 & Web2 Social Identity Graph</p>
+              <p className="text-xs text-[#4b5563]">Universal Web3 & Web2 Social Identity Graph</p>
             )}
           </div>
         </div>
 
         <div className="flex items-center gap-2">
           {hasSocials ? (
-            <span className="text-[11px] font-mono font-bold px-3 py-1 bg-[#059669]/10 text-[#059669] border border-[#059669]/30 flex items-center gap-1.5">
+            <span className="badge-3d text-[11px] font-mono font-bold px-3 py-1 bg-[#059669]/15 text-[#047857] border border-[#059669]/40 flex items-center gap-1.5">
               <CheckCircle2 size={12} />
               <span>{identity.socials.length} CONNECTED SERVICES</span>
             </span>
           ) : (
-            <span className="text-[11px] font-mono font-bold px-3 py-1 bg-[#d4d4d4] text-[#555555] border border-[#cecece]">
+            <span className="badge-3d text-[11px] font-mono font-bold px-3 py-1 bg-[#dcdcdc] text-[#4b5563] border border-[#c4c4c4]">
               NO SOCIALS ATTACHED
             </span>
           )}
@@ -73,8 +73,8 @@ export default function IdentityCard({ identity, address }: Props) {
 
       {/* Connected Services Badges Grid */}
       {hasSocials ? (
-        <div className="space-y-2 pt-2 border-t border-[#cecece]">
-          <div className="text-[10px] font-extrabold text-[#555555] uppercase tracking-wider">
+        <div className="space-y-2 pt-2 border-t border-[#c8c8c8]">
+          <div className="text-[10px] font-extrabold text-[#4b5563] uppercase tracking-wider">
             CONNECTED SOCIAL SERVICES & ACCOUNTS:
           </div>
           <div className="flex items-center gap-2 flex-wrap">
@@ -84,7 +84,7 @@ export default function IdentityCard({ identity, address }: Props) {
           </div>
         </div>
       ) : (
-        <div className="p-3 bg-[#d5d5d5] border border-[#cecece] text-xs text-[#555555] font-medium">
+        <div className="well-recessed-light p-3 text-xs text-[#4b5563] font-medium">
           No public Twitter/X, Discord, GitHub, Farcaster, or Lens profiles linked to this address.
         </div>
       )}
@@ -101,14 +101,14 @@ function SocialServiceBadge({ social }: { social: SocialLinkItem }) {
       href={social.link}
       target="_blank"
       rel="noopener noreferrer"
-      className="inline-flex items-center gap-2 px-3 py-1.5 bg-[#d4d4d4] hover:bg-black hover:text-white text-[#0a0a0a] text-xs font-bold transition-all border border-[#c4c4c4] hover:border-black shadow-sm group cursor-pointer"
+      className="btn-3d-neutral inline-flex items-center gap-2 px-3 py-1.5 text-[#0a0a0a] text-xs font-bold group cursor-pointer"
     >
-      <span className="text-[#ff5500] group-hover:text-white">{icon}</span>
-      <span className="text-[#555555] group-hover:text-gray-300 text-[10px] uppercase font-semibold">
+      <span className="text-[#ff5500] group-hover:text-black">{icon}</span>
+      <span className="text-[#4b5563] group-hover:text-black text-[10px] uppercase font-semibold">
         {serviceName}:
       </span>
       <span className="font-mono font-black">{social.handle}</span>
-      <ExternalLink size={11} className="text-[#777777] group-hover:text-white ml-0.5" />
+      <ExternalLink size={11} className="text-[#6b7280] group-hover:text-black ml-0.5" />
     </a>
   );
 }

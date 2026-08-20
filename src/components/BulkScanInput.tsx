@@ -59,7 +59,7 @@ export default function BulkScanInput({ onScanCluster, isLoading }: Props) {
   };
 
   return (
-    <div className="space-y-3 bg-white border border-[#cecece] p-5 shadow-sm">
+    <div className="space-y-3 card-3d p-5">
       {/* ── Top Bar ── */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
         <div className="flex items-center gap-2">
@@ -67,7 +67,7 @@ export default function BulkScanInput({ onScanCluster, isLoading }: Props) {
           <span className="text-xs font-black uppercase text-[#0a0a0a] tracking-wider">
             MULTI-WALLET CLUSTER MATRIX SCANNER
           </span>
-          <span className="text-[10px] font-mono font-bold px-2 py-0.5 bg-[#dedede] text-[#555555]">
+          <span className="text-[10px] font-mono font-bold px-2 py-0.5 btn-3d-neutral text-[#4b5563]">
             UP TO 30 WALLETS
           </span>
         </div>
@@ -76,15 +76,15 @@ export default function BulkScanInput({ onScanCluster, isLoading }: Props) {
           type="button"
           onClick={handleLoadSample}
           disabled={isLoading}
-          className="text-xs font-bold text-[#ff5500] hover:text-black flex items-center gap-1.5 transition-colors cursor-pointer"
+          className="btn-3d-neutral text-xs font-bold text-[#ff5500] hover:text-black px-2.5 py-1 flex items-center gap-1.5 cursor-pointer"
         >
-          <Sparkles size={12} />
+          <Sparkles size={12} className="text-[#ff5500]" />
           <span>Load Sample Cluster (4 Wallets)</span>
         </button>
       </div>
 
-      {/* ── Textarea Input ── */}
-      <div className="relative">
+      {/* ── Textarea Input Well ── */}
+      <div className="relative well-recessed-light p-1">
         <textarea
           value={rawText}
           disabled={isLoading}
@@ -94,11 +94,11 @@ export default function BulkScanInput({ onScanCluster, isLoading }: Props) {
           }}
           placeholder="Paste EVM addresses separated by new lines, commas, or spaces:&#10;0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045&#10;0x50EC05AD9D29a73367175E26E962D714E96896C3"
           rows={4}
-          className="w-full bg-[#fafafa] border border-[#cecece] p-3 text-xs font-mono font-bold text-[#0a0a0a] focus:outline-none focus:border-black placeholder:text-gray-400 placeholder:font-sans resize-none"
+          className="w-full bg-transparent p-2.5 text-xs font-mono font-bold text-[#0a0a0a] focus:outline-none placeholder:text-gray-400 placeholder:font-sans resize-none"
         />
 
         {/* Counter Badge */}
-        <div className="absolute bottom-2.5 right-3 flex items-center gap-1.5 text-[11px] font-mono font-bold">
+        <div className="absolute bottom-2.5 right-3 flex items-center gap-1.5 text-[11px] font-mono font-bold bg-white/80 px-2 py-0.5 border border-gray-200 shadow-sm">
           {parsedAddresses.length > 0 ? (
             <span className="text-[#059669] flex items-center gap-1">
               <CheckCircle2 size={12} />
@@ -115,7 +115,7 @@ export default function BulkScanInput({ onScanCluster, isLoading }: Props) {
         
         {/* Network Selector Pills */}
         <div className="flex items-center gap-1.5 flex-wrap">
-          <span className="text-[11px] font-extrabold text-[#555555] uppercase pr-1">
+          <span className="text-[11px] font-extrabold text-[#4b5563] uppercase pr-1">
             Networks:
           </span>
           {SUPPORTED_CHAIN_IDS.map(id => {
@@ -127,13 +127,14 @@ export default function BulkScanInput({ onScanCluster, isLoading }: Props) {
                 type="button"
                 disabled={isLoading}
                 onClick={() => toggleChain(id)}
-                className={`text-xs font-bold px-3 py-1 transition-all cursor-pointer ${
+                className={`text-xs font-bold px-3 py-1 cursor-pointer flex items-center gap-1.5 ${
                   isSelected
-                    ? 'bg-black text-white shadow-sm'
-                    : 'bg-[#f4f4f4] text-gray-600 border border-gray-200 hover:border-black'
+                    ? 'btn-3d-black text-white'
+                    : 'btn-3d-neutral text-[#4b5563]'
                 }`}
               >
-                {c.shortName}
+                <span className={isSelected ? 'led-live rounded-full' : 'w-1.5 h-1.5 rounded-full bg-gray-400'} />
+                <span>{c.shortName}</span>
               </button>
             );
           })}
@@ -144,10 +145,10 @@ export default function BulkScanInput({ onScanCluster, isLoading }: Props) {
           type="button"
           onClick={handleSubmit}
           disabled={isLoading || parsedAddresses.length === 0}
-          className={`font-mono font-black text-xs px-5 py-2 transition-all flex items-center justify-center gap-2 cursor-pointer select-none text-white ${
+          className={`font-mono font-black text-xs px-5 py-2.5 flex items-center justify-center gap-2 cursor-pointer select-none text-white ${
             isLoading
-              ? 'bg-[#ff5500] animate-pulse-glow shadow-md'
-              : 'bg-[#ff5500] hover:bg-[#e04b00] disabled:opacity-50'
+              ? 'btn-3d-orange animate-pulse-glow'
+              : 'btn-3d-orange disabled:opacity-50'
           }`}
         >
           {isLoading ? (
@@ -165,7 +166,7 @@ export default function BulkScanInput({ onScanCluster, isLoading }: Props) {
       </div>
 
       {error && (
-        <div className="flex items-center gap-1.5 text-xs text-[#ef4444] font-bold pt-1">
+        <div className="flex items-center gap-1.5 text-xs text-[#ef4444] font-bold pt-1 card-3d border-l-4 border-l-[#ef4444] p-2">
           <AlertCircle size={13} />
           <span>{error}</span>
         </div>

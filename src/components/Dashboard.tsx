@@ -161,38 +161,34 @@ export default function Dashboard({ data }: DashboardProps) {
       )}
 
       {/* ── Tab Navigation Bar & Export Action ── */}
-      <div className="flex items-center justify-between border-b border-[#cecece] px-1 overflow-x-auto gap-4">
-        <div className="flex items-center gap-6 sm:gap-8">
+      <div className="flex items-center justify-between border-b border-[#c8c8c8] pb-2.5 px-1 overflow-x-auto gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           {tabs.map(tab => {
             const isActive = activeTab === tab.id;
             return (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`pb-3.5 text-xs sm:text-sm font-black tracking-wider transition-all whitespace-nowrap cursor-pointer relative flex items-center gap-1.5 ${
+                className={`px-3.5 py-2 text-xs font-black tracking-wider transition-all whitespace-nowrap cursor-pointer flex items-center gap-2 ${
                   isActive
-                    ? 'text-black font-black'
-                    : 'text-[#666666] hover:text-black font-bold'
+                    ? 'btn-3d-black text-white'
+                    : 'btn-3d-neutral text-[#4b5563] hover:text-black font-bold'
                 }`}
               >
                 <span>{tab.label}</span>
                 {typeof tab.count === 'number' && tab.count > 0 && (
                   <span
-                    className={`text-[10px] font-mono px-1.5 py-0.2 ${
-                      isActive ? 'bg-black text-white' : 'bg-[#cecece] text-[#333333]'
+                    className={`text-[10px] font-mono px-1.5 py-0.2 badge-3d ${
+                      isActive ? 'bg-[#ff5500] text-white' : 'bg-[#d0d0d0] text-[#333333]'
                     }`}
                   >
                     {tab.count}
                   </span>
                 )}
-                {isActive && (
-                  <span className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#ff5500]" />
-                )}
               </button>
             );
           })}
         </div>
-
       </div>
 
       {/* ── Tab Views ── */}
@@ -211,20 +207,20 @@ export default function Dashboard({ data }: DashboardProps) {
             <div className="lg:col-span-3 space-y-6">
               
               {/* Persona Identity Card */}
-              <div className="p-6 bg-[#dedede] border border-[#cecece] text-[#0a0a0a] flex flex-col items-center text-center space-y-4 shadow-sm">
-                <span className="text-[11px] font-extrabold text-[#555555] uppercase tracking-wider">
+              <div className="card-3d p-6 text-[#0a0a0a] flex flex-col items-center text-center space-y-4">
+                <span className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider">
                   PERSONA IDENTITY
                 </span>
 
-                <div className="w-20 h-20 bg-[#ff5500] flex items-center justify-center text-white shadow-md shadow-[#ff5500]/25">
+                <div className="w-20 h-20 btn-3d-orange flex items-center justify-center text-white">
                   <span className="text-3xl font-black">🧬</span>
                 </div>
 
-                <div className="space-y-1">
+                <div className="space-y-1.5">
                   <h3 className="text-lg font-black text-[#0a0a0a] tracking-tight truncate max-w-[200px]">
                     {primaryName}
                   </h3>
-                  <div className="bg-black text-white text-[10px] font-extrabold tracking-widest uppercase px-3 py-1">
+                  <div className="btn-3d-black text-white text-[10px] font-extrabold tracking-widest uppercase px-3 py-1">
                     {persona.toUpperCase()}
                   </div>
                 </div>
@@ -238,7 +234,7 @@ export default function Dashboard({ data }: DashboardProps) {
                         href={s.link}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-xs font-bold text-[#0a0a0a] hover:text-white bg-[#d4d4d4] hover:bg-black px-2.5 py-1 transition-colors flex items-center gap-1 border border-[#c4c4c4]"
+                        className="btn-3d-neutral text-xs font-bold text-[#0a0a0a] px-2.5 py-1 flex items-center gap-1 cursor-pointer"
                       >
                         <span>{s.platform === 'twitter' ? 'X' : s.platform.toUpperCase()}</span>
                         <ExternalLink size={10} />
@@ -250,7 +246,7 @@ export default function Dashboard({ data }: DashboardProps) {
                         href={`https://debank.com/profile/${data.address}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-xs font-bold text-[#0a0a0a] hover:text-white bg-[#d4d4d4] hover:bg-black px-3 py-1 transition-colors border border-[#c4c4c4]"
+                        className="btn-3d-neutral text-xs font-bold text-[#0a0a0a] px-3 py-1 cursor-pointer"
                       >
                         Debank
                       </a>
@@ -258,7 +254,7 @@ export default function Dashboard({ data }: DashboardProps) {
                         href={`https://etherscan.io/address/${data.address}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-xs font-bold text-[#0a0a0a] hover:text-white bg-[#d4d4d4] hover:bg-black px-3 py-1 transition-colors border border-[#c4c4c4]"
+                        className="btn-3d-neutral text-xs font-bold text-[#0a0a0a] px-3 py-1 cursor-pointer"
                       >
                         Etherscan
                       </a>
@@ -266,13 +262,13 @@ export default function Dashboard({ data }: DashboardProps) {
                   )}
                 </div>
 
-                {/* Dotted Divider & Bottom Stats */}
-                <div className="w-full border-t border-dashed border-[#cecece] pt-4 grid grid-cols-2 gap-2 text-center">
+                {/* Sunken Bottom Stats Well */}
+                <div className="w-full well-recessed-light p-3 grid grid-cols-2 gap-2 text-center">
                   <div>
                     <div className="text-lg font-black text-[#0a0a0a] font-mono">
                       {riskGrade === 'A' ? 'A+' : riskGrade}
                     </div>
-                    <div className="text-[10px] font-bold text-[#555555] uppercase tracking-wider">
+                    <div className="text-[10px] font-bold text-[#4b5563] uppercase tracking-wider">
                       TRUST SCORE
                     </div>
                   </div>
@@ -280,7 +276,7 @@ export default function Dashboard({ data }: DashboardProps) {
                     <div className="text-lg font-black text-[#0a0a0a] font-mono">
                       {sybilProb}%
                     </div>
-                    <div className="text-[10px] font-bold text-[#555555] uppercase tracking-wider">
+                    <div className="text-[10px] font-bold text-[#4b5563] uppercase tracking-wider">
                       SYBIL PROB.
                     </div>
                   </div>
@@ -288,12 +284,12 @@ export default function Dashboard({ data }: DashboardProps) {
               </div>
 
               {/* Security Ratings Card */}
-              <div className="p-6 bg-[#dedede] border border-[#cecece] text-[#0a0a0a] space-y-4 shadow-sm">
+              <div className="card-3d p-6 text-[#0a0a0a] space-y-4">
                 <div className="flex justify-between items-center">
-                  <span className="text-[11px] font-extrabold text-[#555555] uppercase tracking-wider">
+                  <span className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider">
                     SECURITY RATINGS
                   </span>
-                  <span className="text-xs font-bold font-mono px-2 py-0.5 bg-[#d0d0d0] text-[#0a0a0a]">
+                  <span className="btn-3d-neutral text-xs font-bold font-mono px-2 py-0.5 text-[#0a0a0a]">
                     Grade {riskGrade}
                   </span>
                 </div>
@@ -302,7 +298,7 @@ export default function Dashboard({ data }: DashboardProps) {
                   <span className="text-4xl font-black text-[#0a0a0a] font-mono">
                     {Math.max(10, 100 - riskScore)}
                   </span>
-                  <span className="text-sm font-bold text-[#555555] font-mono">/ 100</span>
+                  <span className="text-sm font-bold text-[#4b5563] font-mono">/ 100</span>
                 </div>
 
                 <div className="space-y-3 pt-2">
@@ -313,7 +309,7 @@ export default function Dashboard({ data }: DashboardProps) {
                         {riskScore > 50 ? 'High' : riskScore > 25 ? 'Med' : 'Low'}
                       </span>
                     </div>
-                    <div className="h-1.5 bg-[#cecece] overflow-hidden">
+                    <div className="h-2 well-recessed overflow-hidden">
                       <div className="h-full bg-black" style={{ width: `${Math.min(100, riskScore)}%` }} />
                     </div>
                   </div>
@@ -325,7 +321,7 @@ export default function Dashboard({ data }: DashboardProps) {
                         {aggregated.totalHighRiskApprovals > 0 ? `${aggregated.totalHighRiskApprovals} Risky` : 'Clean'}
                       </span>
                     </div>
-                    <div className="h-1.5 bg-[#cecece] overflow-hidden">
+                    <div className="h-2 well-recessed overflow-hidden">
                       <div
                         className="h-full bg-[#ff5500]"
                         style={{ width: `${Math.min(100, aggregated.totalHighRiskApprovals * 25 || 10)}%` }}
@@ -340,7 +336,7 @@ export default function Dashboard({ data }: DashboardProps) {
                         {aggregated.totalDeadAssets > 0 ? `${aggregated.totalDeadAssets} Dead` : 'None'}
                       </span>
                     </div>
-                    <div className="h-1.5 bg-[#cecece] overflow-hidden">
+                    <div className="h-2 well-recessed overflow-hidden">
                       <div
                         className="h-full bg-black"
                         style={{ width: `${Math.min(100, aggregated.totalDeadAssets * 10 || 5)}%` }}
@@ -356,12 +352,12 @@ export default function Dashboard({ data }: DashboardProps) {
             <div className="lg:col-span-6 space-y-6">
               
               {/* Activity Heatmap (LTM) */}
-              <div className="p-6 bg-[#dedede] border border-[#cecece] text-[#0a0a0a] space-y-3 shadow-sm">
+              <div className="card-3d p-6 text-[#0a0a0a] space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-[11px] font-extrabold text-[#555555] uppercase tracking-wider">
+                  <span className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider">
                     TRANSACTION HEATMAP (LTM)
                   </span>
-                  <span className="text-xs font-bold font-mono text-[#555555]">
+                  <span className="btn-3d-neutral text-xs font-bold font-mono px-2 py-0.5 text-[#0a0a0a]">
                     {aggregated.totalTransactions} Total Txs
                   </span>
                 </div>
@@ -369,59 +365,59 @@ export default function Dashboard({ data }: DashboardProps) {
                 <ActivityHeatmap results={data.chains} />
               </div>
 
-                {/* Protocol Identity Badges */}
-                <div className="p-6 bg-[#dedede] border border-[#cecece] text-[#0a0a0a] space-y-3 shadow-sm">
-                  <span className="text-[11px] font-extrabold text-[#555555] uppercase tracking-wider block">
-                    PROTOCOL IDENTITY BADGES
-                  </span>
+              {/* Protocol Identity Badges */}
+              <div className="card-3d p-6 text-[#0a0a0a] space-y-3">
+                <span className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider block">
+                  PROTOCOL IDENTITY BADGES
+                </span>
 
-                  {protocolBadges.length > 0 ? (
-                    <div className="flex flex-wrap gap-2 pt-1">
-                      {protocolBadges.map((badge, i) => (
-                        <span
-                          key={i}
-                          className={`text-xs font-mono font-bold px-3 py-1 tracking-wider ${
-                            i === 0
-                              ? 'bg-[#ff5500] text-white'
-                              : 'bg-[#cecece] text-[#0a0a0a]'
-                          }`}
-                        >
-                          {badge}
-                        </span>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-xs font-mono font-bold text-[#777777] pt-1">
-                      NO DIRECT PROTOCOL BADGES DETECTED ON SCANNED CHAINS
-                    </p>
-                  )}
-                </div>
+                {protocolBadges.length > 0 ? (
+                  <div className="flex flex-wrap gap-2 pt-1">
+                    {protocolBadges.map((badge, i) => (
+                      <span
+                        key={i}
+                        className={`text-xs font-mono font-bold px-3 py-1.5 tracking-wider ${
+                          i === 0
+                            ? 'btn-3d-orange text-white'
+                            : 'btn-3d-neutral text-[#0a0a0a]'
+                        }`}
+                      >
+                        {badge}
+                      </span>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs font-mono font-bold text-[#6b7280] pt-1">
+                    NO DIRECT PROTOCOL BADGES DETECTED ON SCANNED CHAINS
+                  </p>
+                )}
+              </div>
 
               {/* Metric Double Card (Lifetime Gas & Capital Flow) */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 
                 {/* Left: Lifetime Gas */}
-                <div className="p-6 bg-[#dedede] border border-[#cecece] text-[#0a0a0a] space-y-2 shadow-sm">
-                  <span className="text-[11px] font-extrabold text-[#555555] uppercase tracking-wider block">
+                <div className="card-3d p-6 text-[#0a0a0a] space-y-2">
+                  <span className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider block">
                     LIFETIME GAS
                   </span>
                   <div className="text-3xl font-black text-[#ff5500] font-mono truncate">
                     {totalGasETH >= 10 ? totalGasETH.toFixed(2) : totalGasETH.toFixed(3)} ETH
                   </div>
-                  <div className="text-xs font-bold text-[#555555] font-mono">
+                  <div className="text-xs font-bold text-[#4b5563] font-mono">
                     Total Spent (≈ {formattedGasUSD})
                   </div>
                 </div>
 
                 {/* Right: Capital Flow */}
-                <div className="p-6 bg-[#dedede] border border-[#cecece] text-[#0a0a0a] space-y-2 shadow-sm overflow-hidden">
-                  <span className="text-[11px] font-extrabold text-[#555555] uppercase tracking-wider block">
+                <div className="card-3d p-6 text-[#0a0a0a] space-y-2 overflow-hidden">
+                  <span className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider block">
                     CAPITAL FLOW
                   </span>
                   <div className="text-3xl font-black text-[#0a0a0a] font-mono truncate" title={`$${Number(totalInflowUSD || 0).toLocaleString('en-US')}`}>
                     {formattedInflowUSD}
                   </div>
-                  <div className="text-xs font-bold text-[#555555] font-mono">
+                  <div className="text-xs font-bold text-[#4b5563] font-mono">
                     Total Inflow Across Chains
                   </div>
                 </div>
@@ -436,9 +432,9 @@ export default function Dashboard({ data }: DashboardProps) {
             {/* ══════════════ RIGHT COLUMN (Span 3) ══════════════ */}
             <div className="lg:col-span-3 space-y-6">
               
-              {/* Toned Gray Risk Grade Card */}
-              <div className="p-6 bg-[#dedede] border border-[#cecece] text-[#0a0a0a] space-y-4 shadow-sm">
-                <span className="text-[11px] font-extrabold text-[#555555] uppercase tracking-wider block">
+              {/* 3D Risk Grade Card */}
+              <div className="card-3d p-6 text-[#0a0a0a] space-y-4">
+                <span className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider block">
                   RISK GRADE
                 </span>
 
@@ -446,7 +442,7 @@ export default function Dashboard({ data }: DashboardProps) {
                   {riskGrade}
                 </div>
 
-                <p className="text-xs font-bold text-[#333333] leading-relaxed">
+                <p className="text-xs font-bold text-[#374151] leading-relaxed text-pretty">
                   {riskGrade === 'A'
                     ? 'High probability of human-controlled entity. Low risk of malicious automation.'
                     : riskGrade === 'B'
@@ -454,12 +450,12 @@ export default function Dashboard({ data }: DashboardProps) {
                     : 'Elevated risk factors detected: Verify approvals and high failed transactions.'}
                 </p>
 
-                <div className="border-t border-dashed border-[#cecece] pt-3 space-y-2">
+                <div className="border-t border-[#c8c8c8] pt-3 space-y-2">
                   <div className="flex justify-between text-xs font-bold">
-                    <span className="text-[#555555]">Aggression Level</span>
+                    <span className="text-[#4b5563]">Aggression Level</span>
                     <span className="text-[#0a0a0a] font-mono">Medium</span>
                   </div>
-                  <div className="h-1.5 bg-[#cecece] overflow-hidden">
+                  <div className="h-2 well-recessed overflow-hidden">
                     <div
                       className="h-full bg-[#ff5500]"
                       style={{ width: '65%' }}
@@ -469,19 +465,19 @@ export default function Dashboard({ data }: DashboardProps) {
               </div>
 
               {/* Real Interactive Behavioral Radar */}
-              <div className="p-6 bg-[#dedede] border border-[#cecece] text-[#0a0a0a] space-y-4 shadow-sm overflow-hidden">
-                <span className="text-[11px] font-extrabold text-[#555555] uppercase tracking-wider block">
+              <div className="card-3d p-6 text-[#0a0a0a] space-y-4 overflow-hidden">
+                <span className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider block">
                   BEHAVIORAL RADAR
                 </span>
 
                 <BehavioralRadarChart radarData={radarData} />
 
                 {/* Radar Insights */}
-                <div className="border-t border-[#cecece] pt-3 space-y-2 text-xs font-bold">
+                <div className="border-t border-[#c8c8c8] pt-3 space-y-2 text-xs font-bold">
                   {radarData.slice(0, 3).map((d, i) => (
-                    <div key={i} className="flex items-center gap-2 text-[#333333]">
-                      <span className={`w-2 h-2 ${i === 0 ? 'bg-[#ff5500]' : i === 1 ? 'bg-black' : 'bg-[#777777]'}`} />
-                      <span>{d.subject}: <span className="text-black">{d.value}/100</span></span>
+                    <div key={i} className="flex items-center gap-2 text-[#374151]">
+                      <span className={`w-2 h-2 ${i === 0 ? 'bg-[#ff5500]' : i === 1 ? 'bg-black' : 'bg-[#6b7280]'}`} />
+                      <span>{d.subject}: <span className="text-black font-mono font-black">{d.value}/100</span></span>
                     </div>
                   ))}
                 </div>
@@ -496,34 +492,34 @@ export default function Dashboard({ data }: DashboardProps) {
         </div>
       )}
 
-      {/* ── Other Tab Views ── */}
+      {/* ── Other Tab Views (3D Enclosures) ── */}
       {activeTab === 'flow' && (
-        <div className="p-6 bg-[#dedede] border border-[#cecece]">
+        <div className="card-3d p-6">
           <CapitalFlowGraph results={data.chains} />
         </div>
       )}
       {activeTab === 'protocols' && (
-        <div className="p-6 bg-[#dedede] border border-[#cecece]">
+        <div className="card-3d p-6">
           <InteractionsPanel results={data.chains} />
         </div>
       )}
       {activeTab === 'gas' && (
-        <div className="p-6 bg-[#dedede] border border-[#cecece]">
+        <div className="card-3d p-6">
           <GasSummaryPanel results={data.chains} />
         </div>
       )}
       {activeTab === 'transfers' && (
-        <div className="p-6 bg-[#dedede] border border-[#cecece]">
+        <div className="card-3d p-6">
           <TransferTable results={data.chains} />
         </div>
       )}
       {activeTab === 'approvals' && (
-        <div className="p-6 bg-[#dedede] border border-[#cecece]">
+        <div className="card-3d p-6">
           <ApprovalAudit results={data.chains} />
         </div>
       )}
       {activeTab === 'graveyard' && (
-        <div className="p-6 bg-[#dedede] border border-[#cecece]">
+        <div className="card-3d p-6">
           <Graveyard results={data.chains} />
         </div>
       )}

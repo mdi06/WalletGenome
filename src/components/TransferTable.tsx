@@ -41,10 +41,10 @@ export default function TransferTable({ results }: Props) {
             <button
               key={f}
               onClick={() => setFilter(f)}
-              className={`px-3.5 py-1.5 text-xs font-bold transition-all cursor-pointer ${
+              className={`px-3.5 py-1.5 text-xs font-bold cursor-pointer ${
                 filter === f
-                  ? 'bg-black text-white shadow-sm'
-                  : 'bg-[#d8d8d8] text-[#333333] hover:bg-black hover:text-white'
+                  ? 'btn-3d-black text-white'
+                  : 'btn-3d-neutral text-[#4b5563]'
               }`}
             >
               {f === 'all' ? 'All Transfers' : f === 'in' ? 'Inbound' : 'Outbound'}
@@ -57,10 +57,10 @@ export default function TransferTable({ results }: Props) {
             <button
               key={c.id}
               onClick={() => setSelectedChain(c.id as any)}
-              className={`px-3 py-1 text-xs font-bold transition-all cursor-pointer ${
+              className={`px-3 py-1 text-xs font-bold cursor-pointer ${
                 selectedChain === c.id
-                  ? 'bg-black text-white shadow-sm'
-                  : 'bg-[#d8d8d8] text-[#333333] hover:bg-black hover:text-white'
+                  ? 'btn-3d-black text-white'
+                  : 'btn-3d-neutral text-[#4b5563]'
               }`}
             >
               {c.label}
@@ -69,11 +69,11 @@ export default function TransferTable({ results }: Props) {
         </div>
       </div>
 
-      {/* ── Table Container ── */}
-      <div className="border border-[#cecece] bg-[#dedede] overflow-hidden overflow-x-auto">
+      {/* ── Table Container Well ── */}
+      <div className="well-recessed-light overflow-hidden overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="bg-[#d4d4d4] border-b border-[#cecece] text-[10px] font-extrabold text-[#555555] uppercase tracking-wider">
+            <tr className="bg-[#d0d0d0] border-b border-[#c2c2c2] text-[10px] font-extrabold text-[#4b5563] uppercase tracking-wider">
               <th className="py-3 px-4">DIRECTION</th>
               <th className="py-3 px-4">TOKEN</th>
               <th className="py-3 px-4 text-right">AMOUNT</th>
@@ -83,20 +83,20 @@ export default function TransferTable({ results }: Props) {
               <th className="py-3 px-4 text-right">ACTION</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-[#cecece] text-xs font-bold text-[#0a0a0a]">
+          <tbody className="divide-y divide-[#c8c8c8] text-xs font-bold text-[#0a0a0a]">
             {allTransfers.map((t, i) => {
               const counterparty = t.direction === 'in' ? t.from : t.to;
               const counterpartyLabel = t.direction === 'in' ? t.fromLabel : t.toLabel;
 
               return (
-                <tr key={i} className="hover:bg-[#d5d5d5] transition-colors">
+                <tr key={i} className="hover:bg-white/60 transition-colors">
                   <td className="py-3.5 px-4">
                     {t.direction === 'in' ? (
-                      <span className="inline-flex items-center gap-1 text-[#059669] bg-[#059669]/10 px-2 py-0.5 font-mono font-bold text-[11px] border border-[#059669]/30">
+                      <span className="badge-3d inline-flex items-center gap-1 text-[#047857] bg-[#059669]/15 px-2 py-0.5 font-mono font-bold text-[11px] border border-[#059669]/40">
                         <ArrowDownLeft size={12} /> IN
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-1 text-[#ff5500] bg-[#ff5500]/10 px-2 py-0.5 font-mono font-bold text-[11px] border border-[#ff5500]/30">
+                      <span className="badge-3d inline-flex items-center gap-1 text-[#b33c00] bg-[#ff5500]/15 px-2 py-0.5 font-mono font-bold text-[11px] border border-[#ff5500]/40">
                         <ArrowUpRight size={12} /> OUT
                       </span>
                     )}
@@ -112,9 +112,9 @@ export default function TransferTable({ results }: Props) {
                   </td>
                   <td className="py-3.5 px-4 font-mono">
                     <div className="font-bold text-[#0a0a0a]">{counterpartyLabel || `${counterparty.slice(0, 6)}...${counterparty.slice(-4)}`}</div>
-                    {counterpartyLabel && <div className="text-[10px] text-[#555555] font-mono">{counterparty}</div>}
+                    {counterpartyLabel && <div className="text-[10px] text-[#6b7280] font-mono">{counterparty}</div>}
                   </td>
-                  <td className="py-3.5 px-4 text-[#555555] font-mono text-[11px]">
+                  <td className="py-3.5 px-4 text-[#6b7280] font-mono text-[11px]">
                     {t.timestamp ? new Date(t.timestamp * 1000).toLocaleDateString() : t.date || '—'}
                   </td>
                   <td className="py-3.5 px-4 text-right">
@@ -122,7 +122,7 @@ export default function TransferTable({ results }: Props) {
                       href={getExplorerTxUrl(t.chainId, t.hash)}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-[#555555] hover:text-black"
+                      className="text-[#6b7280] hover:text-black inline-block p-1"
                     >
                       <ExternalLink size={13} className="ml-auto" />
                     </a>

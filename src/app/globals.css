@@ -7,19 +7,33 @@
   --bg-card: #dedede;
   --bg-card-dark: #d5d5d5;
   
-  --border-card: #cecece;
-  --border-card-subtle: #d8d8d8;
+  --border-card: #c4c4c4;
+  --border-card-subtle: #d0d0d0;
   
   --color-orange: #ff5500;
+  --color-orange-dark: #b33c00;
   --color-orange-light: #fff2eb;
   --color-orange-dim: rgba(255, 85, 0, 0.12);
   
   --text-main: #0a0a0a;
-  --text-muted: #555555;
-  --text-subtle: #777777;
+  --text-muted: #4b5563;
+  --text-subtle: #6b7280;
 
   --font-sans: var(--font-sans), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: var(--font-mono), 'JetBrains Mono', monospace;
+
+  /* 3D Shadows & Bevel Tokens */
+  --shadow-3d-card: inset 0 1px 0 rgba(255, 255, 255, 0.85), inset 0 -2px 0 rgba(0, 0, 0, 0.08), 0 3px 0 #b8b8b8, 0 6px 12px -2px rgba(0, 0, 0, 0.08);
+  --shadow-3d-card-hover: inset 0 1px 0 rgba(255, 255, 255, 0.95), inset 0 -2px 0 rgba(0, 0, 0, 0.1), 0 5px 0 #ababab, 0 10px 20px -3px rgba(0, 0, 0, 0.12);
+  --shadow-3d-dark: inset 0 1px 0 rgba(255, 255, 255, 0.15), inset 0 -2px 0 rgba(0, 0, 0, 0.4), 0 3px 0 #0d0e14, 0 8px 16px -2px rgba(0, 0, 0, 0.35);
+  --shadow-well-recessed: inset 0 2px 4px rgba(0, 0, 0, 0.12), inset 0 1px 2px rgba(0, 0, 0, 0.08), 0 1px 0 rgba(255, 255, 255, 0.8);
+  --shadow-btn-orange: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 3px 0 #b33c00, 0 4px 8px rgba(255, 85, 0, 0.25);
+  --shadow-btn-black: inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 3px 0 #000000, 0 4px 8px rgba(0, 0, 0, 0.2);
+  --shadow-btn-neutral: inset 0 1px 0 rgba(255, 255, 255, 0.9), inset 0 -1px 0 rgba(0, 0, 0, 0.06), 0 2.5px 0 #b0b0b0, 0 3px 6px rgba(0, 0, 0, 0.06);
+
+  /* Physics Spring Easing */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-out-quad: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 body {
@@ -30,21 +44,167 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* ── Sharp Square Industrial Card System ── */
-.variant-card {
-  background: #dedede;
-  color: #0a0a0a;
-  border: 1px solid #cecece;
-  border-radius: 0px !important;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+/* ── Modern Web Typography Standards ── */
+h1, h2, h3, h4, h5, h6, .text-balance {
+  text-wrap: balance;
 }
 
-.variant-card-dark {
-  background: #d4d4d4;
+p, .text-pretty {
+  text-wrap: pretty;
+}
+
+/* ── Focus Outline Standard ── */
+:focus-visible {
+  outline: 2px solid var(--color-orange);
+  outline-offset: 2px;
+}
+
+/* ── 3D Tactile Industrial Card System ── */
+.card-3d,
+.variant-card {
+  background: linear-gradient(180deg, #e4e4e4 0%, #dadada 100%);
   color: #0a0a0a;
-  border: 1px solid #c4c4c4;
+  border: 1px solid #c2c2c2;
   border-radius: 0px !important;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  box-shadow: var(--shadow-3d-card);
+  position: relative;
+}
+
+.card-3d-interactive {
+  background: linear-gradient(180deg, #e4e4e4 0%, #dadada 100%);
+  color: #0a0a0a;
+  border: 1px solid #c2c2c2;
+  border-radius: 0px !important;
+  box-shadow: var(--shadow-3d-card);
+  transition: transform 0.15s var(--ease-spring), box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.card-3d-interactive:hover {
+  transform: translateY(-2px);
+  border-color: #0a0a0a;
+  box-shadow: var(--shadow-3d-card-hover);
+}
+
+.card-3d-dark,
+.variant-card-dark {
+  background: linear-gradient(180deg, #1e2029 0%, #151720 100%);
+  color: #ffffff;
+  border: 1px solid #2d3142;
+  border-radius: 0px !important;
+  box-shadow: var(--shadow-3d-dark);
+}
+
+/* ── 3D Recessed / Sunken Well (For search, tables, inputs, stats) ── */
+.well-recessed {
+  background: #d0d0d0;
+  border: 1px solid #b8b8b8;
+  border-radius: 0px !important;
+  box-shadow: var(--shadow-well-recessed);
+}
+
+.well-recessed-light {
+  background: #f0f0f0;
+  border: 1px solid #d4d4d4;
+  border-radius: 0px !important;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06), 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+/* ── 3D Tactile Buttons ── */
+.btn-3d-orange {
+  background: linear-gradient(180deg, #ff661a 0%, #ff5500 100%);
+  color: #ffffff;
+  border: 1px solid #e04b00;
+  border-radius: 0px !important;
+  box-shadow: var(--shadow-btn-orange);
+  transition: transform 0.12s var(--ease-spring), box-shadow 0.12s ease;
+  user-select: none;
+}
+
+.btn-3d-orange:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45), 0 4px 0 #b33c00, 0 6px 12px rgba(255, 85, 0, 0.35);
+}
+
+.btn-3d-orange:active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.25), 0 1px 0 #b33c00;
+}
+
+.btn-3d-black {
+  background: linear-gradient(180deg, #222222 0%, #0a0a0a 100%);
+  color: #ffffff;
+  border: 1px solid #000000;
+  border-radius: 0px !important;
+  box-shadow: var(--shadow-btn-black);
+  transition: transform 0.12s var(--ease-spring), box-shadow 0.12s ease;
+  user-select: none;
+}
+
+.btn-3d-black:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 4px 0 #000000, 0 6px 12px rgba(0, 0, 0, 0.3);
+}
+
+.btn-3d-black:active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.4), 0 1px 0 #000000;
+}
+
+.btn-3d-neutral {
+  background: linear-gradient(180deg, #f2f2f2 0%, #e0e0e0 100%);
+  color: #0a0a0a;
+  border: 1px solid #c2c2c2;
+  border-radius: 0px !important;
+  box-shadow: var(--shadow-btn-neutral);
+  transition: transform 0.12s var(--ease-spring), box-shadow 0.12s ease, background-color 0.12s ease;
+  user-select: none;
+}
+
+.btn-3d-neutral:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: linear-gradient(180deg, #ffffff 0%, #e8e8e8 100%);
+  border-color: #0a0a0a;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 1), 0 3.5px 0 #9c9c9c, 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.btn-3d-neutral:active:not(:disabled) {
+  transform: translateY(2px);
+  background: #d8d8d8;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.15), 0 0.5px 0 #9c9c9c;
+}
+
+/* ── 3D Tactile Status Chips & Badges ── */
+.badge-3d {
+  border-radius: 0px !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 1.5px 0 rgba(0, 0, 0, 0.12);
+}
+
+/* ── 3D LED Status Indicators ── */
+.led-live {
+  width: 8px;
+  height: 8px;
+  background-color: #ff5500;
+  box-shadow: 0 0 6px #ff5500, inset 0 1px 1px rgba(255, 255, 255, 0.8);
+  border: 1px solid #cc4400;
+  display: inline-block;
+}
+
+.led-clean {
+  width: 8px;
+  height: 8px;
+  background-color: #059669;
+  box-shadow: 0 0 6px #059669, inset 0 1px 1px rgba(255, 255, 255, 0.8);
+  border: 1px solid #047857;
+  display: inline-block;
+}
+
+.led-warn {
+  width: 8px;
+  height: 8px;
+  background-color: #f59e0b;
+  box-shadow: 0 0 6px #f59e0b, inset 0 1px 1px rgba(255, 255, 255, 0.8);
+  border: 1px solid #d97706;
+  display: inline-block;
 }
 
 /* ── Mono Utilities ── */
@@ -53,20 +213,34 @@ body {
   font-family: var(--font-mono) !important;
 }
 
-/* ── Custom Scrollbar ── */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+/* ── Modern Web Standard Scrollbar ── */
+* {
+  scrollbar-color: #a8a8a8 #e5e5e5;
+  scrollbar-width: thin;
 }
-::-webkit-scrollbar-track {
-  background: var(--bg-page);
+
+@media (prefers-contrast: more) {
+  * {
+    scrollbar-color: #000000 #ffffff;
+  }
 }
-::-webkit-scrollbar-thumb {
-  background: #bbbbbb;
-  border-radius: 0px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: var(--color-orange);
+
+/* Legacy fallback for WebKit browsers */
+@supports not (scrollbar-color: auto) {
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--bg-page);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #a8a8a8;
+    border-radius: 0px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-orange);
+  }
 }
 
 /* ── Keyframe Animations ── */
@@ -96,11 +270,11 @@ body {
 @keyframes pulseGlow {
   0%, 100% {
     opacity: 1;
-    box-shadow: 0 0 12px rgba(255, 85, 0, 0.5);
+    box-shadow: 0 0 12px rgba(255, 85, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.35);
   }
   50% {
     opacity: 0.85;
-    box-shadow: 0 0 4px rgba(255, 85, 0, 0.2);
+    box-shadow: 0 0 4px rgba(255, 85, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2);
   }
 }
 
@@ -142,4 +316,15 @@ body {
 
 .animate-pulse-dot {
   animation: pulseDot 1s ease-in-out infinite;
+}
+
+/* ── Reduced Motion Accessibility ── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
 }
