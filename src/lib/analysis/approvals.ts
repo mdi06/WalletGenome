@@ -1,7 +1,7 @@
-import { ProcessedTransaction, TokenApproval, ApprovalSummary, RiskLevel, EtherscanTokenTransfer } from '../types';
+import { ProcessedTransaction, TokenApproval, ApprovalSummary, RiskLevel, EtherscanTokenTransfer, PriceProvenance, PriceProvenanceSummary } from '../types';
 import { getAddressLabel, isDEXAddress, isBridgeAddress } from '../labels';
 import { STABLECOINS } from '../chains';
-import { resolveCoingeckoId, getCachedPrice } from '../prices';
+import { resolveCoingeckoId, getCachedCurrentPriceQuote } from '../prices';
 
 const APPROVE_METHOD_ID = '0x095ea7b3';
 
@@ -15,7 +15,7 @@ export function analyzeApprovals(
   const approvalMap = new Map<string, TokenApproval>();
 
   // Calculate approximate token balances from transfer history to estimate exposure
-  const tokenBalances = new Map<string, { balance: number; lastPriceUSD: number | null; symbol: string; name: string }>();
+  const tokenBalances = new Map<string, { balance: number; currentPriceUSD: number | null; provenance: PriceProvenance; symbol: string; name: string; decimals: number }>();
   for (const t of tokenTransfers) {
     if (!t.contractAddress) continue;
     const cAddr = t.contractAddress.toLowerCase();
@@ -23,9 +23,11 @@ export function analyzeApprovals(
     const amt = parseFloat(t.value || '0') / Math.pow(10, decimals);
     const existing = tokenBalances.get(cAddr) || {
       balance: 0,
-      lastPriceUSD: null,
+      currentPriceUSD: null,
+      provenance: 'unpriced',
       symbol: t.tokenSymbol || '???',
       name: t.tokenName || 'Unknown Token',
+      decimals,
     };
 
     if ((t.from || '').toLowerCase() === lower) {
@@ -34,14 +36,16 @@ export function analyzeApprovals(
       existing.balance += amt;
     }
 
-    if (!existing.lastPriceUSD) {
+    if (existing.currentPriceUSD === null) {
       if (STABLECOINS[cAddr]) {
-        existing.lastPriceUSD = 1.0;
+        existing.currentPriceUSD = 1.0;
+        existing.provenance = 'stablecoin_assumption';
       } else {
         const coingeckoId = resolveCoingeckoId(cAddr, t.tokenSymbol);
         if (coingeckoId) {
-          const ts = parseInt(t.timeStamp || '0') || Math.floor(Date.now() / 1000);
-          existing.lastPriceUSD = getCachedPrice(coingeckoId, ts);
+          const quote = getCachedCurrentPriceQuote(coingeckoId);
+          existing.currentPriceUSD = quote.priceUSD;
+          existing.provenance = quote.provenance;
         }
       }
     }
@@ -65,8 +69,9 @@ export function analyzeApprovals(
 
     // Decode spender and allowance from ERC-20 approve(address,uint256) calldata
     let spender = tokenAddress;
-    let isUnlimited = true;
-    let allowanceStr = 'Unlimited';
+    let isUnlimited = false;
+    let allowanceStr = 'Unknown';
+    let allowanceAmount: number | null = null;
 
     const input = tx.input || '';
     if (input.length >= 74 && input.toLowerCase().startsWith(APPROVE_METHOD_ID)) {
@@ -88,6 +93,8 @@ export function analyzeApprovals(
       } else {
         isUnlimited = false;
         allowanceStr = 'Custom';
+        const decimals = tokenBalances.get(tokenAddress)?.decimals ?? 18;
+        allowanceAmount = toDecimalAmount(BigInt(`0x${amountHex}`), decimals);
       }
     }
 
@@ -103,9 +110,23 @@ export function analyzeApprovals(
 
     // Calculate estimated USD value exposed
     const tokenBal = tokenBalances.get(tokenAddress);
+    const estimatedTokenBalance = tokenBal ? Math.max(0, tokenBal.balance) : null;
     let estimatedExposureUSD: number | null = null;
-    if (tokenBal && tokenBal.balance > 0 && tokenBal.lastPriceUSD) {
-      estimatedExposureUSD = tokenBal.balance * tokenBal.lastPriceUSD;
+    let exposureStatus: TokenApproval['exposureStatus'] = 'unavailable';
+    if (estimatedTokenBalance !== null && estimatedTokenBalance <= 0) {
+      estimatedExposureUSD = 0;
+      exposureStatus = 'zero_balance';
+    } else if (
+      estimatedTokenBalance !== null
+      && tokenBal?.currentPriceUSD !== null
+      && tokenBal?.currentPriceUSD !== undefined
+      && (isUnlimited || allowanceAmount !== null)
+    ) {
+      const exposedTokenAmount = isUnlimited
+        ? estimatedTokenBalance
+        : Math.min(estimatedTokenBalance, allowanceAmount ?? 0);
+      estimatedExposureUSD = exposedTokenAmount * tokenBal.currentPriceUSD;
+      exposureStatus = 'estimated';
     }
 
     approvalMap.set(key, {
@@ -118,10 +139,14 @@ export function analyzeApprovals(
       spender,
       spenderLabel,
       allowance: allowanceStr,
+      allowanceAmount,
       isUnlimited,
       riskLevel,
       chainId,
-      estimatedExposureUSD: estimatedExposureUSD ? Math.max(0, estimatedExposureUSD) : null,
+      estimatedTokenBalance,
+      estimatedExposureUSD,
+      estimatedExposureUSDProvenance: tokenBal?.provenance ?? 'unpriced',
+      exposureStatus,
     });
   }
 
@@ -134,10 +159,24 @@ export function analyzeApprovals(
 
   const highRiskCount = activeApprovals.filter(a => a.riskLevel === 'high').length;
   const unlimitedCount = activeApprovals.filter(a => a.isUnlimited).length;
-  const totalExposureUSD = activeApprovals.reduce(
-    (sum, a) => sum + (a.estimatedExposureUSD || 0),
-    0
-  );
+  const hasUnavailableExposure = activeApprovals.some(approval => approval.exposureStatus === 'unavailable');
+  const totalExposureUSD = hasUnavailableExposure
+    ? null
+    : activeApprovals.reduce((sum, approval) => sum + (approval.estimatedExposureUSD ?? 0), 0);
+  const totalExposureUSDProvenance = activeApprovals.reduce<PriceProvenanceSummary>((summary, approval) => {
+    if (approval.exposureStatus !== 'estimated') return summary;
+    const provenance = approval.estimatedExposureUSDProvenance;
+    if (provenance === 'historical') summary.historical++;
+    if (provenance === 'spot_estimate') summary.spotEstimate++;
+    if (provenance === 'stablecoin_assumption') summary.stablecoinAssumption++;
+    if (provenance === 'unpriced') summary.unpriced++;
+    return summary;
+  }, { historical: 0, spotEstimate: 0, stablecoinAssumption: 0, unpriced: 0, status: 'complete' });
+  // A current spot quote is the correct time basis for current approval
+  // exposure. Only absent current prices make this metric incomplete.
+  if (hasUnavailableExposure || totalExposureUSDProvenance.unpriced > 0) {
+    totalExposureUSDProvenance.status = 'partial';
+  }
 
   return {
     activeApprovals,
@@ -145,7 +184,17 @@ export function analyzeApprovals(
     unlimitedCount,
     totalApprovals: activeApprovals.length,
     totalExposureUSD,
+    totalExposureUSDProvenance,
+    exposureStatus: hasUnavailableExposure ? 'partial' : 'complete',
   };
+}
+
+function toDecimalAmount(rawAmount: bigint, decimals: number): number {
+  if (decimals <= 0) return Number(rawAmount);
+  const digits = rawAmount.toString().padStart(decimals + 1, '0');
+  const whole = digits.slice(0, -decimals);
+  const fraction = digits.slice(-decimals).replace(/0+$/, '');
+  return Number(fraction ? `${whole}.${fraction}` : whole);
 }
 
 function findTokenInfo(

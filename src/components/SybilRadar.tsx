@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { SybilReport } from '@/lib/types';
-import { ShieldCheck, ShieldAlert, CheckCircle2, XCircle } from 'lucide-react';
+import { ShieldCheck, ShieldAlert } from 'lucide-react';
 
 interface Props {
   report?: SybilReport;
@@ -11,24 +11,25 @@ interface Props {
 export default function SybilRadar({ report }: Props) {
   if (!report) return null;
 
-  const sybilProb = report.mediaScore?.sybilProbability ?? (report.isFlagged ? 85 : 0.02);
-  const isClean = sybilProb <= 30;
-  const isSuspicious = sybilProb > 30 && sybilProb <= 60;
-  const isHighRisk = sybilProb > 60;
+  const sybilProb = report.mediaScore?.sybilProbability ?? null;
+  const blacklistMatches = report.matches.filter(match => match.databaseId !== 'trusta' && match.flagged);
+  const hasBlacklistMatch = blacklistMatches.length > 0;
+  const isClean = !hasBlacklistMatch && sybilProb !== null && sybilProb <= 30;
+  const isSuspicious = !hasBlacklistMatch && sybilProb !== null && sybilProb > 30 && sybilProb <= 60;
 
-  const verdictLabel = isClean
-    ? 'Organic Human'
-    : isSuspicious
-    ? 'Moderate Activity / Farmer'
-    : 'High Sybil Risk';
+  const verdictLabel = hasBlacklistMatch
+    ? 'Blacklist Match'
+    : sybilProb === null
+      ? 'Behavioral Score Unavailable'
+      : isClean
+        ? 'Organic-Like Behavior'
+        : isSuspicious
+          ? 'Moderate Activity / Farmer'
+          : 'High Sybil Risk';
 
-  const explanation = report.mediaScore?.explanation || (
-    isClean
-      ? 'Behavior matches an organic power user across multi-month engagement, healthy capital depth, and cross-protocol diversity.'
-      : isSuspicious
-      ? 'Moderate on-chain footprint; exhibits repetitive interaction patterns or lower capital retention.'
-      : 'Elevated automation risk: Short activity lifespan, scripted execution bursts, or flagged in public airdrop exclusions.'
-  );
+  const explanation = hasBlacklistMatch
+    ? `Positive match in ${blacklistMatches.map(match => match.databaseName).join(', ')}. The ${sybilProb === null ? 'unavailable' : `${sybilProb}%`} behavioral Sybil estimate is a separate secondary heuristic.`
+    : report.mediaScore?.explanation ?? 'Behavioral Sybil scoring is unavailable for this scan.';
 
   return (
     <div className="card-3d p-5 text-[#0a0a0a] flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
@@ -36,7 +37,9 @@ export default function SybilRadar({ report }: Props) {
       <div className="flex items-center gap-4">
         <div
           className={`w-11 h-11 border flex items-center justify-center flex-shrink-0 badge-3d ${
-            isClean
+            hasBlacklistMatch
+              ? 'bg-[#dc2626]/15 text-[#b91c1c] border-[#dc2626]/40'
+              : isClean
               ? 'bg-[#059669]/15 text-[#047857] border-[#059669]/40'
               : isSuspicious
               ? 'bg-[#f59e0b]/15 text-[#b45309] border-[#f59e0b]/40'
@@ -51,11 +54,13 @@ export default function SybilRadar({ report }: Props) {
               SYBIL PROBABILITY
             </span>
             <span className="text-sm font-black text-[#0a0a0a] font-mono">
-              {sybilProb}%
+              {sybilProb === null ? 'Unavailable' : `${sybilProb}%`}
             </span>
             <span
               className={`badge-3d text-[11px] font-bold px-2 py-0.5 border ${
-                isClean
+                hasBlacklistMatch
+                  ? 'bg-[#dc2626]/15 text-[#b91c1c] border-[#dc2626]/40'
+                  : isClean
                   ? 'bg-[#059669]/15 text-[#047857] border-[#059669]/40'
                   : isSuspicious
                   ? 'bg-[#f59e0b]/15 text-[#b45309] border-[#f59e0b]/40'
@@ -75,6 +80,7 @@ export default function SybilRadar({ report }: Props) {
       <div className="flex items-center gap-2 flex-wrap justify-start md:justify-end">
         {report.matches.map(m => {
           const isFlagged = m.flagged;
+          const isBehaviorUnavailable = m.databaseId === 'trusta' && sybilProb === null;
           return (
             <div
               key={m.databaseId}
@@ -83,13 +89,17 @@ export default function SybilRadar({ report }: Props) {
               <div className="flex items-center gap-1.5 min-w-0">
                 {isFlagged ? (
                   <span className="w-2 h-2 rounded-full bg-[#dc2626] shadow-sm animate-pulse flex-shrink-0" />
+                ) : isBehaviorUnavailable ? (
+                  <span className="w-2 h-2 rounded-full bg-[#9ca3af] flex-shrink-0" />
                 ) : (
                   <span className="led-clean rounded-full flex-shrink-0" />
                 )}
                 <span className="truncate">{formatDbName(m.databaseId)}</span>
               </div>
-              <span className={`text-[10px] font-mono font-bold flex-shrink-0 ${isFlagged ? 'text-[#dc2626]' : 'text-[#047857]'}`}>
-                {isFlagged ? 'FLAGGED' : 'CLEAN'}
+              <span className={`text-[10px] font-mono font-bold flex-shrink-0 ${
+                isFlagged ? 'text-[#dc2626]' : isBehaviorUnavailable ? 'text-[#6b7280]' : 'text-[#047857]'
+              }`}>
+                {isFlagged ? 'FLAGGED' : isBehaviorUnavailable ? 'UNAVAILABLE' : 'CLEAN'}
               </span>
             </div>
           );

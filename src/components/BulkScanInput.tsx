@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { Layers, ArrowRight, Loader2, Copy, Sparkles, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Layers, ArrowRight, Loader2, Sparkles, CheckCircle2, AlertCircle } from 'lucide-react';
 import { CHAINS, SUPPORTED_CHAIN_IDS } from '@/lib/chains';
 
 interface Props {
@@ -50,10 +50,6 @@ export default function BulkScanInput({ onScanCluster, isLoading }: Props) {
       setError('Please paste at least 1 valid EVM address (0x...).');
       return;
     }
-    if (parsedAddresses.length > 30) {
-      setError('Cluster scan is currently capped at 30 wallets per batch for performance.');
-      return;
-    }
     setError(null);
     onScanCluster(parsedAddresses, selectedChains);
   };
@@ -68,7 +64,7 @@ export default function BulkScanInput({ onScanCluster, isLoading }: Props) {
             MULTI-WALLET CLUSTER MATRIX SCANNER
           </span>
           <span className="text-[10px] font-mono font-bold px-2 py-0.5 btn-3d-neutral text-[#4b5563]">
-            UP TO 30 WALLETS
+            BATCH MODE
           </span>
         </div>
 

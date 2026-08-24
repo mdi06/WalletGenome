@@ -43,6 +43,7 @@ export default function Home() {
     clusterResult,
     isLoading,
     progress,
+    progressPercent,
     error,
     showGuide,
     setShowGuide,
@@ -52,7 +53,7 @@ export default function Home() {
 
   const handleSelectFromGuide = (address: string) => {
     setCurrentAddress(address);
-    handleSingleScan(address, [...SUPPORTED_CHAIN_IDS], false);
+    handleSingleScan(address, [...SUPPORTED_CHAIN_IDS]);
   };
 
   const handleInspectFromCluster = (address: string) => {
@@ -124,7 +125,7 @@ export default function Home() {
             See the Complete Story Behind Any Crypto Wallet
           </h1>
           <p className="text-sm sm:text-base text-[#4b5563] font-medium leading-relaxed max-w-2xl mx-auto text-pretty">
-            Analyze on-chain behavior, map capital flows, resolve verified social identities, and audit security risks across 5 major blockchains in seconds.
+            Analyze on-chain behavior, map capital flows, resolve verified social identities, and audit security risks across 4 major blockchains in seconds.
           </p>
         </section>
       )}
@@ -169,6 +170,7 @@ export default function Home() {
         {scanMode === 'single' ? (
           <div className="space-y-2">
             <WalletInput
+              key={currentAddress || 'wallet-input'}
               onScan={handleSingleScan}
               isLoading={isLoading}
               initialAddress={currentAddress}
@@ -177,7 +179,7 @@ export default function Home() {
             {/* Preset Wallets Bar */}
             <div className="flex items-center gap-2 flex-wrap px-1">
               <span className="text-[10px] font-extrabold text-[#4b5563] uppercase tracking-wider">
-                FAST DEMO PRESETS:
+                DEMO ADDRESSES (LIVE SCAN):
               </span>
               {PRESET_WALLETS.map((p, i) => (
                 <button
@@ -185,7 +187,7 @@ export default function Home() {
                   type="button"
                   onClick={() => {
                     setCurrentAddress(p.address);
-                    handleSingleScan(p.address, [...SUPPORTED_CHAIN_IDS], false);
+                    handleSingleScan(p.address, [...SUPPORTED_CHAIN_IDS]);
                   }}
                   className="btn-3d-neutral text-xs font-mono font-bold text-[#0a0a0a] px-3 py-1 cursor-pointer"
                 >
@@ -203,7 +205,7 @@ export default function Home() {
       </section>
 
       {/* Loading Progress Bar */}
-      {isLoading && <ProgressBar message={progress} />}
+      {isLoading && <ProgressBar message={progress} progress={progressPercent} />}
 
       {/* Error Alert */}
       {error && (

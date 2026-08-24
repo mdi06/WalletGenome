@@ -3,6 +3,7 @@
 import { ScanResult, TokenApproval } from '@/lib/types';
 import { getExplorerAddressUrl } from '@/lib/chains';
 import { ExternalLink } from 'lucide-react';
+import { formatCompactUSD } from '@/lib/utils/dashboardUtils';
 
 interface Props {
   results: ScanResult[];
@@ -21,19 +22,31 @@ export default function ApprovalAudit({ results }: Props) {
   const totalApprovals = allApprovals.length;
   const highRisk = allApprovals.filter(a => a.riskLevel === 'high').length;
   const unlimited = allApprovals.filter(a => a.isUnlimited).length;
+  const exposureComplete = results.every(result => result.approvalSummary.exposureStatus === 'complete');
+  const totalExposureUSD = exposureComplete
+    ? results.reduce((sum, result) => sum + (result.approvalSummary.totalExposureUSD ?? 0), 0)
+    : null;
 
   return (
     <div className="space-y-6">
       {/* Top Metric Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="card-3d p-5 text-[#0a0a0a] space-y-1">
+          <div className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider">EST. APPROVAL EXPOSURE</div>
+          <div className="text-3xl font-black text-[#0a0a0a] font-mono">
+            {totalExposureUSD === null ? 'Unavailable' : formatCompactUSD(totalExposureUSD)}
+          </div>
+          <div className="text-[10px] text-[#6b7280]">Balance-capped; see per-row provenance.</div>
+        </div>
         <div className="card-3d p-5 text-[#0a0a0a] space-y-1">
           <div className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider">TOTAL ACTIVE PERMISSIONS</div>
           <div className="text-3xl font-black text-[#0a0a0a] font-mono">{totalApprovals}</div>
         </div>
 
         <div className="card-3d p-5 text-[#0a0a0a] space-y-1">
-          <div className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider">HIGH RISK EXPOSURE</div>
+          <div className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider">HIGH-RISK SPENDERS</div>
           <div className="text-3xl font-black text-[#dc2626] font-mono">{highRisk}</div>
+          <div className="text-[10px] text-[#6b7280]">Count, not USD exposure.</div>
         </div>
 
         <div className="card-3d p-5 text-[#0a0a0a] space-y-1">
@@ -50,6 +63,7 @@ export default function ApprovalAudit({ results }: Props) {
               <th className="py-3 px-4">TOKEN</th>
               <th className="py-3 px-4">SPENDER DAPP</th>
               <th className="py-3 px-4">ALLOWANCE</th>
+              <th className="py-3 px-4">EST. EXPOSURE</th>
               <th className="py-3 px-4">RISK LEVEL</th>
               <th className="py-3 px-4">LAST UPDATED</th>
               <th className="py-3 px-4 text-right">ACTION</th>
@@ -69,7 +83,21 @@ export default function ApprovalAudit({ results }: Props) {
                   {a.isUnlimited ? (
                     <span className="text-[#ff5500]">UNLIMITED (∞)</span>
                   ) : (
-                    <span className="text-[#0a0a0a]">{a.allowance}</span>
+                    <span className="text-[#0a0a0a]">
+                      {a.allowanceAmount === null ? a.allowance : `${a.allowanceAmount.toLocaleString()} ${a.tokenSymbol}`}
+                    </span>
+                  )}
+                </td>
+                <td className="py-3.5 px-4 font-mono">
+                  {a.exposureStatus === 'unavailable' ? (
+                    <span className="text-[#6b7280]">Unavailable (balance or price unknown)</span>
+                  ) : a.exposureStatus === 'zero_balance' ? (
+                    <span className="text-[#6b7280]">$0 (zero reconstructed balance)</span>
+                  ) : (
+                    <div>
+                      <div className="font-black">{formatCompactUSD(a.estimatedExposureUSD)}</div>
+                      <div className="text-[10px] text-[#6b7280]">{a.estimatedExposureUSDProvenance.replaceAll('_', ' ')}</div>
+                    </div>
                   )}
                 </td>
                 <td className="py-3.5 px-4">

@@ -8,9 +8,8 @@ import RiskScore from './RiskScore';
 import SybilRadar from './SybilRadar';
 import IdentityCard from './IdentityCard';
 import { ExternalLink } from 'lucide-react';
-import { formatCompactUSD, extractProtocolBadges, computeAggregatedRadarData } from '@/lib/utils/dashboardUtils';
-
-export { formatCompactUSD, extractProtocolBadges };
+import { buildDashboardViewModel } from '@/lib/viewModels/dashboardViewModels';
+import DashboardStatusPanel, { getAvailabilityMessage } from './status/DashboardStatusPanel';
 
 const BehavioralRadarChart = dynamic(() => import('./BehavioralRadarChart'), {
   loading: () => (
@@ -75,64 +74,40 @@ const ApprovalAudit = dynamic(() => import('./ApprovalAudit'), {
   ssr: false,
 });
 
-const Graveyard = dynamic(() => import('./Graveyard'), {
-  loading: () => (
-    <div className="p-8 text-center text-xs font-mono font-bold text-gray-500 uppercase tracking-wider animate-pulse">
-      Loading Graveyard...
-    </div>
-  ),
-  ssr: false,
-});
-
 interface DashboardProps {
   data: MultiChainScanResult;
 }
 
-type TabId = 'dna' | 'flow' | 'protocols' | 'gas' | 'transfers' | 'approvals' | 'graveyard';
+type TabId = 'dna' | 'flow' | 'protocols' | 'gas' | 'transfers' | 'approvals';
 
 export default function Dashboard({ data }: DashboardProps) {
   const [activeTab, setActiveTab] = useState<TabId>('dna');
 
-  const { aggregated, sybilReport, identityReport, chains } = data;
+  const { aggregated, metrics, sybilReport, identityReport } = data;
+  const availabilityMessage = getAvailabilityMessage(data.status);
+  const hasDefinitiveMetrics = metrics.riskScore !== null
+    && metrics.riskGrade !== null
+    && metrics.sybilProbability !== null;
+  if (data.chains.length === 0) {
+    return <DashboardStatusPanel data={data} />;
+  }
 
-  const totalGasETH = aggregated.totalGasETH || 0;
-  const totalGasUSD = aggregated.totalGasUSD || 0;
-  const riskScore = aggregated.riskScore ?? 0;
-  const riskGrade = aggregated.riskGrade || 'A';
-  const sybilProb = sybilReport?.mediaScore?.sybilProbability ?? (sybilReport?.isFlagged ? 85 : 0.02);
-  const primaryName = identityReport?.primaryName || `${data.address.slice(0, 6)}...${data.address.slice(-4)}`;
-  const persona = chains.find(c => c.fingerprint?.persona && c.fingerprint.persona !== 'New Wallet')?.fingerprint?.persona || chains[0]?.fingerprint?.persona || 'Alpha Hunter';
-
-  const approvalCount = chains.reduce((sum, c) => sum + (c.approvalSummary?.totalApprovals || 0), 0);
-  const deadCount = aggregated.totalDeadAssets;
-  const protocolCount = chains.reduce((sum, c) => sum + (c.interactionsSummary?.topProtocols?.length || 0), 0);
-  const totalInflowUSD = chains.reduce((sum, c) => sum + (c.transferSummary?.totalInboundUSD || 0), 0);
-
-  const formatCurrencyValue = (val: any): string => {
-    if (val === null || val === undefined) return '$0';
-    const num = typeof val === 'number' ? val : parseFloat(String(val).replace(/[^0-9.-]+/g, ''));
-    if (isNaN(num) || !isFinite(num) || num === 0) return '$0';
-    const abs = Math.abs(num);
-    if (abs >= 1e12) {
-      const inT = num / 1e12;
-      if (inT > 999.99) return '>$999T';
-      return `$${inT.toFixed(2)}T`;
-    }
-    if (abs >= 1e9) return `$${(num / 1e9).toFixed(2)}B`;
-    if (abs >= 1e6) return `$${(num / 1e6).toFixed(2)}M`;
-    if (abs >= 1e3) return `$${(num / 1e3).toFixed(2)}K`;
-    if (abs >= 1) return `$${num.toFixed(2)}`;
-    return `$${num.toFixed(3)}`;
-  };
-
-  const formattedInflowUSD = formatCurrencyValue(totalInflowUSD);
-  const formattedGasUSD = formatCurrencyValue(totalGasUSD);
-
-  // Extract Protocol Badges
-  const protocolBadges = extractProtocolBadges(data);
-
-  // Radar Data for Recharts aggregated across all chains
-  const radarData = computeAggregatedRadarData(chains);
+  const {
+    approvalCount,
+    capitalFlowCoverage,
+    formattedGasUSD,
+    formattedInflowUSD,
+    persona,
+    primaryName,
+    protocolBadges,
+    protocolCount,
+    radarData,
+    riskGrade,
+    riskScore,
+    sybilProbability: sybilProb,
+    totalGasETH,
+    totalInflowUSD,
+  } = buildDashboardViewModel(data);
 
   const tabs: { id: TabId; label: string; count?: number }[] = [
     { id: 'dna', label: 'BEHAVIORAL DNA' },
@@ -141,13 +116,14 @@ export default function Dashboard({ data }: DashboardProps) {
     { id: 'gas', label: 'GAS FEES' },
     { id: 'transfers', label: 'TRANSFERS' },
     { id: 'approvals', label: 'APPROVALS', count: approvalCount },
-    { id: 'graveyard', label: 'GRAVEYARD', count: deadCount },
   ];
 
 
 
   return (
     <div className="space-y-6 animate-fade-in-up">
+      {availabilityMessage && <DashboardStatusPanel data={data} />}
+
       {/* ── Chain Warnings / Degradation Alert ── */}
       {data.chainWarnings && data.chainWarnings.length > 0 && (
         <div className="bg-[#fffbeb] border-l-4 border-l-[#f59e0b] p-3 space-y-1 text-xs border border-[#fde68a]">
@@ -266,18 +242,22 @@ export default function Dashboard({ data }: DashboardProps) {
                 <div className="w-full well-recessed-light p-3 grid grid-cols-2 gap-2 text-center">
                   <div>
                     <div className="text-lg font-black text-[#0a0a0a] font-mono">
-                      {riskGrade === 'A' ? 'A+' : riskGrade}
+                      {riskGrade === null ? 'N/A' : riskGrade === 'A' ? 'A+' : riskGrade}
                     </div>
                     <div className="text-[10px] font-bold text-[#4b5563] uppercase tracking-wider">
-                      TRUST SCORE
+                      WORST-CHAIN RISK GRADE
                     </div>
                   </div>
                   <div>
                     <div className="text-lg font-black text-[#0a0a0a] font-mono">
-                      {sybilProb}%
+                      {sybilProb === null
+                        ? metrics.blacklistStatus === 'unavailable'
+                          ? 'N/A'
+                          : metrics.blacklistStatus.toUpperCase()
+                        : `${sybilProb}%`}
                     </div>
                     <div className="text-[10px] font-bold text-[#4b5563] uppercase tracking-wider">
-                      SYBIL PROB.
+                      {sybilProb === null ? 'BLACKLIST STATUS' : 'SYBIL PROB.'}
                     </div>
                   </div>
                 </div>
@@ -290,35 +270,35 @@ export default function Dashboard({ data }: DashboardProps) {
                     SECURITY RATINGS
                   </span>
                   <span className="btn-3d-neutral text-xs font-bold font-mono px-2 py-0.5 text-[#0a0a0a]">
-                    Grade {riskGrade}
+                    Grade {riskGrade ?? 'N/A'}
                   </span>
                 </div>
 
                 <div className="flex items-baseline gap-1">
                   <span className="text-4xl font-black text-[#0a0a0a] font-mono">
-                    {Math.max(10, 100 - riskScore)}
+                    {riskScore ?? 'N/A'}
                   </span>
-                  <span className="text-sm font-bold text-[#4b5563] font-mono">/ 100</span>
+                  <span className="text-sm font-bold text-[#4b5563] font-mono">/ 100 RISK</span>
                 </div>
 
                 <div className="space-y-3 pt-2">
                   <div className="space-y-1">
                     <div className="flex justify-between text-xs font-bold">
-                      <span className="text-[#333333]">Smart Contract Risk</span>
+                      <span className="text-[#333333]">Worst-chain risk</span>
                       <span className="text-[#0a0a0a] font-mono">
-                        {riskScore > 50 ? 'High' : riskScore > 25 ? 'Med' : 'Low'}
+                        {riskScore === null ? 'Withheld' : riskScore > 50 ? 'High' : riskScore > 25 ? 'Med' : 'Low'}
                       </span>
                     </div>
                     <div className="h-2 well-recessed overflow-hidden">
-                      <div className="h-full bg-black" style={{ width: `${Math.min(100, riskScore)}%` }} />
+                      <div className="h-full bg-black" style={{ width: `${Math.min(100, riskScore ?? 0)}%` }} />
                     </div>
                   </div>
 
                   <div className="space-y-1">
                     <div className="flex justify-between text-xs font-bold">
-                      <span className="text-[#333333]">Approval Exposure</span>
+                      <span className="text-[#333333]">High-risk approvals</span>
                       <span className="text-[#0a0a0a] font-mono">
-                        {aggregated.totalHighRiskApprovals > 0 ? `${aggregated.totalHighRiskApprovals} Risky` : 'Clean'}
+                        {aggregated.totalHighRiskApprovals} count
                       </span>
                     </div>
                     <div className="h-2 well-recessed overflow-hidden">
@@ -329,20 +309,6 @@ export default function Dashboard({ data }: DashboardProps) {
                     </div>
                   </div>
 
-                  <div className="space-y-1">
-                    <div className="flex justify-between text-xs font-bold">
-                      <span className="text-[#333333]">Dead Assets</span>
-                      <span className="text-[#0a0a0a] font-mono">
-                        {aggregated.totalDeadAssets > 0 ? `${aggregated.totalDeadAssets} Dead` : 'None'}
-                      </span>
-                    </div>
-                    <div className="h-2 well-recessed overflow-hidden">
-                      <div
-                        className="h-full bg-black"
-                        style={{ width: `${Math.min(100, aggregated.totalDeadAssets * 10 || 5)}%` }}
-                      />
-                    </div>
-                  </div>
                 </div>
               </div>
 
@@ -411,15 +377,42 @@ export default function Dashboard({ data }: DashboardProps) {
 
                 {/* Right: Capital Flow */}
                 <div className="card-3d p-6 text-[#0a0a0a] space-y-2 overflow-hidden">
-                  <span className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider block">
-                    CAPITAL FLOW
-                  </span>
-                  <div className="text-3xl font-black text-[#0a0a0a] font-mono truncate" title={`$${Number(totalInflowUSD || 0).toLocaleString('en-US')}`}>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider block">
+                      VERIFIED CAPITAL FLOW
+                    </span>
+                    <span className={`text-[9px] font-black font-mono uppercase px-1.5 py-0.5 border ${
+                      capitalFlowCoverage.status === 'complete'
+                        ? 'text-[#047857] border-[#059669]/40 bg-[#059669]/10'
+                        : capitalFlowCoverage.status === 'partial'
+                          ? 'text-[#b45309] border-[#f59e0b]/50 bg-[#f59e0b]/10'
+                          : 'text-[#b91c1c] border-[#dc2626]/40 bg-[#dc2626]/10'
+                    }`}>
+                      {capitalFlowCoverage.status}
+                    </span>
+                  </div>
+                  <div className="text-3xl font-black text-[#0a0a0a] font-mono truncate" title={totalInflowUSD === null ? 'Unavailable because wallet history is incomplete or no eligible transfer leg has a historical price' : `$${totalInflowUSD.toLocaleString('en-US')} verified historical inflow`}>
                     {formattedInflowUSD}
                   </div>
                   <div className="text-xs font-bold text-[#4b5563] font-mono">
-                    Total Inflow Across Chains
+                    Verified Historical Inflow
                   </div>
+                  {capitalFlowCoverage.status === 'partial' && (
+                    <div className="text-[10px] font-bold text-[#92400e] leading-snug">
+                      {capitalFlowCoverage.coveragePercent}% coverage · {capitalFlowCoverage.verifiedLegs}/{capitalFlowCoverage.totalLegs} transfer values included.{' '}
+                      {capitalFlowCoverage.excludedSpotEstimateLegs} current-price estimates and {capitalFlowCoverage.unpricedLegs} unpriced values excluded.
+                    </div>
+                  )}
+                  {capitalFlowCoverage.status === 'complete' && (
+                    <div className="text-[10px] font-bold text-[#047857]">
+                      Complete historical coverage · {capitalFlowCoverage.verifiedLegs} transfer values included.
+                    </div>
+                  )}
+                  {capitalFlowCoverage.status === 'unavailable' && (
+                    <div className="text-[10px] font-bold text-[#b91c1c] leading-snug">
+                      Requires complete wallet history and at least one historically priced transfer value.
+                    </div>
+                  )}
                 </div>
 
               </div>
@@ -439,26 +432,28 @@ export default function Dashboard({ data }: DashboardProps) {
                 </span>
 
                 <div className="text-7xl font-black text-[#ff5500] font-mono leading-none">
-                  {riskGrade}
+                  {riskGrade ?? 'N/A'}
                 </div>
 
                 <p className="text-xs font-bold text-[#374151] leading-relaxed text-pretty">
-                  {riskGrade === 'A'
-                    ? 'High probability of human-controlled entity. Low risk of malicious automation.'
+                  {riskGrade === null
+                    ? 'Withheld until every selected history dataset is complete. Available records remain visible in the other tabs.'
+                    : riskGrade === 'A'
+                    ? 'No scored security factor exceeded the documented low-risk thresholds.'
                     : riskGrade === 'B'
-                    ? 'Established on-chain activity with standard DeFi and approval permissions.'
-                    : 'Elevated risk factors detected: Verify approvals and high failed transactions.'}
+                    ? 'Minor scored security warnings were detected on at least one selected chain.'
+                    : 'Elevated scored security factors were detected on at least one selected chain.'}
                 </p>
 
                 <div className="border-t border-[#c8c8c8] pt-3 space-y-2">
                   <div className="flex justify-between text-xs font-bold">
-                    <span className="text-[#4b5563]">Aggression Level</span>
-                    <span className="text-[#0a0a0a] font-mono">Medium</span>
+                    <span className="text-[#4b5563]">Worst-chain risk score</span>
+                    <span className="text-[#0a0a0a] font-mono">{riskScore === null ? 'Withheld' : `${riskScore} / 100`}</span>
                   </div>
                   <div className="h-2 well-recessed overflow-hidden">
                     <div
                       className="h-full bg-[#ff5500]"
-                      style={{ width: '65%' }}
+                      style={{ width: `${riskScore ?? 0}%` }}
                     />
                   </div>
                 </div>
@@ -484,7 +479,7 @@ export default function Dashboard({ data }: DashboardProps) {
               </div>
 
               {/* Risk Score Factor Deductions */}
-              <RiskScore results={data.chains} />
+              {hasDefinitiveMetrics && <RiskScore results={data.chains} />}
 
             </div>
 
@@ -516,11 +511,6 @@ export default function Dashboard({ data }: DashboardProps) {
       {activeTab === 'approvals' && (
         <div className="card-3d p-6">
           <ApprovalAudit results={data.chains} />
-        </div>
-      )}
-      {activeTab === 'graveyard' && (
-        <div className="card-3d p-6">
-          <Graveyard results={data.chains} />
         </div>
       )}
     </div>

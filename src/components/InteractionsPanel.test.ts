@@ -1,0 +1,66 @@
+import assert from 'node:assert';
+import { describe, it } from 'node:test';
+import { createElement } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
+import InteractionsPanel from './InteractionsPanel';
+import { getMockScanResult } from '@/lib/mockData';
+import { ProtocolInteraction, ScanResult } from '@/lib/types';
+
+function protocol(chainId: number): ProtocolInteraction {
+  const base = chainId === 8453;
+  return {
+    name: 'Uniswap',
+    protocol: 'Uniswap',
+    category: 'swap',
+    txCount: 1,
+    totalGasNative: 0.01,
+    totalGasUSD: 3,
+    totalVolumeUSD: 100,
+    lastInteractionDate: '2026-08-23',
+    chainId,
+    chainName: base ? 'Base' : 'Ethereum',
+    nativeTokenSymbol: 'ETH',
+    contracts: [{
+      name: 'Router',
+      contractAddress: '0x68b3465833fb72a70ecdf485e0e4c7bd8665fc45',
+      txCount: 1,
+      totalGasNative: 0.01,
+      totalGasUSD: 3,
+      totalVolumeUSD: 100,
+      lastInteractionDate: '2026-08-23',
+      chainId,
+      chainName: base ? 'Base' : 'Ethereum',
+      nativeTokenSymbol: 'ETH',
+    }],
+  };
+}
+
+function chainResult(chainId: number): ScanResult {
+  const base = getMockScanResult().chains[0];
+  const item = protocol(chainId);
+  return {
+    ...base,
+    chainId,
+    chainName: item.chainName,
+    interactionsSummary: {
+      ...base.interactionsSummary,
+      topProtocols: [item],
+      protocolVolumeUSD: item.totalVolumeUSD,
+    },
+  };
+}
+
+describe('Protocol interaction network rendering', () => {
+  it('keeps same-named protocols separate and renders the Base explorer', () => {
+    const markup = renderToStaticMarkup(createElement(InteractionsPanel, {
+      results: [chainResult(1), chainResult(8453)],
+    }));
+
+    assert.strictEqual((markup.match(/Uniswap/g) ?? []).length >= 2, true);
+    assert.match(markup, /0\.0100 ETH/);
+    assert.strictEqual((markup.match(/0\.0100 ETH/g) ?? []).length >= 2, true);
+    assert.match(markup, /Ethereum/);
+    assert.match(markup, /Base/);
+    assert.match(markup, /https:\/\/basescan\.org\/address\/0x68b346/);
+  });
+});

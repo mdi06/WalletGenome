@@ -1,24 +1,22 @@
 import { MultiChainScanResult, ScanResult } from '../types';
 
-export function formatCompactUSD(val: any): string {
-  try {
-    if (val === null || val === undefined) return '$0';
-    const num = typeof val === 'number' ? val : parseFloat(String(val).replace(/[^0-9.-]+/g, ''));
-    if (isNaN(num) || !isFinite(num) || num === 0) return '$0';
-    const abs = Math.abs(num);
-    if (abs >= 1e12) {
-      const inT = num / 1e12;
-      if (inT > 999.99) return '>$999T';
-      return `$${inT.toFixed(2)}T`;
-    }
-    if (abs >= 1e9) return `$${(num / 1e9).toFixed(2)}B`;
-    if (abs >= 1e6) return `$${(num / 1e6).toFixed(2)}M`;
-    if (abs >= 1e3) return `$${(num / 1e3).toFixed(2)}K`;
-    if (abs >= 1) return `$${num.toFixed(2)}`;
-    return `$${num.toFixed(3)}`;
-  } catch (e) {
-    return '$0';
+export function formatCompactUSD(value: unknown): string {
+  if (value === null || value === undefined) return '$0';
+  const parsed = typeof value === 'number'
+    ? value
+    : Number.parseFloat(String(value).replace(/[^0-9.-]+/g, ''));
+  if (!Number.isFinite(parsed) || parsed === 0) return '$0';
+  const abs = Math.abs(parsed);
+  if (abs >= 1e12) {
+    const trillions = parsed / 1e12;
+    if (trillions > 999.99) return '>$999T';
+    return `$${trillions.toFixed(2)}T`;
   }
+  if (abs >= 1e9) return `$${(parsed / 1e9).toFixed(2)}B`;
+  if (abs >= 1e6) return `$${(parsed / 1e6).toFixed(2)}M`;
+  if (abs >= 1e3) return `$${(parsed / 1e3).toFixed(2)}K`;
+  if (abs >= 1) return `$${parsed.toFixed(2)}`;
+  return `$${parsed.toFixed(3)}`;
 }
 
 export function extractProtocolBadges(data: MultiChainScanResult): string[] {

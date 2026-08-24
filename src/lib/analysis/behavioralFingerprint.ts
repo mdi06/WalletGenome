@@ -6,7 +6,7 @@ import {
   FingerprintDimension,
   TransactionCategory,
 } from '../types';
-import { getProtocolMeta, getAddressLabel } from '../labels';
+import { getProtocolMeta } from '../labels';
 
 const INTERACTION_CATEGORIES: TransactionCategory[] = [
   'swap',
@@ -36,6 +36,18 @@ function clamp(val: number, min = 0, max = 100): number {
   return Math.max(min, Math.min(max, val));
 }
 
+function timestampBounds(timestamps: number[]): { first: number; last: number } | null {
+  let first = Number.POSITIVE_INFINITY;
+  let last = Number.NEGATIVE_INFINITY;
+
+  for (const timestamp of timestamps) {
+    if (timestamp < first) first = timestamp;
+    if (timestamp > last) last = timestamp;
+  }
+
+  return timestamps.length > 0 ? { first, last } : null;
+}
+
 export function analyzeBehavioralFingerprint(
   transactions: ProcessedTransaction[],
   tokenTransfers: ProcessedTokenTransfer[],
@@ -49,9 +61,10 @@ export function analyzeBehavioralFingerprint(
     ...transactions.map(t => t.timestamp),
     ...tokenTransfers.map(t => t.timestamp),
   ].filter(t => t > 0);
-  
-  const firstTs = allTimestamps.length > 0 ? Math.min(...allTimestamps) : Math.floor(Date.now() / 1000);
-  const lastTs = allTimestamps.length > 0 ? Math.max(...allTimestamps) : firstTs;
+
+  const bounds = timestampBounds(allTimestamps);
+  const firstTs = bounds?.first ?? Math.floor(Date.now() / 1000);
+  const lastTs = bounds?.last ?? firstTs;
   const walletAgeMonths = Math.max(1, Math.floor((lastTs - firstTs) / (30 * 24 * 3600)));
   const firstDate = new Date(firstTs * 1000).toISOString().split('T')[0];
   const lastDate = new Date(lastTs * 1000).toISOString().split('T')[0];
@@ -183,8 +196,6 @@ function derivePersona(
   const swapCount = catCounts.get('swap') || 0;
   const nftCount = catCounts.get('nft') || 0;
   const bridgeCount = catCounts.get('bridge') || 0;
-  const lendCount = catCounts.get('lending') || 0;
-  const stakeCount = catCounts.get('staking') || 0;
 
   // Power User / Ecosystem Pioneer
   if (uniqueContracts > 50 || scores['DeFi Diversity'] > 60) {

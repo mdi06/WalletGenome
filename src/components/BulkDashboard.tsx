@@ -2,9 +2,15 @@
 
 import React, { useState, useMemo } from 'react';
 import { ClusterScanResult } from '@/lib/types';
-import { formatCompactUSD } from './Dashboard';
+import { formatCompactUSD } from '@/lib/utils/dashboardUtils';
 import ClusterFlowGraph from './ClusterFlowGraph';
-import { Download, Table, GitFork, ShieldAlert, ShieldCheck, Sparkles, AlertTriangle, Layers, Dna, ArrowRight } from 'lucide-react';
+import { Download, Table, GitFork, Sparkles, Layers, Dna } from 'lucide-react';
+import {
+  buildClusterSummary,
+  ClusterSortField,
+  sortClusterWallets,
+} from '@/lib/viewModels/dashboardViewModels';
+import ClusterStatusPanel, { getClusterAvailabilityMessage } from './status/ClusterStatusPanel';
 
 interface Props {
   data: ClusterScanResult;
@@ -12,104 +18,20 @@ interface Props {
 }
 
 type BulkTabId = 'leaderboard' | 'flow';
-type SortField = 'gas' | 'inflow' | 'sybil' | 'risk' | 'txs';
 
 export default function BulkDashboard({ data, onInspectWallet }: Props) {
   const [activeTab, setActiveTab] = useState<BulkTabId>('leaderboard');
-  const [sortField, setSortField] = useState<SortField>('gas');
+  const [sortField, setSortField] = useState<ClusterSortField>('gas');
   const [sortAsc, setSortAsc] = useState<boolean>(false);
 
   // ── Compute Cluster Intelligence & Summary ──
-  const summary = useMemo(() => {
-    const total = data.totalWallets;
-    const directLinks = data.linkages.length;
-    const topHub = data.sharedCounterparties[0];
-    const topHubOverlapPct = topHub && total > 0 ? Math.round((topHub.sharedCount / total) * 100) : 0;
-
-    // Coordination level
-    let coordinationLevel: 'HIGH COORDINATION CLUSTER' | 'MODERATE OVERLAP' | 'INDEPENDENT PORTFOLIO';
-    let coordinationColor = 'bg-[#059669]/10 text-[#059669] border-[#059669]/30';
-
-    if (directLinks >= 5 || topHubOverlapPct >= 75) {
-      coordinationLevel = 'HIGH COORDINATION CLUSTER';
-      coordinationColor = 'bg-[#ff5500]/10 text-[#ff5500] border-[#ff5500]/30';
-    } else if (directLinks > 0 || topHubOverlapPct >= 40) {
-      coordinationLevel = 'MODERATE OVERLAP';
-      coordinationColor = 'bg-[#f59e0b]/10 text-[#f59e0b] border-[#f59e0b]/30';
-    } else {
-      coordinationLevel = 'INDEPENDENT PORTFOLIO';
-      coordinationColor = 'bg-[#059669]/10 text-[#059669] border-[#059669]/30';
-    }
-
-    // Dominant Persona
-    const personaCounts = new Map<string, number>();
-    data.wallets.forEach(w => {
-      personaCounts.set(w.persona, (personaCounts.get(w.persona) || 0) + 1);
-    });
-    let dominantPersona = 'Active Trader';
-    let maxPCount = 0;
-    for (const [p, c] of personaCounts.entries()) {
-      if (c > maxPCount) {
-        maxPCount = c;
-        dominantPersona = p;
-      }
-    }
-
-    // Auto-Generated Executive Narrative
-    let narrative = '';
-    if (coordinationLevel === 'HIGH COORDINATION CLUSTER') {
-      narrative = `This cluster exhibits strong on-chain synchronicity: ${directLinks} direct inter-wallet transfers detected with ${topHubOverlapPct}% of wallets sharing central interaction hubs (${topHub?.label || topHub?.address.slice(0, 6) + '...' || 'Contracts'}). Behavior is consistent with a coordinated campaign or shared parent-child asset distribution.`;
-    } else if (coordinationLevel === 'MODERATE OVERLAP') {
-      narrative = `Moderate ecosystem overlap detected across ${total} wallets. While direct inter-wallet routing is limited (${directLinks} transfers), wallets share common protocol hubs and liquidity endpoints. Dominant archetype: ${dominantPersona}.`;
-    } else {
-      narrative = `The submitted batch consists of independent addresses with no direct transfer linkages. Accounts operate autonomously with distinct protocol footprints and diverse interaction profiles.`;
-    }
-
-    return {
-      coordinationLevel,
-      coordinationColor,
-      dominantPersona,
-      dominantPersonaPct: total > 0 ? Math.round((maxPCount / total) * 100) : 0,
-      narrative,
-      directLinks,
-      topHub,
-      topHubOverlapPct,
-    };
-  }, [data]);
+  const summary = useMemo(() => buildClusterSummary(data), [data]);
 
   const sortedWallets = useMemo(() => {
-    const list = [...data.wallets];
-    list.sort((a, b) => {
-      let valA = 0;
-      let valB = 0;
-      switch (sortField) {
-        case 'gas':
-          valA = a.totalGasUSD;
-          valB = b.totalGasUSD;
-          break;
-        case 'inflow':
-          valA = a.totalInflowUSD;
-          valB = b.totalInflowUSD;
-          break;
-        case 'sybil':
-          valA = a.sybilProbability;
-          valB = b.sybilProbability;
-          break;
-        case 'risk':
-          valA = a.riskScore;
-          valB = b.riskScore;
-          break;
-        case 'txs':
-          valA = a.transactionCount;
-          valB = b.transactionCount;
-          break;
-      }
-      return sortAsc ? valA - valB : valB - valA;
-    });
-    return list;
+    return sortClusterWallets(data.wallets, sortField, sortAsc);
   }, [data.wallets, sortField, sortAsc]);
 
-  const handleSort = (field: SortField) => {
+  const handleSort = (field: ClusterSortField) => {
     if (sortField === field) {
       setSortAsc(!sortAsc);
     } else {
@@ -141,6 +63,11 @@ export default function BulkDashboard({ data, onInspectWallet }: Props) {
     link.click();
     document.body.removeChild(link);
   };
+
+  const availabilityMessage = getClusterAvailabilityMessage(data.status);
+  if (availabilityMessage) {
+    return <ClusterStatusPanel data={data} />;
+  }
 
   return (
     <div className="space-y-6 animate-fade-in-up">
@@ -255,10 +182,10 @@ export default function BulkDashboard({ data, onInspectWallet }: Props) {
               INTER-WALLET LINKAGE
             </div>
             <div className="text-sm font-black font-mono text-[#0a0a0a]">
-              {summary.directLinks > 0 ? `${summary.directLinks} Direct Transfers` : 'Zero Direct Links'}
+              {summary.directTransfers > 0 ? `${summary.directTransfers} Direct Transactions` : 'Zero Direct Transactions'}
             </div>
             <div className="text-[11px] text-[#4b5563]">
-              {summary.directLinks > 0 ? 'Direct capital moved between members' : 'No cross-wallet transfers'}
+              {summary.directTransfers > 0 ? `${summary.directLinks} directional chain linkages` : 'No cross-wallet transfers in returned data'}
             </div>
           </div>
 
@@ -346,7 +273,7 @@ export default function BulkDashboard({ data, onInspectWallet }: Props) {
                   DIRECT INTER-WALLET TRANSFERS
                 </span>
                 <span className="btn-3d-neutral text-[10px] font-mono font-bold px-2 py-0.5 text-[#0a0a0a]">
-                  {data.linkages.length} CONNECTIONS
+                  {summary.directTransfers} TRANSACTIONS
                 </span>
               </div>
 
@@ -354,7 +281,7 @@ export default function BulkDashboard({ data, onInspectWallet }: Props) {
                 <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
                   {data.linkages.map((l, i) => (
                     <div key={i} className="well-recessed-light p-2 text-xs font-mono font-bold flex items-center justify-between">
-                      <span className="text-[#0a0a0a] truncate">{l.detail}</span>
+                      <span className="text-[#0a0a0a] truncate" title={l.evidenceTxHashes.join(', ')}>{l.detail}</span>
                       <span className="badge-3d text-[9px] font-black uppercase px-2 py-0.5 bg-[#ff5500] text-white flex-shrink-0 ml-2">LINKED</span>
                     </div>
                   ))}
@@ -409,7 +336,7 @@ export default function BulkDashboard({ data, onInspectWallet }: Props) {
                   CLUSTER WALLET AUDIT LEADERBOARD
                 </span>
                 <span className="text-[11px] font-bold text-[#4b5563]">
-                  Click column headers to sort · Click "Inspect" for full single-wallet forensic breakdown
+                  Click column headers to sort · Click &quot;Inspect&quot; for full single-wallet forensic breakdown
                 </span>
               </div>
 

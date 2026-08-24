@@ -14,6 +14,100 @@ export interface ChainConfig {
   icon: string;
 }
 
+export type DataAvailabilityStatus = 'complete' | 'partial' | 'unavailable';
+
+export type DataSourceName =
+  | 'scan'
+  | 'transactions'
+  | 'tokenTransfers'
+  | 'internalTransactions'
+  | 'prices';
+
+export type ProviderErrorCode =
+  | 'timeout'
+  | 'rate_limited'
+  | 'http_error'
+  | 'invalid_response'
+  | 'provider_error'
+  | 'missing_api_key'
+  | 'unsupported_chain'
+  | 'result_truncated'
+  | 'quota_exhausted'
+  | 'spot_estimate'
+  | 'unpriced';
+
+export interface DataAvailabilityError {
+  source: DataSourceName;
+  code: ProviderErrorCode;
+  message: string;
+}
+
+export interface DataSourceResult<T> {
+  data: T[];
+  status: DataAvailabilityStatus;
+  errors: Omit<DataAvailabilityError, 'source'>[];
+}
+
+export interface ChainDataAvailability {
+  chainId: number;
+  chainName: string;
+  transactions: DataAvailabilityStatus;
+  tokenTransfers: DataAvailabilityStatus;
+  internalTransactions: DataAvailabilityStatus;
+  prices: DataAvailabilityStatus;
+  errors: DataAvailabilityError[];
+}
+
+export type PriceProvenance =
+  | 'historical'
+  | 'spot_estimate'
+  | 'stablecoin_assumption'
+  | 'unpriced';
+
+export interface PriceQuote {
+  priceUSD: number | null;
+  provenance: PriceProvenance;
+}
+
+export interface PriceProvenanceSummary {
+  historical: number;
+  spotEstimate: number;
+  stablecoinAssumption: number;
+  unpriced: number;
+  status: DataAvailabilityStatus;
+}
+
+export type RiskGrade = 'A' | 'B' | 'C' | 'D' | 'F';
+
+export type BlacklistStatus = 'flagged' | 'clear' | 'unavailable';
+
+export interface ReportingMetrics {
+  inflowUSD: number | null;
+  outflowUSD: number | null;
+  netFlowUSD: number | null;
+  grossVolumeUSD: number | null;
+  protocolVolumeUSD: number | null;
+  approvalExposureUSD: number | null;
+  riskScore: number | null;
+  riskGrade: RiskGrade | null;
+  sybilProbability: number | null;
+  blacklistStatus: BlacklistStatus;
+  activeDays: number | null;
+  longestStreakDays: number | null;
+  totalUnlimitedApprovals: number | null;
+  capitalFlowCoverage: CapitalFlowCoverage;
+  priceProvenance: PriceProvenanceSummary;
+}
+
+export interface CapitalFlowCoverage {
+  verifiedLegs: number;
+  totalLegs: number;
+  excludedSpotEstimateLegs: number;
+  unpricedLegs: number;
+  coveragePercent: number | null;
+  status: DataAvailabilityStatus;
+}
+
 export interface EtherscanTransaction {
   blockNumber: string;
   timeStamp: string;
@@ -51,6 +145,7 @@ export interface EtherscanTokenTransfer {
   tokenSymbol: string;
   tokenDecimal: string;
   transactionIndex: string;
+  logIndex?: string;
   gas: string;
   gasPrice: string;
   gasUsed: string;
@@ -87,10 +182,12 @@ export interface ProcessedTransaction {
   value: string;
   valueFormatted: number;
   valueUSD: number | null;
+  valueUSDProvenance: PriceProvenance;
   gasUsed: number;
   gasPrice: number;
   gasCostETH: number;
   gasCostUSD: number | null;
+  gasCostUSDProvenance: PriceProvenance;
   isError: boolean;
   methodId: string;
   functionName: string;
@@ -127,6 +224,7 @@ export interface ProcessedTokenTransfer {
   value: string;
   valueFormatted: number;
   valueUSD: number | null;
+  valueUSDProvenance: PriceProvenance;
   direction: 'in' | 'out';
   chainId: number;
 }
@@ -171,6 +269,7 @@ export interface TransferSummary {
   topNativeOutbound: ProcessedTransaction[];
   totalInboundUSD: number;
   totalOutboundUSD: number;
+  capitalFlowCoverage: CapitalFlowCoverage;
 }
 
 export type LossType =
@@ -207,6 +306,7 @@ export interface LossSummary {
 }
 
 export type RiskLevel = 'high' | 'medium' | 'low';
+export type ApprovalExposureStatus = 'estimated' | 'zero_balance' | 'unavailable';
 
 export interface TokenApproval {
   hash: string;
@@ -218,10 +318,14 @@ export interface TokenApproval {
   spender: string;
   spenderLabel: string | null;
   allowance: string;
+  allowanceAmount: number | null;
   isUnlimited: boolean;
   riskLevel: RiskLevel;
   chainId: number;
-  estimatedExposureUSD?: number | null;
+  estimatedTokenBalance: number | null;
+  estimatedExposureUSD: number | null;
+  estimatedExposureUSDProvenance: PriceProvenance;
+  exposureStatus: ApprovalExposureStatus;
 }
 
 export interface ApprovalSummary {
@@ -229,24 +333,9 @@ export interface ApprovalSummary {
   highRiskCount: number;
   unlimitedCount: number;
   totalApprovals: number;
-  totalExposureUSD?: number;
-}
-
-export interface DeadAsset {
-  contractAddress: string;
-  tokenName: string;
-  tokenSymbol: string;
-  balance: number;
-  peakValueUSD: number | null;
-  currentValueUSD: number;
-  chainId: number;
-  lastActivityDate: string;
-}
-
-export interface GraveyardSummary {
-  deadAssets: DeadAsset[];
-  totalPeakValueLost: number;
-  totalTokensDead: number;
+  totalExposureUSD: number | null;
+  totalExposureUSDProvenance: PriceProvenanceSummary;
+  exposureStatus: DataAvailabilityStatus;
 }
 
 export type ScanPhase =
@@ -276,11 +365,11 @@ export interface ScanResult {
   gasSummary: GasSummary;
   transferSummary: TransferSummary;
   approvalSummary: ApprovalSummary;
-  graveyardSummary: GraveyardSummary;
   fingerprint: WalletFingerprint;
   riskAssessment: RiskAssessment;
   activityProfile: ActivityProfile;
   interactionsSummary: InteractionsSummary;
+  priceProvenance: PriceProvenanceSummary;
   scannedAt: number;
   transactionCount: number;
   tokenTransferCount: number;
@@ -289,20 +378,31 @@ export interface ScanResult {
 
 export interface MultiChainScanResult {
   address: string;
+  status: DataAvailabilityStatus;
+  availability: ChainDataAvailability[];
   chains: ScanResult[];
   sybilReport?: SybilReport;
   identityReport?: WalletIdentityReport;
+  metrics: ReportingMetrics;
   notice?: string;
   chainWarnings?: Array<{ chainId: number; chainName: string; message: string }>;
   aggregated: {
     totalGasETH: number;
     totalGasUSD: number;
     totalHighRiskApprovals: number;
-    totalDeadAssets: number;
+    totalUnlimitedApprovals: number;
     totalTransactions: number;
-    riskScore: number;
-    riskGrade: string;
+    worstChainRiskScore: number | null;
+    worstChainRiskGrade: RiskGrade | null;
+    priceProvenance: PriceProvenanceSummary;
   };
+}
+
+export interface WalletScanResponse extends MultiChainScanResult {
+  allInboundUSD: number;
+  allOutboundUSD: number;
+  cached?: boolean;
+  clusterEvidence?: WalletClusterEvidence;
 }
 
 // ── Behavioral Fingerprint ──
@@ -346,7 +446,7 @@ export interface RiskFactor {
 
 export interface RiskAssessment {
   score: number; // 0–100 (0 = safest)
-  grade: 'A' | 'B' | 'C' | 'D' | 'F';
+  grade: RiskGrade;
   factors: RiskFactor[];
 }
 
@@ -363,6 +463,7 @@ export interface ActivityCell {
 
 export interface ActivityProfile {
   heatmap: ActivityCell[];
+  activeDates: string[]; // unique UTC YYYY-MM-DD dates
   totalActiveDays: number;
   mostActiveDay: string; // e.g., "Wednesday"
   mostActiveHour: number;
@@ -377,11 +478,13 @@ export interface ProtocolContractDetail {
   name: string;
   contractAddress: string;
   txCount: number;
-  totalGasETH: number;
+  totalGasNative: number;
   totalGasUSD: number;
   totalVolumeUSD: number;
   lastInteractionDate: string;
   chainId: number;
+  chainName: string;
+  nativeTokenSymbol: string;
 }
 
 export interface ProtocolInteraction {
@@ -389,12 +492,13 @@ export interface ProtocolInteraction {
   protocol: string;
   category: TransactionCategory | string;
   txCount: number;
-  totalGasETH: number;
+  totalGasNative: number;
   totalGasUSD: number;
   totalVolumeUSD: number;
   lastInteractionDate: string;
   chainId: number;
-  activeChains?: number[];
+  chainName: string;
+  nativeTokenSymbol: string;
   contracts: ProtocolContractDetail[];
 }
 
@@ -414,6 +518,7 @@ export interface AddressInteraction {
 
 export interface InteractionsSummary {
   topProtocols: ProtocolInteraction[];
+  protocolVolumeUSD: number;
   topCounterparties: AddressInteraction[];
   uniqueContractCount: number;
   uniqueCounterpartyCount: number;
@@ -447,6 +552,7 @@ export interface MediaScoreBreakdown {
   age: number;
   compositeScore: number;
   sybilProbability: number;
+  monetaryIncluded: boolean;
   classification: 'Organic Human' | 'Moderate / Farmer' | 'High Sybil Risk';
   explanation: string;
 }
@@ -489,7 +595,6 @@ export interface BulkWrappedWallet {
   transactionCount: number;
   highRiskApprovalsCount: number;
   unlimitedApprovalsCount: number;
-  deadAssetsCount: number;
   socialsCount: number;
   counterparties: { address: string; inboundCount: number; outboundCount: number; inboundUSD: number; outboundUSD: number; txHash?: string; lastDate?: string; chainId?: number }[];
 }
@@ -497,17 +602,45 @@ export interface BulkWrappedWallet {
 export interface ClusterLinkage {
   source: string;
   target: string;
-  type: 'direct_transfer' | 'shared_funding' | 'shared_counterparty';
+  type: 'direct_transfer';
   txCount: number;
-  volumeUSD: number;
-  txHash?: string;
-  chainId?: number;
-  lastDate?: string;
+  volumeUSD: number | null;
+  valueStatus: DataAvailabilityStatus;
+  evidenceTxHashes: string[];
+  chainId: number;
+  lastDate: string;
   detail: string;
 }
 
+export interface WalletTransferEvidence {
+  hash: string;
+  chainId: number;
+  source: string;
+  target: string;
+  assetType: 'native' | 'internal' | 'erc20';
+  assetIdentifier: string;
+  valueUSD: number | null;
+  timestamp: number;
+  date: string;
+}
+
+export interface WalletClusterEvidence {
+  walletAddress: string;
+  transfers: WalletTransferEvidence[];
+  counterparties: string[];
+}
+
+export interface SharedCounterparty {
+  address: string;
+  label: string | null;
+  sharedCount: number;
+  walletAddresses: string[];
+}
+
 export interface ClusterScanResult {
+  status: DataAvailabilityStatus;
   totalWallets: number;
+  requestedWallets: number;
   totalTransactions: number;
   totalGasUSD: number;
   totalInflowUSD: number;
@@ -515,7 +648,12 @@ export interface ClusterScanResult {
   flaggedCount: number;
   totalHighRiskApprovals: number;
   wallets: BulkWrappedWallet[];
+  failedWallets: Array<{
+    target: string;
+    status: Exclude<DataAvailabilityStatus, 'complete'>;
+    reasons: DataAvailabilityError[];
+  }>;
   linkages: ClusterLinkage[];
-  sharedCounterparties: { address: string; label: string | null; sharedCount: number }[];
+  sharedCounterparties: SharedCounterparty[];
   scannedAt: number;
 }

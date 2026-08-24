@@ -104,7 +104,7 @@ async function fetchAddressList(url: string, timeoutMs: number = 3000): Promise<
 
     const matches = text.match(/0x[a-fA-F0-9]{40}/g) || [];
     return matches.map(a => a.toLowerCase());
-  } catch (err) {
+  } catch {
     return [];
   } finally {
     clearTimeout(timeoutId);

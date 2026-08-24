@@ -5,6 +5,7 @@ import { ScanResult } from '@/lib/types';
 import { getExplorerAddressUrl } from '@/lib/chains';
 import { ExternalLink, ArrowUpRight, ArrowDownLeft, Trophy } from 'lucide-react';
 import { isBurnAddress, isPureTokenContract, PROTOCOL_REGISTRY } from '@/lib/labels';
+import { formatCompactUSD } from '@/lib/utils/dashboardUtils';
 
 interface Props {
   results: ScanResult[];
@@ -33,12 +34,6 @@ interface GraphLink {
   token?: string;
   chainId: number;
   color: string;
-}
-
-function formatUSD(val: number): string {
-  if (Math.abs(val) >= 1000000) return `$${(val / 1000000).toFixed(2)}M`;
-  if (Math.abs(val) >= 1000) return `$${(val / 1000).toFixed(1)}K`;
-  return `$${val.toFixed(0)}`;
 }
 
 function truncAddr(addr: string): string {
@@ -153,10 +148,10 @@ export default function CapitalFlowGraph({ results }: Props) {
     for (const r of activeResults) {
       for (const p of r.interactionsSummary?.topProtocols || []) {
         if (p.totalVolumeUSD < minVolume && p.txCount < 2) continue;
-        const pId = `proto-${p.protocol || p.name}`;
+        const pId = `proto-${p.chainId}-${p.protocol || p.name}`;
         const contractAddr = p.contracts && p.contracts.length > 0
           ? p.contracts[0].contractAddress
-          : (p as any).contractAddress || '';
+          : '';
 
         const existing = nodeMap.get(pId) || {
           id: pId,
@@ -355,7 +350,7 @@ export default function CapitalFlowGraph({ results }: Props) {
             </div>
             <div>
               <div className="text-[10px] font-bold text-[#4b5563] uppercase">TOTAL CAPITAL SENT</div>
-              <div className="text-xl font-black text-[#0a0a0a]">{formatUSD(mostInteractedWallet.volumeUSD)}</div>
+              <div className="text-xl font-black text-[#0a0a0a]">{formatCompactUSD(mostInteractedWallet.volumeUSD)}</div>
             </div>
           </div>
         </div>
@@ -386,10 +381,16 @@ export default function CapitalFlowGraph({ results }: Props) {
 
         <div className="flex items-center gap-2">
           <span className="text-xs font-bold text-[#4b5563] uppercase">Network:</span>
-          {[{ id: 'all', label: 'All' }, { id: 1, label: 'Ethereum' }, { id: 42161, label: 'Arbitrum' }, { id: 8453, label: 'Base' }, { id: 10, label: 'Optimism' }].map(c => (
+          {([
+            { id: 'all', label: 'All' },
+            { id: 1, label: 'Ethereum' },
+            { id: 42161, label: 'Arbitrum' },
+            { id: 8453, label: 'Base' },
+            { id: 10, label: 'Optimism' },
+          ] as Array<{ id: number | 'all'; label: string }>).map(c => (
             <button
               key={c.id}
-              onClick={() => setSelectedChain(c.id as any)}
+              onClick={() => setSelectedChain(c.id)}
               className={`px-3 py-1 text-xs font-bold cursor-pointer ${
                 selectedChain === c.id
                   ? 'btn-3d-black text-white'
@@ -424,7 +425,6 @@ export default function CapitalFlowGraph({ results }: Props) {
             if (!src || !tgt) return null;
 
             const dx = tgt.x - src.x;
-            const dy = tgt.y - src.y;
             const cx1 = src.x + dx * 0.5;
             const cy1 = src.y;
             const cx2 = src.x + dx * 0.5;
@@ -509,7 +509,7 @@ export default function CapitalFlowGraph({ results }: Props) {
                   {node.label.length > 13 ? node.label.slice(0, 12) + '…' : node.label}
                 </text>
                 <text x="0" y="11" textAnchor="middle" fill={nodeBorder} style={{ fontSize: 9, fontWeight: 700, fontFamily: 'monospace' }}>
-                  {node.isTopRecipient ? `★ TOP (${node.txCount} txs)` : `${formatUSD(node.volumeUSD)} · ${node.txCount} txs`}
+                  {node.isTopRecipient ? `★ TOP (${node.txCount} txs)` : `${formatCompactUSD(node.volumeUSD)} · ${node.txCount} txs`}
                 </text>
               </g>
             );
@@ -530,7 +530,7 @@ export default function CapitalFlowGraph({ results }: Props) {
               </div>
               <div className="flex justify-between text-[#555555]">
                 <span>Volume:</span>
-                <span className="font-bold text-[#0a0a0a]">{formatUSD(hoveredNode.volumeUSD)}</span>
+                <span className="font-bold text-[#0a0a0a]">{formatCompactUSD(hoveredNode.volumeUSD)}</span>
               </div>
               <div className="flex justify-between text-[#555555]">
                 <span>Transactions:</span>
@@ -589,7 +589,7 @@ export default function CapitalFlowGraph({ results }: Props) {
                       {w.txCount} txs
                     </td>
                     <td className="py-2.5 px-3 text-right font-mono font-bold text-[#0a0a0a]">
-                      {formatUSD(w.volumeUSD)}
+                      {formatCompactUSD(w.volumeUSD)}
                     </td>
                     <td className="py-2.5 px-3 text-right">
                       <button
@@ -642,7 +642,7 @@ export default function CapitalFlowGraph({ results }: Props) {
                       {w.txCount} txs
                     </td>
                     <td className="py-2.5 px-3 text-right font-mono font-bold text-[#0a0a0a]">
-                      {formatUSD(w.volumeUSD)}
+                      {formatCompactUSD(w.volumeUSD)}
                     </td>
                     <td className="py-2.5 px-3 text-right">
                       <button

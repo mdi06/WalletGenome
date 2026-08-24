@@ -38,10 +38,12 @@ describe('MEDIA Sybil Model & API Data Flow Tests', () => {
         value: '0',
         valueFormatted: 0,
         valueUSD: 0,
+        valueUSDProvenance: 'historical',
         gasUsed: 21000,
         gasPrice: 20000000000,
         gasCostETH: 0.00042,
         gasCostUSD: 1.5,
+        gasCostUSDProvenance: 'historical',
         isError: false,
         methodId: '0x38ed1739',
         functionName: 'swapExactTokensForTokens',
@@ -57,10 +59,12 @@ describe('MEDIA Sybil Model & API Data Flow Tests', () => {
         value: '0',
         valueFormatted: 0,
         valueUSD: 0,
+        valueUSDProvenance: 'historical',
         gasUsed: 50000,
         gasPrice: 20000000000,
         gasCostETH: 0.001,
         gasCostUSD: 3.5,
+        gasCostUSDProvenance: 'historical',
         isError: false,
         methodId: '0xfb0f3ee1',
         functionName: 'fulfillBasicOrder',
@@ -76,10 +80,12 @@ describe('MEDIA Sybil Model & API Data Flow Tests', () => {
         value: '1000000000000000000',
         valueFormatted: 1,
         valueUSD: 3000,
+        valueUSDProvenance: 'historical',
         gasUsed: 40000,
         gasPrice: 20000000000,
         gasCostETH: 0.0008,
         gasCostUSD: 2.8,
+        gasCostUSDProvenance: 'historical',
         isError: false,
         methodId: '0x9e6e4f3a',
         functionName: 'deposit',
@@ -95,10 +101,12 @@ describe('MEDIA Sybil Model & API Data Flow Tests', () => {
         value: '0',
         valueFormatted: 0,
         valueUSD: 0,
+        valueUSDProvenance: 'historical',
         gasUsed: 80000,
         gasPrice: 20000000000,
         gasCostETH: 0.0016,
         gasCostUSD: 5.6,
+        gasCostUSDProvenance: 'historical',
         isError: false,
         methodId: '0xe8eda9df',
         functionName: 'supply',
@@ -114,10 +122,12 @@ describe('MEDIA Sybil Model & API Data Flow Tests', () => {
         value: '0',
         valueFormatted: 0,
         valueUSD: 0,
+        valueUSDProvenance: 'historical',
         gasUsed: 30000,
         gasPrice: 20000000000,
         gasCostETH: 0.0006,
         gasCostUSD: 2.1,
+        gasCostUSDProvenance: 'historical',
         isError: false,
         methodId: '0x095ea7b3',
         functionName: 'approve',
@@ -139,6 +149,7 @@ describe('MEDIA Sybil Model & API Data Flow Tests', () => {
       value: '100000000',
       valueFormatted: 100,
       valueUSD: 100,
+      valueUSDProvenance: 'stablecoin_assumption',
       direction: 'out' as const,
       chainId: 1,
     }));
@@ -166,6 +177,31 @@ describe('MEDIA Sybil Model & API Data Flow Tests', () => {
 
     assert.strictEqual(score.classification, 'Organic Human');
     assert.ok(score.sybilProbability < 25, `Expected sybilProbability < 25, got ${score.sybilProbability}`);
+
+    const withoutMonetary = computeMediaScore({
+      address: dummyAddress,
+      transactions: mockTransactions,
+      tokenTransfers: mockTransfers,
+      uniqueContractCount: 15,
+      activeChainsCount: 3,
+      totalVolumeUSD: 0,
+      totalGasUSD: 0,
+      includeMonetary: false,
+    });
+    const withoutMonetaryHighUsd = computeMediaScore({
+      address: dummyAddress,
+      transactions: mockTransactions,
+      tokenTransfers: mockTransfers,
+      uniqueContractCount: 15,
+      activeChainsCount: 3,
+      totalVolumeUSD: 1_000_000,
+      totalGasUSD: 10_000,
+      includeMonetary: false,
+    });
+
+    assert.strictEqual(withoutMonetary.monetaryIncluded, false);
+    assert.strictEqual(withoutMonetary.compositeScore, withoutMonetaryHighUsd.compositeScore);
+    assert.match(withoutMonetary.explanation, /monetary dimension was omitted/i);
   });
 
   it('should detect bot burstiness when transactions happen in < 48 hours', () => {
@@ -180,10 +216,12 @@ describe('MEDIA Sybil Model & API Data Flow Tests', () => {
       value: '0',
       valueFormatted: 0,
       valueUSD: 0,
+      valueUSDProvenance: 'historical',
       gasUsed: 21000,
       gasPrice: 1000000000,
       gasCostETH: 0.000021,
       gasCostUSD: 0.05,
+      gasCostUSDProvenance: 'historical',
       isError: false,
       methodId: '0x',
       functionName: '',
@@ -256,7 +294,7 @@ describe('MEDIA Sybil Model & API Data Flow Tests', () => {
       },
     ];
 
-    const processedTxs = processTransactions(rawTxs, dummyAddress, 1, {});
+    const processedTxs = processTransactions(rawTxs, 1, {});
     const processedTransfers = processTokenTransfers(rawTransfers, dummyAddress, 1, {});
 
     assert.strictEqual(processedTxs.length, 1);

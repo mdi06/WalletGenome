@@ -7,21 +7,64 @@ import {
   TransactionCategory,
   ScanResult,
   MultiChainScanResult,
+  PriceProvenance,
+  PriceProvenanceSummary,
+  RiskGrade,
 } from './types';
 import { getChainConfig, STABLECOINS } from './chains';
 import { isDEXAddress, isBridgeAddress, getAddressLabel } from './labels';
-import { getCachedPrice, resolveCoingeckoId } from './prices';
+import { getCachedPriceQuote, resolveCoingeckoId } from './prices';
 import { analyzeGasFees } from './analysis/gasFees';
 import { analyzeTransfers } from './analysis/transfers';
 import { analyzeApprovals } from './analysis/approvals';
-import { analyzeDeadAssets } from './analysis/deadAssets';
-import { checkRecipientSweptToCEX } from './etherscan';
 import { analyzeBehavioralFingerprint } from './analysis/behavioralFingerprint';
 import { computeRiskScore } from './analysis/riskScore';
+import { buildReportingMetrics } from './reportingContract';
 import { analyzeActivityProfile } from './analysis/activityHeatmap';
 import { analyzeInteractions } from './analysis/interactions';
 
 const WEI = 1e18;
+
+function emptyPriceProvenanceSummary(): PriceProvenanceSummary {
+  return {
+    historical: 0,
+    spotEstimate: 0,
+    stablecoinAssumption: 0,
+    unpriced: 0,
+    status: 'complete',
+  };
+}
+
+export function summarizePriceProvenance(
+  transactions: ProcessedTransaction[],
+  tokenTransfers: ProcessedTokenTransfer[],
+): PriceProvenanceSummary {
+  const summary = emptyPriceProvenanceSummary();
+  const provenances: PriceProvenance[] = [];
+
+  for (const transaction of transactions) {
+    if (transaction.valueFormatted > 0) provenances.push(transaction.valueUSDProvenance);
+    if (transaction.gasCostETH > 0) provenances.push(transaction.gasCostUSDProvenance);
+  }
+  for (const transfer of tokenTransfers) {
+    if (transfer.valueFormatted > 0) provenances.push(transfer.valueUSDProvenance);
+  }
+
+  for (const provenance of provenances) {
+    if (provenance === 'historical') summary.historical++;
+    if (provenance === 'spot_estimate') summary.spotEstimate++;
+    if (provenance === 'stablecoin_assumption') summary.stablecoinAssumption++;
+    if (provenance === 'unpriced') summary.unpriced++;
+  }
+
+  if (provenances.length > 0 && summary.unpriced === provenances.length) {
+    summary.status = 'unavailable';
+  } else if (summary.spotEstimate > 0 || summary.unpriced > 0) {
+    summary.status = 'partial';
+  }
+
+  return summary;
+}
 
 // Common Bridge Method IDs
 const BRIDGE_METHOD_IDS = new Set([
@@ -57,7 +100,7 @@ export function isBridgeMethod(methodId: string, funcName: string): boolean {
   );
 }
 
-function categorizeTransaction(tx: EtherscanTransaction, walletAddress: string): TransactionCategory {
+function categorizeTransaction(tx: EtherscanTransaction): TransactionCategory {
   if (tx.isError === '1') return 'failed';
 
   const to = (tx.to || '').toLowerCase();
@@ -102,13 +145,10 @@ export function formatSafeUnits(valueRaw: string | number, decimals = 18): numbe
 
 export function processTransactions(
   rawTxs: EtherscanTransaction[] = [],
-  walletAddress: string,
   chainId: number,
   knownWallets: Record<string, string> = {}
 ): ProcessedTransaction[] {
   const chain = getChainConfig(chainId);
-  const lower = (walletAddress || '').toLowerCase();
-
   return rawTxs.map(tx => {
     const gasUsed = Number(tx.gasUsed || tx.gas || '0') || 0;
     const gasPrice = Number(tx.gasPrice || '0') || 0;
@@ -117,7 +157,8 @@ export function processTransactions(
     const timestamp = parseInt(tx.timeStamp || '0') || Math.floor(Date.now() / 1000);
     const valueFormatted = formatSafeUnits(tx.value || '0', chain.nativeToken.decimals);
 
-    const ethPrice = getCachedPrice(chain.nativeToken.coingeckoId, timestamp);
+    const ethQuote = getCachedPriceQuote(chain.nativeToken.coingeckoId, timestamp);
+    const ethPrice = ethQuote.priceUSD;
 
     return {
       hash: tx.hash || '',
@@ -130,15 +171,17 @@ export function processTransactions(
       value: tx.value || '0',
       valueFormatted,
       valueUSD: (ethPrice && isFinite(valueFormatted * ethPrice) && valueFormatted * ethPrice < 1e11) ? valueFormatted * ethPrice : null,
+      valueUSDProvenance: ethQuote.provenance,
       gasUsed,
       gasPrice,
       gasCostETH,
       gasCostUSD: ethPrice ? gasCostETH * ethPrice : null,
+      gasCostUSDProvenance: ethQuote.provenance,
       isError: tx.isError === '1' || tx.txreceipt_status === '0',
       methodId: tx.methodId || '',
       functionName: tx.functionName || '',
       input: tx.input || '',
-      category: categorizeTransaction(tx, walletAddress),
+      category: categorizeTransaction(tx),
       chainId,
     };
   });
@@ -165,9 +208,12 @@ export function processTokenTransfers(
 
     const coingeckoId = resolveCoingeckoId(tokenContract, tokenSym);
     let valueUSD: number | null = null;
+    let valueUSDProvenance: PriceProvenance = 'unpriced';
 
     if (coingeckoId) {
-      const price = getCachedPrice(coingeckoId, timestamp);
+      const quote = getCachedPriceQuote(coingeckoId, timestamp);
+      const price = quote.priceUSD;
+      valueUSDProvenance = quote.provenance;
       if (price && isFinite(valueFormatted * price) && valueFormatted * price < 1e11) {
         valueUSD = valueFormatted * price;
       }
@@ -175,6 +221,7 @@ export function processTokenTransfers(
 
     if (STABLECOINS[tokenContract] && valueFormatted < 1e11) {
       valueUSD = valueFormatted;
+      valueUSDProvenance = 'stablecoin_assumption';
     }
 
     return {
@@ -192,6 +239,7 @@ export function processTokenTransfers(
       value: t.value || '0',
       valueFormatted,
       valueUSD,
+      valueUSDProvenance,
       direction,
       chainId,
     };
@@ -209,7 +257,8 @@ export function processInternalTransactions(
   return rawInternals.map(itx => {
     const timestamp = parseInt(itx.timeStamp || '0') || Math.floor(Date.now() / 1000);
     const valueFormatted = formatSafeUnits(itx.value || '0', chain.nativeToken.decimals);
-    const ethPrice = getCachedPrice(chain.nativeToken.coingeckoId, timestamp);
+    const ethQuote = getCachedPriceQuote(chain.nativeToken.coingeckoId, timestamp);
+    const ethPrice = ethQuote.priceUSD;
 
     return {
       hash: itx.hash || '',
@@ -222,10 +271,12 @@ export function processInternalTransactions(
       value: itx.value || '0',
       valueFormatted,
       valueUSD: (ethPrice && isFinite(valueFormatted * ethPrice) && valueFormatted * ethPrice < 1e11) ? valueFormatted * ethPrice : null,
+      valueUSDProvenance: ethQuote.provenance,
       gasUsed: Number(itx.gasUsed || itx.gas || '0') || 0,
       gasPrice: 0,
       gasCostETH: 0,
       gasCostUSD: null,
+      gasCostUSDProvenance: 'unpriced',
       isError: itx.isError === '1',
       methodId: '',
       functionName: itx.type || 'internal_transfer',
@@ -283,7 +334,7 @@ export async function runAnalysis(
   const chain = getChainConfig(chainId);
   const lower = (walletAddress || '').toLowerCase();
 
-  const processedTxs = processTransactions(rawTxs, walletAddress, chainId, knownWallets);
+  const processedTxs = processTransactions(rawTxs, chainId, knownWallets);
   const processedTransfers = processTokenTransfers(rawTokenTransfers, walletAddress, chainId, knownWallets);
   const processedInternals = processInternalTransactions(rawInternalTxs, walletAddress, chainId, knownWallets);
 
@@ -297,7 +348,7 @@ export async function runAnalysis(
   const gasSummary = analyzeGasFees(outboundTxs);
   const transferSummary = analyzeTransfers(allTxs, processedTransfers, walletAddress);
   const approvalSummary = analyzeApprovals(processedTxs, rawTokenTransfers, walletAddress, chainId);
-  const graveyardSummary = analyzeDeadAssets(processedTransfers, chainId);
+  const priceProvenance = summarizePriceProvenance(allTxs, processedTransfers);
 
   return {
     address: walletAddress,
@@ -306,11 +357,11 @@ export async function runAnalysis(
     gasSummary,
     transferSummary,
     approvalSummary,
-    graveyardSummary,
     fingerprint: analyzeBehavioralFingerprint(processedTxs, processedTransfers, walletAddress),
-    riskAssessment: computeRiskScore(approvalSummary, gasSummary, graveyardSummary, processedTxs),
+    riskAssessment: computeRiskScore(approvalSummary, gasSummary, processedTxs),
     activityProfile: analyzeActivityProfile(processedTxs),
     interactionsSummary: analyzeInteractions(allTxs, processedTransfers, walletAddress, chainId, knownWallets),
+    priceProvenance,
     scannedAt: Date.now(),
     transactionCount: rawTxs.length,
     tokenTransferCount: rawTokenTransfers.length,
@@ -323,7 +374,7 @@ export function aggregateResults(
   address: string,
   chainResults: ScanResult[]
 ): MultiChainScanResult {
-  const worstRiskGrade = chainResults.reduce((worst, r) => {
+  const worstRiskGrade = chainResults.reduce<RiskGrade>((worst, r) => {
     const g = r.riskAssessment?.grade || 'A';
     return (GRADE_ORDER[g] || 1) > (GRADE_ORDER[worst] || 1) ? g : worst;
   }, 'A');
@@ -336,17 +387,41 @@ export function aggregateResults(
     }
   });
 
+  const priceProvenance = chainResults.reduce<PriceProvenanceSummary>((summary, result) => {
+    summary.historical += result.priceProvenance.historical;
+    summary.spotEstimate += result.priceProvenance.spotEstimate;
+    summary.stablecoinAssumption += result.priceProvenance.stablecoinAssumption;
+    summary.unpriced += result.priceProvenance.unpriced;
+    if (result.priceProvenance.status === 'unavailable') summary.status = 'unavailable';
+    else if (result.priceProvenance.status === 'partial' && summary.status === 'complete') summary.status = 'partial';
+    return summary;
+  }, emptyPriceProvenanceSummary());
+
+  const metrics = buildReportingMetrics(chainResults, 'complete', priceProvenance);
+
   return {
     address,
+    status: 'complete',
+    availability: chainResults.map(result => ({
+      chainId: result.chainId,
+      chainName: result.chainName,
+      transactions: 'complete',
+      tokenTransfers: 'complete',
+      internalTransactions: 'complete',
+      prices: 'complete',
+      errors: [],
+    })),
     chains: chainResults,
+    metrics,
     aggregated: {
       totalGasETH: ethChains.reduce((sum, r) => sum + (r.gasSummary?.totalGasETH || 0), 0),
       totalGasUSD: chainResults.reduce((sum, r) => sum + (r.gasSummary?.totalGasUSD || 0), 0),
       totalHighRiskApprovals: chainResults.reduce((sum, r) => sum + (r.approvalSummary?.highRiskCount || 0), 0),
-      totalDeadAssets: chainResults.reduce((sum, r) => sum + (r.graveyardSummary?.totalTokensDead || 0), 0),
+      totalUnlimitedApprovals: chainResults.reduce((sum, r) => sum + (r.approvalSummary?.unlimitedCount || 0), 0),
       totalTransactions: chainResults.reduce((sum, r) => sum + (r.transactionCount || 0), 0),
-      riskScore: chainResults.length > 0 ? Math.max(...chainResults.map(r => r.riskAssessment?.score || 0)) : 0,
-      riskGrade: worstRiskGrade,
+      worstChainRiskScore: chainResults.length > 0 ? Math.max(...chainResults.map(r => r.riskAssessment?.score || 0)) : 0,
+      worstChainRiskGrade: worstRiskGrade,
+      priceProvenance,
     },
   };
 }

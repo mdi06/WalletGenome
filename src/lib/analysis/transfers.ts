@@ -1,5 +1,12 @@
 import { ProcessedTransaction, ProcessedTokenTransfer, TransferSummary } from '../types';
 
+function hasVerifiedHistoricalValue(
+  leg: ProcessedTransaction | ProcessedTokenTransfer,
+): boolean {
+  return leg.valueUSD !== null
+    && (leg.valueUSDProvenance === 'historical' || leg.valueUSDProvenance === 'stablecoin_assumption');
+}
+
 export function analyzeTransfers(
   transactions: ProcessedTransaction[],
   tokenTransfers: ProcessedTokenTransfer[],
@@ -31,13 +38,40 @@ export function analyzeTransfers(
     .slice(0, topN);
 
   // Totals
-  const totalInboundUSD =
-    tokenTransfers.filter(t => t.direction === 'in').reduce((sum, t) => sum + (t.valueUSD ?? 0), 0) +
-    transactions.filter(tx => tx.to.toLowerCase() === lower).reduce((sum, tx) => sum + (tx.valueUSD ?? 0), 0);
+  const eligibleNativeInbound = transactions.filter(tx =>
+    tx.to.toLowerCase() === lower && tx.valueFormatted > 0 && !tx.isError
+  );
+  const eligibleNativeOutbound = transactions.filter(tx =>
+    tx.from.toLowerCase() === lower && tx.valueFormatted > 0 && !tx.isError
+  );
+  const eligibleTokenInbound = tokenTransfers.filter(t => t.direction === 'in' && t.valueFormatted > 0);
+  const eligibleTokenOutbound = tokenTransfers.filter(t => t.direction === 'out' && t.valueFormatted > 0);
+  const eligibleLegs = [
+    ...eligibleNativeInbound,
+    ...eligibleNativeOutbound,
+    ...eligibleTokenInbound,
+    ...eligibleTokenOutbound,
+  ];
+  const verifiedLegs = eligibleLegs.filter(hasVerifiedHistoricalValue);
+  const excludedSpotEstimateLegs = eligibleLegs.filter(leg => leg.valueUSDProvenance === 'spot_estimate').length;
+  const unpricedLegs = eligibleLegs.filter(leg => leg.valueUSDProvenance === 'unpriced').length;
+  const totalLegs = eligibleLegs.length;
 
-  const totalOutboundUSD =
-    tokenTransfers.filter(t => t.direction === 'out').reduce((sum, t) => sum + (t.valueUSD ?? 0), 0) +
-    transactions.filter(tx => tx.from.toLowerCase() === lower && tx.valueFormatted > 0).reduce((sum, tx) => sum + (tx.valueUSD ?? 0), 0);
+  const totalInboundUSD = [...eligibleNativeInbound, ...eligibleTokenInbound]
+    .filter(hasVerifiedHistoricalValue)
+    .reduce((sum, leg) => sum + (leg.valueUSD ?? 0), 0);
+  const totalOutboundUSD = [...eligibleNativeOutbound, ...eligibleTokenOutbound]
+    .filter(hasVerifiedHistoricalValue)
+    .reduce((sum, leg) => sum + (leg.valueUSD ?? 0), 0);
+
+  const coveragePercent = totalLegs === 0
+    ? 100
+    : Math.round((verifiedLegs.length / totalLegs) * 100);
+  const status = totalLegs > 0 && verifiedLegs.length === 0
+    ? 'unavailable'
+    : verifiedLegs.length < totalLegs
+      ? 'partial'
+      : 'complete';
 
   return {
     topInbound: tokenInbound,
@@ -46,5 +80,13 @@ export function analyzeTransfers(
     topNativeOutbound: nativeOutbound,
     totalInboundUSD,
     totalOutboundUSD,
+    capitalFlowCoverage: {
+      verifiedLegs: verifiedLegs.length,
+      totalLegs,
+      excludedSpotEstimateLegs,
+      unpricedLegs,
+      coveragePercent,
+      status,
+    },
   };
 }

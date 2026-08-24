@@ -2,9 +2,10 @@ import { test, describe } from 'node:test';
 import assert from 'node:assert';
 import { getApiKeyForChain } from './etherscan';
 import { formatSafeUnits, processTransactions, processInternalTransactions } from './scanner';
-import { getCachedPrice } from './prices';
+import { getCachedPriceQuote } from './prices';
 import { checkSybilStatus } from './sybil/sybilService';
 import { computeMediaScore } from './sybil/mediaScoring';
+import { EtherscanInternalTransaction, EtherscanTransaction } from './types';
 
 describe('System Robustness & Precision Tests', () => {
   test('should resolve chain-specific explorer API keys correctly', () => {
@@ -17,6 +18,19 @@ describe('System Robustness & Precision Tests', () => {
     const keyArb = getApiKeyForChain(42161);
     assert.ok(keyEth === undefined || typeof keyEth === 'string');
     assert.ok(keyArb === undefined || typeof keyArb === 'string');
+  });
+
+  test('should reject the legacy placeholder API key', () => {
+    const previousEtherscanKey = process.env.ETHERSCAN_API_KEY;
+    delete process.env.ETHERSCAN_API_KEY;
+
+    try {
+      assert.strictEqual(getApiKeyForChain(1, 'YourEtherscanApiKeyHere'), undefined);
+      assert.strictEqual(getApiKeyForChain(1, 'your_etherscan_api_key'), undefined);
+    } finally {
+      if (previousEtherscanKey === undefined) delete process.env.ETHERSCAN_API_KEY;
+      else process.env.ETHERSCAN_API_KEY = previousEtherscanKey;
+    }
   });
 
   test('should format EVM wei and token units safely without float precision loss', () => {
@@ -34,41 +48,55 @@ describe('System Robustness & Precision Tests', () => {
   });
 
   test('should accurately price stablecoins at $1.00', () => {
-    const usdtPrice = getCachedPrice('tether', Math.floor(Date.now() / 1000));
-    const usdcPrice = getCachedPrice('usd-coin', Math.floor(Date.now() / 1000));
-    const daiPrice = getCachedPrice('dai', Math.floor(Date.now() / 1000));
-    assert.strictEqual(usdtPrice, 1.0);
-    assert.strictEqual(usdcPrice, 1.0);
-    assert.strictEqual(daiPrice, 1.0);
+    const usdtPrice = getCachedPriceQuote('tether', Math.floor(Date.now() / 1000));
+    const usdcPrice = getCachedPriceQuote('usd-coin', Math.floor(Date.now() / 1000));
+    const daiPrice = getCachedPriceQuote('dai', Math.floor(Date.now() / 1000));
+    assert.deepStrictEqual(usdtPrice, { priceUSD: 1, provenance: 'stablecoin_assumption' });
+    assert.deepStrictEqual(usdcPrice, { priceUSD: 1, provenance: 'stablecoin_assumption' });
+    assert.deepStrictEqual(daiPrice, { priceUSD: 1, provenance: 'stablecoin_assumption' });
   });
 
   test('should process normal and internal transactions with safe unit math', () => {
-    const mockTx: any = {
+    const mockTx: EtherscanTransaction = {
+      blockNumber: '1',
       hash: '0x123',
       timeStamp: '1700000000',
+      nonce: '0',
+      blockHash: '0xblock',
+      transactionIndex: '0',
       from: '0xaaa',
       to: '0xbbb',
       value: '2500000000000000000', // 2.5 ETH
+      gas: '21000',
       gasUsed: '21000',
       gasPrice: '20000000000',
       isError: '0',
+      txreceipt_status: '1',
       methodId: '0x',
       functionName: '',
       input: '0x',
+      contractAddress: '',
+      cumulativeGasUsed: '21000',
+      confirmations: '1',
     };
-    const processed = processTransactions([mockTx], '0xaaa', 1);
+    const processed = processTransactions([mockTx], 1);
     assert.strictEqual(processed.length, 1);
     assert.strictEqual(processed[0].valueFormatted, 2.5);
     assert.strictEqual(processed[0].category, 'transfer');
 
-    const mockInternal: any = {
+    const mockInternal: EtherscanInternalTransaction = {
+      blockNumber: '1',
       hash: '0x456',
       timeStamp: '1700000000',
       from: '0xcontract',
       to: '0xaaa',
       value: '5000000000000000000', // 5.0 ETH
       gasUsed: '0',
+      gas: '0',
       isError: '0',
+      errCode: '',
+      contractAddress: '',
+      traceId: '0',
       type: 'call',
       input: '0x',
     };
@@ -94,8 +122,8 @@ describe('System Robustness & Precision Tests', () => {
     const score = computeMediaScore({
       address: '0xbot',
       transactions: [
-        { hash: '0x1', timestamp: 1700000000, date: '2023-11-14', from: '0xbot', to: '0x1', value: '0', valueFormatted: 0, valueUSD: 0, gasUsed: 21000, gasPrice: 1, gasCostETH: 0.0001, gasCostUSD: 0.2, isError: false, methodId: '0x', functionName: '', category: 'transfer', chainId: 1 },
-        { hash: '0x2', timestamp: 1700000000, date: '2023-11-14', from: '0xbot', to: '0x2', value: '0', valueFormatted: 0, valueUSD: 0, gasUsed: 21000, gasPrice: 1, gasCostETH: 0.0001, gasCostUSD: 0.2, isError: false, methodId: '0x', functionName: '', category: 'transfer', chainId: 8453 },
+        { hash: '0x1', timestamp: 1700000000, date: '2023-11-14', from: '0xbot', to: '0x1', value: '0', valueFormatted: 0, valueUSD: 0, valueUSDProvenance: 'historical', gasUsed: 21000, gasPrice: 1, gasCostETH: 0.0001, gasCostUSD: 0.2, gasCostUSDProvenance: 'historical', isError: false, methodId: '0x', functionName: '', category: 'transfer', chainId: 1 },
+        { hash: '0x2', timestamp: 1700000000, date: '2023-11-14', from: '0xbot', to: '0x2', value: '0', valueFormatted: 0, valueUSD: 0, valueUSDProvenance: 'historical', gasUsed: 21000, gasPrice: 1, gasCostETH: 0.0001, gasCostUSD: 0.2, gasCostUSDProvenance: 'historical', isError: false, methodId: '0x', functionName: '', category: 'transfer', chainId: 8453 },
       ],
       tokenTransfers: [],
       uniqueContractCount: 2,
@@ -110,7 +138,7 @@ describe('System Robustness & Precision Tests', () => {
 
   test('should return null for unresolvable non-stablecoin assets without fallback corruption', () => {
     // Unknown or uncached assets must return null, NOT hardcoded 2800 or 580
-    const unknownPrice = getCachedPrice('some-uncached-token-id-12345', 1700000000);
-    assert.strictEqual(unknownPrice, null);
+    const unknownPrice = getCachedPriceQuote('some-uncached-token-id-12345', 1700000000);
+    assert.deepStrictEqual(unknownPrice, { priceUSD: null, provenance: 'unpriced' });
   });
 });

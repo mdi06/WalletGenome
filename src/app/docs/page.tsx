@@ -11,9 +11,7 @@ import {
   Zap,
   GitFork,
   Activity,
-  Layers,
   Lock,
-  Flame,
   UserCheck,
   Scale,
   Code2,
@@ -21,13 +19,12 @@ import {
   Database,
   Compass,
   ArrowLeft,
-  ChevronRight,
   Sparkles,
-  CheckCircle2,
-  ExternalLink,
   Copy,
   Check,
 } from 'lucide-react';
+import { REPORTING_METRIC_DEFINITIONS } from '@/lib/reportingContract';
+import { RISK_GRADE_BANDS, RISK_MODEL } from '@/lib/analysis/riskModel';
 
 interface DocSection {
   id: string;
@@ -72,7 +69,7 @@ const SECTIONS: DocSection[] = [
     category: '4. Security & Auditing',
     title: 'Composite Security Risk Engine (Score 0–100 & Grades A–F)',
     badge: 'RISK HEURISTICS',
-    summary: 'Multi-factor weighted penalty accumulator auditing unverified approvals, drain exposure, failure rates, and dead assets.',
+    summary: 'Multi-factor penalty accumulator for approval, failure-rate, stale-approval, and unknown-contract heuristics.',
     icon: ShieldAlert,
     filePath: 'src/lib/analysis/riskScore.ts',
   },
@@ -95,17 +92,8 @@ const SECTIONS: DocSection[] = [
     filePath: 'src/lib/analysis/approvals.ts',
   },
   {
-    id: 'portfolio-graveyard',
-    category: '7. Asset Forensics',
-    title: 'Portfolio Graveyard & Dead Asset Loss Quantification',
-    badge: 'VALUE LOSS TRACKER',
-    summary: 'Historical unit peak pricing, 180-day inactivity filtering, and cumulative unrealized peak loss calculations.',
-    icon: Flame,
-    filePath: 'src/lib/analysis/deadAssets.ts',
-  },
-  {
     id: 'temporal-activity-heatmap',
-    category: '8. Cadence & Streaks',
+    category: '7. Cadence & Streaks',
     title: '24×7 Temporal Matrix & Continuous Streak Engine',
     badge: 'TIME-SERIES CADENCE',
     summary: 'Day-hour UTC projection, peak activity identification, and O(N) daily streak algorithms.',
@@ -114,7 +102,7 @@ const SECTIONS: DocSection[] = [
   },
   {
     id: 'capital-cluster-topologies',
-    category: '9. Network Topologies',
+    category: '8. Network Topologies',
     title: 'Capital Flow Topology & Cluster Linkage Matrix',
     badge: 'GRAPH ALGORITHMS',
     summary: '3-column Arkham acyclic layout, inter-wallet transfer detection, and radial orbital multi-body cluster coordinates.',
@@ -123,7 +111,7 @@ const SECTIONS: DocSection[] = [
   },
   {
     id: 'decentralized-identity',
-    category: '10. Social Graph',
+    category: '9. Social Graph',
     title: 'Decentralized Identity & Platform Priority Hierarchy',
     badge: 'WEB3.BIO RESOLUTION',
     summary: 'Multi-protocol identity cross-referencing across ENS, Farcaster, Lens, BaseNames, and social handles.',
@@ -132,7 +120,7 @@ const SECTIONS: DocSection[] = [
   },
   {
     id: 'complexity-matrix',
-    category: '11. Technical Specifications',
+    category: '10. Technical Specifications',
     title: 'Algorithmic Complexity & Execution Guarantees',
     badge: 'BIG-O SPECIFICATION',
     summary: 'Summary table of time complexity, space complexity, execution runtime, and caching strategies.',
@@ -211,7 +199,7 @@ export default function DocsPage() {
           How WalletGenome Computes On-Chain Intelligence
         </h1>
         <p className="text-sm sm:text-base text-[#4b5563] font-medium max-w-4xl leading-relaxed text-pretty">
-          A clear breakdown of the core algorithms, data pipelines, and security checks powering WalletGenome's on-chain analysis.
+          A clear breakdown of the core algorithms, data pipelines, and security checks powering WalletGenome&apos;s on-chain analysis.
         </p>
 
         {/* Live Search & Filter */}
@@ -302,6 +290,52 @@ export default function DocsPage() {
 
         {/* ── Right Detailed Content ── */}
         <div className="lg:col-span-8 space-y-8">
+          <section id="reporting-contract" className="card-3d p-6 sm:p-8 space-y-5 text-[#0a0a0a]">
+            <div className="space-y-1 border-b border-[#c8c8c8] pb-3">
+              <span className="badge-3d text-[10px] font-mono font-black text-[#ff5500] uppercase tracking-wider px-2 py-0.5">
+                CANONICAL API CONTRACT
+              </span>
+              <h2 className="text-xl sm:text-2xl font-black uppercase pt-1">Reporting metric definitions</h2>
+            </div>
+            <p className="text-xs sm:text-sm text-[#374151] leading-relaxed">
+              These definitions are imported from the same contract used by API responses and dashboard labels. USD metrics are withheld when their required provider or price inputs are incomplete.
+            </p>
+            <div className="overflow-x-auto">
+              <table className="min-w-[900px] w-full text-left text-xs">
+                <thead>
+                  <tr className="border-b-2 border-black">
+                    <th className="p-3">Field</th>
+                    <th className="p-3">Unit / window</th>
+                    <th className="p-3">Sources and rules</th>
+                    <th className="p-3">Completeness / pricing</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {REPORTING_METRIC_DEFINITIONS.map(metric => (
+                    <tr key={metric.field} className="border-b border-[#c8c8c8] align-top">
+                      <td className="p-3">
+                        <code className="font-bold">{metric.field}</code>
+                        <div className="mt-1 text-[#4b5563]">{metric.label}</div>
+                      </td>
+                      <td className="p-3">
+                        <div className="font-bold">{metric.unit}</div>
+                        <div className="mt-1 text-[#4b5563]">{metric.timeWindow}</div>
+                      </td>
+                      <td className="p-3 text-[#374151]">
+                        <div>{metric.dataSources}</div>
+                        <div className="mt-1">{metric.inclusionExclusion}</div>
+                        <div className="mt-1 font-bold">{metric.aggregation}</div>
+                      </td>
+                      <td className="p-3 text-[#374151]">
+                        <div>{metric.completeness}</div>
+                        <div className="mt-1">{metric.priceProvenance}</div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
           
           {/* ========================================================================= */}
           {/* 1. PIPELINE ARCHITECTURE */}
@@ -354,7 +388,7 @@ export default function DocsPage() {
                                ▼
 ┌─────────────────────────────────────────────────────────────┐
 │ Parallel Enrichment Pipeline:                               │
-│ • Daily OHLC Price Resolution via CoinGecko In-Memory Cache │
+│ • Daily Price + Explicit Spot-Estimate Provenance           │
 │ • Anti-Spoofing Verified Contract Mapping                   │
 │ • Web3.bio Identity Graph Resolution (Async non-blocking)   │
 └─────────────────────────────────────────────────────────────┘`}
@@ -365,13 +399,13 @@ export default function DocsPage() {
               <div className="card-3d p-4 space-y-1.5">
                 <div className="font-black text-[#0a0a0a] uppercase">Concurrency</div>
                 <p className="text-[#4b5563] leading-relaxed text-[11px] text-pretty">
-                  Requests are processed in parallel batches with automated retries and timeouts to guarantee completion without hitting rate limits.
+                  Historical asset-days are deduplicated and sent through DefiLlama batch requests. CoinGecko receives only a small bounded fallback workload. Provider failures remain explicit partial or unavailable results.
                 </p>
               </div>
               <div className="card-3d p-4 space-y-1.5">
                 <div className="font-black text-[#0a0a0a] uppercase">Anti-Spoofing</div>
                 <p className="text-[#4b5563] leading-relaxed text-[11px] text-pretty">
-                  Prices are only fetched for strictly verified contract addresses to prevent scam tokens from inflating portfolio values.
+                  Contract allowlists and known symbols limit pricing inputs. Every calculated USD value carries historical, spot-estimate, stablecoin-assumption, or unpriced provenance.
                 </p>
               </div>
             </div>
@@ -446,7 +480,7 @@ export default function DocsPage() {
                   </tr>
                   <tr className="hover:bg-white/60 transition-colors">
                     <td className="p-3 font-black text-black">transfer</td>
-                    <td className="p-3"><code className="badge-3d px-1.5 py-0.5">input === '0x'</code></td>
+                    <td className="p-3"><code className="badge-3d px-1.5 py-0.5">input === &apos;0x&apos;</code></td>
                     <td className="p-3 text-[#374151]">Pure native ETH / BNB value transfer between EOA accounts.</td>
                   </tr>
                 </tbody>
@@ -461,10 +495,10 @@ export default function DocsPage() {
               </div>
               <div className="well-recessed-light p-3.5 font-mono text-xs text-[#0a0a0a] space-y-1">
                 <div>{'Gas Cost (ETH) = (gasUsed × gasPrice) / 10^18'}</div>
-                <div>{'Gas Cost (USD) = Gas Cost (ETH) × Historical Daily Price(t)'}</div>
+                <div>{'Gas Cost (USD) = Gas Cost (Native) × Price(t, provenance)'}</div>
               </div>
               <p className="text-[11px] text-[#4b5563] font-mono leading-relaxed">
-                Gas costs are calculated using historical prices matching the exact timestamp of execution.
+                Timestamp-matched daily prices are requested in DefiLlama batches, with bounded CoinGecko ranges as fallback. Missing daily prices remain unavailable or are explicitly marked as current-price estimates; they never appear as exact historical values.
               </p>
             </div>
           </section>
@@ -635,32 +669,32 @@ export default function DocsPage() {
                 <tbody className="divide-y divide-[#c8c8c8] text-xs font-bold text-[#0a0a0a]">
                   <tr className="hover:bg-white/60 transition-colors">
                     <td className="p-3 font-bold">1. High-Risk Unlimited Approvals</td>
-                    <td className="p-3 font-bold text-[#ff5500]">40 pts</td>
-                    <td className="p-3 font-mono">{'min(40, HighRiskApprovals × 15)'}</td>
+                    <td className="p-3 font-bold text-[#ff5500]">{RISK_MODEL.highRiskApprovals.maxImpact} pts</td>
+                    <td className="p-3 font-mono">{`min(${RISK_MODEL.highRiskApprovals.maxImpact}, HighRiskApprovals × ${RISK_MODEL.highRiskApprovals.impactPerApproval})`}</td>
                     <td className="p-3"><span className="badge-3d bg-[#dc2626]/15 text-[#b91c1c] border border-[#dc2626]/40 px-2 py-0.5 font-bold">Critical</span></td>
                   </tr>
                   <tr className="hover:bg-white/60 transition-colors">
+                    <td className="p-3 font-bold">1b. Known-Contract Unlimited Approvals</td>
+                    <td className="p-3 font-bold">{RISK_MODEL.knownUnlimitedApprovals.maxImpact} pts</td>
+                    <td className="p-3 font-mono">{`min(${RISK_MODEL.knownUnlimitedApprovals.maxImpact}, UnlimitedCount × ${RISK_MODEL.knownUnlimitedApprovals.impactPerApproval}) if no high-risk approvals and UnlimitedCount > ${RISK_MODEL.knownUnlimitedApprovals.minimumCountExclusive}`}</td>
+                    <td className="p-3"><span className="badge-3d bg-[#f59e0b]/15 text-[#b45309] border border-[#f59e0b]/40 px-2 py-0.5 font-bold">Warning</span></td>
+                  </tr>
+                  <tr className="hover:bg-white/60 transition-colors">
                     <td className="p-3 font-bold">2. Failed Transaction Ratio</td>
-                    <td className="p-3 font-bold text-[#ff5500]">25 pts</td>
-                    <td className="p-3 font-mono">{'min(25, round(FailedRatio × 120)) if FailedRatio > 5%'}</td>
+                    <td className="p-3 font-bold text-[#ff5500]">{RISK_MODEL.failedTransactions.maxImpact} pts</td>
+                    <td className="p-3 font-mono">{`min(${RISK_MODEL.failedTransactions.maxImpact}, round(FailedRatio × ${RISK_MODEL.failedTransactions.ratioMultiplier})) if FailedRatio > 5%`}</td>
                     <td className="p-3"><span className="badge-3d bg-[#f59e0b]/15 text-[#b45309] border border-[#f59e0b]/40 px-2 py-0.5 font-bold">Warning</span></td>
                   </tr>
                   <tr className="hover:bg-white/60 transition-colors">
                     <td className="p-3 font-bold">3. Stale Approvals (&gt;6 Months)</td>
-                    <td className="p-3 font-bold">15 pts</td>
-                    <td className="p-3 font-mono">{'min(15, StaleCount × 3) if StaleCount > 2'}</td>
+                    <td className="p-3 font-bold">{RISK_MODEL.staleApprovals.maxImpact} pts</td>
+                    <td className="p-3 font-mono">{`min(${RISK_MODEL.staleApprovals.maxImpact}, StaleCount × ${RISK_MODEL.staleApprovals.impactPerApproval}) if StaleCount > ${RISK_MODEL.staleApprovals.minimumCountExclusive}`}</td>
                     <td className="p-3"><span className="badge-3d bg-[#f59e0b]/15 text-[#b45309] border border-[#f59e0b]/40 px-2 py-0.5 font-bold">Warning</span></td>
                   </tr>
                   <tr className="hover:bg-white/60 transition-colors">
                     <td className="p-3 font-bold">4. Unidentified Contract Ratio</td>
-                    <td className="p-3 font-bold">10 pts</td>
-                    <td className="p-3 font-mono">{'min(10, round(UnknownRatio × 20)) if UnknownRatio > 30%'}</td>
-                    <td className="p-3"><span className="badge-3d bg-[#3b82f6]/15 text-[#1d4ed8] border border-[#3b82f6]/40 px-2 py-0.5 font-bold">Info</span></td>
-                  </tr>
-                  <tr className="hover:bg-white/60 transition-colors">
-                    <td className="p-3 font-bold">5. Dead Token Holdings</td>
-                    <td className="p-3 font-bold">10 pts</td>
-                    <td className="p-3 font-mono">{'min(10, DeadTokensCount) if DeadCount > 5'}</td>
+                    <td className="p-3 font-bold">{RISK_MODEL.unknownContracts.maxImpact} pts</td>
+                    <td className="p-3 font-mono">{`min(${RISK_MODEL.unknownContracts.maxImpact}, round(UnknownRatio × ${RISK_MODEL.unknownContracts.ratioMultiplier})) if UnknownRatio > 30% and UnknownCount > ${RISK_MODEL.unknownContracts.minimumCountExclusive}`}</td>
                     <td className="p-3"><span className="badge-3d bg-[#3b82f6]/15 text-[#1d4ed8] border border-[#3b82f6]/40 px-2 py-0.5 font-bold">Info</span></td>
                   </tr>
                 </tbody>
@@ -669,31 +703,12 @@ export default function DocsPage() {
 
             {/* Letter Grade Scale */}
             <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 text-center font-mono text-xs">
-              <div className="card-3d p-3 text-[#047857]">
-                <div className="text-lg font-black">GRADE A</div>
-                <div className="text-[10px] font-bold">Score 0–15</div>
-                <div className="text-[9px] text-[#6b7280]">Pristine Security</div>
-              </div>
-              <div className="card-3d p-3 text-blue-700">
-                <div className="text-lg font-black">GRADE B</div>
-                <div className="text-[10px] font-bold">Score 16–30</div>
-                <div className="text-[9px] text-[#6b7280]">Minor Warnings</div>
-              </div>
-              <div className="card-3d p-3 text-amber-700">
-                <div className="text-lg font-black">GRADE C</div>
-                <div className="text-[10px] font-bold">Score 31–50</div>
-                <div className="text-[9px] text-[#6b7280]">Elevated Risk</div>
-              </div>
-              <div className="card-3d p-3 text-orange-700">
-                <div className="text-lg font-black">GRADE D</div>
-                <div className="text-[10px] font-bold">Score 51–70</div>
-                <div className="text-[9px] text-[#6b7280]">Substantial Exposure</div>
-              </div>
-              <div className="card-3d p-3 text-red-700">
-                <div className="text-lg font-black">GRADE F</div>
-                <div className="text-[10px] font-bold">Score 71–100</div>
-                <div className="text-[9px] text-[#6b7280]">Critical Vulnerability</div>
-              </div>
+              {RISK_GRADE_BANDS.map(band => (
+                <div key={band.grade} className="card-3d p-3 text-[#0a0a0a]">
+                  <div className="text-lg font-black">GRADE {band.grade}</div>
+                  <div className="text-[10px] font-bold">Score {band.min}–{band.max}</div>
+                </div>
+              ))}
             </div>
           </section>
 
@@ -721,6 +736,7 @@ export default function DocsPage() {
 
             <p className="text-xs sm:text-sm text-[#374151] leading-relaxed text-pretty">
               Sybil defense checks an 800K+ blacklist cache and uses the Trusta AI MEDIA model to identify bot-like behavior.
+              A positive non-behavioral blacklist match overrides the overall clean/organic headline; the MEDIA probability remains a separate secondary heuristic.
             </p>
 
             {/* In-Memory Datasets */}
@@ -816,7 +832,7 @@ export default function DocsPage() {
             </div>
 
             <p className="text-xs sm:text-sm text-[#374151] leading-relaxed text-pretty">
-              WalletGenome calculates your actual <strong>capital at risk in USD</strong> by tracking token allowances and historical balances.
+              WalletGenome estimates current approval exposure from decoded allowances, reconstructed token balances, and priced assets. It does not treat an unknown balance or price as zero exposure.
             </p>
 
             <div className="well-recessed-light p-5 space-y-3 font-mono text-xs">
@@ -838,51 +854,12 @@ export default function DocsPage() {
                 <div className="card-3d p-3">
                   <strong>3. Net Holdings Reconstruction & Dollar Risk:</strong><br/>
                   <div className="well-recessed-light p-2.5 font-mono text-xs mt-1.5">
-                    <div>Token Balance = Σ(Inbound Transfers) - Σ(Outbound Transfers)</div>
-                    <div className="font-bold text-[#ff5500]">Capital at Risk (USD) = Token Balance × Unit Price (USD)</div>
+                    <div>Reconstructed Token Balance = max(0, Σ(Inbound Transfers) - Σ(Outbound Transfers))</div>
+                    <div>Exposed Units = min(Reconstructed Balance, Finite Allowance); unlimited approvals use the reconstructed balance.</div>
+                    <div className="font-bold text-[#ff5500]">Estimated Exposure (USD) = Exposed Units × Unit Price (USD)</div>
+                    <div>Unknown balance or price = unavailable. A verified zero reconstructed balance is shown separately as zero balance.</div>
                   </div>
                 </div>
-              </div>
-            </div>
-          </section>
-
-          {/* ========================================================================= */}
-          {/* 7. PORTFOLIO GRAVEYARD */}
-          {/* ========================================================================= */}
-          <section id="portfolio-graveyard" className="card-3d p-6 sm:p-8 space-y-5 text-[#0a0a0a]">
-            <div className="flex items-center justify-between border-b border-[#c8c8c8] pb-3">
-              <div className="space-y-1">
-                <span className="badge-3d text-[10px] font-mono font-black text-[#ff5500] uppercase tracking-wider px-2 py-0.5">
-                  SECTION 07 · ASSET FORENSICS
-                </span>
-                <h2 className="text-xl sm:text-2xl font-black uppercase text-[#0a0a0a] pt-1">
-                  Portfolio Graveyard & Dead Asset Loss Quantification
-                </h2>
-              </div>
-              <button
-                onClick={() => handleCopyLink('portfolio-graveyard')}
-                className="btn-3d-neutral p-2 text-[#4b5563] hover:text-black cursor-pointer"
-                title="Copy anchor link"
-              >
-                {copiedId === 'portfolio-graveyard' ? <Check size={14} className="text-green-600" /> : <Copy size={14} />}
-              </button>
-            </div>
-
-            <p className="text-xs sm:text-sm text-[#374151] leading-relaxed text-pretty">
-              The Graveyard engine identifies dead tokens and calculates the exact value lost from their historical peak.
-            </p>
-
-            <div className="well-recessed-light p-5 space-y-3 font-mono text-xs">
-              <div className="font-black text-[#0a0a0a] uppercase">Dead Asset Heuristic Rule:</div>
-              <div className="space-y-1 text-[11px] text-[#374151]">
-                <div>1. Holding balance &gt; 0.001 units.</div>
-                <div>2. Token is not a benchmark asset (USDT, USDC, DAI, WETH, WBTC, ETH, BUSD, FRAX).</div>
-                <div>3. No transfer activity for &gt; 180 days OR total historical inbound USD valuation = $0.</div>
-                <div>4. Peak USD loss calculation:</div>
-              </div>
-              <div className="card-3d p-3.5 text-xs font-mono space-y-1">
-                <div>{'Peak Unit Price = max(Transfer USD Value / Transfer Token Amount)'}</div>
-                <div className="font-black text-[#dc2626]">{'Total Peak Value Lost = Σ(Peak Unit Price × Current Balance)'}</div>
               </div>
             </div>
           </section>
@@ -894,7 +871,7 @@ export default function DocsPage() {
             <div className="flex items-center justify-between border-b border-[#c8c8c8] pb-3">
               <div className="space-y-1">
                 <span className="badge-3d text-[10px] font-mono font-black text-[#ff5500] uppercase tracking-wider px-2 py-0.5">
-                  SECTION 08 · CADENCE & STREAKS
+                  SECTION 07 · CADENCE & STREAKS
                 </span>
                 <h2 className="text-xl sm:text-2xl font-black uppercase text-[#0a0a0a] pt-1">
                   24×7 Temporal Matrix & Continuous Streak Engine
@@ -940,7 +917,7 @@ export default function DocsPage() {
             <div className="flex items-center justify-between border-b border-[#c8c8c8] pb-3">
               <div className="space-y-1">
                 <span className="badge-3d text-[10px] font-mono font-black text-[#ff5500] uppercase tracking-wider px-2 py-0.5">
-                  SECTION 09 · NETWORK TOPOLOGIES
+                  SECTION 08 · NETWORK TOPOLOGIES
                 </span>
                 <h2 className="text-xl sm:text-2xl font-black uppercase text-[#0a0a0a] pt-1">
                   Capital Flow Topology & Cluster Linkage Matrix
@@ -958,6 +935,12 @@ export default function DocsPage() {
             <p className="text-xs sm:text-sm text-[#374151] leading-relaxed text-pretty">
               We visualize funds using Capital Flow Graphs for single addresses and Cluster Matrices for multiple wallets.
             </p>
+
+            <div className="card-3d p-4 text-xs text-[#374151] space-y-1">
+              <div className="font-black text-[#0a0a0a] uppercase">Cluster evidence rule</div>
+              <p>Direct links require a native, internal, or ERC-20 transfer whose source and target are both submitted wallets. Evidence is deduplicated by chain, transaction hash, direction, asset type, and asset identifier, then aggregated by source, target, and chain.</p>
+              <p>Every linkage retains unique evidence hashes, transaction count, direction, last date, and USD completeness. Shared counterparties are computed from the full evidence set; only rendering is truncated.</p>
+            </div>
 
             <div className="well-recessed-light p-5 space-y-3 font-mono text-xs">
               <div className="font-black text-[#0a0a0a] uppercase">Graph Layout Mathematics:</div>
@@ -987,7 +970,7 @@ export default function DocsPage() {
             <div className="flex items-center justify-between border-b border-[#c8c8c8] pb-3">
               <div className="space-y-1">
                 <span className="badge-3d text-[10px] font-mono font-black text-[#ff5500] uppercase tracking-wider px-2 py-0.5">
-                  SECTION 10 · SOCIAL GRAPH
+                  SECTION 09 · SOCIAL GRAPH
                 </span>
                 <h2 className="text-xl sm:text-2xl font-black uppercase text-[#0a0a0a] pt-1">
                   Decentralized Identity & Platform Priority Hierarchy
@@ -1053,7 +1036,7 @@ export default function DocsPage() {
             <div className="flex items-center justify-between border-b border-[#c8c8c8] pb-3">
               <div className="space-y-1">
                 <span className="badge-3d text-[10px] font-mono font-black text-[#ff5500] uppercase tracking-wider px-2 py-0.5">
-                  SECTION 11 · TECHNICAL SPECIFICATIONS
+                  SECTION 10 · TECHNICAL SPECIFICATIONS
                 </span>
                 <h2 className="text-xl sm:text-2xl font-black uppercase text-[#0a0a0a] pt-1">
                   Algorithmic Complexity & Execution Guarantees

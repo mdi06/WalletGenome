@@ -1,15 +1,15 @@
 'use client';
 
 import React, { useState, useMemo, useRef, useEffect } from 'react';
-import { BulkWrappedWallet, ClusterLinkage } from '@/lib/types';
-import { formatCompactUSD } from './Dashboard';
+import { BulkWrappedWallet, ClusterLinkage, SharedCounterparty } from '@/lib/types';
+import { formatCompactUSD } from '@/lib/utils/dashboardUtils';
 import { ZoomIn, ZoomOut, RotateCcw, ArrowRight, Move, ExternalLink, GitFork } from 'lucide-react';
-import { getExplorerAddressUrl } from '@/lib/chains';
+import { getExplorerTxUrl } from '@/lib/chains';
 
 interface Props {
   wallets: BulkWrappedWallet[];
   linkages: ClusterLinkage[];
-  sharedCounterparties: { address: string; label: string | null; sharedCount: number }[];
+  sharedCounterparties: SharedCounterparty[];
   onInspectWallet: (address: string) => void;
 }
 
@@ -36,7 +36,9 @@ interface RenderLink {
   targetNode: ClusterNode;
   type: 'direct' | 'hub';
   txCount?: number;
-  volumeUSD?: number;
+  volumeUSD?: number | null;
+  valueStatus?: ClusterLinkage['valueStatus'];
+  evidenceTxHashes?: string[];
   chainId?: number;
   lastDate?: string;
   detail?: string;
@@ -161,6 +163,8 @@ export default function ClusterFlowGraph({
           type: 'direct',
           txCount: l.txCount,
           volumeUSD: l.volumeUSD,
+          valueStatus: l.valueStatus,
+          evidenceTxHashes: l.evidenceTxHashes,
           chainId: l.chainId || 1,
           lastDate: l.lastDate,
           detail: l.detail,
@@ -175,7 +179,7 @@ export default function ClusterFlowGraph({
       if (!hubNode) return;
 
       wallets.forEach((w, wIdx) => {
-        const hasCounterparty = w.counterparties?.some(c => c.address.toLowerCase() === hub.address.toLowerCase());
+        const hasCounterparty = hub.walletAddresses.includes(w.address.toLowerCase());
         if (hasCounterparty) {
           const wNode = nodeMap.get(w.address.toLowerCase());
           if (wNode) {
@@ -197,7 +201,7 @@ export default function ClusterFlowGraph({
       nodes: nodeList,
       links: linkList,
     };
-  }, [wallets, linkages, sharedCounterparties]);
+  }, [wallets, linkages, sharedCounterparties, centerX, centerY]);
 
   const activeNodeMap = useMemo(() => new Map(nodes.map(n => [n.id, n])), [nodes]);
   const activeHoveredNode = hoveredNodeId ? activeNodeMap.get(hoveredNodeId) : null;
@@ -503,7 +507,9 @@ export default function ClusterFlowGraph({
 
               <div className="flex justify-between items-center text-xs font-mono">
                 <span className="text-[#555555]">Transferred Volume:</span>
-                <span className="font-black text-base text-[#ff5500]">{formatCompactUSD(activeLink.volumeUSD || 0)}</span>
+                <span className="font-black text-base text-[#ff5500]">
+                  {activeLink.volumeUSD === null ? `Unavailable (${activeLink.valueStatus})` : formatCompactUSD(activeLink.volumeUSD ?? 0)}
+                </span>
               </div>
 
               {activeLink.lastDate && (
@@ -515,7 +521,7 @@ export default function ClusterFlowGraph({
             </div>
 
             <a
-              href={getExplorerAddressUrl(activeLink.chainId || 1, activeLink.sourceNode.address)}
+              href={getExplorerTxUrl(activeLink.chainId || 1, activeLink.evidenceTxHashes?.[0] ?? '')}
               target="_blank"
               rel="noopener noreferrer"
               className="w-full mt-2 bg-black hover:bg-[#ff5500] text-white text-xs font-bold py-1.5 px-3 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"

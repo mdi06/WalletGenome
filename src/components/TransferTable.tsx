@@ -56,7 +56,7 @@ export default function TransferTable({ results }: Props) {
           {[{ id: 'all', label: 'All Chains' }, { id: 1, label: 'Ethereum' }, { id: 42161, label: 'Arbitrum' }, { id: 8453, label: 'Base' }, { id: 10, label: 'Optimism' }].map(c => (
             <button
               key={c.id}
-              onClick={() => setSelectedChain(c.id as any)}
+              onClick={() => setSelectedChain(c.id === 'all' ? 'all' : Number(c.id))}
               className={`px-3 py-1 text-xs font-bold cursor-pointer ${
                 selectedChain === c.id
                   ? 'btn-3d-black text-white'
@@ -108,7 +108,14 @@ export default function TransferTable({ results }: Props) {
                     {t.valueFormatted.toFixed(4)}
                   </td>
                   <td className="py-3.5 px-4 text-right font-mono font-black text-[#0a0a0a]">
-                    {t.valueUSD ? `$${t.valueUSD.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : '—'}
+                    <div>
+                      {t.valueUSD !== null
+                        ? `$${t.valueUSD.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+                        : 'Unavailable'}
+                    </div>
+                    <div className="text-[9px] font-bold uppercase text-[#6b7280]">
+                      {t.valueUSDProvenance.replaceAll('_', ' ')}
+                    </div>
                   </td>
                   <td className="py-3.5 px-4 font-mono">
                     <div className="font-bold text-[#0a0a0a]">{counterpartyLabel || `${counterparty.slice(0, 6)}...${counterparty.slice(-4)}`}</div>

@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { ArrowRight, ShieldCheck, Dna, GitFork, UserCheck, Lock, Layers, Zap, Activity, HelpCircle, BookOpen } from 'lucide-react';
+import { ArrowRight, ShieldCheck, Dna, GitFork, UserCheck, Lock, Layers, Activity, HelpCircle, BookOpen } from 'lucide-react';
 
 interface Props {
   onSelectAddress: (address: string) => void;
@@ -54,10 +54,10 @@ export default function WelcomeGuide({ onSelectAddress }: Props) {
         <div className="flex items-center justify-between">
           <h2 id="demo-profiles-heading" className="text-xs font-extrabold text-[#4b5563] uppercase tracking-wider flex items-center gap-1.5">
             <Activity size={14} className="text-[#ff5500]" />
-            <span>TRY INSTANT DEMO PROFILES (1-CLICK SCAN)</span>
+            <span>TRY DEMO ADDRESSES (LIVE 1-CLICK SCAN)</span>
           </h2>
           <span className="text-[11px] font-bold text-[#6b7280] hidden sm:inline">
-            Click any profile to test-drive live intelligence
+            Click any address to run live provider indexing
           </span>
         </div>
 
@@ -127,7 +127,7 @@ export default function WelcomeGuide({ onSelectAddress }: Props) {
               Multi-Chain Scan
             </h3>
             <p className="text-xs text-[#4b5563] leading-relaxed text-pretty">
-              Enter any 0x address or ENS domain. We query Ethereum, Arbitrum, Base, BSC, and Optimism simultaneously—without requiring you to connect a wallet or install extensions.
+              Enter any 0x address or ENS domain. We query Ethereum, Arbitrum, Base, and Optimism simultaneously—without requiring you to connect a wallet or install extensions.
             </p>
           </div>
 
@@ -283,7 +283,7 @@ export default function WelcomeGuide({ onSelectAddress }: Props) {
         </div>
         <div className="flex items-center gap-2">
           <span className="text-[#0a0a0a]">Supported Networks:</span>
-          <span className="font-mono text-[#ff5500]">Ethereum · Arbitrum · Base · BSC · Optimism</span>
+          <span className="font-mono text-[#ff5500]">Ethereum · Arbitrum · Base · Optimism</span>
         </div>
       </div>
 

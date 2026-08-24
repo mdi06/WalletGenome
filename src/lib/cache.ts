@@ -3,12 +3,15 @@
  * for resilient multi-chain indexing and pricing.
  */
 
+import { PERSISTENCE_POLICY } from './persistencePolicy';
+import type { WalletIdentityReport, WalletScanResponse } from './types';
+
 interface CacheEntry<T> {
   value: T;
   expiresAt: number;
 }
 
-export class MemoryCache<T = any> {
+export class MemoryCache<T = unknown> {
   private store = new Map<string, CacheEntry<T>>();
   private maxItems: number;
   private defaultTtlMs: number;
@@ -106,9 +109,15 @@ export class DomainRateLimiter {
   }
 }
 
-// Global singletons for server runtime
-export const scanResultCache = new MemoryCache<any>(500, 300); // 5 min TTL
-export const identityCache = new MemoryCache<any>(500, 1800); // 30 min TTL
+// Best-effort, process-local optimizations. Correctness must not depend on a warm instance.
+export const scanResultCache = new MemoryCache<WalletScanResponse>(
+  500,
+  PERSISTENCE_POLICY.caches.scanTtlSeconds,
+);
+export const identityCache = new MemoryCache<WalletIdentityReport>(
+  500,
+  PERSISTENCE_POLICY.caches.identityTtlSeconds,
+);
 export const domainRateLimiters = new Map<string, DomainRateLimiter>();
 
 export function getDomainLimiter(domainOrHost: string, maxReqPerSec = 4): DomainRateLimiter {

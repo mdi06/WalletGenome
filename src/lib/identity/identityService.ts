@@ -1,5 +1,6 @@
 import { WalletIdentityReport, SocialLinkItem, DomainIdentityItem } from '../types';
 import { identityCache, getDomainLimiter } from '../cache';
+import { PERSISTENCE_POLICY } from '../persistencePolicy';
 
 interface Web3BioProfile {
   platform: string;
@@ -51,7 +52,7 @@ export async function resolveWalletIdentity(address: string): Promise<WalletIden
     const profiles: Web3BioProfile[] = await res.json();
     if (!Array.isArray(profiles) || profiles.length === 0) {
       const empty = getEmptyReport();
-      identityCache.set(lower, empty, 600); // 10 min cache for empty
+      identityCache.set(lower, empty, PERSISTENCE_POLICY.caches.emptyIdentityTtlSeconds);
       return empty;
     }
 
@@ -172,9 +173,9 @@ export async function resolveWalletIdentity(address: string): Promise<WalletIden
       hasIdentity,
     };
 
-    identityCache.set(lower, report, 1800); // 30 min cache
+    identityCache.set(lower, report, PERSISTENCE_POLICY.caches.identityTtlSeconds);
     return report;
-  } catch (err) {
+  } catch {
     return getEmptyReport();
   } finally {
     clearTimeout(timeoutId);

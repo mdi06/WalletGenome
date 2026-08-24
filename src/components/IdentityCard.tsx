@@ -1,8 +1,9 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 import { WalletIdentityReport, SocialLinkItem } from '@/lib/types';
-import { ExternalLink, Globe, User, MessageSquare, Send, CheckCircle2 } from 'lucide-react';
+import { ExternalLink, Globe, MessageSquare, Send, CheckCircle2 } from 'lucide-react';
 
 interface Props {
   identity?: WalletIdentityReport;
@@ -20,13 +21,12 @@ export default function IdentityCard({ identity, address }: Props) {
         <div className="flex items-center gap-3.5">
           <div className="w-12 h-12 btn-3d-orange flex items-center justify-center text-white font-black flex-shrink-0 overflow-hidden">
             {identity?.primaryAvatar ? (
-              <img
+              <Image
                 src={identity.primaryAvatar}
                 alt={identity.primaryName || address}
                 width={48}
                 height={48}
-                // @ts-ignore
-                fetchPriority="high"
+                unoptimized
                 loading="eager"
                 className="w-full h-full object-cover"
                 onError={(e) => {

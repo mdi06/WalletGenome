@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { ScanResult, ProtocolInteraction } from '@/lib/types';
+import { AddressInteraction, ScanResult, ProtocolInteraction } from '@/lib/types';
 import { getExplorerAddressUrl } from '@/lib/chains';
 import { ExternalLink, ChevronDown, ChevronRight, Search } from 'lucide-react';
 
@@ -19,11 +19,11 @@ export default function InteractionsPanel({ results }: Props) {
     const map = new Map<string, ProtocolInteraction>();
     results.forEach(r => {
       r.interactionsSummary?.topProtocols?.forEach(p => {
-        const key = p.name.toLowerCase();
+        const key = `${p.chainId}:${p.name.toLowerCase()}`;
         const existing = map.get(key);
         if (existing) {
           existing.txCount += p.txCount;
-          existing.totalGasETH += p.totalGasETH;
+          existing.totalGasNative += p.totalGasNative;
           existing.totalGasUSD += p.totalGasUSD;
           existing.totalVolumeUSD += p.totalVolumeUSD;
           const mergedContracts = [...(existing.contracts || []), ...(p.contracts || [])];
@@ -37,7 +37,7 @@ export default function InteractionsPanel({ results }: Props) {
   }, [results]);
 
   const counterparties = useMemo(() => {
-    const list: any[] = [];
+    const list: AddressInteraction[] = [];
     results.forEach(r => {
       r.interactionsSummary?.topCounterparties?.forEach(c => {
         list.push({ ...c, chainId: r.chainId });
@@ -68,6 +68,9 @@ export default function InteractionsPanel({ results }: Props) {
   return (
     <div className="space-y-6">
       {/* ── Top Summary Header Metrics ── */}
+      <div className="border border-[#c8c8c8] bg-[#f3f4f6] p-3 text-xs font-bold text-[#4b5563]">
+        USD gas and volume values use timestamp-matched historical prices or explicit stablecoin assumptions. Estimated or unpriced scans are withheld before this view renders.
+      </div>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="card-3d p-5 text-[#0a0a0a] space-y-1">
           <div className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider">
@@ -177,11 +180,12 @@ export default function InteractionsPanel({ results }: Props) {
             </thead>
             <tbody className="divide-y divide-[#cecece] text-xs font-bold text-[#0a0a0a]">
               {filteredProtocols.map((p, i) => {
-                const isExpanded = expandedProtocols.has(p.name);
+                const protocolKey = `${p.chainId}:${p.name}`;
+                const isExpanded = expandedProtocols.has(protocolKey);
                 const hasSubContracts = p.contracts && p.contracts.length > 1;
 
                 return (
-                  <React.Fragment key={p.name}>
+                  <React.Fragment key={protocolKey}>
                     <tr className="hover:bg-[#d5d5d5] transition-colors">
                       <td className="py-3.5 px-4 font-mono text-[#777777]">{i + 1}</td>
                       <td className="py-3.5 px-4 font-extrabold text-[#0a0a0a] flex items-center gap-2">
@@ -197,7 +201,7 @@ export default function InteractionsPanel({ results }: Props) {
                       </td>
                       <td className="py-3.5 px-4 text-right font-mono font-black text-[#ff5500]">{p.txCount}</td>
                       <td className="py-3.5 px-4 text-right font-mono text-[#0a0a0a]">
-                        <div>{p.totalGasETH.toFixed(4)} ETH</div>
+                        <div>{p.totalGasNative.toFixed(4)} {p.nativeTokenSymbol}</div>
                         <div className="text-[10px] font-normal text-[#555555]">≈ ${p.totalGasUSD.toFixed(2)}</div>
                       </td>
                       <td className="py-3.5 px-4 text-right font-mono text-[#0a0a0a]">
@@ -205,13 +209,13 @@ export default function InteractionsPanel({ results }: Props) {
                       </td>
                       <td className="py-3.5 px-4">
                         <span className="bg-[#ff5500]/10 text-[#ff5500] text-[10px] font-bold px-2 py-0.5 border border-[#ff5500]/30">
-                          ETH
+                          {p.chainName}
                         </span>
                       </td>
                       <td className="py-3.5 px-4 text-right">
                         {hasSubContracts ? (
                           <button
-                            onClick={() => toggleExpand(p.name)}
+                            onClick={() => toggleExpand(protocolKey)}
                             className="text-xs font-bold text-[#ff5500] hover:underline flex items-center gap-1 ml-auto cursor-pointer"
                           >
                             <span>{p.contracts.length} contracts</span>
@@ -219,7 +223,7 @@ export default function InteractionsPanel({ results }: Props) {
                           </button>
                         ) : (
                           <a
-                            href={getExplorerAddressUrl(1, p.contracts?.[0]?.contractAddress || '')}
+                            href={getExplorerAddressUrl(p.chainId, p.contracts?.[0]?.contractAddress || '')}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-[#555555] hover:text-black"
@@ -239,16 +243,16 @@ export default function InteractionsPanel({ results }: Props) {
                           </div>
                           <div className="space-y-1.5 font-mono text-xs">
                             {p.contracts.map(c => (
-                              <div key={c.contractAddress} className="flex justify-between items-center bg-[#dedede] p-2.5 border border-[#cecece]">
+                              <div key={`${c.chainId}:${c.contractAddress}`} className="flex justify-between items-center bg-[#dedede] p-2.5 border border-[#cecece]">
                                 <div className="flex items-center gap-2">
                                   <span className="font-bold text-[#0a0a0a]">{c.name || 'Contract'}:</span>
                                   <span className="text-[#555555]">{c.contractAddress}</span>
                                 </div>
                                 <div className="flex items-center gap-4 text-right font-bold text-[#0a0a0a]">
                                   <span>{c.txCount} calls</span>
-                                  <span>{c.totalGasETH.toFixed(4)} ETH</span>
+                                  <span>{c.totalGasNative.toFixed(4)} {c.nativeTokenSymbol}</span>
                                   <a
-                                    href={getExplorerAddressUrl(1, c.contractAddress)}
+                                    href={getExplorerAddressUrl(c.chainId, c.contractAddress)}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     className="text-[#555555] hover:text-black"

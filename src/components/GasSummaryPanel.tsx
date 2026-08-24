@@ -23,6 +23,8 @@ export default function GasSummaryPanel({ results }: Props) {
   const failedTxsCount = results.reduce((sum, r) => sum + (r.gasSummary?.failedTransactionCount || 0), 0);
   const failedGasETH = ethChains.reduce((sum, r) => sum + (r.gasSummary?.failedGasETH || 0), 0);
   const failedGasUSD = results.reduce((sum, r) => sum + (r.gasSummary?.failedGasUSD || 0), 0);
+  const historicalPriceCount = results.reduce((sum, r) => sum + r.priceProvenance.historical, 0);
+  const stablecoinAssumptionCount = results.reduce((sum, r) => sum + r.priceProvenance.stablecoinAssumption, 0);
 
   // Merge monthly gas trends
   const monthlyMap = new Map<string, number>();
@@ -75,6 +77,9 @@ export default function GasSummaryPanel({ results }: Props) {
           </div>
           <div className="text-xs font-bold text-[#4b5563] font-mono">
             ≈ ${totalGasUSD.toLocaleString('en-US', { maximumFractionDigits: 0 })} USD
+          </div>
+          <div className="text-[10px] font-bold text-[#6b7280]">
+            {historicalPriceCount} historical quotes · {stablecoinAssumptionCount} stablecoin assumptions
           </div>
         </div>
 
@@ -145,7 +150,7 @@ export default function GasSummaryPanel({ results }: Props) {
                   <YAxis tick={{ fill: '#4b5563', fontSize: 10, fontWeight: 700 }} axisLine={{ stroke: '#c8c8c8' }} tickLine={false} tickFormatter={v => `$${v}`} />
                   <Tooltip
                     contentStyle={{ backgroundColor: '#0a0a0a', border: '1px solid #333', borderRadius: 0, color: '#ffffff', fontSize: 12, fontWeight: 700, boxShadow: '0 4px 12px rgba(0,0,0,0.3)' }}
-                    formatter={(v: any) => [`$${Number(v).toLocaleString()} USD`, 'Gas Spent']}
+                    formatter={(v: unknown) => [`$${Number(v).toLocaleString()} USD`, 'Gas Spent']}
                   />
                   <Bar dataKey="gasUSD" fill="#ff5500" />
                 </BarChart>
@@ -174,7 +179,7 @@ export default function GasSummaryPanel({ results }: Props) {
                   </Pie>
                   <Tooltip
                     contentStyle={{ backgroundColor: '#0a0a0a', border: '1px solid #333', borderRadius: 0, color: '#ffffff', fontSize: 12, fontWeight: 700, boxShadow: '0 4px 12px rgba(0,0,0,0.3)' }}
-                    formatter={(v: any) => [`$${Number(v).toLocaleString()} USD`, '']}
+                    formatter={(v: unknown) => [`$${Number(v).toLocaleString()} USD`, '']}
                   />
                 </PieChart>
               </ResponsiveContainer>

@@ -15,6 +15,12 @@ import {
   isPureTokenContract,
   isBurnAddress,
 } from '../labels';
+import { getChainConfig } from '../chains';
+
+type CounterpartyAccumulator = Omit<AddressInteraction, 'totalTxCount' | 'netFlowUSD' | 'chainId' | 'lastInteractionDate'> & {
+  lastTimestamp: number;
+  lastDate: string;
+};
 
 export function analyzeInteractions(
   transactions: ProcessedTransaction[],
@@ -24,6 +30,7 @@ export function analyzeInteractions(
   knownWallets: Record<string, string> = {}
 ): InteractionsSummary {
   const lower = walletAddress.toLowerCase();
+  const chain = getChainConfig(chainId);
 
   // 1. Map contracts from direct calls & transactions
   const contractMap = new Map<string, {
@@ -37,7 +44,7 @@ export function analyzeInteractions(
     lastDate: string;
     protocol: string;
     name: string;
-    category: string;
+    category: TransactionCategory | string;
   }>();
 
   for (const tx of transactions) {
@@ -88,18 +95,37 @@ export function analyzeInteractions(
     }
   }
 
+  // Attribute every priced wallet-facing token leg to the directly called
+  // protocol contract in the same transaction. This captures ERC-20-only
+  // swaps and bridges without guessing from unrelated transfers.
+  const contractByTransactionHash = new Map<string, string>();
+  for (const tx of transactions) {
+    const contractAddress = (tx.to || '').toLowerCase();
+    if (tx.hash && contractMap.has(contractAddress)) {
+      contractByTransactionHash.set(tx.hash.toLowerCase(), contractAddress);
+    }
+  }
+  for (const transfer of tokenTransfers) {
+    const contractAddress = contractByTransactionHash.get(transfer.hash.toLowerCase());
+    if (!contractAddress || transfer.valueUSD === null) continue;
+    const walletFacing = transfer.from.toLowerCase() === lower || transfer.to.toLowerCase() === lower;
+    if (!walletFacing) continue;
+    const contract = contractMap.get(contractAddress);
+    if (contract) contract.totalVolumeUSD += transfer.valueUSD;
+  }
+
   // 2. Rollup Protocol Families
   const protocolGroupMap = new Map<string, {
     name: string;
     protocol: string;
-    category: string;
+    category: TransactionCategory | string;
     txCount: number;
     totalGasETH: number;
     totalGasUSD: number;
     totalVolumeUSD: number;
     lastTimestamp: number;
     lastDate: string;
-    contracts: Map<string, any>;
+    contracts: Map<string, ProtocolInteraction['contracts'][number]>;
   }>();
 
   for (const [cAddr, cData] of contractMap.entries()) {
@@ -130,11 +156,13 @@ export function analyzeInteractions(
       name: cData.name,
       contractAddress: cAddr,
       txCount: cData.txCount,
-      totalGasETH: cData.totalGasETH,
+      totalGasNative: cData.totalGasETH,
       totalGasUSD: cData.totalGasUSD,
       totalVolumeUSD: cData.totalVolumeUSD,
       lastInteractionDate: cData.lastDate,
       chainId,
+      chainName: chain.name,
+      nativeTokenSymbol: chain.nativeToken.symbol,
     });
 
     protocolGroupMap.set(groupKey, group);
@@ -144,17 +172,22 @@ export function analyzeInteractions(
     .map(g => ({
       name: g.name,
       protocol: g.protocol,
-      category: g.category as any,
+      category: g.category,
       txCount: g.txCount,
-      totalGasETH: g.totalGasETH,
+      totalGasNative: g.totalGasETH,
       totalGasUSD: g.totalGasUSD,
       totalVolumeUSD: g.totalVolumeUSD,
       lastInteractionDate: g.lastDate,
       chainId,
+      chainName: chain.name,
+      nativeTokenSymbol: chain.nativeToken.symbol,
       contracts: Array.from(g.contracts.values()).sort((a, b) => b.txCount - a.txCount),
     }))
-    .sort((a, b) => b.txCount - a.txCount || b.totalGasETH - a.totalGasETH)
+    .sort((a, b) => b.txCount - a.txCount || b.totalGasNative - a.totalGasNative)
     .slice(0, 40);
+
+  const protocolVolumeUSD = Array.from(protocolGroupMap.values())
+    .reduce((sum, protocol) => sum + protocol.totalVolumeUSD, 0);
 
   // 3. Top Counterparty Addresses (Strictly distinguishing EOAs vs Contracts)
   const counterpartyMap = new Map<string, {
@@ -250,6 +283,7 @@ export function analyzeInteractions(
 
   return {
     topProtocols,
+    protocolVolumeUSD,
     topCounterparties,
     uniqueContractCount: contractMap.size,
     uniqueCounterpartyCount: counterpartyMap.size,
@@ -257,13 +291,13 @@ export function analyzeInteractions(
 }
 
 function getOrCreateCounterparty(
-  map: Map<string, any>,
+  map: Map<string, CounterpartyAccumulator>,
   address: string,
   knownWallets: Record<string, string>,
   date: string,
   timestamp: number,
   isContractCall: boolean = false
-) {
+): CounterpartyAccumulator {
   const addr = address.toLowerCase();
   if (map.has(addr)) {
     const existing = map.get(addr)!;

@@ -40,16 +40,12 @@ export async function resolveEnsOrAddress(input: string): Promise<string | null>
     return KNOWN_ENS_MAP[domain].toLowerCase();
   }
 
-  // 3. Check known_wallets.txt
-  try {
-    const known = loadKnownWallets();
-    for (const [addr, label] of Object.entries(known)) {
-      if (label.toLowerCase().includes(domain) || label.toLowerCase().includes(domain.replace('.eth', ''))) {
-        return addr.toLowerCase();
-      }
+  // 3. Check version-controlled known-wallet labels
+  const known = loadKnownWallets();
+  for (const [addr, label] of Object.entries(known)) {
+    if (label.toLowerCase().includes(domain) || label.toLowerCase().includes(domain.replace('.eth', ''))) {
+      return addr.toLowerCase();
     }
-  } catch {
-    // Ignore server-side file load errors
   }
 
   // 4. Query Web3.bio Profile API

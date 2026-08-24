@@ -28,6 +28,14 @@ function createMockScanResult(overrides: Partial<ScanResult> & { chainId: number
       topNativeOutbound: [],
       totalInboundUSD: 1000,
       totalOutboundUSD: 500,
+      capitalFlowCoverage: {
+        verifiedLegs: 2,
+        totalLegs: 2,
+        excludedSpotEstimateLegs: 0,
+        unpricedLegs: 0,
+        coveragePercent: 100,
+        status: 'complete',
+      },
     },
     approvalSummary: {
       activeApprovals: [],
@@ -35,11 +43,8 @@ function createMockScanResult(overrides: Partial<ScanResult> & { chainId: number
       unlimitedCount: 0,
       totalApprovals: 0,
       totalExposureUSD: 0,
-    },
-    graveyardSummary: {
-      deadAssets: [],
-      totalPeakValueLost: 0,
-      totalTokensDead: 0,
+      totalExposureUSDProvenance: { historical: 0, spotEstimate: 0, stablecoinAssumption: 0, unpriced: 0, status: 'complete' },
+      exposureStatus: 'complete',
     },
     fingerprint: {
       dimensions: [
@@ -72,6 +77,7 @@ function createMockScanResult(overrides: Partial<ScanResult> & { chainId: number
     },
     activityProfile: {
       heatmap: [],
+      activeDates: ['2025-12-31', '2026-01-01'],
       totalActiveDays: 50,
       mostActiveDay: 'Monday',
       mostActiveHour: 14,
@@ -81,9 +87,17 @@ function createMockScanResult(overrides: Partial<ScanResult> & { chainId: number
     },
     interactionsSummary: {
       topProtocols: [],
+      protocolVolumeUSD: 0,
       topCounterparties: [],
       uniqueContractCount: 25,
       uniqueCounterpartyCount: 15,
+    },
+    priceProvenance: {
+      historical: 15,
+      spotEstimate: 0,
+      stablecoinAssumption: 0,
+      unpriced: 0,
+      status: 'complete',
     },
     ...overrides,
   };
@@ -118,57 +132,16 @@ describe('Multi-Chain Aggregation & Currency Differentiation Tests', () => {
         unlimitedCount: 5,
         totalApprovals: 5,
         totalExposureUSD: 50000,
+        totalExposureUSDProvenance: { historical: 5, spotEstimate: 0, stablecoinAssumption: 0, unpriced: 0, status: 'complete' },
+        exposureStatus: 'complete',
       },
     });
 
     const aggregatedResult = aggregateResults('0x1234567890123456789012345678901234567890', [ethClean, arbDrainer]);
 
-    assert.strictEqual(aggregatedResult.aggregated.riskGrade, 'F', 'Overall riskGrade must be F when a scanned chain has Grade F drainers');
-    assert.strictEqual(aggregatedResult.aggregated.riskScore, 85, 'Overall riskScore must reflect the maximum risk across chains');
+    assert.strictEqual(aggregatedResult.aggregated.worstChainRiskGrade, 'F', 'Worst-chain risk grade must be F when a scanned chain has Grade F risk factors');
+    assert.strictEqual(aggregatedResult.aggregated.worstChainRiskScore, 85, 'Worst-chain risk score must reflect the maximum risk across chains');
     assert.strictEqual(aggregatedResult.aggregated.totalHighRiskApprovals, 3);
-  });
-
-  it('should differentiate ETH from BNB and NOT sum BNB 1:1 into totalGasETH', () => {
-    const ethChain = createMockScanResult({
-      chainId: 1,
-      chainName: 'Ethereum',
-      gasSummary: {
-        totalGasETH: 0.15,
-        totalGasUSD: 450,
-        transactionCount: 10,
-        failedTransactionCount: 0,
-        failedGasETH: 0,
-        failedGasUSD: 0,
-        monthlyBreakdown: [],
-        categoryBreakdown: [],
-        worstDay: null,
-        averageGasPerTx: 0.015,
-      },
-    });
-
-    const bscChain = createMockScanResult({
-      chainId: 56,
-      chainName: 'BSC',
-      gasSummary: {
-        totalGasETH: 0.85, // 0.85 BNB (in native token units)
-        totalGasUSD: 510,
-        transactionCount: 20,
-        failedTransactionCount: 0,
-        failedGasETH: 0,
-        failedGasUSD: 0,
-        monthlyBreakdown: [],
-        categoryBreakdown: [],
-        worstDay: null,
-        averageGasPerTx: 0.0425,
-      },
-    });
-
-    const aggregatedResult = aggregateResults('0x1234567890123456789012345678901234567890', [ethChain, bscChain]);
-
-    // totalGasETH should only sum ETH chains (0.15), not 0.15 + 0.85 = 1.0!
-    assert.strictEqual(aggregatedResult.aggregated.totalGasETH, 0.15, 'totalGasETH must only sum ETH-native chains');
-    // totalGasUSD should sum both USD values (450 + 510 = 960)
-    assert.strictEqual(aggregatedResult.aggregated.totalGasUSD, 960, 'totalGasUSD must sum USD values across all chains');
   });
 
   it('should sum multiple ETH L2 chains into totalGasETH correctly', () => {

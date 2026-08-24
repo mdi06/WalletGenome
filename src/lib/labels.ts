@@ -106,8 +106,6 @@ export const PURE_TOKEN_CONTRACTS = new Set([
   '0x0b2c639c533813f4aa9d7837caf62653d097ff85', // Native USDC
   '0x94b008aa00579c1307b0ef2c499ad98a8ce58e58', // USDT
   '0x4200000000000000000000000000000000000042', // OP Token
-  // BSC
-  '0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d', // USDC
 ]);
 
 export const CEX_LABELS: Record<string, string> = {

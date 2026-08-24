@@ -96,7 +96,7 @@ export default function RiskScore({ results }: Props) {
               <span className="text-xs font-mono font-bold text-green-700 flex-shrink-0">+0</span>
             </div>
             <p className="text-[11px] text-[#4b5563] leading-relaxed pl-6 text-pretty">
-              No significant risk factors detected across {results.length > 1 ? `all ${results.length} scanned chains` : 'the scanned chain'}. This wallet has a clean on-chain record.
+              No configured risk factor crossed its scoring threshold across {results.length > 1 ? `the ${results.length} scanned chains` : 'the scanned chain'}.
             </p>
           </div>
         )}

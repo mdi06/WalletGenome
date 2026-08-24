@@ -1,7 +1,21 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { extractProtocolBadges, formatCompactUSD } from './Dashboard';
+import { createElement } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
+import Dashboard from './Dashboard';
+import { getAvailabilityMessage } from './status/DashboardStatusPanel';
+import { extractProtocolBadges, formatCompactUSD } from '@/lib/utils/dashboardUtils';
 import { MultiChainScanResult, ScanResult } from '@/lib/types';
+import { buildReportingMetrics } from '@/lib/reportingContract';
+import { getMockScanResult } from '@/lib/mockData';
+
+const completePriceProvenance = {
+  historical: 1,
+  spotEstimate: 0,
+  stablecoinAssumption: 0,
+  unpriced: 0,
+  status: 'complete' as const,
+};
 
 function createMockScan(overrides: Partial<ScanResult> = {}): ScanResult {
   return {
@@ -30,6 +44,14 @@ function createMockScan(overrides: Partial<ScanResult> = {}): ScanResult {
       topNativeOutbound: [],
       totalInboundUSD: 0,
       totalOutboundUSD: 0,
+      capitalFlowCoverage: {
+        verifiedLegs: 0,
+        totalLegs: 0,
+        excludedSpotEstimateLegs: 0,
+        unpricedLegs: 0,
+        coveragePercent: 100,
+        status: 'complete',
+      },
     },
     approvalSummary: {
       activeApprovals: [],
@@ -37,11 +59,8 @@ function createMockScan(overrides: Partial<ScanResult> = {}): ScanResult {
       unlimitedCount: 0,
       totalApprovals: 0,
       totalExposureUSD: 0,
-    },
-    graveyardSummary: {
-      deadAssets: [],
-      totalPeakValueLost: 0,
-      totalTokensDead: 0,
+      totalExposureUSDProvenance: { ...completePriceProvenance, historical: 0 },
+      exposureStatus: 'complete',
     },
     fingerprint: {
       dimensions: [],
@@ -60,6 +79,7 @@ function createMockScan(overrides: Partial<ScanResult> = {}): ScanResult {
     },
     activityProfile: {
       heatmap: [],
+      activeDates: ['2026-01-01'],
       totalActiveDays: 1,
       mostActiveDay: 'Monday',
       mostActiveHour: 12,
@@ -69,10 +89,12 @@ function createMockScan(overrides: Partial<ScanResult> = {}): ScanResult {
     },
     interactionsSummary: {
       topProtocols: [],
+      protocolVolumeUSD: 0,
       topCounterparties: [],
       uniqueContractCount: 0,
       uniqueCounterpartyCount: 0,
     },
+    priceProvenance: { ...completePriceProvenance },
     ...overrides,
   };
 }
@@ -81,15 +103,19 @@ describe('Protocol Identity Badges Genuine Extraction Tests', () => {
   it('should return empty badges array for clean or new wallets with 0 protocol interactions', () => {
     const cleanScan: MultiChainScanResult = {
       address: '0x1234567890123456789012345678901234567890',
+      status: 'complete',
+      availability: [],
       chains: [createMockScan()],
+      metrics: buildReportingMetrics([createMockScan()], 'complete', completePriceProvenance),
       aggregated: {
         totalGasETH: 0.01,
         totalGasUSD: 30,
         totalHighRiskApprovals: 0,
-        totalDeadAssets: 0,
+        totalUnlimitedApprovals: 0,
         totalTransactions: 1,
-        riskScore: 0,
-        riskGrade: 'A',
+        worstChainRiskScore: 0,
+        worstChainRiskGrade: 'A',
+        priceProvenance: { ...completePriceProvenance },
       },
     };
 
@@ -100,19 +126,23 @@ describe('Protocol Identity Badges Genuine Extraction Tests', () => {
   it('should NOT award OP_DELEGATOR simply because multiple chains were scanned', () => {
     const multiChainScan: MultiChainScanResult = {
       address: '0x1234567890123456789012345678901234567890',
+      status: 'complete',
+      availability: [],
       chains: [
         createMockScan({ chainId: 1, chainName: 'Ethereum' }),
         createMockScan({ chainId: 8453, chainName: 'Base' }),
         createMockScan({ chainId: 42161, chainName: 'Arbitrum' }),
       ],
+      metrics: buildReportingMetrics([], 'complete', completePriceProvenance),
       aggregated: {
         totalGasETH: 0.03,
         totalGasUSD: 90,
         totalHighRiskApprovals: 0,
-        totalDeadAssets: 0,
+        totalUnlimitedApprovals: 0,
         totalTransactions: 3,
-        riskScore: 0,
-        riskGrade: 'A',
+        worstChainRiskScore: 0,
+        worstChainRiskGrade: 'A',
+        priceProvenance: { ...completePriceProvenance },
       },
     };
 
@@ -124,6 +154,8 @@ describe('Protocol Identity Badges Genuine Extraction Tests', () => {
   it('should award genuine badges when actual protocols are interacted with', () => {
     const activeScan: MultiChainScanResult = {
       address: '0x1234567890123456789012345678901234567890',
+      status: 'complete',
+      availability: [],
       chains: [
         createMockScan({
           interactionsSummary: {
@@ -133,11 +165,13 @@ describe('Protocol Identity Badges Genuine Extraction Tests', () => {
                 protocol: 'Uniswap',
                 category: 'swap',
                 txCount: 12,
-                totalGasETH: 0.01,
+                totalGasNative: 0.01,
                 totalGasUSD: 30,
                 totalVolumeUSD: 5000,
                 lastInteractionDate: '2026-01-01',
                 chainId: 1,
+                chainName: 'Ethereum',
+                nativeTokenSymbol: 'ETH',
                 contracts: [],
               },
               {
@@ -145,11 +179,13 @@ describe('Protocol Identity Badges Genuine Extraction Tests', () => {
                 protocol: 'Aave',
                 category: 'lending',
                 txCount: 5,
-                totalGasETH: 0.005,
+                totalGasNative: 0.005,
                 totalGasUSD: 15,
                 totalVolumeUSD: 2000,
                 lastInteractionDate: '2026-01-01',
                 chainId: 1,
+                chainName: 'Ethereum',
+                nativeTokenSymbol: 'ETH',
                 contracts: [],
               },
               {
@@ -157,28 +193,33 @@ describe('Protocol Identity Badges Genuine Extraction Tests', () => {
                 protocol: 'Across',
                 category: 'bridge',
                 txCount: 2,
-                totalGasETH: 0.002,
+                totalGasNative: 0.002,
                 totalGasUSD: 6,
                 totalVolumeUSD: 1000,
                 lastInteractionDate: '2026-01-01',
                 chainId: 1,
+                chainName: 'Ethereum',
+                nativeTokenSymbol: 'ETH',
                 contracts: [],
               },
             ],
+            protocolVolumeUSD: 8000,
             topCounterparties: [],
             uniqueContractCount: 3,
             uniqueCounterpartyCount: 3,
           },
         }),
       ],
+      metrics: buildReportingMetrics([], 'complete', completePriceProvenance),
       aggregated: {
         totalGasETH: 0.05,
         totalGasUSD: 150,
         totalHighRiskApprovals: 0,
-        totalDeadAssets: 0,
+        totalUnlimitedApprovals: 0,
         totalTransactions: 19,
-        riskScore: 0,
-        riskGrade: 'A',
+        worstChainRiskScore: 0,
+        worstChainRiskGrade: 'A',
+        priceProvenance: { ...completePriceProvenance },
       },
       identityReport: {
         primaryName: 'defi-user.eth',
@@ -233,5 +274,163 @@ describe('Dashboard Currency & Capital Flow Formatter Tests', () => {
     assert.strictEqual(formatCompactUSD(undefined), '$0');
     assert.strictEqual(formatCompactUSD(''), '$0');
     assert.strictEqual(formatCompactUSD('invalid'), '$0');
+  });
+});
+
+describe('Dashboard provider availability messaging', () => {
+  it('renders a complete mock result as the normal analytics dashboard', () => {
+    const markup = renderToStaticMarkup(createElement(Dashboard, { data: getMockScanResult() }));
+
+    assert.match(markup, /WORST-CHAIN RISK GRADE/);
+    assert.match(markup, /SYBIL PROBABILITY/);
+    assert.doesNotMatch(markup, /Definitive analytics unavailable/i);
+    assert.doesNotMatch(markup, /Partial provider data/i);
+  });
+
+  it('withholds definitive analytics for partial and unavailable scans', () => {
+    assert.match(getAvailabilityMessage('partial') ?? '', /require complete wallet history/i);
+    assert.match(getAvailabilityMessage('unavailable') ?? '', /not return enough verified data/i);
+    assert.strictEqual(getAvailabilityMessage('complete'), null);
+  });
+
+  it('renders canonical worst-chain risk without trust-score inversion or hardcoded aggression', () => {
+    const data = getMockScanResult();
+    data.metrics.riskScore = 35;
+    data.metrics.riskGrade = 'C';
+    data.metrics.sybilProbability = 20;
+    data.aggregated.worstChainRiskScore = 35;
+    data.aggregated.worstChainRiskGrade = 'C';
+
+    const markup = renderToStaticMarkup(createElement(Dashboard, { data }));
+    assert.match(markup, /WORST-CHAIN RISK GRADE/);
+    assert.match(markup, />35<\/span>/);
+    assert.match(markup, />\/ 100 RISK<\/span>/);
+    assert.doesNotMatch(markup, /TRUST SCORE/);
+    assert.doesNotMatch(markup, /Aggression Level/);
+    assert.doesNotMatch(markup, />A\+</);
+  });
+
+  it('renders dataset-level failures instead of the normal clean dashboard', () => {
+    const data: MultiChainScanResult = {
+      address: '0x1234567890123456789012345678901234567890',
+      status: 'partial',
+      availability: [{
+        chainId: 1,
+        chainName: 'Ethereum',
+        transactions: 'complete',
+        tokenTransfers: 'unavailable',
+        internalTransactions: 'complete',
+        prices: 'partial',
+        errors: [{
+          source: 'tokenTransfers',
+          code: 'timeout',
+          message: 'Token transfer provider timed out.',
+        }],
+      }],
+      chains: [],
+      metrics: buildReportingMetrics([], 'partial', {
+        historical: 0,
+        spotEstimate: 0,
+        stablecoinAssumption: 0,
+        unpriced: 1,
+        status: 'unavailable',
+      }),
+      aggregated: {
+        totalGasETH: 0,
+        totalGasUSD: 0,
+        totalHighRiskApprovals: 0,
+        totalUnlimitedApprovals: 0,
+        totalTransactions: 0,
+        worstChainRiskScore: null,
+        worstChainRiskGrade: null,
+        priceProvenance: {
+          historical: 0,
+          spotEstimate: 0,
+          stablecoinAssumption: 0,
+          unpriced: 1,
+          status: 'unavailable',
+        },
+      },
+    };
+
+    const markup = renderToStaticMarkup(createElement(Dashboard, { data }));
+    assert.match(markup, /Partial history scan/i);
+    assert.match(markup, /Token transfer provider timed out/i);
+    assert.doesNotMatch(markup, /TRUST SCORE/i);
+  });
+
+  it('keeps successfully returned analytics visible under a partial-data warning', () => {
+    const data = getMockScanResult();
+    data.status = 'partial';
+    data.metrics = buildReportingMetrics(data.chains, 'partial', {
+      ...completePriceProvenance,
+      status: 'partial',
+      spotEstimate: 1,
+    });
+    data.availability = [{
+      chainId: 1,
+      chainName: 'Ethereum',
+      transactions: 'complete',
+      tokenTransfers: 'partial',
+      internalTransactions: 'complete',
+      prices: 'partial',
+      errors: [{
+        source: 'tokenTransfers',
+        code: 'result_truncated',
+        message: 'Fallback returned a usable subset.',
+      }],
+    }];
+
+    const markup = renderToStaticMarkup(createElement(Dashboard, { data }));
+    assert.match(markup, /require complete wallet history/i);
+    assert.match(markup, /BEHAVIORAL DNA/);
+    assert.match(markup, /TRANSFERS/);
+    assert.match(markup, /Fallback returned a usable subset/);
+    assert.match(markup, /Withheld/);
+  });
+
+  it('renders verified partial capital flow with coverage and exclusions', () => {
+    const data = getMockScanResult();
+    data.chains[0].transferSummary.capitalFlowCoverage = {
+      verifiedLegs: 7,
+      totalLegs: 10,
+      excludedSpotEstimateLegs: 1,
+      unpricedLegs: 2,
+      coveragePercent: 70,
+      status: 'partial',
+    };
+    data.metrics = buildReportingMetrics(data.chains, 'complete', {
+      historical: 6,
+      stablecoinAssumption: 1,
+      spotEstimate: 1,
+      unpriced: 2,
+      status: 'partial',
+    }, data.sybilReport);
+
+    const markup = renderToStaticMarkup(createElement(Dashboard, { data }));
+    assert.match(markup, /VERIFIED CAPITAL FLOW/);
+    assert.match(markup, /75% coverage/);
+    assert.match(markup, /9\/12 transfer values included/);
+    assert.match(markup, /1 current-price estimates and 2 unpriced values excluded/);
+    assert.doesNotMatch(markup, /VERIFIED CAPITAL FLOW[\s\S]*Unavailable/);
+  });
+
+  it('keeps blacklist detection visible when behavioral Sybil scoring is gated', () => {
+    const data = getMockScanResult();
+    data.status = 'partial';
+    data.sybilReport = data.sybilReport
+      ? { ...data.sybilReport, mediaScore: undefined }
+      : undefined;
+    data.metrics = buildReportingMetrics(
+      data.chains,
+      'partial',
+      completePriceProvenance,
+      data.sybilReport,
+    );
+
+    const markup = renderToStaticMarkup(createElement(Dashboard, { data }));
+    assert.match(markup, /BLACKLIST STATUS/);
+    assert.match(markup, /Behavioral Score Unavailable/);
+    assert.doesNotMatch(markup, /Trusta MEDIA[\s\S]*CLEAN/);
   });
 });

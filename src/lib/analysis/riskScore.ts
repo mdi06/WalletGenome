@@ -1,16 +1,15 @@
 import {
   ApprovalSummary,
   GasSummary,
-  GraveyardSummary,
   RiskAssessment,
   RiskFactor,
   ProcessedTransaction,
 } from '../types';
+import { RISK_MODEL, scoreToRiskGrade } from './riskModel';
 
 export function computeRiskScore(
   approvalSummary: ApprovalSummary,
   gasSummary: GasSummary,
-  graveyardSummary: GraveyardSummary,
   transactions: ProcessedTransaction[]
 ): RiskAssessment {
   const factors: RiskFactor[] = [];
@@ -21,16 +20,22 @@ export function computeRiskScore(
   const unlimitedApprovals = approvalSummary.unlimitedCount;
   
   if (highRiskApprovals > 0) {
-    const approvalImpact = Math.min(40, highRiskApprovals * 15);
+    const approvalImpact = Math.min(
+      RISK_MODEL.highRiskApprovals.maxImpact,
+      highRiskApprovals * RISK_MODEL.highRiskApprovals.impactPerApproval,
+    );
     rawScore += approvalImpact;
     factors.push({
       label: `${highRiskApprovals} High-Risk Approval${highRiskApprovals > 1 ? 's' : ''}`,
       impact: approvalImpact,
-      description: `${highRiskApprovals} unlimited token approval${highRiskApprovals > 1 ? 's' : ''} granted to unverified contracts. These could drain your tokens at any time.`,
+      description: `${highRiskApprovals} unlimited token approval${highRiskApprovals > 1 ? 's' : ''} granted to unverified contracts. Allowance authority is scored separately from the balance-and-price exposure estimate.`,
       severity: 'critical',
     });
-  } else if (unlimitedApprovals > 3) {
-    const approvalImpact = Math.min(20, unlimitedApprovals * 3);
+  } else if (unlimitedApprovals > RISK_MODEL.knownUnlimitedApprovals.minimumCountExclusive) {
+    const approvalImpact = Math.min(
+      RISK_MODEL.knownUnlimitedApprovals.maxImpact,
+      unlimitedApprovals * RISK_MODEL.knownUnlimitedApprovals.impactPerApproval,
+    );
     rawScore += approvalImpact;
     factors.push({
       label: `${unlimitedApprovals} Unlimited Approvals`,
@@ -45,8 +50,11 @@ export function computeRiskScore(
     ? gasSummary.failedTransactionCount / gasSummary.transactionCount
     : 0;
   
-  if (failedRatio > 0.05) {
-    const failedImpact = Math.min(25, Math.round(failedRatio * 120));
+  if (failedRatio > RISK_MODEL.failedTransactions.minimumRatioExclusive) {
+    const failedImpact = Math.min(
+      RISK_MODEL.failedTransactions.maxImpact,
+      Math.round(failedRatio * RISK_MODEL.failedTransactions.ratioMultiplier),
+    );
     rawScore += failedImpact;
     factors.push({
       label: `${(failedRatio * 100).toFixed(1)}% Failed Transactions`,
@@ -57,10 +65,13 @@ export function computeRiskScore(
   }
 
   // ── Factor 3: Stale approvals — approvals older than 6 months (weight: 15) ──
-  const sixMonthsAgo = Math.floor(Date.now() / 1000) - (180 * 24 * 3600);
+  const sixMonthsAgo = Math.floor(Date.now() / 1000) - (RISK_MODEL.staleApprovals.ageDays * 24 * 3600);
   const staleApprovals = approvalSummary.activeApprovals.filter(a => a.timestamp < sixMonthsAgo);
-  if (staleApprovals.length > 2) {
-    const staleImpact = Math.min(15, staleApprovals.length * 3);
+  if (staleApprovals.length > RISK_MODEL.staleApprovals.minimumCountExclusive) {
+    const staleImpact = Math.min(
+      RISK_MODEL.staleApprovals.maxImpact,
+      staleApprovals.length * RISK_MODEL.staleApprovals.impactPerApproval,
+    );
     rawScore += staleImpact;
     factors.push({
       label: `${staleApprovals.length} Stale Approval${staleApprovals.length > 1 ? 's' : ''}`,
@@ -76,8 +87,14 @@ export function computeRiskScore(
   );
   const unknownRatio = transactions.length > 0 ? unknownTxs.length / transactions.length : 0;
   
-  if (unknownRatio > 0.3 && unknownTxs.length > 5) {
-    const unknownImpact = Math.min(10, Math.round(unknownRatio * 20));
+  if (
+    unknownRatio > RISK_MODEL.unknownContracts.minimumRatioExclusive
+    && unknownTxs.length > RISK_MODEL.unknownContracts.minimumCountExclusive
+  ) {
+    const unknownImpact = Math.min(
+      RISK_MODEL.unknownContracts.maxImpact,
+      Math.round(unknownRatio * RISK_MODEL.unknownContracts.ratioMultiplier),
+    );
     rawScore += unknownImpact;
     factors.push({
       label: `${(unknownRatio * 100).toFixed(0)}% Unknown Contract Interactions`,
@@ -87,42 +104,21 @@ export function computeRiskScore(
     });
   }
 
-  // ── Factor 5: Dead assets (weight: 10) ──
-  const deadCount = graveyardSummary.totalTokensDead;
-  if (deadCount > 5) {
-    const deadImpact = Math.min(10, deadCount);
-    rawScore += deadImpact;
-    factors.push({
-      label: `${deadCount} Dead Token${deadCount > 1 ? 's' : ''}`,
-      impact: deadImpact,
-      description: `Holding ${deadCount} tokens with no recent activity or value. Peak value lost: $${graveyardSummary.totalPeakValueLost.toFixed(0)}.`,
-      severity: 'info',
-    });
-  }
-
   // ── Positive signals (reduce risk) ──
   if (factors.length === 0) {
     factors.push({
       label: 'Clean History',
       impact: 0,
-      description: 'No significant risk factors detected. This wallet has a clean on-chain record.',
+      description: 'No configured risk factor crossed its scoring threshold in the returned complete dataset.',
       severity: 'info',
     });
   }
 
   const score = Math.min(100, Math.max(0, Math.round(rawScore)));
-  const grade = scoreToGrade(score);
+  const grade = scoreToRiskGrade(score);
 
   // Sort factors by impact desc
   factors.sort((a, b) => b.impact - a.impact);
 
   return { score, grade, factors };
-}
-
-function scoreToGrade(score: number): 'A' | 'B' | 'C' | 'D' | 'F' {
-  if (score <= 15) return 'A';
-  if (score <= 30) return 'B';
-  if (score <= 50) return 'C';
-  if (score <= 70) return 'D';
-  return 'F';
 }

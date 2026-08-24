@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Search, ArrowRight, Loader2 } from 'lucide-react';
 import { CHAINS, SUPPORTED_CHAIN_IDS } from '@/lib/chains';
 
@@ -14,12 +14,6 @@ export default function WalletInput({ onScan, isLoading, initialAddress }: Props
   const [inputAddress, setInputAddress] = useState(initialAddress || '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045');
   const [selectedChains, setSelectedChains] = useState<number[]>([...SUPPORTED_CHAIN_IDS]);
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (initialAddress) {
-      setInputAddress(initialAddress);
-    }
-  }, [initialAddress]);
 
   const toggleChain = (chainId: number) => {
     setSelectedChains(prev =>

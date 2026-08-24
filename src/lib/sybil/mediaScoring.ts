@@ -8,6 +8,7 @@ interface MediaInput {
   activeChainsCount: number;
   totalVolumeUSD: number;
   totalGasUSD: number;
+  includeMonetary?: boolean;
 }
 
 export function computeMediaScore(input: MediaInput): MediaScoreBreakdown {
@@ -18,6 +19,7 @@ export function computeMediaScore(input: MediaInput): MediaScoreBreakdown {
     activeChainsCount,
     totalVolumeUSD,
     totalGasUSD,
+    includeMonetary = true,
   } = input;
 
   const totalTxCount = transactions.length;
@@ -31,6 +33,7 @@ export function computeMediaScore(input: MediaInput): MediaScoreBreakdown {
       age: 10,
       compositeScore: 10,
       sybilProbability: 90,
+      monetaryIncluded: includeMonetary,
       classification: 'High Sybil Risk',
       explanation: 'No transaction history detected. Fresh / unverified wallet.',
     };
@@ -115,13 +118,14 @@ export function computeMediaScore(input: MediaInput): MediaScoreBreakdown {
   }
 
   // ── Composite MEDIA Formula ──
-  const compositeScore = Math.round(
-    0.25 * monetaryScore +
+  const behavioralScore =
     0.25 * engagementScore +
     0.20 * diversityScore +
     0.15 * identityScore +
-    0.15 * ageScore
-  );
+    0.15 * ageScore;
+  const compositeScore = Math.round(includeMonetary
+    ? 0.25 * monetaryScore + behavioralScore
+    : behavioralScore / 0.75);
 
   const sybilProbability = Math.max(0, Math.min(100, 100 - compositeScore));
 
@@ -139,6 +143,15 @@ export function computeMediaScore(input: MediaInput): MediaScoreBreakdown {
     explanation = 'High probability of automated script execution, short activity burst, or single-purpose dust interaction pattern.';
   }
 
+  if (!includeMonetary) {
+    explanation = classification === 'Organic Human'
+      ? 'Behavior matches an organic power user across multi-month engagement, cross-protocol diversity, cross-chain identity, and wallet age.'
+      : classification === 'Moderate / Farmer'
+        ? 'Moderate on-chain footprint. Activity shows some established behavior but may also include repetitive farming patterns.'
+        : 'High probability of automated script execution, a short activity burst, or a narrow single-purpose interaction pattern.';
+    explanation += ' The monetary dimension was omitted because historical pricing was incomplete; the result uses engagement, diversity, identity, and wallet age only.';
+  }
+
   return {
     monetary: monetaryScore,
     engagement: engagementScore,
@@ -147,6 +160,7 @@ export function computeMediaScore(input: MediaInput): MediaScoreBreakdown {
     age: ageScore,
     compositeScore,
     sybilProbability,
+    monetaryIncluded: includeMonetary,
     classification,
     explanation,
   };

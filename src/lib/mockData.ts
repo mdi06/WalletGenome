@@ -1,4 +1,5 @@
-import { ScanResult, MultiChainScanResult } from './types';
+import { ScanResult, MultiChainScanResult, SybilReport } from './types';
+import { buildReportingMetrics } from './reportingContract';
 
 export function getMockScanResult(address: string = '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045'): MultiChainScanResult {
   const pseudoRandom = (str: string) => {
@@ -10,6 +11,26 @@ export function getMockScanResult(address: string = '0xd8dA6BF26964aF9D7eEd9e03E
     return Math.abs(hash) / 2147483648;
   };
   const m = 0.5 + pseudoRandom(address); // Multiplier between 0.5 and 1.5
+  const mockSybilReport: SybilReport = {
+    isFlagged: false,
+    totalFlagged: 0,
+    overallStatus: 'clean',
+    matches: [],
+    lastSyncDate: 'mock-snapshot',
+    totalDatabasesChecked: 0,
+    mediaScore: {
+      monetary: 78,
+      engagement: 82,
+      diversity: 74,
+      identity: 90,
+      age: 88,
+      compositeScore: 82,
+      sybilProbability: 18,
+      monetaryIncluded: true,
+      classification: 'Organic Human',
+      explanation: 'Test fixture with varied activity, established history, and broad protocol usage.',
+    },
+  };
 
   const ethScanResult: ScanResult = {
     address,
@@ -60,6 +81,7 @@ export function getMockScanResult(address: string = '0xd8dA6BF26964aF9D7eEd9e03E
           value: '10000000000',
           valueFormatted: 10000.0,
           valueUSD: 10000.00,
+          valueUSDProvenance: 'stablecoin_assumption',
           tokenName: 'USD Coin',
           tokenSymbol: 'USDC',
           tokenDecimal: 6,
@@ -80,6 +102,7 @@ export function getMockScanResult(address: string = '0xd8dA6BF26964aF9D7eEd9e03E
           value: '5000000000',
           valueFormatted: 5000.0,
           valueUSD: 5000.00,
+          valueUSDProvenance: 'stablecoin_assumption',
           tokenName: 'Tether USD',
           tokenSymbol: 'USDT',
           tokenDecimal: 6,
@@ -100,10 +123,12 @@ export function getMockScanResult(address: string = '0xd8dA6BF26964aF9D7eEd9e03E
           value: '3.500000000000000000',
           valueFormatted: 3.5,
           valueUSD: 12250.00,
+          valueUSDProvenance: 'historical',
           gasUsed: 21000,
           gasPrice: 25000000000,
           gasCostETH: 0.000525,
           gasCostUSD: 1.84,
+          gasCostUSDProvenance: 'historical',
           isError: false,
           methodId: '0x',
           functionName: '',
@@ -123,10 +148,12 @@ export function getMockScanResult(address: string = '0xd8dA6BF26964aF9D7eEd9e03E
           value: '2.000000000000000000',
           valueFormatted: 2.0,
           valueUSD: 4180.00,
+          valueUSDProvenance: 'historical',
           gasUsed: 145000,
           gasPrice: 35000000000,
           gasCostETH: 0.00507,
           gasCostUSD: 10.60,
+          gasCostUSDProvenance: 'historical',
           isError: false,
           methodId: '0x7ff36ab5',
           functionName: 'swapExactETHForTokens',
@@ -136,6 +163,14 @@ export function getMockScanResult(address: string = '0xd8dA6BF26964aF9D7eEd9e03E
       ],
       totalInboundUSD: 20240 * m,
       totalOutboundUSD: 12580 * m,
+      capitalFlowCoverage: {
+        verifiedLegs: 4,
+        totalLegs: 4,
+        excludedSpotEstimateLegs: 0,
+        unpricedLegs: 0,
+        coveragePercent: 100,
+        status: 'complete',
+      },
     },
     approvalSummary: {
       activeApprovals: [
@@ -149,31 +184,22 @@ export function getMockScanResult(address: string = '0xd8dA6BF26964aF9D7eEd9e03E
           spender: '0x68b3465833fb72a70ecdf485e0e4c7bd8665fc45',
           spenderLabel: 'Uniswap V3 Router',
           allowance: 'Unlimited',
+          allowanceAmount: null,
           isUnlimited: true,
           riskLevel: 'medium',
           chainId: 1,
+          estimatedTokenBalance: 5000,
+          estimatedExposureUSD: 5000,
+          estimatedExposureUSDProvenance: 'stablecoin_assumption',
+          exposureStatus: 'estimated',
         },
       ],
       highRiskCount: 0,
       unlimitedCount: 1,
       totalApprovals: 1,
       totalExposureUSD: 5000,
-    },
-    graveyardSummary: {
-      deadAssets: [
-        {
-          contractAddress: '0xdead111111111111111111111111111111111111',
-          tokenName: 'SafeMoon Inu Classic',
-          tokenSymbol: 'SMINU',
-          balance: 45000000,
-          peakValueUSD: 1420.00,
-          currentValueUSD: 0,
-          chainId: 1,
-          lastActivityDate: '2023-09-12',
-        }
-      ],
-      totalPeakValueLost: 1420.00,
-      totalTokensDead: 1,
+      totalExposureUSDProvenance: { historical: 0, spotEstimate: 0, stablecoinAssumption: 1, unpriced: 0, status: 'complete' },
+      exposureStatus: 'complete',
     },
     fingerprint: {
       dimensions: [
@@ -202,6 +228,7 @@ export function getMockScanResult(address: string = '0xd8dA6BF26964aF9D7eEd9e03E
     },
     activityProfile: {
       heatmap: [],
+      activeDates: ['2024-12-20'],
       totalActiveDays: 156,
       mostActiveDay: 'Wednesday',
       mostActiveHour: 14,
@@ -216,14 +243,16 @@ export function getMockScanResult(address: string = '0xd8dA6BF26964aF9D7eEd9e03E
           protocol: 'Uniswap',
           category: 'swap',
           txCount: 42,
-          totalGasETH: 0.184,
+          totalGasNative: 0.184,
           totalGasUSD: 515.2,
           totalVolumeUSD: 14250,
           lastInteractionDate: '2024-03-01',
           chainId: 1,
+          chainName: 'Ethereum',
+          nativeTokenSymbol: 'ETH',
           contracts: [
-            { name: 'Uniswap V3 Router', contractAddress: '0x68b3465833fb72a70ecdf485e0e4c7bd8665fc45', txCount: 28, totalGasETH: 0.12, totalGasUSD: 336, totalVolumeUSD: 10000, lastInteractionDate: '2024-03-01', chainId: 1 },
-            { name: 'Uniswap Permit2', contractAddress: '0x000000000022d473030f116ddee9f6b43ac78ba3', txCount: 14, totalGasETH: 0.064, totalGasUSD: 179.2, totalVolumeUSD: 4250, lastInteractionDate: '2024-02-20', chainId: 1 },
+            { name: 'Uniswap V3 Router', contractAddress: '0x68b3465833fb72a70ecdf485e0e4c7bd8665fc45', txCount: 28, totalGasNative: 0.12, totalGasUSD: 336, totalVolumeUSD: 10000, lastInteractionDate: '2024-03-01', chainId: 1, chainName: 'Ethereum', nativeTokenSymbol: 'ETH' },
+            { name: 'Uniswap Permit2', contractAddress: '0x000000000022d473030f116ddee9f6b43ac78ba3', txCount: 14, totalGasNative: 0.064, totalGasUSD: 179.2, totalVolumeUSD: 4250, lastInteractionDate: '2024-02-20', chainId: 1, chainName: 'Ethereum', nativeTokenSymbol: 'ETH' },
           ],
         },
         {
@@ -231,23 +260,33 @@ export function getMockScanResult(address: string = '0xd8dA6BF26964aF9D7eEd9e03E
           protocol: 'Across',
           category: 'bridge',
           txCount: 12,
-          totalGasETH: 0.045,
+          totalGasNative: 0.045,
           totalGasUSD: 126.0,
           totalVolumeUSD: 6200,
           lastInteractionDate: '2024-01-20',
           chainId: 1,
+          chainName: 'Ethereum',
+          nativeTokenSymbol: 'ETH',
           contracts: [
-            { name: 'Across: HubPool', contractAddress: '0x5c7bcab6cf3e2697a152337088e73d78297a5e1f', txCount: 12, totalGasETH: 0.045, totalGasUSD: 126.0, totalVolumeUSD: 6200, lastInteractionDate: '2024-01-20', chainId: 1 },
+            { name: 'Across: HubPool', contractAddress: '0x5c7bcab6cf3e2697a152337088e73d78297a5e1f', txCount: 12, totalGasNative: 0.045, totalGasUSD: 126.0, totalVolumeUSD: 6200, lastInteractionDate: '2024-01-20', chainId: 1, chainName: 'Ethereum', nativeTokenSymbol: 'ETH' },
           ],
         },
       ],
+      protocolVolumeUSD: 20450,
       topCounterparties: [
         { address: '0x28c6c06298d514db089934071355e5743bf21d60', label: 'Binance 14', type: 'cex', inboundCount: 8, outboundCount: 12, inboundUSD: 18400, outboundUSD: 15200, totalTxCount: 20, netFlowUSD: 3200, lastInteractionDate: '2024-02-28', chainId: 1 },
         { address: '0xa090e606e30bd747d4e6245a1517ebe430f0057e', label: 'Coinbase Hot Wallet', type: 'cex', inboundCount: 4, outboundCount: 6, inboundUSD: 9500, outboundUSD: 7800, totalTxCount: 10, netFlowUSD: 1700, lastInteractionDate: '2024-01-10', chainId: 1 },
       ],
       uniqueContractCount: 38,
       uniqueCounterpartyCount: 45,
-    }
+    },
+    priceProvenance: {
+      historical: 4,
+      spotEstimate: 0,
+      stablecoinAssumption: 2,
+      unpriced: 0,
+      status: 'complete',
+    },
   };
 
   const baseScanResult: ScanResult = {
@@ -282,6 +321,14 @@ export function getMockScanResult(address: string = '0xd8dA6BF26964aF9D7eEd9e03E
       topNativeOutbound: [],
       totalInboundUSD: 1200,
       totalOutboundUSD: 850,
+      capitalFlowCoverage: {
+        verifiedLegs: 2,
+        totalLegs: 2,
+        excludedSpotEstimateLegs: 0,
+        unpricedLegs: 0,
+        coveragePercent: 100,
+        status: 'complete',
+      },
     },
     approvalSummary: {
       activeApprovals: [
@@ -295,20 +342,22 @@ export function getMockScanResult(address: string = '0xd8dA6BF26964aF9D7eEd9e03E
           spender: '0x3fc91a3afd70395cd496c647d5a6cc9d4b2b7fad',
           spenderLabel: 'Uniswap Universal Router',
           allowance: 'Unlimited',
+          allowanceAmount: null,
           isUnlimited: true,
           riskLevel: 'medium',
           chainId: 8453,
+          estimatedTokenBalance: 2500,
+          estimatedExposureUSD: 2500,
+          estimatedExposureUSDProvenance: 'stablecoin_assumption',
+          exposureStatus: 'estimated',
         }
       ],
       highRiskCount: 0,
       unlimitedCount: 1,
       totalApprovals: 1,
       totalExposureUSD: 2500,
-    },
-    graveyardSummary: {
-      deadAssets: [],
-      totalPeakValueLost: 0,
-      totalTokensDead: 0,
+      totalExposureUSDProvenance: { historical: 0, spotEstimate: 0, stablecoinAssumption: 1, unpriced: 0, status: 'complete' },
+      exposureStatus: 'complete',
     },
     fingerprint: {
       dimensions: [
@@ -336,6 +385,7 @@ export function getMockScanResult(address: string = '0xd8dA6BF26964aF9D7eEd9e03E
     },
     activityProfile: {
       heatmap: [],
+      activeDates: ['2024-12-20'],
       totalActiveDays: 156,
       mostActiveDay: 'Wednesday',
       mostActiveHour: 14,
@@ -345,23 +395,61 @@ export function getMockScanResult(address: string = '0xd8dA6BF26964aF9D7eEd9e03E
     },
     interactionsSummary: {
       topProtocols: [],
+      protocolVolumeUSD: 0,
       topCounterparties: [],
       uniqueContractCount: 12,
       uniqueCounterpartyCount: 15,
-    }
+    },
+    priceProvenance: {
+      historical: 2,
+      spotEstimate: 0,
+      stablecoinAssumption: 0,
+      unpriced: 0,
+      status: 'complete',
+    },
   };
 
   return {
     address,
+    status: 'complete',
+    availability: [ethScanResult, baseScanResult].map(result => ({
+      chainId: result.chainId,
+      chainName: result.chainName,
+      transactions: 'complete' as const,
+      tokenTransfers: 'complete' as const,
+      internalTransactions: 'complete' as const,
+      prices: 'complete' as const,
+      errors: [],
+    })),
     chains: [ethScanResult, baseScanResult],
+    metrics: buildReportingMetrics(
+      [ethScanResult, baseScanResult],
+      'complete',
+      {
+        historical: 6,
+        spotEstimate: 0,
+        stablecoinAssumption: 2,
+        unpriced: 0,
+        status: 'complete',
+      },
+      mockSybilReport,
+    ),
+    sybilReport: mockSybilReport,
     aggregated: {
       totalGasETH: ethScanResult.gasSummary.totalGasETH + baseScanResult.gasSummary.totalGasETH,
       totalGasUSD: ethScanResult.gasSummary.totalGasUSD + baseScanResult.gasSummary.totalGasUSD,
       totalHighRiskApprovals: ethScanResult.approvalSummary.highRiskCount + baseScanResult.approvalSummary.highRiskCount,
-      totalDeadAssets: ethScanResult.graveyardSummary.totalTokensDead + baseScanResult.graveyardSummary.totalTokensDead,
+      totalUnlimitedApprovals: ethScanResult.approvalSummary.unlimitedCount + baseScanResult.approvalSummary.unlimitedCount,
       totalTransactions: ethScanResult.transactionCount + baseScanResult.transactionCount,
-      riskScore: 18,
-      riskGrade: 'B',
+      worstChainRiskScore: 18,
+      worstChainRiskGrade: 'B',
+      priceProvenance: {
+        historical: 6,
+        spotEstimate: 0,
+        stablecoinAssumption: 2,
+        unpriced: 0,
+        status: 'complete',
+      },
     }
   };
 }

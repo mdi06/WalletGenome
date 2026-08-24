@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
-import { ScanResult, ActivityCell } from '@/lib/types';
+import { ScanResult } from '@/lib/types';
+import { aggregateActivityProfiles } from '@/lib/analysis/activityHeatmap';
 import { Calendar, Clock, Flame, Zap } from 'lucide-react';
 
 interface Props {
@@ -10,59 +11,12 @@ const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const HOUR_LABELS = ['12a', '', '', '3a', '', '', '6a', '', '', '9a', '', '', '12p', '', '', '3p', '', '', '6p', '', '', '9p', '', ''];
 
 export default function ActivityHeatmap({ results }: Props) {
-  const { cells, totalActiveDays, mostActiveDay, mostActiveHour, longestStreak, hasActivity } = useMemo(() => {
-    const mergedMap = new Map<string, number>();
-    let totalActive = 0;
-    let peakDay = 'N/A';
-    let peakHour = 0;
-    let maxStreak = 0;
-    
-    for (const r of results) {
-      if (!r.activityProfile) continue;
-      const ap = r.activityProfile;
-      
-      for (const cell of ap.heatmap) {
-        const key = `${cell.day}-${cell.hour}`;
-        mergedMap.set(key, (mergedMap.get(key) || 0) + cell.count);
-      }
-      
-      totalActive = Math.max(totalActive, ap.totalActiveDays);
-      if (ap.longestStreakDays > maxStreak) {
-        maxStreak = ap.longestStreakDays;
-        peakDay = ap.mostActiveDay;
-        peakHour = ap.mostActiveHour;
-      }
-    }
-    
-    let maxCount = 0;
-    for (const count of mergedMap.values()) {
-      if (count > maxCount) maxCount = count;
-    }
-    
-    const computedCells: ActivityCell[] = [];
-    let anyActivity = false;
-    for (let day = 0; day < 7; day++) {
-      for (let hour = 0; hour < 24; hour++) {
-        const count = mergedMap.get(`${day}-${hour}`) || 0;
-        if (count > 0) anyActivity = true;
-        computedCells.push({
-          day,
-          hour,
-          count,
-          intensity: maxCount > 0 ? count / maxCount : 0,
-        });
-      }
-    }
-
-    return {
-      cells: computedCells,
-      totalActiveDays: totalActive,
-      mostActiveDay: peakDay,
-      mostActiveHour: peakHour,
-      longestStreak: maxStreak,
-      hasActivity: anyActivity,
-    };
-  }, [results]);
+  const profile = useMemo(
+    () => aggregateActivityProfiles(results.map(result => result.activityProfile).filter(Boolean)),
+    [results]
+  );
+  const cells = profile.heatmap;
+  const hasActivity = cells.some(cell => cell.count > 0);
   
   if (!hasActivity) {
     return (
@@ -80,7 +34,7 @@ export default function ActivityHeatmap({ results }: Props) {
           <Calendar size={14} className="text-[#ff5500]" />
           <div>
             <div className="text-[10px] font-extrabold text-[#4b5563] uppercase">Active Days</div>
-            <div className="text-xs font-black text-[#0a0a0a] font-mono">{totalActiveDays} days</div>
+            <div className="text-xs font-black text-[#0a0a0a] font-mono">{profile.totalActiveDays} days</div>
           </div>
         </div>
 
@@ -88,7 +42,7 @@ export default function ActivityHeatmap({ results }: Props) {
           <Flame size={14} className="text-[#ff5500]" />
           <div>
             <div className="text-[10px] font-extrabold text-[#4b5563] uppercase">Streak</div>
-            <div className="text-xs font-black text-[#0a0a0a] font-mono">{longestStreak} days</div>
+            <div className="text-xs font-black text-[#0a0a0a] font-mono">{profile.longestStreakDays} days</div>
           </div>
         </div>
 
@@ -96,7 +50,7 @@ export default function ActivityHeatmap({ results }: Props) {
           <Clock size={14} className="text-[#0a0a0a]" />
           <div>
             <div className="text-[10px] font-extrabold text-[#4b5563] uppercase">Peak Hour</div>
-            <div className="text-xs font-black text-[#0a0a0a] font-mono">{mostActiveHour}:00 UTC</div>
+            <div className="text-xs font-black text-[#0a0a0a] font-mono">{profile.mostActiveHour}:00 UTC</div>
           </div>
         </div>
 
@@ -104,7 +58,7 @@ export default function ActivityHeatmap({ results }: Props) {
           <Zap size={14} className="text-[#ff5500]" />
           <div>
             <div className="text-[10px] font-extrabold text-[#4b5563] uppercase">Peak Day</div>
-            <div className="text-xs font-black text-[#0a0a0a] font-mono">{mostActiveDay}</div>
+            <div className="text-xs font-black text-[#0a0a0a] font-mono">{profile.mostActiveDay}</div>
           </div>
         </div>
       </div>
