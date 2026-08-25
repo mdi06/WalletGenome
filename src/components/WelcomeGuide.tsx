@@ -2,51 +2,13 @@
 
 import Link from 'next/link';
 import { ArrowRight, ShieldCheck, Dna, GitFork, UserCheck, Lock, Layers, Activity, HelpCircle, BookOpen } from 'lucide-react';
+import { DEMO_WALLETS, type DemoWallet } from '@/lib/demoWallets';
 
 interface Props {
-  onSelectAddress: (address: string) => void;
+  onSelectDemo: (demo: DemoWallet) => void;
 }
 
-const SHOWCASE_PROFILES = [
-  {
-    role: 'DEFI POWER USER',
-    name: 'vitalik.eth',
-    address: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045',
-    badge: '6 SOCIALS ATTACHED',
-    badgeColor: 'bg-[#059669]/10 text-[#059669] border-[#059669]/30',
-    description: '2,000+ smart contract interactions, verified Twitter, Lens & Farcaster profiles, and deep multi-chain footprint.',
-    stats: '2,181 Contracts · 400+ Active Days',
-  },
-  {
-    role: 'PROTOCOL FOUNDER',
-    name: 'hayden.eth',
-    address: '0x50EC05AD9D29a73367175E26E962D714E96896C3',
-    badge: 'UNISWAP CREATOR',
-    badgeColor: 'bg-[#ff5500]/10 text-[#ff5500] border-[#ff5500]/30',
-    description: 'Creator of Uniswap. Demonstrates high capital efficiency, continuous liquidity deployment, and DEX routing.',
-    stats: 'Core DEX Velocity · Low Risk',
-  },
-  {
-    role: 'LENDING & SOCIAL ARCHITECT',
-    name: 'stani.eth',
-    address: '0x2e21f5d34208a3d5483f9829f2709e9005bf15f2',
-    badge: 'AAVE & LENS FOUNDER',
-    badgeColor: 'bg-black text-white border-black',
-    description: 'Founder of Aave & Lens Protocol. Multi-year on-chain lending footprint, governance delegation, and Web3 social presence.',
-    stats: 'Lending Pioneer · Web3 Social Graph',
-  },
-  {
-    role: 'DEFI MEGA-WHALE',
-    name: 'justinsun.eth',
-    address: '0x3DdfA8eC3052539b6C9549F12cEA2C295cfF5296',
-    badge: 'HIGH CAPITAL FLOW',
-    badgeColor: 'bg-[#f59e0b]/10 text-[#f59e0b] border-[#f59e0b]/30',
-    description: 'Founder of Tron. High-velocity multi-million dollar liquidity deposits, staking, and cross-chain capital routing.',
-    stats: 'Institutional Scale · High Liquidity',
-  },
-];
-
-export default function WelcomeGuide({ onSelectAddress }: Props) {
+export default function WelcomeGuide({ onSelectDemo }: Props) {
   return (
     <div className="space-y-10 py-2 animate-fade-in-up">
       {/* ── 1. One-Click Interactive Showcase Profiles ── */}
@@ -54,50 +16,46 @@ export default function WelcomeGuide({ onSelectAddress }: Props) {
         <div className="flex items-center justify-between">
           <h2 id="demo-profiles-heading" className="text-xs font-extrabold text-[#4b5563] uppercase tracking-wider flex items-center gap-1.5">
             <Activity size={14} className="text-[#ff5500]" />
-            <span>TRY DEMO ADDRESSES (LIVE 1-CLICK SCAN)</span>
+            <span>Explore saved demo wallets</span>
           </h2>
           <span className="text-[11px] font-bold text-[#6b7280] hidden sm:inline">
-            Click any address to run live provider indexing
+            Opens instantly without provider API calls
           </span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {SHOWCASE_PROFILES.map((p, idx) => (
+          {DEMO_WALLETS.map(demo => (
             <div
-              key={idx}
-              className="card-3d-interactive p-4 text-[#0a0a0a] space-y-3 flex flex-col justify-between group cursor-pointer"
-              onClick={() => onSelectAddress(p.address)}
+              key={demo.slug}
+              className="card-3d-interactive p-4 text-[#0a0a0a] space-y-3 flex flex-col justify-between group"
             >
               <div className="space-y-2">
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-[9px] font-mono font-extrabold text-[#4b5563] uppercase tracking-wider truncate">
-                    {p.role}
+                    {demo.role}
                   </span>
-                  <span className={`badge-3d text-[9px] font-mono font-black px-1.5 py-0.2 border ${p.badgeColor} flex-shrink-0`}>
-                    {p.badge}
+                  <span className="badge-3d flex-shrink-0 border border-[#059669]/30 bg-[#059669]/10 px-1.5 py-0.2 font-mono text-[9px] font-black text-[#059669]">
+                    Saved snapshot
                   </span>
                 </div>
 
                 <h3 className="text-base font-black text-[#0a0a0a] font-mono group-hover:text-[#ff5500] transition-colors">
-                  {p.name}
+                  {demo.ens}
                 </h3>
 
                 <p className="text-xs text-[#4b5563] leading-relaxed line-clamp-3 text-pretty">
-                  {p.description}
+                  Public multi-chain demo data for {demo.name}. The dashboard keeps the original provider and pricing completeness warnings.
                 </p>
               </div>
 
               <div className="pt-2.5 border-t border-[#c8c8c8] flex items-center justify-between gap-2">
                 <span className="text-[10px] font-mono font-bold text-[#6b7280] truncate">
-                  {p.stats}
+                  Four chains · Updated Aug 25, 2026
                 </span>
                 <button
                   type="button"
-                  aria-label={`Explore ${p.name}`}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onSelectAddress(p.address);
-                  }}
+                  aria-label={`Load saved demo snapshot for ${demo.name}`}
+                  onClick={() => onSelectDemo(demo)}
                   className="btn-3d-black text-white font-bold text-xs px-2.5 py-1 flex items-center gap-1 flex-shrink-0 cursor-pointer"
                 >
                   <span>Explore</span>

@@ -10,6 +10,7 @@ import IdentityCard from './IdentityCard';
 import { ExternalLink } from 'lucide-react';
 import { buildDashboardViewModel } from '@/lib/viewModels/dashboardViewModels';
 import DashboardStatusPanel, { getAvailabilityMessage } from './status/DashboardStatusPanel';
+import { getNextTabIndex } from '@/lib/accessibility/tabs';
 
 const BehavioralRadarChart = dynamic(() => import('./BehavioralRadarChart'), {
   loading: () => (
@@ -94,9 +95,9 @@ export default function Dashboard({ data }: DashboardProps) {
 
   const {
     approvalCount,
-    capitalFlowCoverage,
+    chainActivity,
+    chainActivityStatus,
     formattedGasUSD,
-    formattedInflowUSD,
     persona,
     primaryName,
     protocolBadges,
@@ -106,7 +107,6 @@ export default function Dashboard({ data }: DashboardProps) {
     riskScore,
     sybilProbability: sybilProb,
     totalGasETH,
-    totalInflowUSD,
   } = buildDashboardViewModel(data);
 
   const tabs: { id: TabId; label: string; count?: number }[] = [
@@ -118,10 +118,19 @@ export default function Dashboard({ data }: DashboardProps) {
     { id: 'approvals', label: 'APPROVALS', count: approvalCount },
   ];
 
+  const handleDashboardTabKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
+    const nextIndex = getNextTabIndex(tabs.findIndex(tab => tab.id === activeTab), tabs.length, event.key);
+    if (nextIndex === null) return;
+    event.preventDefault();
+    const nextTab = tabs[nextIndex].id;
+    setActiveTab(nextTab);
+    document.getElementById(`dashboard-${nextTab}-tab`)?.focus();
+  };
+
 
 
   return (
-    <div className="space-y-6 animate-fade-in-up">
+    <div className="min-w-0 space-y-6 animate-fade-in-up">
       {availabilityMessage && <DashboardStatusPanel data={data} />}
 
       {/* ── Chain Warnings / Degradation Alert ── */}
@@ -137,15 +146,30 @@ export default function Dashboard({ data }: DashboardProps) {
       )}
 
       {/* ── Tab Navigation Bar & Export Action ── */}
-      <div className="flex items-center justify-between border-b border-[#c8c8c8] pt-2 pb-2.5 px-1 overflow-x-auto gap-3">
-        <div className="flex items-center gap-2 sm:gap-3">
+      <div
+        className="horizontal-scroll-region flex items-center justify-between border-b border-[#c8c8c8] pt-2 pb-2.5 px-1 overflow-x-auto gap-3"
+        tabIndex={0}
+        aria-label="Dashboard sections; scroll horizontally for more tabs"
+      >
+        <div
+          className="flex items-center gap-2 sm:gap-3"
+          role="tablist"
+          aria-label="Wallet dashboard sections"
+        >
           {tabs.map(tab => {
             const isActive = activeTab === tab.id;
             return (
               <button
                 key={tab.id}
+                id={`dashboard-${tab.id}-tab`}
+                type="button"
+                role="tab"
+                aria-selected={isActive}
+                aria-controls={`dashboard-${tab.id}-panel`}
+                tabIndex={isActive ? 0 : -1}
+                onKeyDown={handleDashboardTabKeyDown}
                 onClick={() => setActiveTab(tab.id)}
-                className={`px-3.5 py-2 text-xs font-black tracking-wider transition-all whitespace-nowrap cursor-pointer flex items-center gap-2 ${
+                className={`min-h-11 px-3.5 py-2 text-xs font-black tracking-wider transition-all whitespace-nowrap cursor-pointer flex items-center gap-2 ${
                   isActive
                     ? 'btn-3d-black text-white'
                     : 'btn-3d-neutral text-[#4b5563] hover:text-black font-bold'
@@ -168,8 +192,22 @@ export default function Dashboard({ data }: DashboardProps) {
       </div>
 
       {/* ── Tab Views ── */}
+      {tabs.filter(tab => tab.id !== activeTab).map(tab => (
+        <div
+          key={`${tab.id}-placeholder`}
+          id={`dashboard-${tab.id}-panel`}
+          role="tabpanel"
+          aria-labelledby={`dashboard-${tab.id}-tab`}
+          hidden
+        />
+      ))}
       {activeTab === 'dna' && (
-        <div className="space-y-6">
+        <div
+          id="dashboard-dna-panel"
+          role="tabpanel"
+          aria-labelledby="dashboard-dna-tab"
+          className="space-y-6"
+        >
           {/* Universal Resolved Identity Banner */}
           <IdentityCard identity={identityReport} address={data.address} />
 
@@ -359,10 +397,8 @@ export default function Dashboard({ data }: DashboardProps) {
                 )}
               </div>
 
-              {/* Metric Double Card (Lifetime Gas & Capital Flow) */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                
-                {/* Left: Lifetime Gas */}
+              {/* Lifetime Gas & Chain Activity */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="card-3d p-6 text-[#0a0a0a] space-y-2">
                   <span className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider block">
                     LIFETIME GAS
@@ -375,46 +411,63 @@ export default function Dashboard({ data }: DashboardProps) {
                   </div>
                 </div>
 
-                {/* Right: Capital Flow */}
-                <div className="card-3d p-6 text-[#0a0a0a] space-y-2 overflow-hidden">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider block">
-                      VERIFIED CAPITAL FLOW
+                <div className="card-3d p-6 text-[#0a0a0a] space-y-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider">
+                      CHAIN ACTIVITY
                     </span>
-                    <span className={`text-[9px] font-black font-mono uppercase px-1.5 py-0.5 border ${
-                      capitalFlowCoverage.status === 'complete'
-                        ? 'text-[#047857] border-[#059669]/40 bg-[#059669]/10'
-                        : capitalFlowCoverage.status === 'partial'
-                          ? 'text-[#b45309] border-[#f59e0b]/50 bg-[#f59e0b]/10'
-                          : 'text-[#b91c1c] border-[#dc2626]/40 bg-[#dc2626]/10'
+                    <span className={`badge-3d text-[9px] font-mono font-bold px-2 py-0.5 border ${
+                      chainActivityStatus === 'complete'
+                        ? 'bg-[#059669]/10 text-[#047857] border-[#059669]/30'
+                        : chainActivityStatus === 'partial'
+                          ? 'bg-[#f59e0b]/10 text-[#a14f08] border-[#f59e0b]/30'
+                          : 'bg-[#dc2626]/10 text-[#b91c1c] border-[#dc2626]/30'
                     }`}>
-                      {capitalFlowCoverage.status}
+                      {chainActivityStatus === 'complete'
+                        ? 'COMPLETE'
+                        : chainActivityStatus === 'partial'
+                          ? 'PARTIAL DATA'
+                          : 'UNAVAILABLE'}
                     </span>
                   </div>
-                  <div className="text-3xl font-black text-[#0a0a0a] font-mono truncate" title={totalInflowUSD === null ? 'Unavailable because wallet history is incomplete or no eligible transfer leg has a historical price' : `$${totalInflowUSD.toLocaleString('en-US')} verified historical inflow`}>
-                    {formattedInflowUSD}
+                  <p className="text-[10px] font-bold text-[#6b7280] font-mono">
+                    NORMAL WALLET TRANSACTIONS BY SELECTED CHAIN
+                  </p>
+                  <div className="space-y-2.5">
+                    {chainActivity.map(chain => (
+                      <div key={chain.chainId} className="space-y-1">
+                        <div className="flex items-center justify-between gap-3 text-xs font-bold">
+                          <span className="flex items-center gap-2 min-w-0">
+                            <span
+                              className="w-2 h-2 flex-shrink-0 border border-black/20"
+                              style={{ backgroundColor: chain.color }}
+                            />
+                            <span className="truncate">{chain.chainName}</span>
+                          </span>
+                          <span className="font-mono text-[#0a0a0a] whitespace-nowrap">
+                            {chain.status === 'unavailable'
+                              ? 'UNAVAILABLE'
+                              : chain.transactionCount === null
+                                ? 'COUNT UNKNOWN'
+                                : `${chain.transactionCount.toLocaleString()}${chain.status === 'partial' ? '+' : ''} TXS${chain.sharePercent !== null ? ` · ${chain.sharePercent}%` : ''}`}
+                          </span>
+                        </div>
+                        {chain.sharePercent !== null ? (
+                          <div className="h-1.5 well-recessed overflow-hidden">
+                            <div
+                              className="h-full"
+                              style={{ width: `${chain.sharePercent}%`, backgroundColor: chain.color }}
+                            />
+                          </div>
+                        ) : chain.status === 'partial' ? (
+                          <div className="text-[9px] font-mono font-bold text-[#a14f08] uppercase">
+                            At least this many records returned
+                          </div>
+                        ) : null}
+                      </div>
+                    ))}
                   </div>
-                  <div className="text-xs font-bold text-[#4b5563] font-mono">
-                    Verified Historical Inflow
-                  </div>
-                  {capitalFlowCoverage.status === 'partial' && (
-                    <div className="text-[10px] font-bold text-[#92400e] leading-snug">
-                      {capitalFlowCoverage.coveragePercent}% coverage · {capitalFlowCoverage.verifiedLegs}/{capitalFlowCoverage.totalLegs} transfer values included.{' '}
-                      {capitalFlowCoverage.excludedSpotEstimateLegs} current-price estimates and {capitalFlowCoverage.unpricedLegs} unpriced values excluded.
-                    </div>
-                  )}
-                  {capitalFlowCoverage.status === 'complete' && (
-                    <div className="text-[10px] font-bold text-[#047857]">
-                      Complete historical coverage · {capitalFlowCoverage.verifiedLegs} transfer values included.
-                    </div>
-                  )}
-                  {capitalFlowCoverage.status === 'unavailable' && (
-                    <div className="text-[10px] font-bold text-[#b91c1c] leading-snug">
-                      Requires complete wallet history and at least one historically priced transfer value.
-                    </div>
-                  )}
                 </div>
-
               </div>
 
               {/* 6-Dimension Quantitative Breakdown */}
@@ -489,27 +542,27 @@ export default function Dashboard({ data }: DashboardProps) {
 
       {/* ── Other Tab Views (3D Enclosures) ── */}
       {activeTab === 'flow' && (
-        <div className="card-3d p-6">
-          <CapitalFlowGraph results={data.chains} />
+        <div id="dashboard-flow-panel" role="tabpanel" aria-labelledby="dashboard-flow-tab" className="card-3d p-6">
+          <CapitalFlowGraph results={data.chains} metrics={data.metrics} />
         </div>
       )}
       {activeTab === 'protocols' && (
-        <div className="card-3d p-6">
+        <div id="dashboard-protocols-panel" role="tabpanel" aria-labelledby="dashboard-protocols-tab" className="card-3d p-6">
           <InteractionsPanel results={data.chains} />
         </div>
       )}
       {activeTab === 'gas' && (
-        <div className="card-3d p-6">
+        <div id="dashboard-gas-panel" role="tabpanel" aria-labelledby="dashboard-gas-tab" className="card-3d p-6">
           <GasSummaryPanel results={data.chains} />
         </div>
       )}
       {activeTab === 'transfers' && (
-        <div className="card-3d p-6">
+        <div id="dashboard-transfers-panel" role="tabpanel" aria-labelledby="dashboard-transfers-tab" className="card-3d p-6">
           <TransferTable results={data.chains} />
         </div>
       )}
       {activeTab === 'approvals' && (
-        <div className="card-3d p-6">
+        <div id="dashboard-approvals-panel" role="tabpanel" aria-labelledby="dashboard-approvals-tab" className="card-3d p-6">
           <ApprovalAudit results={data.chains} />
         </div>
       )}

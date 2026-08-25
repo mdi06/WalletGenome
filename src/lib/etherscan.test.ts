@@ -149,6 +149,29 @@ describe('Explorer data availability', () => {
     assert.deepStrictEqual(result.errors, []);
   });
 
+  it('retries transient non-JSON public Blockscout responses before failing over', async () => {
+    let attempts = 0;
+    const result = await fetchExplorerData<{ hash: string }>(['https://base.blockscout.com/api'], 2, {
+      maxAttempts: 2,
+      backoffBaseMs: 0,
+      backoffJitterMs: 0,
+      fetcher: async () => {
+        attempts += 1;
+        if (attempts === 1) {
+          return new Response('<html>busy</html>', {
+            status: 200,
+            headers: { 'Content-Type': 'text/html' },
+          });
+        }
+        return jsonResponse({ status: '1', result: [{ hash: '0xrecovered' }] });
+      },
+    });
+
+    assert.strictEqual(attempts, 2);
+    assert.strictEqual(result.status, 'complete');
+    assert.deepStrictEqual(result.data, [{ hash: '0xrecovered' }]);
+  });
+
   it('marks chains without an explorer configuration as unavailable', async () => {
     const result = await fetchNormalTransactions(
       '0x1234567890123456789012345678901234567890',
@@ -253,5 +276,47 @@ describe('Explorer data availability', () => {
     assert.deepStrictEqual(result.data.map(record => record.hash), records.map(record => record.hash));
     assert.ok(requestedRanges.includes('0-9'));
     assert.ok(requestedRanges.some(range => range !== '0-9'));
+  });
+
+  it('uses conservative single-worker range fanout for public Blockscout hosts', async () => {
+    const requestedRanges: string[] = [];
+    let inFlight = 0;
+    let maxInFlight = 0;
+
+    const result = await fetchExplorerData<{ hash: string; blockNumber: string }>(['https://base.blockscout.com/api'], 2, {
+      maxAttempts: 1,
+      useBlockRangeSplitting: true,
+      endBlock: 3999,
+      rangeConcurrency: 4,
+      fetcher: async (url) => {
+        const parsed = new URL(url);
+        const start = Number(parsed.searchParams.get('startblock') ?? '0');
+        const end = Number(parsed.searchParams.get('endblock') ?? '0');
+        requestedRanges.push(`${start}-${end}`);
+        inFlight += 1;
+        maxInFlight = Math.max(maxInFlight, inFlight);
+        await new Promise(resolve => setTimeout(resolve, 5));
+        inFlight -= 1;
+
+        if (start === 0 && end === 3999) {
+          return jsonResponse({
+            status: '1',
+            result: Array.from({ length: 10_000 }, (_, index) => ({
+              hash: `0xroot-${index}`,
+              blockNumber: index % 2 === 0 ? '1' : '3999',
+            })),
+          });
+        }
+
+        return jsonResponse({
+          status: '1',
+          result: [{ hash: `0x${start}`, blockNumber: String(start) }],
+        });
+      },
+    });
+
+    assert.strictEqual(result.status, 'complete');
+    assert.strictEqual(maxInFlight, 1);
+    assert.deepStrictEqual(requestedRanges, ['0-3999', '0-999', '1000-1999', '2000-2999', '3000-3999']);
   });
 });

@@ -11,6 +11,7 @@ import {
   sortClusterWallets,
 } from '@/lib/viewModels/dashboardViewModels';
 import ClusterStatusPanel, { getClusterAvailabilityMessage } from './status/ClusterStatusPanel';
+import { getNextTabIndex } from '@/lib/accessibility/tabs';
 
 interface Props {
   data: ClusterScanResult;
@@ -18,6 +19,7 @@ interface Props {
 }
 
 type BulkTabId = 'leaderboard' | 'flow';
+const BULK_TABS = ['leaderboard', 'flow'] as const;
 
 export default function BulkDashboard({ data, onInspectWallet }: Props) {
   const [activeTab, setActiveTab] = useState<BulkTabId>('leaderboard');
@@ -38,6 +40,19 @@ export default function BulkDashboard({ data, onInspectWallet }: Props) {
       setSortField(field);
       setSortAsc(false);
     }
+  };
+
+  const getSortDirection = (field: ClusterSortField): 'ascending' | 'descending' | 'none' => (
+    sortField === field ? (sortAsc ? 'ascending' : 'descending') : 'none'
+  );
+
+  const handleClusterTabKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
+    const nextIndex = getNextTabIndex(BULK_TABS.indexOf(activeTab), BULK_TABS.length, event.key);
+    if (nextIndex === null) return;
+    event.preventDefault();
+    const nextTab = BULK_TABS[nextIndex];
+    setActiveTab(nextTab);
+    document.getElementById(`cluster-${nextTab}-tab`)?.focus();
   };
 
   const handleExportCSV = () => {
@@ -70,7 +85,7 @@ export default function BulkDashboard({ data, onInspectWallet }: Props) {
   }
 
   return (
-    <div className="space-y-6 animate-fade-in-up">
+    <div className="min-w-0 space-y-6 animate-fade-in-up">
       
       {/* ── 1. Top Cluster Metric KPI Strip ── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
@@ -219,11 +234,21 @@ export default function BulkDashboard({ data, onInspectWallet }: Props) {
       </div>
 
       {/* ── 3. Cluster Sub-Tabs Navigation ── */}
-      <div className="flex items-center gap-3 border-b border-[#c8c8c8] pt-2 pb-2.5 px-1 overflow-x-auto">
+      <div
+        className="horizontal-scroll-region flex items-center gap-3 border-b border-[#c8c8c8] pt-2 pb-2.5 px-1 overflow-x-auto"
+        role="tablist"
+        aria-label="Cluster dashboard sections; scroll horizontally for more tabs"
+      >
         <button
+          id="cluster-leaderboard-tab"
           type="button"
+          role="tab"
+          aria-selected={activeTab === 'leaderboard'}
+          aria-controls="cluster-leaderboard-panel"
+          tabIndex={activeTab === 'leaderboard' ? 0 : -1}
+          onKeyDown={handleClusterTabKeyDown}
           onClick={() => setActiveTab('leaderboard')}
-          className={`px-3.5 py-2 text-xs font-black tracking-wider transition-all whitespace-nowrap cursor-pointer flex items-center gap-2 ${
+          className={`min-h-11 px-3.5 py-2 text-xs font-black tracking-wider transition-all whitespace-nowrap cursor-pointer flex items-center gap-2 ${
             activeTab === 'leaderboard'
               ? 'btn-3d-black text-white'
               : 'btn-3d-neutral text-[#4b5563] hover:text-black font-bold'
@@ -237,9 +262,15 @@ export default function BulkDashboard({ data, onInspectWallet }: Props) {
         </button>
 
         <button
+          id="cluster-flow-tab"
           type="button"
+          role="tab"
+          aria-selected={activeTab === 'flow'}
+          aria-controls="cluster-flow-panel"
+          tabIndex={activeTab === 'flow' ? 0 : -1}
+          onKeyDown={handleClusterTabKeyDown}
           onClick={() => setActiveTab('flow')}
-          className={`px-3.5 py-2 text-xs font-black tracking-wider transition-all whitespace-nowrap cursor-pointer flex items-center gap-2 ${
+          className={`min-h-11 px-3.5 py-2 text-xs font-black tracking-wider transition-all whitespace-nowrap cursor-pointer flex items-center gap-2 ${
             activeTab === 'flow'
               ? 'btn-3d-black text-white'
               : 'btn-3d-neutral text-[#4b5563] hover:text-black font-bold'
@@ -258,10 +289,24 @@ export default function BulkDashboard({ data, onInspectWallet }: Props) {
       </div>
 
       {/* ── 4. Tab Views ── */}
+      {BULK_TABS.filter(tab => tab !== activeTab).map(tab => (
+        <div
+          key={`${tab}-placeholder`}
+          id={`cluster-${tab}-panel`}
+          role="tabpanel"
+          aria-labelledby={`cluster-${tab}-tab`}
+          hidden
+        />
+      ))}
 
       {/* Tab A: Leaderboard View */}
       {activeTab === 'leaderboard' && (
-        <div className="space-y-6">
+        <div
+          id="cluster-leaderboard-panel"
+          role="tabpanel"
+          aria-labelledby="cluster-leaderboard-tab"
+          className="space-y-6"
+        >
           {/* Direct Linkages & Shared Counterparties Quick Summary */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             
@@ -350,42 +395,42 @@ export default function BulkDashboard({ data, onInspectWallet }: Props) {
               </button>
             </div>
 
-            <div className="well-recessed-light overflow-hidden overflow-x-auto">
+            <div
+              className="horizontal-scroll-region well-recessed-light overflow-hidden overflow-x-auto"
+              tabIndex={0}
+              role="region"
+              aria-label="Cluster wallet leaderboard; scroll horizontally for all columns"
+            >
               <table className="w-full text-left border-collapse">
                 <thead>
                   <tr className="bg-[#d0d0d0] border-b border-[#c2c2c2] text-[10px] font-extrabold text-[#4b5563] uppercase tracking-wider">
                     <th className="py-3 px-4">#</th>
                     <th className="py-3 px-4">WALLET IDENTITY</th>
                     <th className="py-3 px-4">PERSONA</th>
-                    <th
-                      onClick={() => handleSort('risk')}
-                      className="py-3 px-4 cursor-pointer hover:text-black transition-colors"
-                    >
-                      RISK GRADE {sortField === 'risk' && (sortAsc ? '▲' : '▼')}
+                    <th aria-sort={getSortDirection('risk')} className="py-3 px-4">
+                      <button type="button" onClick={() => handleSort('risk')} className="min-h-11 font-extrabold hover:text-black">
+                        RISK GRADE {sortField === 'risk' && (sortAsc ? '▲' : '▼')}
+                      </button>
                     </th>
-                    <th
-                      onClick={() => handleSort('sybil')}
-                      className="py-3 px-4 cursor-pointer hover:text-black transition-colors"
-                    >
-                      SYBIL PROB. {sortField === 'sybil' && (sortAsc ? '▲' : '▼')}
+                    <th aria-sort={getSortDirection('sybil')} className="py-3 px-4">
+                      <button type="button" onClick={() => handleSort('sybil')} className="min-h-11 font-extrabold hover:text-black">
+                        SYBIL PROB. {sortField === 'sybil' && (sortAsc ? '▲' : '▼')}
+                      </button>
                     </th>
-                    <th
-                      onClick={() => handleSort('gas')}
-                      className="py-3 px-4 text-right cursor-pointer hover:text-black transition-colors"
-                    >
-                      LIFETIME GAS {sortField === 'gas' && (sortAsc ? '▲' : '▼')}
+                    <th aria-sort={getSortDirection('gas')} className="py-3 px-4 text-right">
+                      <button type="button" onClick={() => handleSort('gas')} className="min-h-11 font-extrabold hover:text-black">
+                        LIFETIME GAS {sortField === 'gas' && (sortAsc ? '▲' : '▼')}
+                      </button>
                     </th>
-                    <th
-                      onClick={() => handleSort('inflow')}
-                      className="py-3 px-4 text-right cursor-pointer hover:text-black transition-colors"
-                    >
-                      NET INFLOW {sortField === 'inflow' && (sortAsc ? '▲' : '▼')}
+                    <th aria-sort={getSortDirection('inflow')} className="py-3 px-4 text-right">
+                      <button type="button" onClick={() => handleSort('inflow')} className="min-h-11 font-extrabold hover:text-black">
+                        NET INFLOW {sortField === 'inflow' && (sortAsc ? '▲' : '▼')}
+                      </button>
                     </th>
-                    <th
-                      onClick={() => handleSort('txs')}
-                      className="py-3 px-4 text-right cursor-pointer hover:text-black transition-colors"
-                    >
-                      TRANSACTIONS {sortField === 'txs' && (sortAsc ? '▲' : '▼')}
+                    <th aria-sort={getSortDirection('txs')} className="py-3 px-4 text-right">
+                      <button type="button" onClick={() => handleSort('txs')} className="min-h-11 font-extrabold hover:text-black">
+                        TRANSACTIONS {sortField === 'txs' && (sortAsc ? '▲' : '▼')}
+                      </button>
                     </th>
                     <th className="py-3 px-4 text-right">ACTION</th>
                   </tr>
@@ -488,7 +533,12 @@ export default function BulkDashboard({ data, onInspectWallet }: Props) {
 
       {/* Tab B: Interactive Flow Graph View */}
       {activeTab === 'flow' && (
-        <div className="card-3d p-6">
+        <div
+          id="cluster-flow-panel"
+          role="tabpanel"
+          aria-labelledby="cluster-flow-tab"
+          className="card-3d p-6"
+        >
           <ClusterFlowGraph
             wallets={data.wallets}
             linkages={data.linkages}

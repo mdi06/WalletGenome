@@ -40,7 +40,7 @@ export default function WalletInput({ onScan, isLoading, initialAddress }: Props
   return (
     <div className="space-y-2">
       {/* ── 3D Tactile Input Console ── */}
-      <div className={`card-3d transition-all px-4 sm:px-6 py-3.5 flex flex-col md:flex-row items-center justify-between gap-3 ${
+      <div className={`card-3d min-w-0 transition-all px-3 sm:px-6 py-3.5 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 ${
         isLoading ? 'border-[#ff5500] ring-2 ring-[#ff5500]/30' : 'border-[#c2c2c2]'
       }`}>
         
@@ -56,6 +56,8 @@ export default function WalletInput({ onScan, isLoading, initialAddress }: Props
             value={inputAddress}
             disabled={isLoading}
             aria-label="EVM address or ENS domain"
+            aria-invalid={Boolean(error)}
+            aria-describedby={error ? 'wallet-address-error' : undefined}
             onChange={e => {
               setInputAddress(e.target.value);
               if (error) setError(null);
@@ -67,7 +69,7 @@ export default function WalletInput({ onScan, isLoading, initialAddress }: Props
         </div>
 
         {/* Right: Network Filter Pills & 3D Scan Action Button */}
-        <div role="group" aria-label="Select target EVM networks" className="flex items-center gap-2 flex-wrap justify-end">
+        <div role="group" aria-label="Select target EVM networks" className="flex w-full min-w-0 items-center gap-2 flex-wrap justify-start md:w-auto md:justify-end">
           {SUPPORTED_CHAIN_IDS.map(id => {
             const c = CHAINS[id];
             const isSelected = selectedChains.includes(id);
@@ -79,7 +81,7 @@ export default function WalletInput({ onScan, isLoading, initialAddress }: Props
                 aria-label={`Toggle ${c.name} network`}
                 disabled={isLoading}
                 onClick={() => toggleChain(id)}
-                className={`text-xs font-bold px-3 py-1.5 cursor-pointer flex items-center gap-1.5 ${
+                className={`min-h-11 text-xs font-bold px-3 py-1.5 cursor-pointer flex items-center gap-1.5 ${
                   isSelected
                     ? 'btn-3d-black text-white'
                     : 'btn-3d-neutral text-[#4b5563]'
@@ -97,7 +99,7 @@ export default function WalletInput({ onScan, isLoading, initialAddress }: Props
             aria-busy={isLoading}
             onClick={() => handleScan()}
             disabled={isLoading}
-            className={`ml-1.5 font-mono font-black text-xs px-5 py-2.5 flex items-center gap-2 cursor-pointer select-none ${
+            className={`w-full sm:w-auto sm:ml-1.5 min-h-11 justify-center font-mono font-black text-xs px-5 py-2.5 flex items-center gap-2 cursor-pointer select-none ${
               isLoading
                 ? 'btn-3d-orange animate-pulse-glow'
                 : 'btn-3d-orange'
@@ -119,7 +121,7 @@ export default function WalletInput({ onScan, isLoading, initialAddress }: Props
       </div>
 
       {error && (
-        <p className="card-3d border-l-4 border-l-[#ef4444] text-xs text-[#ef4444] font-bold p-2.5 animate-fade-in-up">
+        <p id="wallet-address-error" role="alert" className="card-3d border-l-4 border-l-[#ef4444] text-xs text-[#ef4444] font-bold p-2.5 animate-fade-in-up">
           {error}
         </p>
       )}

@@ -389,7 +389,7 @@ describe('Dashboard provider availability messaging', () => {
     assert.match(markup, /Withheld/);
   });
 
-  it('renders verified partial capital flow with coverage and exclusions', () => {
+  it('does not promote partial capital flow as a Behavioral DNA headline', () => {
     const data = getMockScanResult();
     data.chains[0].transferSummary.capitalFlowCoverage = {
       verifiedLegs: 7,
@@ -408,11 +408,44 @@ describe('Dashboard provider availability messaging', () => {
     }, data.sybilReport);
 
     const markup = renderToStaticMarkup(createElement(Dashboard, { data }));
-    assert.match(markup, /VERIFIED CAPITAL FLOW/);
-    assert.match(markup, /75% coverage/);
-    assert.match(markup, /9\/12 transfer values included/);
-    assert.match(markup, /1 current-price estimates and 2 unpriced values excluded/);
-    assert.doesNotMatch(markup, /VERIFIED CAPITAL FLOW[\s\S]*Unavailable/);
+    assert.doesNotMatch(markup, /VERIFIED CAPITAL FLOW/);
+    assert.match(markup, /LIFETIME GAS/);
+  });
+
+  it('shows a complete per-chain transaction distribution beside lifetime gas', () => {
+    const data = getMockScanResult();
+    data.chains[0].transactionCount = 75;
+    data.chains[1].transactionCount = 25;
+    data.aggregated.totalTransactions = 100;
+
+    const markup = renderToStaticMarkup(createElement(Dashboard, { data }));
+    assert.match(markup, /CHAIN ACTIVITY/);
+    assert.match(markup, /Ethereum/);
+    assert.match(markup, /75 TXS/);
+    assert.match(markup, /75%/);
+    assert.match(markup, /Base/);
+    assert.match(markup, /25 TXS/);
+    assert.match(markup, /25%/);
+  });
+
+  it('does not present incomplete chain history as zero activity', () => {
+    const data = getMockScanResult();
+    data.availability[1].transactions = 'partial';
+    data.availability.push({
+      chainId: 10,
+      chainName: 'Optimism',
+      transactions: 'unavailable',
+      tokenTransfers: 'unavailable',
+      internalTransactions: 'unavailable',
+      prices: 'unavailable',
+      errors: [],
+    });
+
+    const markup = renderToStaticMarkup(createElement(Dashboard, { data }));
+    assert.match(markup, /PARTIAL DATA/);
+    assert.match(markup, /Optimism/);
+    assert.match(markup, /UNAVAILABLE/);
+    assert.doesNotMatch(markup, /Optimism[\s\S]{0,120}>0 TXS</);
   });
 
   it('keeps blacklist detection visible when behavioral Sybil scoring is gated', () => {

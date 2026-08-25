@@ -28,6 +28,21 @@ export default function ActivityHeatmap({ results }: Props) {
 
   return (
     <div className="space-y-4">
+      <table className="sr-only">
+        <caption>Transaction activity by UTC day and hour</caption>
+        <thead>
+          <tr><th>Day</th><th>Hour UTC</th><th>Transactions</th></tr>
+        </thead>
+        <tbody>
+          {cells.filter(cell => cell.count > 0).map(cell => (
+            <tr key={`${cell.day}-${cell.hour}`}>
+              <th>{DAY_LABELS[cell.day]}</th>
+              <td>{cell.hour}:00</td>
+              <td>{cell.count}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
       {/* Stat Badges */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
         <div className="card-3d p-2.5 flex items-center gap-2">
@@ -64,7 +79,12 @@ export default function ActivityHeatmap({ results }: Props) {
       </div>
 
       {/* Heatmap Grid in Warm Orange Intensity */}
-      <div className="overflow-x-auto pt-1">
+      <div
+        className="horizontal-scroll-region overflow-x-auto pt-1"
+        tabIndex={0}
+        role="region"
+        aria-label="Transaction activity heatmap; scroll horizontally for all hours"
+      >
         <div className="min-w-[540px] space-y-1">
           {/* Hour labels */}
           <div className="flex gap-1 mb-1 items-center">

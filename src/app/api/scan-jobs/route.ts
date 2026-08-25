@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createScanJob, type ScanJobStatus } from '@/lib/services/scanJobService';
-import type { ProcessWalletScanProgress } from '@/lib/services/scanService';
+import { createScanJob } from '@/lib/services/scanJobService';
+import { formatScanProgress } from '@/lib/scanProgress';
 import {
   RequestPolicyError,
   acquireRequestSlot,
@@ -11,57 +11,6 @@ import {
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
-
-function formatProgress(progress: ProcessWalletScanProgress, status: ScanJobStatus) {
-  if (status === 'completed') {
-    return {
-      message: 'Scan complete.',
-      progressPercent: 100,
-    };
-  }
-
-  if (status === 'failed') {
-    return {
-      message: 'Scan failed.',
-      progressPercent: 100,
-    };
-  }
-
-  const totalChains = progress.totalChains ?? 0;
-  const completedChains = progress.completedChains ?? 0;
-
-  let message = 'Indexing EVM block state and resolving multi-chain forensics...';
-  let progressPercent = 8;
-
-  switch (progress.phase) {
-    case 'resolving':
-      message = 'Resolving wallet identity and scan target...';
-      progressPercent = 8;
-      break;
-    case 'fetching':
-      message = progress.currentChainName
-        ? `Fetching full history on ${progress.currentChainName} (${completedChains}/${totalChains || 1})...`
-        : `Fetching full history across ${totalChains || 1} chains...`;
-      progressPercent = totalChains > 0
-        ? 18 + Math.round((Math.min(completedChains, totalChains) / totalChains) * 52)
-        : 18;
-      break;
-    case 'pricing':
-      message = 'Resolving historical token prices and valuation inputs...';
-      progressPercent = 76;
-      break;
-    case 'analyzing':
-      message = 'Computing wallet risk, approvals, flows, and behavioral fingerprints...';
-      progressPercent = 90;
-      break;
-    case 'finalizing':
-      message = 'Finalizing forensic report...';
-      progressPercent = 97;
-      break;
-  }
-
-  return { message, progressPercent };
-}
 
 export async function POST(request: NextRequest) {
   try {
@@ -75,7 +24,9 @@ export async function POST(request: NextRequest) {
       {
         jobId: job.jobId,
         state: deduped ? 'running' : job.status,
-        progress: formatProgress(job.progress, deduped ? 'running' : job.status),
+        progress: formatScanProgress(job.progress, deduped ? 'running' : job.status),
+        createdAt: job.createdAt,
+        updatedAt: job.updatedAt,
       },
       { status: 202 },
     );

@@ -40,6 +40,7 @@ Built with Next.js 16, TypeScript, and Recharts, this tool ingests raw transacti
 ### 4. 🕒 Temporal Activity Heatmap
 - **24×7 UTC Contribution Grid**: Day-of-week vs. hour-of-day matrix highlighting transaction execution patterns and timezone footprints.
 - **Streak & Velocity Metrics**: Calculates active days, longest activity streaks, peak hours, and average transactions per active day.
+- **Chain Activity Distribution**: Breaks normal wallet transactions down by selected chain. Percentages are shown only when every selected transaction dataset is complete; partial counts are marked as lower bounds and unavailable history is never displayed as zero.
 
 ### 6. 🕵️ Sybil & Blacklist Radar (Hybrid In-Memory Auto-Sync)
 - **LayerZero Sybil Database**: Cross-references against 800,000+ bounty-reported and self-reported Sybil clusters.
@@ -52,6 +53,7 @@ Built with Next.js 16, TypeScript, and Recharts, this tool ingests raw transacti
 ### 5. 🗺️ Arkham-Style Capital Flow Graph
 - **3-Column Liquidity Network Topology**: Maps fund origins (CEXs, bridges, funding wallets) through core user address to active DeFi protocols and destination wallets.
 - **Animated SVG Flow Particles**: Particle-traced directed lines with volume-weighted stroke widths.
+- **Verified Flow Summary**: Shows historically priced inflow, outflow, and net flow inside the Flow Graph. Partial totals are labeled as lower bounds with count coverage and excluded estimates shown beside them; they are not promoted as a Behavioral DNA headline.
 - **Evidence-Backed Cluster Links**: Batch mode detects direct submitted-wallet transfers from full native, internal, and ERC-20 evidence, preserving direction, chain, unique transaction hashes, and USD completeness. Shared hubs use full counterparty sets; display truncation does not change conclusions.
 
 ### 6. 🔓 Approval & Exposure Audit
@@ -129,12 +131,13 @@ Every single-wallet API response exposes a typed `metrics` object. The methodolo
 | `activeDays` / `longestStreakDays` | Union and longest consecutive run of UTC activity dates across selected chains. |
 | `totalUnlimitedApprovals` | Count of active unlimited approvals across selected chains. |
 
-Capital Flow also publishes `capitalFlowCoverage`: verified transfer legs, total eligible legs, excluded current-price estimates, unpriced legs, coverage percentage, and `complete`/`partial`/`unavailable` status. A partial subtotal is shown only when wallet history is complete and at least one eligible transfer leg has a historical or stablecoin price. Other USD metrics continue to follow their own completeness contracts.
+Capital Flow also publishes `capitalFlowCoverage`: verified transfer legs, total eligible legs, excluded current-price estimates, unpriced legs, coverage percentage, and `complete`/`partial`/`unavailable` status. A partial subtotal is shown only in the Flow Graph, only when wallet history is complete, and only when at least one eligible transfer leg has a historical or stablecoin price. Because coverage is measured by transfer count rather than USD value, partial inflow, outflow, and net flow are explicitly presented as verified lower bounds. Other USD metrics continue to follow their own completeness contracts.
 
 ### Public scan request policy
 
 - Scans remain public and unauthenticated; provider credentials are server-side environment variables and are never accepted from request bodies.
 - Single and batch routes validate exact allowed fields, EVM/ENS targets, and supported chain IDs before provider work.
+- Single-wallet browser scans request an NDJSON stream from `POST /api/scan`. The same request emits scan phases, provider-response counts, cumulative history records, and the final report, so progress does not depend on process-local job storage or cross-instance polling.
 - Batch scans use the shared client/API limit of 10 unique wallets and at most 3 wallet scans concurrently.
 - Per-caller sliding-window limits, per-instance concurrency caps, body limits, and a 280-second work budget return deterministic `4xx`, `429`, or `504` errors.
 - The in-process limiter protects each Vercel function instance; production should also mirror these limits at the platform firewall for deployment-wide enforcement.
@@ -145,6 +148,8 @@ Capital Flow also publishes `capitalFlowCoverage`: verified transfer legs, total
 - Scanned wallet addresses and generated reports are retained only for the active request. There are no saved-wallet, saved-report, account, or historical-comparison features.
 - Scan, identity, price, blacklist, rate-limit, and concurrency caches are process-local, best-effort optimizations. Vercel instances do not share them, and a cold or replaced instance must remain correct.
 - A single-wallet scan with complete history and pricing may be reused from one instance's five-minute memory cache and is marked `cached`; incomplete-price, incomplete-history, and cluster-evidence responses are not cached as complete public reports.
+- The four curated public demo wallets load versioned static snapshots instead of entering the live provider pipeline. Each snapshot displays its generation date and offers a separate **Run fresh scan** action; provider and price completeness warnings remain part of the saved result.
+- Curated demo snapshots are application assets, not user-saved reports. Updating them is a deliberate maintenance action and does not add accounts, report history, or runtime database writes.
 - Production application code performs no runtime filesystem writes. Known-wallet labels are version-controlled read-only configuration.
 - Adding saved reports or comparable history requires a durable database, migrations, authenticated ownership boundaries, access control, and explicit retention rules first.
 
@@ -153,7 +158,7 @@ Capital Flow also publishes `capitalFlowCoverage`: verified transfer legs, total
 ## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js 18+
+- Node.js 22.x (the version used by local verification, CI, and Vercel)
 - npm, pnpm, or bun
 
 ### Installation
@@ -221,12 +226,11 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 ## 🧪 Production Build & Validation
 
 ```bash
-npm run lint
-npm run typecheck
-npm test
-npm run build
+npm run verify
 npm run start
 ```
+
+`npm run verify` runs lint, deterministic Next.js route type generation plus TypeScript checking, the full regression suite, and the production build. Run it before pushing or creating a deployment. Vercel uses the same command from `vercel.json`; no lint or TypeScript bypass is configured.
 
 ---
 

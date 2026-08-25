@@ -45,6 +45,24 @@ interface RenderLink {
   color: string;
 }
 
+export function formatClusterConnectionSummary({
+  sourceName,
+  targetName,
+  type,
+  txCount,
+}: {
+  sourceName: string;
+  targetName: string;
+  type: RenderLink['type'];
+  txCount?: number;
+}): string {
+  const relationship = type === 'direct'
+    ? `${txCount ?? 0} transactions`
+    : 'shared counterparty connection';
+
+  return `${sourceName} to ${targetName}: ${relationship}.`;
+}
+
 export default function ClusterFlowGraph({
   wallets,
   linkages,
@@ -282,6 +300,22 @@ export default function ClusterFlowGraph({
           overscrollBehavior: 'contain',
         }}
       >
+        <div className="sr-only">
+          <h3>Cluster flow graph summary</h3>
+          <p>{nodes.length} wallet or hub nodes and {links.length} evidence-backed connections.</p>
+          <ul>
+            {links.map(link => (
+              <li key={link.id}>
+                {formatClusterConnectionSummary({
+                  sourceName: link.sourceNode.name,
+                  targetName: link.targetNode.name,
+                  type: link.type,
+                  txCount: link.txCount,
+                })}
+              </li>
+            ))}
+          </ul>
+        </div>
         {/* Floating Zoom & Pan Toolbar */}
         <div
           className="absolute top-4 left-4 z-20 flex items-center gap-1 bg-[#11131a]/95 backdrop-blur-md border border-[#333333] p-1.5 shadow-2xl text-white"
@@ -289,16 +323,18 @@ export default function ClusterFlowGraph({
         >
           <button
             type="button"
+            aria-label="Zoom in on cluster graph"
             onClick={handleZoomIn}
-            className="p-1.5 hover:bg-white/10 text-gray-300 hover:text-white transition-colors cursor-pointer"
+            className="min-h-11 min-w-11 p-1.5 hover:bg-white/10 text-gray-300 hover:text-white transition-colors cursor-pointer"
             title="Zoom In (+)"
           >
             <ZoomIn size={15} />
           </button>
           <button
             type="button"
+            aria-label="Zoom out on cluster graph"
             onClick={handleZoomOut}
-            className="p-1.5 hover:bg-white/10 text-gray-300 hover:text-white transition-colors cursor-pointer"
+            className="min-h-11 min-w-11 p-1.5 hover:bg-white/10 text-gray-300 hover:text-white transition-colors cursor-pointer"
             title="Zoom Out (-)"
           >
             <ZoomOut size={15} />
@@ -309,8 +345,9 @@ export default function ClusterFlowGraph({
           </span>
           <button
             type="button"
+            aria-label="Reset cluster graph view"
             onClick={handleResetZoom}
-            className="p-1.5 hover:bg-white/10 text-gray-300 hover:text-white transition-colors cursor-pointer"
+            className="min-h-11 min-w-11 p-1.5 hover:bg-white/10 text-gray-300 hover:text-white transition-colors cursor-pointer"
             title="Reset View"
           >
             <RotateCcw size={14} />
@@ -328,6 +365,7 @@ export default function ClusterFlowGraph({
           viewBox={`0 0 ${CANVAS_WIDTH} ${CANVAS_HEIGHT}`}
           className="w-full h-full block"
           style={{ willChange: 'transform' }}
+          aria-hidden="true"
         >
           <defs>
             <pattern id="cluster-grid-pattern" width="40" height="40" patternUnits="userSpaceOnUse">
@@ -587,6 +625,58 @@ export default function ClusterFlowGraph({
           </div>
         )}
       </div>
+
+      <details className="card-3d mt-3 p-3 text-xs text-[#0a0a0a]">
+        <summary className="min-h-11 cursor-pointer py-3 font-bold">Accessible cluster graph data</summary>
+        <div className="mt-2 grid gap-4 border-t border-[#c8c8c8] pt-3 lg:grid-cols-2">
+          <div>
+            <h3 className="font-black">Wallets and shared hubs</h3>
+            <ul className="mt-2 space-y-2">
+              {nodes.map(node => (
+                <li key={node.id} className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <span>{node.name}: {node.type === 'shared_hub' ? `used by ${node.sharedCount} wallets` : `${node.persona}, risk ${node.riskGrade}`}.</span>
+                  {node.type === 'batch_wallet' ? (
+                    <button
+                      type="button"
+                      onClick={() => onInspectWallet(node.address)}
+                      className="btn-3d-neutral min-h-11 px-3 py-2 font-bold"
+                    >
+                      Inspect {node.name}
+                    </button>
+                  ) : (
+                    <span className="font-mono text-[11px]" title={node.address}>{node.address}</span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <h3 className="font-black">Evidence-backed connections</h3>
+            <ul className="mt-2 space-y-2">
+              {links.map(link => (
+                <li key={link.id}>
+                  {formatClusterConnectionSummary({
+                    sourceName: link.sourceNode.name,
+                    targetName: link.targetNode.name,
+                    type: link.type,
+                    txCount: link.txCount,
+                  })}
+                  {link.type === 'direct' && link.evidenceTxHashes?.[0] && (
+                    <a
+                      href={getExplorerTxUrl(link.chainId || 1, link.evidenceTxHashes[0])}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="ml-2 font-bold text-[#b33c00] underline"
+                    >
+                      View evidence
+                    </a>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </details>
 
       <style jsx>{`
         @keyframes clusterFlow {

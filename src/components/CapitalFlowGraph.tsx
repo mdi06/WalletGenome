@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { ScanResult } from '@/lib/types';
+import { ReportingMetrics, ScanResult } from '@/lib/types';
 import { getExplorerAddressUrl } from '@/lib/chains';
 import { ExternalLink, ArrowUpRight, ArrowDownLeft, Trophy } from 'lucide-react';
 import { isBurnAddress, isPureTokenContract, PROTOCOL_REGISTRY } from '@/lib/labels';
@@ -9,6 +9,7 @@ import { formatCompactUSD } from '@/lib/utils/dashboardUtils';
 
 interface Props {
   results: ScanResult[];
+  metrics: ReportingMetrics;
 }
 
 interface GraphNode {
@@ -50,12 +51,21 @@ function isKnownSmartContractOrToken(address: string, type: string): boolean {
   return false;
 }
 
-export default function CapitalFlowGraph({ results }: Props) {
+export default function CapitalFlowGraph({ results, metrics }: Props) {
   const [minVolume, setMinVolume] = useState<number>(0);
   const [selectedChain, setSelectedChain] = useState<number | 'all'>('all');
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
 
   const userAddress = results[0]?.address?.toLowerCase() || '';
+  const coverage = metrics.capitalFlowCoverage;
+  const formatFlowValue = (value: number | null): string => value === null
+    ? 'Unavailable'
+    : formatCompactUSD(value);
+  const formattedNetFlow = metrics.netFlowUSD === null
+    ? 'Unavailable'
+    : metrics.netFlowUSD < 0
+      ? `-${formatCompactUSD(Math.abs(metrics.netFlowUSD))}`
+      : formatCompactUSD(metrics.netFlowUSD);
 
   const handleNodeClick = (node: GraphNode | { chainId: number; address: string }) => {
     if (node.address) {
@@ -312,6 +322,58 @@ export default function CapitalFlowGraph({ results }: Props) {
 
   return (
     <div className="space-y-6">
+      <div className="card-3d p-5 text-[#0a0a0a] space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <h3 className="text-xs font-black uppercase tracking-wider">Verified Flow Summary</h3>
+            <p className="text-[11px] font-bold text-[#4b5563] mt-1">
+              Historically priced native and token transfer legs across the selected scan chains.
+            </p>
+          </div>
+          <span className={`text-[10px] font-black font-mono uppercase px-2 py-1 border self-start ${
+            coverage.status === 'complete'
+              ? 'text-[#047857] border-[#059669]/40 bg-[#059669]/10'
+              : coverage.status === 'partial'
+                ? 'text-[#b45309] border-[#f59e0b]/50 bg-[#f59e0b]/10'
+                : 'text-[#b91c1c] border-[#dc2626]/40 bg-[#dc2626]/10'
+          }`}>
+            {coverage.status === 'partial' ? 'Partial lower-bound estimate' : coverage.status}
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="well-recessed-light p-3">
+            <div className="text-[10px] font-black text-[#4b5563] uppercase">Verified Inflow</div>
+            <div className="text-xl font-black font-mono text-[#047857] mt-1">{formatFlowValue(metrics.inflowUSD)}</div>
+          </div>
+          <div className="well-recessed-light p-3">
+            <div className="text-[10px] font-black text-[#4b5563] uppercase">Verified Outflow</div>
+            <div className="text-xl font-black font-mono text-[#ff5500] mt-1">{formatFlowValue(metrics.outflowUSD)}</div>
+          </div>
+          <div className="well-recessed-light p-3">
+            <div className="text-[10px] font-black text-[#4b5563] uppercase">Net Verified Flow</div>
+            <div className={`text-xl font-black font-mono mt-1 ${
+              metrics.netFlowUSD !== null && metrics.netFlowUSD < 0 ? 'text-[#b91c1c]' : 'text-[#0a0a0a]'
+            }`}>
+              {formattedNetFlow}
+            </div>
+          </div>
+        </div>
+
+        {coverage.status === 'partial' && (
+          <div className="border-l-4 border-[#f59e0b] bg-[#fffbeb] px-3 py-2 text-[11px] font-bold text-[#92400e]">
+            {coverage.coveragePercent}% count coverage · {coverage.verifiedLegs}/{coverage.totalLegs} eligible transfer values included.{' '}
+            {coverage.excludedSpotEstimateLegs} current-price estimates and {coverage.unpricedLegs} unpriced values excluded.{' '}
+            These totals are verified lower bounds, not complete lifetime USD flow.
+          </div>
+        )}
+        {coverage.status === 'unavailable' && (
+          <div className="border-l-4 border-[#dc2626] bg-[#fef2f2] px-3 py-2 text-[11px] font-bold text-[#991b1b]">
+            Verified flow totals require complete wallet history and at least one historically priced transfer value.
+          </div>
+        )}
+      </div>
+
       {/* ── Top Hero: Most Interacted Recipient Wallet Banner ── */}
       {mostInteractedWallet ? (
         <div className="card-3d p-5 text-[#0a0a0a] flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
@@ -333,8 +395,10 @@ export default function CapitalFlowGraph({ results }: Props) {
                   {mostInteractedWallet.label || mostInteractedWallet.address}
                 </span>
                 <button
+                  type="button"
+                  aria-label={`View ${mostInteractedWallet.label || mostInteractedWallet.address} on block explorer`}
                   onClick={() => handleNodeClick(mostInteractedWallet)}
-                  className="text-[#6b7280] hover:text-[#ff5500] transition-colors cursor-pointer"
+                  className="min-h-11 min-w-11 inline-flex items-center justify-center text-[#6b7280] hover:text-[#ff5500] transition-colors cursor-pointer"
                   title="View on Explorer"
                 >
                   <ExternalLink size={13} />
@@ -405,7 +469,16 @@ export default function CapitalFlowGraph({ results }: Props) {
 
       {/* ── Interactive SVG Topology Canvas ── */}
       <div className="relative bg-[#0d0f17] p-4 overflow-hidden border border-[#222222] shadow-2xl rounded-sm">
-        <svg viewBox="0 0 900 560" className="w-full h-auto max-h-[560px] block">
+        <div className="sr-only">
+          <h3>Capital flow graph summary</h3>
+          <p>{nodes.length} nodes and {links.length} connections are shown for the selected filters.</p>
+          <ul>
+            {nodes.filter(node => node.type !== 'center').map(node => (
+              <li key={node.id}>{node.type}: {node.label}, {node.txCount} transactions, {formatCompactUSD(node.volumeUSD)}.</li>
+            ))}
+          </ul>
+        </div>
+        <svg viewBox="0 0 900 560" className="w-full h-auto max-h-[560px] block" aria-hidden="true">
           <defs>
             <pattern id="flow-grid" width="30" height="30" patternUnits="userSpaceOnUse">
               <circle cx="15" cy="15" r="1" fill="rgba(255, 255, 255, 0.05)" />
@@ -551,6 +624,27 @@ export default function CapitalFlowGraph({ results }: Props) {
         )}
       </div>
 
+      <details className="card-3d p-3 text-xs text-[#0a0a0a]">
+        <summary className="min-h-11 cursor-pointer py-3 font-bold">Accessible capital flow data</summary>
+        <ul className="mt-2 space-y-2 border-t border-[#c8c8c8] pt-3">
+          {nodes.filter(node => node.type !== 'center').map(node => (
+            <li key={node.id} className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <span>{node.type}: {node.label}, {node.txCount} transactions, {formatCompactUSD(node.volumeUSD)}.</span>
+              {node.address && (
+                <a
+                  href={getExplorerAddressUrl(node.chainId, node.address)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-3d-neutral inline-flex min-h-11 items-center justify-center px-3 py-2 font-bold"
+                >
+                  Open {node.label} on explorer
+                </a>
+              )}
+            </li>
+          ))}
+        </ul>
+      </details>
+
       {/* ── Ranked Counterparties Tables (Square Toned Gray Cards) ── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-2">
         
@@ -566,7 +660,12 @@ export default function CapitalFlowGraph({ results }: Props) {
             </span>
           </div>
 
-          <div className="border border-[#cecece] bg-[#dedede] overflow-hidden overflow-x-auto">
+          <div
+            className="horizontal-scroll-region border border-[#cecece] bg-[#dedede] overflow-hidden overflow-x-auto"
+            tabIndex={0}
+            role="region"
+            aria-label="Capital inflows table; scroll horizontally for all columns"
+          >
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-[#d4d4d4] border-b border-[#cecece] text-[10px] font-extrabold text-[#555555] uppercase tracking-wider">
@@ -619,7 +718,12 @@ export default function CapitalFlowGraph({ results }: Props) {
             </span>
           </div>
 
-          <div className="border border-[#cecece] bg-[#dedede] overflow-hidden overflow-x-auto">
+          <div
+            className="horizontal-scroll-region border border-[#cecece] bg-[#dedede] overflow-hidden overflow-x-auto"
+            tabIndex={0}
+            role="region"
+            aria-label="Capital outflows table; scroll horizontally for all columns"
+          >
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-[#d4d4d4] border-b border-[#cecece] text-[10px] font-extrabold text-[#555555] uppercase tracking-wider">

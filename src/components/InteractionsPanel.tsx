@@ -132,6 +132,7 @@ export default function InteractionsPanel({ results }: Props) {
           <Search size={14} className="absolute left-3 top-3 text-gray-500" />
           <input
             type="text"
+            aria-label="Search protocols and counterparties"
             placeholder="Search Uniswap, Aave..."
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
@@ -163,7 +164,12 @@ export default function InteractionsPanel({ results }: Props) {
       )}
 
       {/* ── Data Table Well ── */}
-      <div className="well-recessed-light overflow-hidden overflow-x-auto">
+      <div
+        className="horizontal-scroll-region well-recessed-light overflow-hidden overflow-x-auto"
+        tabIndex={0}
+        role="region"
+        aria-label="Protocol and counterparty interactions; scroll horizontally for all columns"
+      >
         {activeView === 'protocols' ? (
           <table className="w-full text-left border-collapse">
             <thead>
@@ -226,7 +232,8 @@ export default function InteractionsPanel({ results }: Props) {
                             href={getExplorerAddressUrl(p.chainId, p.contracts?.[0]?.contractAddress || '')}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="text-[#555555] hover:text-black"
+                            aria-label={`View ${p.name} contract on block explorer`}
+                            className="inline-flex min-h-11 min-w-11 items-center justify-center text-[#555555] hover:text-black"
                           >
                             <ExternalLink size={13} className="ml-auto" />
                           </a>
@@ -255,7 +262,8 @@ export default function InteractionsPanel({ results }: Props) {
                                     href={getExplorerAddressUrl(c.chainId, c.contractAddress)}
                                     target="_blank"
                                     rel="noopener noreferrer"
-                                    className="text-[#555555] hover:text-black"
+                                    aria-label={`View ${c.name || 'contract'} on block explorer`}
+                                    className="inline-flex min-h-11 min-w-11 items-center justify-center text-[#555555] hover:text-black"
                                   >
                                     <ExternalLink size={12} />
                                   </a>
@@ -308,7 +316,8 @@ export default function InteractionsPanel({ results }: Props) {
                       href={getExplorerAddressUrl(c.chainId || 1, c.address)}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-[#555555] hover:text-black"
+                      aria-label={`View ${c.label || c.address} on block explorer`}
+                      className="inline-flex min-h-11 min-w-11 items-center justify-center text-[#555555] hover:text-black"
                     >
                       <ExternalLink size={13} className="ml-auto" />
                     </a>

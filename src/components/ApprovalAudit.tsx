@@ -56,7 +56,12 @@ export default function ApprovalAudit({ results }: Props) {
       </div>
 
       {/* Approvals Table Well */}
-      <div className="well-recessed-light overflow-hidden overflow-x-auto">
+      <div
+        className="horizontal-scroll-region well-recessed-light overflow-hidden overflow-x-auto"
+        tabIndex={0}
+        role="region"
+        aria-label="Token approvals table; scroll horizontally for all columns"
+      >
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="bg-[#d0d0d0] border-b border-[#c2c2c2] text-[10px] font-extrabold text-[#4b5563] uppercase tracking-wider">
@@ -121,7 +126,8 @@ export default function ApprovalAudit({ results }: Props) {
                     href={getExplorerAddressUrl(a.chainId, a.spender)}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-[#6b7280] hover:text-black inline-block p-1"
+                    aria-label={`View ${a.spenderLabel || a.spender} on block explorer`}
+                    className="text-[#6b7280] hover:text-black inline-flex min-h-11 min-w-11 items-center justify-center p-1"
                   >
                     <ExternalLink size={13} className="ml-auto" />
                   </a>

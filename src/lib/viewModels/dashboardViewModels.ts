@@ -1,4 +1,10 @@
-import type { BulkWrappedWallet, ClusterScanResult, MultiChainScanResult } from '../types';
+import type {
+  BulkWrappedWallet,
+  ClusterScanResult,
+  DataAvailabilityStatus,
+  MultiChainScanResult,
+} from '../types';
+import { getChainConfig } from '../chains';
 import {
   computeAggregatedRadarData,
   extractProtocolBadges,
@@ -7,18 +13,70 @@ import {
 
 export type ClusterSortField = 'gas' | 'inflow' | 'sybil' | 'risk' | 'txs';
 
+export interface ChainActivityItem {
+  chainId: number;
+  chainName: string;
+  color: string;
+  transactionCount: number | null;
+  sharePercent: number | null;
+  status: DataAvailabilityStatus;
+}
+
+function buildChainActivity(data: MultiChainScanResult): {
+  chainActivity: ChainActivityItem[];
+  chainActivityStatus: DataAvailabilityStatus;
+} {
+  const chainById = new Map(data.chains.map(chain => [chain.chainId, chain]));
+  const availabilityById = new Map(data.availability.map(chain => [chain.chainId, chain]));
+  const chainIds = [
+    ...data.availability.map(chain => chain.chainId),
+    ...data.chains
+      .map(chain => chain.chainId)
+      .filter(chainId => !availabilityById.has(chainId)),
+  ];
+  const statuses = chainIds.map(chainId => (
+    availabilityById.get(chainId)?.transactions
+      ?? (data.status === 'complete' ? 'complete' : 'partial')
+  ));
+  const chainActivityStatus: DataAvailabilityStatus = statuses.length > 0 && statuses.every(status => status === 'complete')
+    ? 'complete'
+    : statuses.length > 0 && statuses.every(status => status === 'unavailable')
+      ? 'unavailable'
+      : 'partial';
+  const canCalculateShares = chainActivityStatus === 'complete';
+  const returnedTransactionTotal = data.chains.reduce((sum, chain) => sum + chain.transactionCount, 0);
+
+  return {
+    chainActivityStatus,
+    chainActivity: chainIds.map((chainId, index) => {
+      const chain = chainById.get(chainId);
+      const availability = availabilityById.get(chainId);
+      const status = statuses[index];
+      const transactionCount = status === 'unavailable' ? null : (chain?.transactionCount ?? null);
+      const sharePercent = canCalculateShares && transactionCount !== null && returnedTransactionTotal > 0
+        ? Math.round((transactionCount / returnedTransactionTotal) * 100)
+        : null;
+
+      return {
+        chainId,
+        chainName: availability?.chainName ?? chain?.chainName ?? `Chain ${chainId}`,
+        color: getChainConfig(chainId).color,
+        transactionCount,
+        sharePercent,
+        status,
+      };
+    }),
+  };
+}
+
 export function buildDashboardViewModel(data: MultiChainScanResult) {
   const { aggregated, chains, identityReport, metrics } = data;
   const totalGasUSD = aggregated.totalGasUSD || 0;
-  const totalInflowUSD = metrics.inflowUSD;
-  const capitalFlowCoverage = metrics.capitalFlowCoverage;
+  const chainActivity = buildChainActivity(data);
   return {
     totalGasETH: aggregated.totalGasETH || 0,
     totalGasUSD,
-    totalInflowUSD,
     formattedGasUSD: formatCompactUSD(totalGasUSD),
-    formattedInflowUSD: totalInflowUSD === null ? 'Unavailable' : formatCompactUSD(totalInflowUSD),
-    capitalFlowCoverage,
     riskScore: metrics.riskScore,
     riskGrade: metrics.riskGrade,
     sybilProbability: metrics.sybilProbability,
@@ -30,6 +88,7 @@ export function buildDashboardViewModel(data: MultiChainScanResult) {
     protocolCount: chains.reduce((sum, chain) => sum + (chain.interactionsSummary?.topProtocols?.length || 0), 0),
     protocolBadges: extractProtocolBadges(data),
     radarData: computeAggregatedRadarData(chains),
+    ...chainActivity,
   };
 }
 

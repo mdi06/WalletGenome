@@ -130,4 +130,48 @@ describe('wallet-history provider orchestration', () => {
       ['result_truncated', 'quota_exhausted'],
     );
   });
+
+  it('runs Moralis fallbacks sequentially in transaction, token, then internal priority order', async () => {
+    const calls: string[] = [];
+    let releaseTransactions: (() => void) | undefined;
+    let releaseTokens: (() => void) | undefined;
+    const transactionsGate = new Promise<void>(resolve => { releaseTransactions = resolve; });
+    const tokensGate = new Promise<void>(resolve => { releaseTokens = resolve; });
+
+    const resultPromise = fetchWalletHistorySources(WALLET, 8453, '', {
+      explorerFetcher: async () => ({
+        transactions: unavailable(),
+        tokenTransfers: unavailable(),
+        internalTransactions: unavailable(),
+      }),
+      moralisTransactionsFetcher: async () => {
+        calls.push('transactions');
+        await transactionsGate;
+        return complete<EtherscanTransaction>();
+      },
+      moralisTokenTransfersFetcher: async () => {
+        calls.push('tokens');
+        await tokensGate;
+        return complete();
+      },
+      moralisInternalTransactionsFetcher: async () => {
+        calls.push('internals');
+        return complete();
+      },
+    });
+
+    await new Promise<void>(resolve => setImmediate(resolve));
+    assert.deepEqual(calls, ['transactions']);
+
+    releaseTransactions?.();
+    await new Promise<void>(resolve => setImmediate(resolve));
+    assert.deepEqual(calls, ['transactions', 'tokens']);
+
+    releaseTokens?.();
+    const result = await resultPromise;
+    assert.deepEqual(calls, ['transactions', 'tokens', 'internals']);
+    assert.equal(result.transactions.status, 'complete');
+    assert.equal(result.tokenTransfers.status, 'complete');
+    assert.equal(result.internalTransactions.status, 'complete');
+  });
 });

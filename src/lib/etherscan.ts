@@ -27,6 +27,10 @@ const ROUTESCAN_APIS: Record<number, string> = {
 const BLOCKSCOUT_PRO_CHAIN_IDS = new Set([1, 10, 42161]);
 const ETHERSCAN_FREE_HISTORY_CHAIN_IDS = new Set([1, 42161]);
 
+function isPublicBlockscoutHostname(hostname: string): boolean {
+  return hostname.endsWith('.blockscout.com') && hostname !== 'api.blockscout.com';
+}
+
 function isUsableApiKey(value: string | undefined): value is string {
   if (!value) return false;
   const normalized = value.trim().toLowerCase();
@@ -325,12 +329,14 @@ async function fetchExplorerPage<T>(
     hostname = new URL(candidateUrl).hostname;
   } catch {}
 
-  const limiter = getDomainLimiter(hostname, hostname === 'api.blockscout.com' ? 5 : 3);
+  const publicBlockscout = isPublicBlockscoutHostname(hostname);
+  const limiter = getDomainLimiter(hostname, publicBlockscout ? 1 : hostname === 'api.blockscout.com' ? 5 : 3);
+  const acquireTimeoutMs = publicBlockscout ? 12_000 : 3_000;
   const pageUrl = buildPageUrl(candidateUrl, page, offset);
 
   for (let attempt = 1; attempt <= options.maxAttempts; attempt++) {
     try {
-      const acquired = await limiter.acquire(3000);
+      const acquired = await limiter.acquire(acquireTimeoutMs);
       if (!acquired) {
         errors.push({ code: 'rate_limited', message: `${hostname} could not schedule the request within the provider budget.` });
         if (attempt < options.maxAttempts) {
@@ -354,6 +360,10 @@ async function fetchExplorerPage<T>(
       const data: unknown = await res.json().catch(() => null);
       if (!data) {
         errors.push({ code: 'invalid_response', message: `${hostname} returned invalid JSON on page ${page}.` });
+        if (attempt < options.maxAttempts) {
+          await sleep(computeBackoffDelayMs(attempt, res, options.backoffBaseMs, options.backoffJitterMs));
+          continue;
+        }
         return { kind: 'failure' };
       }
 
@@ -454,6 +464,11 @@ async function fetchProviderByBlockRange<T>(
   deadlineAt: number,
 ): Promise<RangeFetchResult<T>> {
   let rangeRequests = 0;
+  let providerHostname = 'api.etherscan.io';
+  try {
+    providerHostname = new URL(url).hostname;
+  } catch {}
+  const publicBlockscout = isPublicBlockscoutHostname(providerHostname);
 
   const paginateFixedRange = async (
     rangeUrl: string,
@@ -540,7 +555,7 @@ async function fetchProviderByBlockRange<T>(
 
     if (startBlock < rangeEndBlock) {
       if (allowInitialFanout && rangeEndBlock - startBlock >= 1_000) {
-        const partitionCount = 16;
+        const partitionCount = publicBlockscout ? 4 : 16;
         const rangeSize = rangeEndBlock - startBlock + 1;
         const chunkSize = Math.ceil(rangeSize / partitionCount);
         const ranges = Array.from({ length: partitionCount }, (_, index) => {
@@ -558,8 +573,11 @@ async function fetchProviderByBlockRange<T>(
             results[index] = await fetchRange(ranges[index].start, ranges[index].end, false);
           }
         };
+        const workerCount = publicBlockscout
+          ? 1
+          : Math.min(options.rangeConcurrency, ranges.length);
         await Promise.all(Array.from(
-          { length: Math.min(options.rangeConcurrency, ranges.length) },
+          { length: workerCount },
           () => worker(),
         ));
         return {

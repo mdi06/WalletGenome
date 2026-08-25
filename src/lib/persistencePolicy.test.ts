@@ -19,6 +19,9 @@ test('declares the runtime as stateless and treats caches as optional optimizati
   assert.equal(PERSISTENCE_POLICY.runtimeFilesystemWrites, false);
   assert.equal(PERSISTENCE_POLICY.reports.saved, false);
   assert.equal(PERSISTENCE_POLICY.reports.comparableHistory, false);
+  assert.equal(PERSISTENCE_POLICY.curatedDemoSnapshots.storage, 'versioned-static-assets');
+  assert.equal(PERSISTENCE_POLICY.curatedDemoSnapshots.userGenerated, false);
+  assert.equal(PERSISTENCE_POLICY.curatedDemoSnapshots.liveProviderCallsOnLoad, false);
   assert.equal(PERSISTENCE_POLICY.caches.scope, 'process-local');
   assert.equal(PERSISTENCE_POLICY.caches.requiredForCorrectness, false);
 });

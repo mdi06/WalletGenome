@@ -11,9 +11,9 @@ interface Props {
 
 const SAMPLE_CLUSTER = [
   '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045', // vitalik.eth
-  '0x3DdfA8eC3052539b6C9549F12cEA2C295cfF5296', // justinsun.eth
-  '0x50EC05AD9D29a73367175E26E962D714E96896C3', // hayden.eth
-  '0x2e21f5d34208a3d5483f9829f2709e9005bf15f2', // stani.eth
+  '0x50EC05ADe8280758E2077fcBC08D878D4aef79C3', // hayden.eth
+  '0x648aA14e4424e0825A5cE739C8C68610e143FB79', // sassal.eth
+  '0xeB1c22baACAFac7836f20f684C946228401FF01C', // richerd.eth
 ];
 
 export default function BulkScanInput({ onScanCluster, isLoading }: Props) {
@@ -87,13 +87,15 @@ export default function BulkScanInput({ onScanCluster, isLoading }: Props) {
         <textarea
           id="bulk-address-input"
           aria-label="Paste EVM addresses to scan"
+          aria-invalid={Boolean(error)}
+          aria-describedby={error ? 'bulk-address-error' : undefined}
           value={rawText}
           disabled={isLoading}
           onChange={e => {
             setRawText(e.target.value);
             if (error) setError(null);
           }}
-          placeholder="Paste EVM addresses separated by new lines, commas, or spaces:&#10;0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045&#10;0x50EC05AD9D29a73367175E26E962D714E96896C3"
+          placeholder="Paste EVM addresses separated by new lines, commas, or spaces:&#10;0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045&#10;0x50EC05ADe8280758E2077fcBC08D878D4aef79C3"
           rows={4}
           className="w-full bg-transparent p-2.5 text-xs font-mono font-bold text-[#0a0a0a] focus:outline-none placeholder:text-gray-400 placeholder:font-sans resize-none"
         />
@@ -130,7 +132,7 @@ export default function BulkScanInput({ onScanCluster, isLoading }: Props) {
                 aria-label={`Toggle ${c.name} network`}
                 disabled={isLoading}
                 onClick={() => toggleChain(id)}
-                className={`text-xs font-bold px-3 py-1 cursor-pointer flex items-center gap-1.5 ${
+                className={`min-h-11 text-xs font-bold px-3 py-1 cursor-pointer flex items-center gap-1.5 ${
                   isSelected
                     ? 'btn-3d-black text-white'
                     : 'btn-3d-neutral text-[#4b5563]'
@@ -169,7 +171,7 @@ export default function BulkScanInput({ onScanCluster, isLoading }: Props) {
       </div>
 
       {error && (
-        <div className="flex items-center gap-1.5 text-xs text-[#ef4444] font-bold pt-1 card-3d border-l-4 border-l-[#ef4444] p-2">
+        <div id="bulk-address-error" role="alert" className="flex items-center gap-1.5 text-xs text-[#ef4444] font-bold pt-1 card-3d border-l-4 border-l-[#ef4444] p-2">
           <AlertCircle size={13} />
           <span>{error}</span>
         </div>

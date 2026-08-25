@@ -4,10 +4,11 @@ import { loadKnownWallets } from './knownWalletsServer';
 export const KNOWN_ENS_MAP: Record<string, string> = {
   'vitalik.eth': '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045',
   'justinsun.eth': '0x3DdfA8eC3052539b6C9549F12cEA2C295cfF5296',
-  'hayden.eth': '0x50EC05AD9D29a73367175E26E962D714E96896C3',
+  'hayden.eth': '0x50EC05ADe8280758E2077fcBC08D878D4aef79C3',
   'stani.eth': '0x2e21f5d34208a3d5483f9829f2709e9005bf15f2',
   'machibigbrother.eth': '0x020cA66C30beC2c4Fe3861a94E4DB4A498A35872',
   'sassal.eth': '0x648aA14e4424e0825A5cE739C8C68610e143FB79',
+  'richerd.eth': '0xeB1c22baACAFac7836f20f684C946228401FF01C',
   'danno.eth': '0x163473950fbcfcfc31ac7ad0eec26f5fe549046c',
   'barmstrong.eth': '0x5b3f30f7b44b82d4090b8f411b9a9b2b51203eb6',
   'ricburton.eth': '0x99e52ddb9e2c65febe07ddbe47432720d297a780',

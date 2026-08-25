@@ -1,9 +1,9 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Image from 'next/image';
 import { WalletIdentityReport, SocialLinkItem } from '@/lib/types';
-import { ExternalLink, Globe, MessageSquare, Send, CheckCircle2 } from 'lucide-react';
+import { ExternalLink, Globe, MessageSquare, Send, CheckCircle2, Copy } from 'lucide-react';
 
 interface Props {
   identity?: WalletIdentityReport;
@@ -12,80 +12,119 @@ interface Props {
 
 export default function IdentityCard({ identity, address }: Props) {
   const hasSocials = identity && identity.socials && identity.socials.length > 0;
-  const hasDomains = identity && identity.domains && identity.domains.length > 0;
+  const linkedSocialHandles = new Set(
+    (identity?.socials ?? []).map(social => social.handle.replace(/^@/, '').toLowerCase()),
+  );
+  const standaloneDomains = (identity?.domains ?? []).filter(
+    domain => !linkedSocialHandles.has(domain.identity.replace(/^@/, '').toLowerCase()),
+  );
+  const [copyStatus, setCopyStatus] = useState('');
+
+  const copyAddress = async () => {
+    try {
+      if (!navigator.clipboard) throw new Error('Clipboard API unavailable');
+      await navigator.clipboard.writeText(address);
+      setCopyStatus('Wallet address copied');
+    } catch {
+      setCopyStatus('Unable to copy wallet address');
+    }
+  };
 
   return (
     <div className="card-3d p-5 text-[#0a0a0a] space-y-4">
-      {/* Top Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3.5">
-          <div className="w-12 h-12 btn-3d-orange flex items-center justify-center text-white font-black flex-shrink-0 overflow-hidden">
-            {identity?.primaryAvatar ? (
-              <Image
-                src={identity.primaryAvatar}
-                alt={identity.primaryName || address}
-                width={48}
-                height={48}
-                unoptimized
-                loading="eager"
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  (e.target as HTMLElement).style.display = 'none';
-                }}
-              />
+      {/* Identity summary */}
+      <div className="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-4 sm:grid-cols-[auto_minmax(0,1fr)_auto]">
+        <div className="w-14 h-14 btn-3d-orange flex items-center justify-center text-white font-black flex-shrink-0 overflow-hidden">
+          {identity?.primaryAvatar ? (
+            <Image
+              src={identity.primaryAvatar}
+              alt={identity.primaryName || address}
+              width={56}
+              height={56}
+              unoptimized
+              loading="eager"
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                (e.target as HTMLElement).style.display = 'none';
+              }}
+            />
+          ) : (
+            <span className="text-xl">🪪</span>
+          )}
+        </div>
+
+        <div className="min-w-0 space-y-2">
+          <div>
+            <h3 className="truncate text-lg font-black text-[#0a0a0a] tracking-tight" title={identity?.primaryName || address}>
+              {identity?.primaryName ? identity.primaryName : `${address.slice(0, 6)}...${address.slice(-4)}`}
+            </h3>
+            {identity?.description ? (
+              <p className="mt-1 text-xs text-[#4b5563] line-clamp-2">{identity.description}</p>
             ) : (
-              <span className="text-xl">🪪</span>
+              <p className="mt-1 text-xs text-[#4b5563]">Universal Web3 & Web2 Social Identity Graph</p>
             )}
           </div>
 
-          <div className="space-y-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h3 className="text-lg font-black text-[#0a0a0a] tracking-tight">
-                {identity?.primaryName ? identity.primaryName : `${address.slice(0, 6)}...${address.slice(-4)}`}
-              </h3>
-              {hasDomains && identity.domains.map((d, i) => (
-                <span key={i} className="btn-3d-black text-[10px] font-mono font-bold px-2 py-0.5 text-white">
-                  {d.platform.toUpperCase()}: {d.identity}
+          {standaloneDomains.length > 0 && (
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#6b7280]">
+                Other resolved names
+              </span>
+              {standaloneDomains.map(domain => (
+                <span
+                  key={`${domain.platform}-${domain.identity}`}
+                  className="badge-3d bg-[#ececec] px-2 py-1 font-mono text-[10px] font-bold text-[#374151]"
+                >
+                  {domain.platform}: {domain.identity}
                 </span>
               ))}
             </div>
-            {identity?.description ? (
-              <p className="text-xs text-[#4b5563] line-clamp-1">{identity.description}</p>
-            ) : (
-              <p className="text-xs text-[#4b5563]">Universal Web3 & Web2 Social Identity Graph</p>
-            )}
-          </div>
+          )}
         </div>
 
-        <div className="flex items-center gap-2">
-          {hasSocials ? (
-            <span className="badge-3d text-[11px] font-mono font-bold px-3 py-1 bg-[#059669]/15 text-[#047857] border border-[#059669]/40 flex items-center gap-1.5">
-              <CheckCircle2 size={12} />
-              <span>{identity.socials.length} CONNECTED SERVICES</span>
-            </span>
-          ) : (
-            <span className="badge-3d text-[11px] font-mono font-bold px-3 py-1 bg-[#dcdcdc] text-[#4b5563] border border-[#c4c4c4]">
-              NO SOCIALS ATTACHED
-            </span>
-          )}
+        <div className="col-start-2 flex min-w-0 items-center gap-2 sm:col-start-3 sm:row-start-1 sm:self-center sm:justify-self-end">
+          <span className="min-w-0 truncate font-mono text-[11px] text-[#6b7280]" title={address}>
+            {address}
+          </span>
+          <button
+            type="button"
+            aria-label={`Copy wallet address ${address}`}
+            title="Copy wallet address"
+            onClick={() => void copyAddress()}
+            className="btn-3d-neutral inline-flex min-h-11 min-w-11 flex-shrink-0 items-center justify-center text-[#4b5563]"
+          >
+            <Copy size={13} aria-hidden="true" />
+          </button>
+          <span className="sr-only" role="status" aria-live="polite">{copyStatus}</span>
         </div>
       </div>
 
-      {/* Connected Services Badges Grid */}
+      {/* Connected accounts */}
       {hasSocials ? (
-        <div className="space-y-2 pt-2 border-t border-[#c8c8c8]">
-          <div className="text-[10px] font-extrabold text-[#4b5563] uppercase tracking-wider">
-            CONNECTED SOCIAL SERVICES & ACCOUNTS:
+        <div className="space-y-3 pt-4 border-t border-[#c8c8c8]">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h4 className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider">
+              Connected accounts
+            </h4>
+            <span className="badge-3d text-[11px] font-mono font-bold px-3 py-1 bg-[#059669]/15 text-[#047857] border border-[#059669]/40 flex items-center gap-1.5">
+              <CheckCircle2 size={12} aria-hidden="true" />
+              <span>{identity.socials.length} services</span>
+            </span>
           </div>
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-3">
             {identity.socials.map((s, i) => (
               <SocialServiceBadge key={`${s.platform}-${s.handle}-${i}`} social={s} />
             ))}
           </div>
         </div>
       ) : (
-        <div className="well-recessed-light p-3 text-xs text-[#4b5563] font-medium">
-          No public Twitter/X, Discord, GitHub, Farcaster, or Lens profiles linked to this address.
+        <div className="space-y-2 pt-4 border-t border-[#c8c8c8]">
+          <h4 className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider">
+            Connected accounts
+          </h4>
+          <div className="well-recessed-light p-3 text-xs text-[#4b5563] font-medium">
+            No public Twitter/X, Discord, GitHub, Farcaster, or Lens profiles linked to this address.
+          </div>
         </div>
       )}
     </div>
@@ -101,14 +140,14 @@ function SocialServiceBadge({ social }: { social: SocialLinkItem }) {
       href={social.link}
       target="_blank"
       rel="noopener noreferrer"
-      className="btn-3d-neutral inline-flex items-center gap-2 px-3 py-1.5 text-[#0a0a0a] text-xs font-bold group cursor-pointer"
+      className="btn-3d-neutral inline-flex min-h-11 min-w-0 w-full items-center gap-2 px-3 py-2 text-[#0a0a0a] text-xs font-bold group cursor-pointer"
     >
       <span className="text-[#ff5500] group-hover:text-black">{icon}</span>
       <span className="text-[#4b5563] group-hover:text-black text-[10px] uppercase font-semibold">
         {serviceName}:
       </span>
-      <span className="font-mono font-black">{social.handle}</span>
-      <ExternalLink size={11} className="text-[#6b7280] group-hover:text-black ml-0.5" />
+      <span className="min-w-0 truncate font-mono font-black" title={social.handle}>{social.handle}</span>
+      <ExternalLink size={11} aria-hidden="true" className="ml-auto flex-shrink-0 text-[#6b7280] group-hover:text-black" />
     </a>
   );
 }

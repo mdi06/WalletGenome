@@ -1,0 +1,138 @@
+- main [ref=f8e2]:
+  - generic [ref=f8e3]:
+    - button "WalletGenome Home" [ref=f8e4] [cursor=pointer]:
+      - generic [ref=f8e5]: WALLET.GENOME
+    - generic [ref=f8e6]:
+      - link "Docs" [ref=f8e7] [cursor=pointer]:
+        - /url: /docs
+      - generic [ref=f8e11]: Live indexing
+  - region "Wallet Forensics Console" [ref=f8e14]:
+    - tablist "Forensics Scan Mode" [ref=f8e15]:
+      - tab "Single wallet" [active] [selected] [ref=f8e16] [cursor=pointer]
+      - tab "Cluster scan New" [ref=f8e21] [cursor=pointer]:
+        - generic [ref=f8e26]: Cluster scan
+        - generic [ref=f8e27]: New
+    - tabpanel "Single wallet" [ref=f8e28]:
+      - generic [ref=f8e30]:
+        - generic [ref=f8e31]:
+          - generic [ref=f8e35]: Enter EVM address (0x...) or ENS name (vitalik.eth)
+          - textbox "EVM address or ENS domain" [ref=f8e36]:
+            - /placeholder: Enter EVM address (0x...) or ENS name (vitalik.eth)
+            - text: "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045"
+        - group "Select target EVM networks" [ref=f8e37]:
+          - button "Toggle Ethereum network" [pressed] [ref=f8e38] [cursor=pointer]:
+            - generic [ref=f8e40]: ETH
+          - button "Toggle Base network" [pressed] [ref=f8e41] [cursor=pointer]:
+            - generic [ref=f8e43]: BASE
+          - button "Toggle Arbitrum network" [pressed] [ref=f8e44] [cursor=pointer]:
+            - generic [ref=f8e46]: ARB
+          - button "Toggle Optimism network" [pressed] [ref=f8e47] [cursor=pointer]:
+            - generic [ref=f8e49]: OP
+          - button "Scan wallet address" [ref=f8e50] [cursor=pointer]:
+            - generic [ref=f8e51]: SCAN
+      - generic [ref=f8e54]:
+        - generic [ref=f8e55]: "DEMO ADDRESSES (LIVE SCAN):"
+        - button "0xd8dA6...6045 (Vitalik.eth · Multi-Chain · 6 Socials)" [ref=f8e56] [cursor=pointer]
+  - region [ref=f8e57]:
+    - generic [ref=f8e58]: Multi-chain behavioral forensics
+    - heading "See the complete story behind any crypto wallet" [level=1] [ref=f8e62]
+    - paragraph [ref=f8e63]: Analyze on-chain behavior, map capital flows, resolve verified social identities, and audit security risks across four major blockchains.
+  - generic [ref=f8e64]:
+    - region [ref=f8e65]:
+      - heading "TRY DEMO ADDRESSES (LIVE 1-CLICK SCAN)" [level=2] [ref=f8e67]
+      - generic [ref=f8e71]:
+        - generic [ref=f8e72]:
+          - generic [ref=f8e73]:
+            - generic [ref=f8e74]:
+              - generic [ref=f8e75]: DEFI POWER USER
+              - generic [ref=f8e76]: 6 SOCIALS ATTACHED
+            - heading "vitalik.eth" [level=3] [ref=f8e77]
+            - paragraph [ref=f8e78]: 2,000+ smart contract interactions, verified Twitter, Lens & Farcaster profiles, and deep multi-chain footprint.
+          - generic [ref=f8e79]:
+            - generic [ref=f8e80]: 2,181 Contracts · 400+ Active Days
+            - button "Explore vitalik.eth" [ref=f8e81] [cursor=pointer]:
+              - generic [ref=f8e82]: Explore
+        - generic [ref=f8e85]:
+          - generic [ref=f8e86]:
+            - generic [ref=f8e87]:
+              - generic [ref=f8e88]: PROTOCOL FOUNDER
+              - generic [ref=f8e89]: UNISWAP CREATOR
+            - heading "hayden.eth" [level=3] [ref=f8e90]
+            - paragraph [ref=f8e91]: Creator of Uniswap. Demonstrates high capital efficiency, continuous liquidity deployment, and DEX routing.
+          - generic [ref=f8e92]:
+            - generic [ref=f8e93]: Core DEX Velocity · Low Risk
+            - button "Explore hayden.eth" [ref=f8e94] [cursor=pointer]:
+              - generic [ref=f8e95]: Explore
+        - generic [ref=f8e98]:
+          - generic [ref=f8e99]:
+            - generic [ref=f8e100]:
+              - generic [ref=f8e101]: LENDING & SOCIAL ARCHITECT
+              - generic [ref=f8e102]: AAVE & LENS FOUNDER
+            - heading "stani.eth" [level=3] [ref=f8e103]
+            - paragraph [ref=f8e104]: Founder of Aave & Lens Protocol. Multi-year on-chain lending footprint, governance delegation, and Web3 social presence.
+          - generic [ref=f8e105]:
+            - generic [ref=f8e106]: Lending Pioneer · Web3 Social Graph
+            - button "Explore stani.eth" [ref=f8e107] [cursor=pointer]:
+              - generic [ref=f8e108]: Explore
+        - generic [ref=f8e111]:
+          - generic [ref=f8e112]:
+            - generic [ref=f8e113]:
+              - generic [ref=f8e114]: DEFI MEGA-WHALE
+              - generic [ref=f8e115]: HIGH CAPITAL FLOW
+            - heading "justinsun.eth" [level=3] [ref=f8e116]
+            - paragraph [ref=f8e117]: Founder of Tron. High-velocity multi-million dollar liquidity deposits, staking, and cross-chain capital routing.
+          - generic [ref=f8e118]:
+            - generic [ref=f8e119]: Institutional Scale · High Liquidity
+            - button "Explore justinsun.eth" [ref=f8e120] [cursor=pointer]:
+              - generic [ref=f8e121]: Explore
+    - region [ref=f8e124]:
+      - heading "HOW DOES WALLETGENOME WORK?" [level=2] [ref=f8e125]
+      - generic [ref=f8e130]:
+        - generic [ref=f8e131]:
+          - generic [ref=f8e132]: "01"
+          - heading "Multi-Chain Scan" [level=3] [ref=f8e133]
+          - paragraph [ref=f8e134]: Enter any 0x address or ENS domain. We query Ethereum, Arbitrum, Base, and Optimism simultaneously—without requiring you to connect a wallet or install extensions.
+        - generic [ref=f8e135]:
+          - generic [ref=f8e136]: "02"
+          - heading "Forensic Processing" [level=3] [ref=f8e137]
+          - paragraph [ref=f8e138]: Our indexing engine filters out spoofed/scam meme tokens, verifies legitimate protocol contracts, audits 5 public Sybil databases, and resolves verified social profiles (Web3.bio).
+        - generic [ref=f8e139]:
+          - generic [ref=f8e140]: "03"
+          - heading "Actionable Intelligence" [level=3] [ref=f8e141]
+          - paragraph [ref=f8e142]: Synthesizes a 6-axis Behavioral Radar, assigns a quantified Persona archetype, renders an interactive money flow graph, and flags open unlimited approval exposures.
+    - region [ref=f8e143]:
+      - heading "WHAT YOU CAN UNCOVER ON ANY WALLET" [level=2] [ref=f8e144]
+      - generic [ref=f8e150]:
+        - generic [ref=f8e151]:
+          - generic [ref=f8e166]:
+            - heading "Behavioral DNA & Personas" [level=3] [ref=f8e167]
+            - text: Quantitative archetype classification
+          - paragraph [ref=f8e168]: Understand how an entity operates on-chain. Are they a DeFi Power User, Active Trader, or Passive Whale? Our engine computes 6 mathematical dimensions including contract breadth, maturity, and Shannon entropy.
+        - generic [ref=f8e169]:
+          - generic [ref=f8e177]:
+            - heading "Interactive Capital Flow Topology" [level=3] [ref=f8e178]
+            - text: Follow where the capital really travels
+          - paragraph [ref=f8e179]: "Visualize inflows from exchanges, DeFi protocol interactions, and outbound destinations in an interactive particle-flow canvas. Automatically uncovers the #1 most-sent-to recipient wallet."
+        - generic [ref=f8e180]:
+          - generic [ref=f8e187]:
+            - heading "Universal Social Identities" [level=3] [ref=f8e188]
+            - text: Bridge hex addresses to real-world accounts
+          - paragraph [ref=f8e189]: Connects addresses to public Web2 and Web3 profiles across ENS domains, Farcaster Warpcast, Lens Protocol, Twitter/X, and GitHub with direct verified external links.
+        - generic [ref=f8e190]:
+          - generic [ref=f8e196]:
+            - heading "Security & Approval Audit" [level=3] [ref=f8e197]
+            - text: Identify wallet vulnerabilities & blacklist status
+          - paragraph [ref=f8e198]: Protects assets by highlighting active unlimited token allowances to unverified contracts, calculating dead zero-liquidity tokens, and checking against LayerZero, Hop, and OFAC sanctions lists.
+    - generic [ref=f8e199]:
+      - generic [ref=f8e200]:
+        - generic [ref=f8e201]: ALGORITHMIC SPECIFICATION & MATHEMATICS
+        - paragraph [ref=f8e205]: Explore how we compute Shannon entropy, Trusta MEDIA Sybil scores, risk grade heuristics, and multi-chain gas valuations.
+      - link "READ THE DOCS" [ref=f8e206] [cursor=pointer]:
+        - /url: /docs
+    - generic [ref=f8e210]:
+      - generic [ref=f8e211]:
+        - generic [ref=f8e215]: "100% Read-Only & Safe:"
+        - generic [ref=f8e216]: We never ask for wallet signatures or private keys.
+      - generic [ref=f8e217]:
+        - generic [ref=f8e218]: "Supported Networks:"
+        - generic [ref=f8e219]: Ethereum · Arbitrum · Base · Optimism

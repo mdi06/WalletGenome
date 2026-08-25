@@ -1,0 +1,195 @@
+import type { Metadata } from 'next';
+import Link from 'next/link';
+import { notFound } from 'next/navigation';
+import JsonLd, { type JsonLdObject } from '@/components/JsonLd';
+import {
+  absoluteUrl,
+  buildPageMetadata,
+  getSeoLandingPage,
+  SEO_LANDING_PAGES,
+  SITE_NAME,
+} from '@/lib/seo';
+
+export const dynamicParams = false;
+
+interface LandingPageProps {
+  params: Promise<{ slug: string }>;
+}
+
+export function generateStaticParams() {
+  return SEO_LANDING_PAGES.map(page => ({ slug: page.slug }));
+}
+
+export async function generateMetadata({ params }: LandingPageProps): Promise<Metadata> {
+  const { slug } = await params;
+  const page = getSeoLandingPage(slug);
+  return page ? buildPageMetadata(page) : {};
+}
+
+export default async function SeoLandingPage({ params }: LandingPageProps) {
+  const { slug } = await params;
+  const page = getSeoLandingPage(slug);
+  if (!page) notFound();
+
+  const pageJsonLd: JsonLdObject[] = [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'WebPage',
+      '@id': absoluteUrl(`/${page.slug}#webpage`),
+      name: page.heading,
+      description: page.metaDescription,
+      url: absoluteUrl(`/${page.slug}`),
+      isPartOf: {
+        '@type': 'WebSite',
+        name: SITE_NAME,
+        url: absoluteUrl('/'),
+      },
+      about: [...page.keywords],
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: page.faqs.map(faq => ({
+        '@type': 'Question',
+        name: faq.question,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: faq.answer,
+        },
+      })),
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        {
+          '@type': 'ListItem',
+          position: 1,
+          name: 'WalletGenome',
+          item: absoluteUrl('/'),
+        },
+        {
+          '@type': 'ListItem',
+          position: 2,
+          name: page.title,
+          item: absoluteUrl(`/${page.slug}`),
+        },
+      ],
+    },
+  ];
+
+  const relatedPages = SEO_LANDING_PAGES.filter(item => item.slug !== page.slug);
+
+  return (
+    <main className="max-w-[1120px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
+      <JsonLd data={pageJsonLd} />
+
+      <header className="flex flex-wrap items-center justify-between gap-3">
+        <Link href="/" className="text-xl sm:text-2xl font-black tracking-tight text-black uppercase">
+          WALLET<span className="text-[#ff5500]">.</span>GENOME
+        </Link>
+        <nav aria-label="Primary" className="flex items-center gap-2">
+          <Link href="/docs" className="btn-3d-neutral px-3 py-1.5 text-xs font-bold text-[#0a0a0a]">
+            METHODOLOGY
+          </Link>
+          <Link href="/" className="btn-3d-black px-3 py-1.5 text-xs font-bold text-white">
+            OPEN SCANNER
+          </Link>
+        </nav>
+      </header>
+
+      <article className="space-y-8">
+        <section className="card-3d p-6 sm:p-10 space-y-5">
+          <p className="text-xs font-mono font-black tracking-wider text-[#ff5500]">{page.eyebrow}</p>
+          <h1 className="max-w-4xl text-3xl sm:text-5xl font-black uppercase tracking-tight leading-tight text-[#0a0a0a]">
+            {page.heading}
+          </h1>
+          <p className="max-w-3xl text-sm sm:text-base leading-relaxed font-medium text-[#374151]">
+            {page.intro}
+          </p>
+          <div className="flex flex-wrap gap-3 pt-2">
+            <Link href="/" className="btn-3d-orange px-5 py-2.5 text-xs font-black text-white">
+              ANALYZE A PUBLIC WALLET
+            </Link>
+            <Link href="/docs" className="btn-3d-neutral px-5 py-2.5 text-xs font-black text-[#0a0a0a]">
+              REVIEW THE METHODOLOGY
+            </Link>
+          </div>
+        </section>
+
+        <section aria-labelledby="capabilities-heading" className="space-y-4">
+          <h2 id="capabilities-heading" className="text-xl sm:text-2xl font-black uppercase text-[#0a0a0a]">
+            What the analysis covers
+          </h2>
+          <div className="grid gap-4 md:grid-cols-3">
+            {page.capabilities.map(capability => (
+              <div key={capability.title} className="card-3d p-5 space-y-2">
+                <h3 className="text-sm font-black uppercase text-[#0a0a0a]">{capability.title}</h3>
+                <p className="text-xs leading-relaxed text-[#374151]">{capability.description}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <div className="grid gap-5 md:grid-cols-2">
+          <section aria-labelledby="useful-for-heading" className="card-3d p-6 space-y-4">
+            <h2 id="useful-for-heading" className="text-lg font-black uppercase text-[#0a0a0a]">Useful for</h2>
+            <ul className="space-y-3 text-sm text-[#374151]">
+              {page.usefulFor.map(item => (
+                <li key={item} className="flex gap-3">
+                  <span aria-hidden="true" className="mt-1.5 h-2 w-2 flex-none bg-[#ff5500]" />
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+
+          <section aria-labelledby="limits-heading" className="card-3d p-6 space-y-4">
+            <h2 id="limits-heading" className="text-lg font-black uppercase text-[#0a0a0a]">Important limits</h2>
+            <ul className="space-y-3 text-sm text-[#374151]">
+              {page.limitations.map(item => (
+                <li key={item} className="flex gap-3">
+                  <span aria-hidden="true" className="mt-1.5 h-2 w-2 flex-none bg-[#0a0a0a]" />
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
+        </div>
+
+        <section aria-labelledby="faq-heading" className="space-y-4">
+          <h2 id="faq-heading" className="text-xl sm:text-2xl font-black uppercase text-[#0a0a0a]">
+            Frequently asked questions
+          </h2>
+          <div className="space-y-3">
+            {page.faqs.map(faq => (
+              <details key={faq.question} className="card-3d p-5 group">
+                <summary className="cursor-pointer list-none text-sm font-black text-[#0a0a0a]">
+                  {faq.question}
+                </summary>
+                <p className="pt-3 text-sm leading-relaxed text-[#374151]">{faq.answer}</p>
+              </details>
+            ))}
+          </div>
+        </section>
+
+        <aside aria-labelledby="related-heading" className="card-3d-dark p-6 space-y-4">
+          <h2 id="related-heading" className="text-sm font-black uppercase tracking-wider text-white">
+            Related wallet-analysis topics
+          </h2>
+          <div className="flex flex-wrap gap-2">
+            {relatedPages.map(item => (
+              <Link
+                key={item.slug}
+                href={`/${item.slug}`}
+                className="border border-[#4b5563] px-3 py-2 text-xs font-bold text-white hover:border-[#ff5500] hover:text-[#ff5500]"
+              >
+                {item.title}
+              </Link>
+            ))}
+          </div>
+        </aside>
+      </article>
+    </main>
+  );
+}

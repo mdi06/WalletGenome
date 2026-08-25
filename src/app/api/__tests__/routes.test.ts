@@ -23,7 +23,13 @@ describe('ENS Resolution & API Route Integration Tests', () => {
     assert.strictEqual(vitalik, '0xd8da6bf26964af9d7eed9e03e53415d37aa96045');
 
     const hayden = await resolveEnsOrAddress('hayden.eth');
-    assert.strictEqual(hayden, '0x50ec05ad9d29a73367175e26e962d714e96896c3');
+    assert.strictEqual(hayden, '0x50ec05ade8280758e2077fcbc08d878d4aef79c3');
+
+    const sassal = await resolveEnsOrAddress('sassal.eth');
+    assert.strictEqual(sassal, '0x648aa14e4424e0825a5ce739c8c68610e143fb79');
+
+    const richerd = await resolveEnsOrAddress('richerd.eth');
+    assert.strictEqual(richerd, '0xeb1c22baacafac7836f20f684c946228401ff01c');
 
     const stani = await resolveEnsOrAddress('stani.eth');
     assert.strictEqual(stani, '0x2e21f5d34208a3d5483f9829f2709e9005bf15f2');
@@ -208,6 +214,49 @@ describe('ENS Resolution & API Route Integration Tests', () => {
     }
   });
 
+  it('streams truthful single-scan progress and the final report in one request', async () => {
+    resetRequestPolicyForTests();
+    const fetchMock = mock.method(globalThis, 'fetch', async (input: string | URL | Request) => {
+      const url = String(input);
+      if (url.includes('api.web3.bio')) return new Response('[]', { status: 200 });
+      if (url.includes('etherscan') || url.includes('blockscout')) {
+        return new Response(JSON.stringify({ status: '0', message: 'No transactions found', result: [] }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+      return new Response('', { status: 200 });
+    });
+
+    try {
+      const response = await scanPOST(new NextRequest('http://localhost/api/scan', {
+        method: 'POST',
+        headers: { Accept: 'application/x-ndjson' },
+        body: JSON.stringify({
+          address: '0x9999999999999999999999999999999999999999',
+          chainIds: [1],
+        }),
+      }));
+      assert.strictEqual(response.status, 200);
+      assert.match(response.headers.get('content-type') ?? '', /application\/x-ndjson/);
+
+      const events = (await response.text())
+        .trim()
+        .split('\n')
+        .map(line => JSON.parse(line));
+      const progressEvents = events.filter(event => event.type === 'progress');
+      const resultEvent = events.find(event => event.type === 'result');
+
+      assert.strictEqual(progressEvents[0]?.progress.phase, 'resolving');
+      assert.strictEqual(progressEvents.some(event => event.progress.phase === 'fetching'), true);
+      assert.strictEqual(progressEvents.some(event => typeof event.progress.recordsFound === 'number'), true);
+      assert.strictEqual(resultEvent?.result.address, '0x9999999999999999999999999999999999999999');
+    } finally {
+      fetchMock.mock.restore();
+      resetRequestPolicyForTests();
+    }
+  });
+
   it('starts an async scan job and exposes the completed result over polling', async () => {
     resetRequestPolicyForTests();
     resetScanJobsForTests();
@@ -227,7 +276,7 @@ describe('ENS Resolution & API Route Integration Tests', () => {
       const startResponse = await scanJobsPOST(new NextRequest('http://localhost/api/scan-jobs', {
         method: 'POST',
         body: JSON.stringify({
-          address: 'vitalik.eth',
+          address: '0x8888888888888888888888888888888888888888',
           chainIds: [1],
         }),
       }));
@@ -242,7 +291,7 @@ describe('ENS Resolution & API Route Integration Tests', () => {
       );
       let statusPayload = await statusResponse.json();
 
-      for (let attempt = 0; attempt < 20 && statusPayload.state !== 'completed'; attempt++) {
+      for (let attempt = 0; attempt < 100 && statusPayload.state !== 'completed'; attempt++) {
         await new Promise(resolve => setTimeout(resolve, 25));
         statusResponse = await scanJobGET(
           new NextRequest(`http://localhost/api/scan-jobs/${startPayload.jobId}`),
@@ -252,8 +301,12 @@ describe('ENS Resolution & API Route Integration Tests', () => {
       }
 
       assert.strictEqual(statusPayload.state, 'completed');
-      assert.strictEqual(statusPayload.result.address, '0xd8da6bf26964af9d7eed9e03e53415d37aa96045');
+      assert.strictEqual(statusPayload.result.address, '0x8888888888888888888888888888888888888888');
       assert.strictEqual(statusPayload.progress.progressPercent, 100);
+      assert.strictEqual(statusPayload.progress.phase, 'finalizing');
+      assert.deepStrictEqual(statusPayload.progress.completedChainIds, [1]);
+      assert.strictEqual(statusPayload.progress.recordsFound, 0);
+      assert.strictEqual(typeof statusPayload.updatedAt, 'number');
     } finally {
       fetchMock.mock.restore();
       resetRequestPolicyForTests();

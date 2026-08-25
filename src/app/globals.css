@@ -53,6 +53,17 @@ p, .text-pretty {
   text-wrap: pretty;
 }
 
+/* Horizontal data regions keep their scroll boundary visible on narrow screens. */
+.horizontal-scroll-region {
+  overscroll-behavior-inline: contain;
+  background-image:
+    linear-gradient(to right, rgba(234, 235, 239, 0.98), rgba(234, 235, 239, 0)),
+    linear-gradient(to left, rgba(234, 235, 239, 0.98), rgba(234, 235, 239, 0));
+  background-position: left center, right center;
+  background-repeat: no-repeat;
+  background-size: 1.5rem 100%;
+}
+
 /* ── Focus Outline Standard ── */
 :focus-visible {
   outline: 2px solid var(--color-orange);

@@ -7,6 +7,12 @@ export const PERSISTENCE_POLICY = {
     comparableHistory: false,
     retention: 'request-only',
   },
+  curatedDemoSnapshots: {
+    enabled: true,
+    storage: 'versioned-static-assets',
+    userGenerated: false,
+    liveProviderCallsOnLoad: false,
+  },
   caches: {
     scope: 'process-local',
     requiredForCorrectness: false,

@@ -157,18 +157,21 @@ export async function applyWalletHistoryFallback(
   const tokenTransfersFetcher = options.moralisTokenTransfersFetcher ?? defaultMoralisTokenTransfersFetcher;
   const internalTransactionsFetcher = options.moralisInternalTransactionsFetcher
     ?? defaultMoralisInternalTransactionsFetcher;
+  const fallbackDeadlineAt = Date.now() + MORALIS_FALLBACK_BUDGET_MS;
+  const remainingFallbackBudgetMs = (): number => Math.max(0, fallbackDeadlineAt - Date.now());
 
-  const [transactionsFallback, tokenTransfersFallback, internalTransactionsFallback] = await Promise.all([
-    explorer.transactions.status === 'complete'
-      ? null
-      : transactionsFetcher(address, chainId, quotaBudget, MORALIS_FALLBACK_BUDGET_MS),
-    explorer.tokenTransfers.status === 'complete'
-      ? null
-      : tokenTransfersFetcher(address, chainId, quotaBudget, MORALIS_FALLBACK_BUDGET_MS),
-    explorer.internalTransactions.status === 'complete'
-      ? null
-      : internalTransactionsFetcher(address, chainId, quotaBudget, MORALIS_FALLBACK_BUDGET_MS),
-  ]);
+  // Run fallback datasets in product-value order against the shared CU cap.
+  // Parallel requests make whichever promise reserves quota first win, which
+  // can starve normal wallet history while spending the same total allowance.
+  const transactionsFallback = explorer.transactions.status === 'complete'
+    ? null
+    : await transactionsFetcher(address, chainId, quotaBudget, remainingFallbackBudgetMs());
+  const tokenTransfersFallback = explorer.tokenTransfers.status === 'complete'
+    ? null
+    : await tokenTransfersFetcher(address, chainId, quotaBudget, remainingFallbackBudgetMs());
+  const internalTransactionsFallback = explorer.internalTransactions.status === 'complete'
+    ? null
+    : await internalTransactionsFetcher(address, chainId, quotaBudget, remainingFallbackBudgetMs());
 
   return {
     transactions: mergeIncompleteResults(

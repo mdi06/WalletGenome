@@ -30,19 +30,14 @@ import {
   RiskGrade,
   WalletScanResponse,
 } from '@/lib/types';
+import type { ScanProgressDetail } from '@/lib/scanProgress';
 
 // All selected chains run concurrently. Per-provider domain limiters in the
 // explorer/RPC clients enforce the actual upstream request budgets.
 const CHAIN_SCAN_CONCURRENCY = 5;
 const CHAIN_ANALYSIS_CONCURRENCY = 5;
 
-export interface ProcessWalletScanProgress {
-  phase: 'resolving' | 'fetching' | 'pricing' | 'analyzing' | 'finalizing';
-  completedChains?: number;
-  totalChains?: number;
-  currentChainId?: number;
-  currentChainName?: string;
-}
+export type ProcessWalletScanProgress = ScanProgressDetail;
 
 interface ProcessWalletScanOptions {
   onProgress?: (progress: ProcessWalletScanProgress) => void;
@@ -78,6 +73,16 @@ export function summarizeAvailability(availability: ChainDataAvailability[]): Da
 export function moralisBudgetPerFallbackChain(totalBudget: number, fallbackChainCount: number): number {
   if (fallbackChainCount <= 0) return totalBudget;
   return Math.max(1, Math.floor(totalBudget / fallbackChainCount));
+}
+
+function countHistoryRecords(history: {
+  transactions: DataSourceResult<EtherscanTransaction>;
+  tokenTransfers: DataSourceResult<EtherscanTokenTransfer>;
+  internalTransactions: DataSourceResult<EtherscanInternalTransaction>;
+}): number {
+  return history.transactions.data.length
+    + history.tokenTransfers.data.length
+    + history.internalTransactions.data.length;
 }
 
 export async function processWalletScan(
@@ -119,7 +124,18 @@ export async function processWalletScan(
   // Fetch wallet identity in parallel with chain data
   const identityPromise = resolveWalletIdentity(address);
   let completedChains = 0;
-  options.onProgress?.({ phase: 'fetching', completedChains, totalChains: chains.length });
+  let queriedChains = 0;
+  let recordsFound = 0;
+  const completedChainIds: number[] = [];
+  const explorerRecordCounts = new Map<number, number>();
+  options.onProgress?.({
+    phase: 'fetching',
+    completedChains,
+    queriedChains,
+    totalChains: chains.length,
+    completedChainIds,
+    recordsFound,
+  });
 
   const explorerChainsData = await mapWithConcurrency(
     chains,
@@ -133,13 +149,21 @@ export async function processWalletScan(
           code: 'unsupported_chain' as const,
           message: `Chain ${chainId} is not supported by the configured explorer providers.`,
         };
-        return {
+        const unavailableHistory = {
           chainId,
           chainName,
           transactions: { data: [], status: 'unavailable', errors: [unsupported] } as DataSourceResult<EtherscanTransaction>,
           tokenTransfers: { data: [], status: 'unavailable', errors: [unsupported] } as DataSourceResult<EtherscanTokenTransfer>,
           internalTransactions: { data: [], status: 'unavailable', errors: [unsupported] } as DataSourceResult<EtherscanInternalTransaction>,
         };
+        queriedChains += 1;
+        explorerRecordCounts.set(chainId, 0);
+        options.onProgress?.({
+          phase: 'fetching', completedChains, queriedChains, totalChains: chains.length,
+          currentChainId: chainId, currentChainName: chainName,
+          completedChainIds: [...completedChainIds], recordsFound,
+        });
+        return unavailableHistory;
       }
 
       const history = await fetchExplorerHistorySources(address, chainId, etherscanKey).catch(() => ({
@@ -148,6 +172,15 @@ export async function processWalletScan(
         internalTransactions: unavailableSource<EtherscanInternalTransaction>(`${chainName} internal transaction data could not be loaded.`),
       }));
       const { transactions, tokenTransfers, internalTransactions } = history;
+      const chainRecordCount = countHistoryRecords(history);
+      explorerRecordCounts.set(chainId, chainRecordCount);
+      queriedChains += 1;
+      recordsFound += chainRecordCount;
+      options.onProgress?.({
+        phase: 'fetching', completedChains, queriedChains, totalChains: chains.length,
+        currentChainId: chainId, currentChainName: chainName,
+        completedChainIds: [...completedChainIds], recordsFound,
+      });
       return { chainId, chainName, transactions, tokenTransfers, internalTransactions };
     },
   );
@@ -172,13 +205,19 @@ export async function processWalletScan(
             quotaBudget: createMoralisQuotaBudget(perChainMoralisBudget),
           });
 
+      const finalRecordCount = countHistoryRecords(history);
+      recordsFound = Math.max(0, recordsFound - (explorerRecordCounts.get(chain.chainId) ?? 0) + finalRecordCount);
       completedChains += 1;
+      completedChainIds.push(chain.chainId);
       options.onProgress?.({
         phase: 'fetching',
         completedChains,
+        queriedChains,
         totalChains: chains.length,
         currentChainId: chain.chainId,
         currentChainName: chain.chainName,
+        completedChainIds: [...completedChainIds],
+        recordsFound,
       });
 
       return { ...chain, ...history };
@@ -186,7 +225,14 @@ export async function processWalletScan(
   );
 
   const identityReport = await identityPromise;
-  options.onProgress?.({ phase: 'pricing', completedChains: chains.length, totalChains: chains.length });
+  const finishedProgress = {
+    completedChains: chains.length,
+    queriedChains: chains.length,
+    totalChains: chains.length,
+    completedChainIds: [...completedChainIds],
+    recordsFound,
+  };
+  options.onProgress?.({ phase: 'pricing', ...finishedProgress });
 
   // Consolidate price fetching once across all chains with DefiLlama + CoinGecko batching
   const allPriceRequests = rawChainsData.flatMap(chain => (
@@ -211,7 +257,7 @@ export async function processWalletScan(
       ],
     };
   });
-  options.onProgress?.({ phase: 'analyzing', completedChains: chains.length, totalChains: chains.length });
+  options.onProgress?.({ phase: 'analyzing', ...finishedProgress });
 
   // Run deep analysis in parallel for each chain
   const chainAnalysisResults = await mapWithConcurrency(
@@ -345,7 +391,7 @@ export async function processWalletScan(
         includeMonetary: priceProvenance.status === 'complete',
       })
     : undefined;
-  options.onProgress?.({ phase: 'finalizing', completedChains: chains.length, totalChains: chains.length });
+  options.onProgress?.({ phase: 'finalizing', ...finishedProgress });
 
   // Address-list checks do not depend on explorer or price completeness. The
   // Behavioral scoring requires complete history. When historical prices are

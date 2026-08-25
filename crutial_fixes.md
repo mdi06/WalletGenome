@@ -69,7 +69,8 @@ Follow-up correction (2026-08-24):
 - Overall scan completeness now depends on indexed wallet-history datasets rather than historical pricing. Per-chain price completeness is derived from the quotes actually used by that chain, so one token or chain cannot mark unrelated chains partial.
 - Explorer collection now completes before Moralis fallback. The scan-level CU allowance is partitioned across only the chains that need fallback, and account-quota exhaustion is reported separately from the local CU limit.
 - Address-list Sybil and sanctions checks run independently of explorer and price completeness. MEDIA scoring requires complete wallet history, but incomplete historical prices no longer suppress it: the monetary dimension is omitted and the remaining behavioral dimensions are reweighted.
-- Capital Flow publishes a verified historical subtotal when wallet history is complete even if some prices are missing. Current-price estimates and unpriced transfer legs are excluded, with explicit coverage and exclusion counts; the card is unavailable only when history is incomplete or no eligible flow leg has a trusted historical value.
+- Capital Flow publishes historically priced inflow, outflow, and net flow inside the Flow Graph when wallet history is complete even if some prices are missing. Current-price estimates and unpriced transfer legs are excluded, with explicit count coverage and exclusion counts. Partial totals are labeled as verified lower bounds and are no longer promoted as a Behavioral DNA headline; flow is unavailable when history is incomplete or no eligible leg has a trusted historical value.
+- Behavioral DNA pairs Lifetime Gas with a Chain Activity distribution based on the existing per-chain normal-transaction counts. Complete histories show count shares; partial histories show lower-bound counts without percentages; unavailable history is labeled rather than converted to zero.
 - Spot-estimate diagnostics now explain that the count represents transaction or transfer valuations that used scan-time token prices because date-specific prices were unavailable.
 - Focused scan/dashboard regressions passed 26/26; full `npm test` passed 126/126. `npm run lint`, `npm run build`, `npm run typecheck`, and `git diff --check` passed.
 
@@ -484,7 +485,15 @@ Acceptance criteria:
 
 ## P3 — UX, Visual Design, and Accessibility
 
-### 13. Fix mobile overflow and control density
+### 13. [x] Fix mobile overflow and control density
+
+Completion evidence (2026-08-25):
+
+- The page shell and header now wrap without widening narrow viewports. The complete product promise remains directly above the primary scan console, scan actions remain full-width on small screens, and dense primary labels use shorter sentence-case copy while retaining the tactile visual system.
+- Dashboard and cluster tab strips now keep horizontal scrolling inside labeled regions with keyboard-reachable tab controls. Heatmaps and transfer, approval, interaction, and capital-flow tables use labeled, keyboard-focusable scroll regions with a visible edge affordance. Wallet identity addresses truncate within the card while preserving the full value in a title and a named copy action.
+- The resolved-identity card now uses one profile hierarchy followed by a separate connected-account section. At medium widths the address and copy action occupy the previously empty right side of the profile row, reducing its height without changing the approved section order. The service count is attached to the account section, duplicate linked-domain chips were removed from the profile heading, unique unlinked names remain visible, and account links use an equal-width responsive grid.
+- Added `src/components/p3ResponsiveLayout.test.ts`; focused regressions passed 6/6, including contracts for hero/search order and the structured identity/account layout. ESLint completed with zero errors and `npm run typecheck` passed.
+- Playwright verified `documentElement.scrollWidth === innerWidth` and `body.scrollWidth === innerWidth` at 320px, 375px, 390px, 768px, and 1440px. Header control bounds stayed inside the viewport at 320px and 390px. A rendered accessibility snapshot confirms the hero region precedes `Wallet Forensics Console`, and the corrected viewport is recorded at `output/playwright/p3-order-restored.png`.
 
 Affected files:
 
@@ -508,7 +517,15 @@ Acceptance criteria:
 - Primary scan input and action remain fully visible.
 - Mobile screenshots show no clipped header controls.
 
-### 14. Repair keyboard and assistive-technology semantics
+### 14. [x] Repair keyboard and assistive-technology semantics
+
+Completion evidence (2026-08-25):
+
+- Landing scan modes, single-wallet dashboard sections, and cluster dashboard sections now implement `tablist`/`tab`/`tabpanel`, selected state, roving `tabIndex`, `aria-controls`/`aria-labelledby`, hidden inactive panels, and wrapping Arrow/Home/End keyboard navigation.
+- Demo cards no longer attach click behavior to non-semantic containers. Cluster sortable headers now contain real buttons and publish `aria-sort`. Form errors are connected to their fields, icon-only explorer/graph controls have names and larger targets, and visible focus styling remains global.
+- Radar, activity heatmap, capital-flow, and cluster-flow visuals now include text or tabular alternatives. The flow graphs also expose keyboard-operable accessible data sections with wallet inspection and evidence/explorer actions.
+- Added `src/lib/accessibility/tabs.ts`, `src/lib/accessibility/tabs.test.ts`, and `src/components/p3Accessibility.test.ts`. P3-focused regressions passed 14/14; the full repository suite passed 157/157. `npm run lint`, `npm run typecheck`, `npm run build`, and `git diff --check` passed.
+- Playwright against the local production build confirmed ArrowRight moved focus and selection from Single wallet to Cluster scan and updated the active `tabpanel`. Accessibility-tree inspection exposed selected tabs, named inputs/actions, and the active panel. An automated rendered-DOM audit found zero duplicate IDs, unnamed actions, unnamed fields, missing image alternatives, broken tabs, or broken panels. Reproducible results are recorded in `output/playwright/p3-item14/verification.md`.
 
 Affected areas:
 
@@ -536,7 +553,15 @@ Acceptance criteria:
 
 ## P4 — Test and Release Hardening
 
-### 15. Expand regression coverage around the product’s trust boundaries
+### 15. [x] Expand regression coverage around the product’s trust boundaries
+
+Completion evidence (2026-08-25):
+
+- The 174-test Node suite now covers every listed trust boundary: route schemas and abuse limits; provider timeout/rate-limit/partial states; price provenance; ERC-20 protocol attribution; supported-chain native-token/explorer mappings; approval exposure; risk/Sybil/activity aggregation; cluster linkage; URL/demo loading; single/cluster client success and failure transitions; responsive layout; and accessibility-critical behavior.
+- Added direct regression seams for cluster request success, structured provider failures, and non-JSON failures. Single-wallet stream coverage now also rejects HTTP failures, truncated streams, and cancellations without presenting a completed report.
+- The local production build passed browser smoke checks for a saved single-wallet dashboard, cluster-mode keyboard navigation, four-wallet sample parsing, explicit mocked cluster failure rendering, and cleared loading state after failure.
+- Rendered overflow checks passed at 320px, 375px, 390px, 768px, and 1440px with document/body widths equal to the viewport. Browser evidence is recorded in `output/playwright/p4-item15/verification.md`.
+- Focused P4 regressions passed 10/10; full `npm test` passed 174/174. `npm run lint`, `npm run typecheck`, `npm run build`, and `git diff --check` passed.
 
 Required test groups:
 
@@ -560,7 +585,15 @@ Current baseline:
 - Coverage is concentrated in a small subset of the product surface.
 - The normal `npm test` path should be verified in CI because the managed audit sandbox blocked the `tsx` IPC transport.
 
-### 16. Make validation commands deterministic
+### 16. [x] Make validation commands deterministic
+
+Completion evidence (2026-08-25):
+
+- `package.json` now pins Node.js 22.x and exposes the canonical `lint`, `typecheck`, `test`, `build`, and `verify` commands. `typecheck` runs `next typegen` before `tsc --noEmit`, following the installed Next.js 16 guidance so route types do not depend on stale `.next` output.
+- `.nvmrc`, README, GitHub Actions, and Vercel now use the same Node.js 22 and `npm run verify` contract. `vercel.json` invokes the full verification path; `next.config.ts` has no lint or TypeScript bypass.
+- Added `src/lib/releaseConfiguration.test.ts` to lock the command, runtime, CI, Vercel, and no-bypass contracts; its focused regressions passed 3/3.
+- Clean-artifact proof: after moving the existing `.next` output aside, `npm run typecheck` regenerated route types and passed. A separate temporary copy without `.git`, `.next`, `node_modules`, environment files, or local output completed `npm ci` with 0 vulnerabilities and `npm run verify` with 177/177 tests plus a successful production build.
+- No deployment or remote repository action occurred.
 
 Required scripts:
 
@@ -592,7 +625,7 @@ Acceptance criteria:
 
 Complete before the first production deployment:
 
-- [ ] Select and document supported Node.js runtime version.
+- [x] Select and document supported Node.js runtime version. Evidence: Node.js 22.x is pinned in `package.json` and `.nvmrc`, documented in README, and used by the CI workflow; Vercel currently supports the pinned major runtime.
 - [ ] Confirm every API route uses the intended Node runtime; filesystem-dependent code is removed.
 - [ ] Configure provider secrets only in Vercel encrypted environment variables.
 - [ ] Confirm no provider secret is shipped to the client bundle or accepted from arbitrary public request bodies.
@@ -611,15 +644,15 @@ Deployment is **NO-GO** until all of the following are true:
 
 - [x] Every P0 item is complete.
 - [x] Every P1 metric/feature item is complete or the corresponding product claim/UI is removed. Evidence: items 5–10 above; 89/89 repository tests, TypeScript, P1-targeted ESLint, production build, and `git diff --check` passed on 2026-08-23.
-- [ ] `npm run verify` passes from a clean checkout.
-- [ ] Dependency audit reports no unresolved high/critical production vulnerabilities.
+- [x] `npm run verify` passes from a clean checkout. Evidence: item 16 isolated-copy verification completed lint, generated-type typecheck, 177/177 tests, and the production build.
+- [x] Dependency audit reports no unresolved high/critical production vulnerabilities. Evidence: the item 16 clean `npm ci` audit reported 0 vulnerabilities across the locked dependency graph.
 - [ ] Single-wallet and bounded cluster browser flows pass in a production-like environment.
 - [ ] Forced provider failures render explicit partial/unavailable states.
 - [ ] Historical-price gaps never appear as exact historical USD values.
 - [ ] Unauthenticated callers cannot mutate application state.
 - [x] Scan endpoints have tested abuse controls.
-- [ ] Mobile layouts pass at 320px, 375px, 390px, 768px, and desktop widths.
-- [ ] Keyboard and screen-reader critical paths are verified.
+- [x] Mobile layouts pass at 320px, 375px, 390px, 768px, and desktop widths. Evidence: item 13; final local production checks reported document and body widths equal to each viewport width.
+- [x] Keyboard and screen-reader critical paths are verified. Evidence: item 14; focused semantics regressions, production-build keyboard navigation, accessibility-tree inspection, and the zero-critical rendered-DOM audit.
 - [ ] Vercel preview deployment is smoke-tested before promoting to production.
 - [ ] Production rollback procedure and last-known-good deployment are documented.
 

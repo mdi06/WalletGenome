@@ -34,6 +34,34 @@ test('builds stable single-wallet presentation values outside the renderer', () 
   assert.equal(viewModel.formattedGasUSD.startsWith('$'), true);
   assert.equal(viewModel.approvalCount, data.chains.reduce((sum, chain) => sum + chain.approvalSummary.totalApprovals, 0));
   assert.equal(viewModel.radarData.length, 6);
+  assert.equal(viewModel.chainActivity.length, 2);
+  assert.equal(viewModel.chainActivity.reduce((sum, chain) => sum + (chain.transactionCount ?? 0), 0), data.aggregated.totalTransactions);
+  assert.equal(viewModel.chainActivity.reduce((sum, chain) => sum + (chain.sharePercent ?? 0), 0), 100);
+  assert.equal(viewModel.chainActivityStatus, 'complete');
+});
+
+test('keeps partial and unavailable chain activity explicit', () => {
+  const data = getMockScanResult();
+  data.availability[1].transactions = 'partial';
+  data.availability.push({
+    chainId: 10,
+    chainName: 'Optimism',
+    transactions: 'unavailable',
+    tokenTransfers: 'unavailable',
+    internalTransactions: 'unavailable',
+    prices: 'unavailable',
+    errors: [],
+  });
+
+  const viewModel = buildDashboardViewModel(data);
+  const base = viewModel.chainActivity.find(chain => chain.chainId === 8453);
+  const optimism = viewModel.chainActivity.find(chain => chain.chainId === 10);
+
+  assert.equal(viewModel.chainActivityStatus, 'partial');
+  assert.equal(base?.status, 'partial');
+  assert.equal(base?.sharePercent, null);
+  assert.equal(optimism?.status, 'unavailable');
+  assert.equal(optimism?.transactionCount, null);
 });
 
 test('builds evidence-based cluster summary and deterministic sorting', () => {
