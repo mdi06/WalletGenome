@@ -29,7 +29,10 @@ export async function loadDemoSnapshot(
 ): Promise<DemoSnapshotEnvelope> {
   const response = await fetcher(demo.snapshotPath, {
     method: 'GET',
-    cache: 'force-cache',
+    // Public-folder assets can appear after a local server or browser session
+    // has already cached a 404. Revalidate the app-owned snapshot so an old
+    // negative response cannot strand the demo card in an error state.
+    cache: 'no-cache',
     signal,
   });
 

@@ -27,10 +27,11 @@ describe('P3 accessibility contracts', () => {
     assert.doesNotMatch(source, /<th\s+onClick=/);
   });
 
-  it('keeps demo profile cards non-clickable outside their explicit action', () => {
+  it('makes each complete demo profile card a keyboard-accessible action', () => {
     const source = readSource('./WelcomeGuide.tsx');
-    assert.doesNotMatch(source, /<div[\s\S]{0,220}card-3d-interactive[\s\S]{0,220}onClick=/);
+    assert.match(source, /card-3d-interactive[\s\S]{0,400}<button[\s\S]{0,300}onClick=\{\(\) => onSelectDemo\(demo\)\}[\s\S]{0,300}absolute inset-0/);
     assert.match(source, /aria-label=\{`Load saved demo snapshot for \$\{demo\.name\}`\}/);
+    assert.doesNotMatch(source, /card-3d-interactive[\s\S]{0,500}<button[\s\S]{0,500}<button/);
   });
 
   it('renders the original saved-demo cards only once', () => {

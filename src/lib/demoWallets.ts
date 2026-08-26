@@ -15,8 +15,8 @@ export const DEMO_WALLETS = [
     role: 'Co-founder of Ethereum',
     ens: 'vitalik.eth',
     address: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045',
-    snapshotPath: '/demo-wallets/vitalik-2026-08-25.json',
-    generatedAt: '2026-08-25T02:31:47.134Z',
+    snapshotPath: '/demo-wallets/vitalik-2026-08-26.json',
+    generatedAt: '2026-08-26T08:47:15.264Z',
   },
   {
     slug: 'hayden',
@@ -56,4 +56,13 @@ export function getDemoWalletBySlug(slug: string): DemoWallet | null {
 export function getDemoWalletFromSearch(search: string): DemoWallet | null {
   const slug = new URLSearchParams(search).get('demo');
   return slug ? getDemoWalletBySlug(slug) : null;
+}
+
+export function formatDemoSnapshotDate(generatedAt: string): string {
+  return new Intl.DateTimeFormat('en', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    timeZone: 'UTC',
+  }).format(new Date(generatedAt));
 }

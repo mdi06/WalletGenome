@@ -26,6 +26,16 @@ describe('P3 mobile layout contracts', () => {
     assert.match(markup, /aria-label="Select target EVM networks"[^>]*class="[^"]*w-full/);
   });
 
+  it('renders the wallet search input empty by default', () => {
+    const markup = renderToStaticMarkup(createElement(WalletInput, {
+      onScan: () => {},
+      isLoading: false,
+    }));
+
+    assert.match(markup, /id="wallet-address-input"[^>]*value=""/);
+    assert.doesNotMatch(markup, /value="0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045"/);
+  });
+
   it('keeps the complete product promise above the wallet search console', () => {
     const pageSource = readSource('../app/page.tsx');
     const heroIndex = pageSource.indexOf('aria-labelledby="main-hero-title"');

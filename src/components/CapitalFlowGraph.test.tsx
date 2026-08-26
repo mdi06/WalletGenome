@@ -1,8 +1,10 @@
 import assert from 'node:assert';
+import { readFile } from 'node:fs/promises';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, it } from 'node:test';
 import { getMockScanResult } from '@/lib/mockData';
+import type { WalletScanResponse } from '@/lib/types';
 import CapitalFlowGraph from './CapitalFlowGraph';
 
 describe('Capital Flow Graph verified summary', () => {
@@ -36,5 +38,61 @@ describe('Capital Flow Graph verified summary', () => {
     assert.match(markup, /Partial lower-bound estimate/i);
     assert.match(markup, /63% count coverage/);
     assert.match(markup, /9 current-price estimates and 734 unpriced values excluded/);
+  });
+
+  it('shows observed priced lower bounds when wallet history is incomplete', () => {
+    const data = getMockScanResult();
+    data.chains[0].transferSummary.totalInboundUSD = 4_593_168_608.85;
+    data.chains[0].transferSummary.totalOutboundUSD = 96_290_852.92;
+    data.chains[1].transferSummary.totalInboundUSD = 0;
+    data.chains[1].transferSummary.totalOutboundUSD = 0;
+    data.metrics = {
+      ...data.metrics,
+      inflowUSD: null,
+      outflowUSD: null,
+      netFlowUSD: null,
+      grossVolumeUSD: null,
+      capitalFlowCoverage: {
+        verifiedLegs: 59_502,
+        totalLegs: 93_955,
+        excludedSpotEstimateLegs: 232,
+        unpricedLegs: 34_193,
+        coveragePercent: null,
+        status: 'unavailable',
+      },
+    };
+
+    const markup = renderToStaticMarkup(createElement(CapitalFlowGraph, {
+      results: data.chains,
+      metrics: data.metrics,
+    }));
+
+    assert.match(markup, /Observed Priced Flow Summary/i);
+    assert.match(markup, /Observed Priced Inflow/i);
+    assert.match(markup, /\$4\.59B/);
+    assert.match(markup, /\$96\.29M/);
+    assert.match(markup, /\$4\.50B/);
+    assert.match(markup, /Incomplete lower bound/i);
+    assert.match(markup, /not wallet balance, profit, or complete lifetime totals/i);
+    assert.doesNotMatch(markup, /Verified Flow Summary/i);
+  });
+
+  it('renders the refreshed Vitalik snapshot as observed, not verified lifetime flow', async () => {
+    const snapshotUrl = new URL('../../public/demo-wallets/vitalik-2026-08-26.json', import.meta.url);
+    const snapshot = JSON.parse(await readFile(snapshotUrl, 'utf8')) as {
+      result: WalletScanResponse;
+    };
+
+    const markup = renderToStaticMarkup(createElement(CapitalFlowGraph, {
+      results: snapshot.result.chains,
+      metrics: snapshot.result.metrics,
+    }));
+
+    assert.match(markup, /Observed Priced Flow Summary/i);
+    assert.match(markup, /\$4\.59B/);
+    assert.match(markup, /\$96\.29M/);
+    assert.match(markup, /\$4\.50B/);
+    assert.match(markup, /59,502 returned historically priced or stablecoin transfer values/i);
+    assert.doesNotMatch(markup, /Verified Flow Summary/i);
   });
 });

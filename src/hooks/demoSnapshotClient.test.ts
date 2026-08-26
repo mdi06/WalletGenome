@@ -20,13 +20,16 @@ const validPayload = {
 
 test('loads a demo through its static snapshot path without calling the scan API', async () => {
   const requests: string[] = [];
-  const payload = await loadDemoSnapshot(demo, async input => {
+  const cacheModes: Array<RequestCache | undefined> = [];
+  const payload = await loadDemoSnapshot(demo, async (input, init) => {
     requests.push(String(input));
+    cacheModes.push(init?.cache);
     return Response.json(validPayload);
   });
 
   assert.equal(payload.result.address, demo.address.toLowerCase());
   assert.deepEqual(requests, [demo.snapshotPath]);
+  assert.deepEqual(cacheModes, ['no-cache']);
   assert.ok(requests.every(path => !path.startsWith('/api/scan')));
 });
 

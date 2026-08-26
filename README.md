@@ -53,7 +53,7 @@ Built with Next.js 16, TypeScript, and Recharts, this tool ingests raw transacti
 ### 5. 🗺️ Arkham-Style Capital Flow Graph
 - **3-Column Liquidity Network Topology**: Maps fund origins (CEXs, bridges, funding wallets) through core user address to active DeFi protocols and destination wallets.
 - **Animated SVG Flow Particles**: Particle-traced directed lines with volume-weighted stroke widths.
-- **Verified Flow Summary**: Shows historically priced inflow, outflow, and net flow inside the Flow Graph. Partial totals are labeled as lower bounds with count coverage and excluded estimates shown beside them; they are not promoted as a Behavioral DNA headline.
+- **Flow Summary**: Shows verified inflow, outflow, and net flow when history is complete. When history is incomplete but returned transfer legs have historical or stablecoin prices, the Flow Graph shows a separately labelled observed lower bound with missing-history and excluded-value warnings; it is not presented as a complete lifetime total or promoted as a Behavioral DNA headline.
 - **Evidence-Backed Cluster Links**: Batch mode detects direct submitted-wallet transfers from full native, internal, and ERC-20 evidence, preserving direction, chain, unique transaction hashes, and USD completeness. Shared hubs use full counterparty sets; display truncation does not change conclusions.
 
 ### 6. 🔓 Approval & Exposure Audit
@@ -131,7 +131,7 @@ Every single-wallet API response exposes a typed `metrics` object. The methodolo
 | `activeDays` / `longestStreakDays` | Union and longest consecutive run of UTC activity dates across selected chains. |
 | `totalUnlimitedApprovals` | Count of active unlimited approvals across selected chains. |
 
-Capital Flow also publishes `capitalFlowCoverage`: verified transfer legs, total eligible legs, excluded current-price estimates, unpriced legs, coverage percentage, and `complete`/`partial`/`unavailable` status. A partial subtotal is shown only in the Flow Graph, only when wallet history is complete, and only when at least one eligible transfer leg has a historical or stablecoin price. Because coverage is measured by transfer count rather than USD value, partial inflow, outflow, and net flow are explicitly presented as verified lower bounds. Other USD metrics continue to follow their own completeness contracts.
+Capital Flow also publishes `capitalFlowCoverage`: verified transfer legs, total eligible legs, excluded current-price estimates, unpriced legs, coverage percentage, and `complete`/`partial`/`unavailable` status. When wallet history is complete, partial price coverage is presented as a verified lower bound with count coverage. When wallet history itself is incomplete, the canonical metrics remain unavailable, but the Flow Graph may show an observed priced lower bound calculated only from returned historical or stablecoin-priced legs. Missing history, current-price estimates, and unpriced values are excluded and called out explicitly. Other USD metrics continue to follow their own completeness contracts.
 
 ### Public scan request policy
 

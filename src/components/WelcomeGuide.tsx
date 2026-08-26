@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { ArrowRight, ShieldCheck, Dna, GitFork, UserCheck, Lock, Layers, Activity, HelpCircle, BookOpen } from 'lucide-react';
-import { DEMO_WALLETS, type DemoWallet } from '@/lib/demoWallets';
+import { DEMO_WALLETS, formatDemoSnapshotDate, type DemoWallet } from '@/lib/demoWallets';
 
 interface Props {
   onSelectDemo: (demo: DemoWallet) => void;
@@ -27,8 +27,15 @@ export default function WelcomeGuide({ onSelectDemo }: Props) {
           {DEMO_WALLETS.map(demo => (
             <div
               key={demo.slug}
-              className="card-3d-interactive p-4 text-[#0a0a0a] space-y-3 flex flex-col justify-between group"
+              className="card-3d-interactive relative p-4 text-[#0a0a0a] space-y-3 flex flex-col justify-between group"
             >
+              <button
+                type="button"
+                aria-label={`Load saved demo snapshot for ${demo.name}`}
+                onClick={() => onSelectDemo(demo)}
+                className="absolute inset-0 z-10 cursor-pointer appearance-none bg-transparent"
+              />
+
               <div className="space-y-2">
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-[9px] font-mono font-extrabold text-[#4b5563] uppercase tracking-wider truncate">
@@ -50,17 +57,15 @@ export default function WelcomeGuide({ onSelectDemo }: Props) {
 
               <div className="pt-2.5 border-t border-[#c8c8c8] flex items-center justify-between gap-2">
                 <span className="text-[10px] font-mono font-bold text-[#6b7280] truncate">
-                  Four chains · Updated Aug 25, 2026
+                  Four chains · Updated {formatDemoSnapshotDate(demo.generatedAt)}
                 </span>
-                <button
-                  type="button"
-                  aria-label={`Load saved demo snapshot for ${demo.name}`}
-                  onClick={() => onSelectDemo(demo)}
+                <span
+                  aria-hidden="true"
                   className="btn-3d-black text-white font-bold text-xs px-2.5 py-1 flex items-center gap-1 flex-shrink-0 cursor-pointer"
                 >
                   <span>Explore</span>
                   <ArrowRight size={11} />
-                </button>
+                </span>
               </div>
             </div>
           ))}

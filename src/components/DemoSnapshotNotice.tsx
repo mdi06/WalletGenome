@@ -1,18 +1,9 @@
-import type { DemoWallet } from '@/lib/demoWallets';
+import { formatDemoSnapshotDate, type DemoWallet } from '@/lib/demoWallets';
 
 interface DemoSnapshotNoticeProps {
   demo: DemoWallet;
   onRunFreshScan: () => void;
   isLoading: boolean;
-}
-
-export function formatSnapshotDate(generatedAt: string): string {
-  return new Intl.DateTimeFormat('en', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    timeZone: 'UTC',
-  }).format(new Date(generatedAt));
 }
 
 export default function DemoSnapshotNotice({
@@ -27,7 +18,7 @@ export default function DemoSnapshotNotice({
     >
       <div className="min-w-0">
         <p className="text-xs font-black uppercase tracking-wider text-[#0a0a0a]">
-          Demo snapshot · Updated {formatSnapshotDate(demo.generatedAt)}
+          Demo snapshot · Updated {formatDemoSnapshotDate(demo.generatedAt)}
         </p>
         <p className="mt-1 text-xs font-medium text-[#4b5563]">
           Saved public data for {demo.name}. This view does not spend provider API quota and is not live.

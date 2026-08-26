@@ -58,14 +58,30 @@ export default function CapitalFlowGraph({ results, metrics }: Props) {
 
   const userAddress = results[0]?.address?.toLowerCase() || '';
   const coverage = metrics.capitalFlowCoverage;
+  const observedInflowUSD = results.reduce(
+    (sum, result) => sum + result.transferSummary.totalInboundUSD,
+    0,
+  );
+  const observedOutflowUSD = results.reduce(
+    (sum, result) => sum + result.transferSummary.totalOutboundUSD,
+    0,
+  );
+  const hasObservedLowerBound = metrics.inflowUSD === null
+    && metrics.outflowUSD === null
+    && coverage.verifiedLegs > 0;
+  const displayedInflowUSD = hasObservedLowerBound ? observedInflowUSD : metrics.inflowUSD;
+  const displayedOutflowUSD = hasObservedLowerBound ? observedOutflowUSD : metrics.outflowUSD;
+  const displayedNetFlowUSD = displayedInflowUSD === null || displayedOutflowUSD === null
+    ? null
+    : displayedInflowUSD - displayedOutflowUSD;
   const formatFlowValue = (value: number | null): string => value === null
     ? 'Unavailable'
     : formatCompactUSD(value);
-  const formattedNetFlow = metrics.netFlowUSD === null
+  const formattedNetFlow = displayedNetFlowUSD === null
     ? 'Unavailable'
-    : metrics.netFlowUSD < 0
-      ? `-${formatCompactUSD(Math.abs(metrics.netFlowUSD))}`
-      : formatCompactUSD(metrics.netFlowUSD);
+    : displayedNetFlowUSD < 0
+      ? `-${formatCompactUSD(Math.abs(displayedNetFlowUSD))}`
+      : formatCompactUSD(displayedNetFlowUSD);
 
   const handleNodeClick = (node: GraphNode | { chainId: number; address: string }) => {
     if (node.address) {
@@ -325,35 +341,51 @@ export default function CapitalFlowGraph({ results, metrics }: Props) {
       <div className="card-3d p-5 text-[#0a0a0a] space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
-            <h3 className="text-xs font-black uppercase tracking-wider">Verified Flow Summary</h3>
+            <h3 className="text-xs font-black uppercase tracking-wider">
+              {hasObservedLowerBound ? 'Observed Priced Flow Summary' : 'Verified Flow Summary'}
+            </h3>
             <p className="text-[11px] font-bold text-[#4b5563] mt-1">
-              Historically priced native and token transfer legs across the selected scan chains.
+              {hasObservedLowerBound
+                ? 'Historically priced native and token transfer legs returned by this incomplete scan.'
+                : 'Historically priced native and token transfer legs across the selected scan chains.'}
             </p>
           </div>
           <span className={`text-[10px] font-black font-mono uppercase px-2 py-1 border self-start ${
-            coverage.status === 'complete'
+            hasObservedLowerBound
+              ? 'text-[#b45309] border-[#f59e0b]/50 bg-[#f59e0b]/10'
+              : coverage.status === 'complete'
               ? 'text-[#047857] border-[#059669]/40 bg-[#059669]/10'
               : coverage.status === 'partial'
                 ? 'text-[#b45309] border-[#f59e0b]/50 bg-[#f59e0b]/10'
                 : 'text-[#b91c1c] border-[#dc2626]/40 bg-[#dc2626]/10'
           }`}>
-            {coverage.status === 'partial' ? 'Partial lower-bound estimate' : coverage.status}
+            {hasObservedLowerBound
+              ? 'Incomplete lower bound'
+              : coverage.status === 'partial'
+                ? 'Partial lower-bound estimate'
+                : coverage.status}
           </span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div className="well-recessed-light p-3">
-            <div className="text-[10px] font-black text-[#4b5563] uppercase">Verified Inflow</div>
-            <div className="text-xl font-black font-mono text-[#047857] mt-1">{formatFlowValue(metrics.inflowUSD)}</div>
+            <div className="text-[10px] font-black text-[#4b5563] uppercase">
+              {hasObservedLowerBound ? 'Observed Priced Inflow' : 'Verified Inflow'}
+            </div>
+            <div className="text-xl font-black font-mono text-[#047857] mt-1">{formatFlowValue(displayedInflowUSD)}</div>
           </div>
           <div className="well-recessed-light p-3">
-            <div className="text-[10px] font-black text-[#4b5563] uppercase">Verified Outflow</div>
-            <div className="text-xl font-black font-mono text-[#ff5500] mt-1">{formatFlowValue(metrics.outflowUSD)}</div>
+            <div className="text-[10px] font-black text-[#4b5563] uppercase">
+              {hasObservedLowerBound ? 'Observed Priced Outflow' : 'Verified Outflow'}
+            </div>
+            <div className="text-xl font-black font-mono text-[#ff5500] mt-1">{formatFlowValue(displayedOutflowUSD)}</div>
           </div>
           <div className="well-recessed-light p-3">
-            <div className="text-[10px] font-black text-[#4b5563] uppercase">Net Verified Flow</div>
+            <div className="text-[10px] font-black text-[#4b5563] uppercase">
+              {hasObservedLowerBound ? 'Net Observed Priced Flow' : 'Net Verified Flow'}
+            </div>
             <div className={`text-xl font-black font-mono mt-1 ${
-              metrics.netFlowUSD !== null && metrics.netFlowUSD < 0 ? 'text-[#b91c1c]' : 'text-[#0a0a0a]'
+              displayedNetFlowUSD !== null && displayedNetFlowUSD < 0 ? 'text-[#b91c1c]' : 'text-[#0a0a0a]'
             }`}>
               {formattedNetFlow}
             </div>
@@ -367,7 +399,15 @@ export default function CapitalFlowGraph({ results, metrics }: Props) {
             These totals are verified lower bounds, not complete lifetime USD flow.
           </div>
         )}
-        {coverage.status === 'unavailable' && (
+        {hasObservedLowerBound && (
+          <div className="border-l-4 border-[#f59e0b] bg-[#fffbeb] px-3 py-2 text-[11px] font-bold text-[#92400e]">
+            Incomplete-history lower bound from {coverage.verifiedLegs.toLocaleString('en-US')} returned historically priced or stablecoin transfer values.{' '}
+            {coverage.excludedSpotEstimateLegs.toLocaleString('en-US')} current-price estimates and{' '}
+            {coverage.unpricedLegs.toLocaleString('en-US')} returned unpriced values are excluded.{' '}
+            Missing history is unknown. These are transfer-volume lower bounds, not wallet balance, profit, or complete lifetime totals.
+          </div>
+        )}
+        {coverage.status === 'unavailable' && !hasObservedLowerBound && (
           <div className="border-l-4 border-[#dc2626] bg-[#fef2f2] px-3 py-2 text-[11px] font-bold text-[#991b1b]">
             Verified flow totals require complete wallet history and at least one historically priced transfer value.
           </div>
