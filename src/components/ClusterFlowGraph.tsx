@@ -562,7 +562,7 @@ export default function ClusterFlowGraph({
               href={getExplorerTxUrl(activeLink.chainId || 1, activeLink.evidenceTxHashes?.[0] ?? '')}
               target="_blank"
               rel="noopener noreferrer"
-              className="w-full mt-2 bg-black hover:bg-[#ff5500] text-white text-xs font-bold py-1.5 px-3 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+              className="w-full min-h-11 mt-2 bg-black hover:bg-[#b33c00] text-white text-xs font-bold py-1.5 px-3 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
             >
               <span>View On Block Explorer</span>
               <ExternalLink size={12} />
@@ -616,7 +616,7 @@ export default function ClusterFlowGraph({
               <button
                 type="button"
                 onClick={() => onInspectWallet(inspectorNode.address)}
-                className="w-full mt-2 bg-black hover:bg-[#ff5500] text-white text-xs font-bold py-1.5 px-3 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                className="w-full min-h-11 mt-2 bg-black hover:bg-[#b33c00] text-white text-xs font-bold py-1.5 px-3 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
               >
                 <span>Deep Dive Single Scan</span>
                 <ArrowRight size={12} />

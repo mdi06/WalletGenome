@@ -60,9 +60,9 @@ export default function BehavioralFingerprint({ results }: Props) {
   });
 
   return (
-    <div className="card-3d p-6 text-[#0a0a0a] space-y-4">
+    <section aria-labelledby="quantitative-breakdown-heading" className="card-3d p-6 text-[#0a0a0a] space-y-4">
       <div className="flex justify-between items-center">
-        <span className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider">
+        <span id="quantitative-breakdown-heading" className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider">
           6-DIMENSION QUANTITATIVE BREAKDOWN
         </span>
         <span className="btn-3d-neutral text-xs font-bold text-[#0a0a0a] font-mono px-2 py-0.5">
@@ -89,6 +89,6 @@ export default function BehavioralFingerprint({ results }: Props) {
           </div>
         ))}
       </div>
-    </div>
+    </section>
   );
 }

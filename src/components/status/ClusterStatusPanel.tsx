@@ -1,4 +1,5 @@
 import type { ClusterScanResult, DataAvailabilityStatus } from '@/lib/types';
+import ProviderStatusSummary from './ProviderStatusSummary';
 
 export function getClusterAvailabilityMessage(status: DataAvailabilityStatus): string | null {
   if (status === 'complete') return null;
@@ -10,17 +11,24 @@ export function getClusterAvailabilityMessage(status: DataAvailabilityStatus): s
 export default function ClusterStatusPanel({ data }: { data: ClusterScanResult }) {
   const message = getClusterAvailabilityMessage(data.status);
   if (!message) return null;
+
+  const isUnavailable = data.status === 'unavailable';
+  const summary = isUnavailable
+    ? 'No wallet returned enough verified provider data.'
+    : `${data.requestedWallets - data.totalWallets} wallet${data.requestedWallets - data.totalWallets === 1 ? '' : 's'} need provider follow-up.`;
+
   return (
-    <div className="space-y-4 animate-fade-in-up" role="alert" aria-live="assertive">
-      <div className="border-2 border-[#dc2626] bg-[#fef2f2] p-5 text-[#7f1d1d]">
-        <h2 className="text-sm font-black uppercase tracking-wider">{data.status} cluster scan</h2>
-        <p className="mt-2 text-sm font-bold">{message}</p>
-        <p className="mt-2 text-xs">
-          {data.totalWallets} of {data.requestedWallets} wallets completed with verified provider data.
-        </p>
-      </div>
+    <ProviderStatusSummary
+      title={`${data.status} cluster scan`}
+      summary={summary}
+      tone={isUnavailable ? 'unavailable' : 'warning'}
+    >
+      <p className="text-sm font-bold">{message}</p>
+      <p className="text-xs">
+        {data.totalWallets} of {data.requestedWallets} wallets completed with verified provider data.
+      </p>
       {data.failedWallets.length > 0 && (
-        <div className="card-3d p-5 space-y-3">
+        <div className="space-y-3">
           <h3 className="text-xs font-black uppercase tracking-wider">Incomplete wallets</h3>
           {data.failedWallets.map(wallet => (
             <div key={wallet.target} className="border border-[#c8c8c8] p-3 text-xs">
@@ -35,6 +43,6 @@ export default function ClusterStatusPanel({ data }: { data: ClusterScanResult }
           ))}
         </div>
       )}
-    </div>
+    </ProviderStatusSummary>
   );
 }

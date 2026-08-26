@@ -10,10 +10,10 @@ interface Props {
 
 export default function WelcomeGuide({ onSelectDemo }: Props) {
   return (
-    <div className="space-y-10 py-2 animate-fade-in-up">
+    <div className="space-y-12 py-2 animate-fade-in-up">
       {/* ── 1. One-Click Interactive Showcase Profiles ── */}
       <section aria-labelledby="demo-profiles-heading" className="space-y-3">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between border-b border-[#c8c8c8] pb-3">
           <h2 id="demo-profiles-heading" className="text-xs font-extrabold text-[#4b5563] uppercase tracking-wider flex items-center gap-1.5">
             <Activity size={14} className="text-[#ff5500]" />
             <span>Explore saved demo wallets</span>
@@ -73,17 +73,17 @@ export default function WelcomeGuide({ onSelectDemo }: Props) {
       </section>
 
       {/* ── 2. How Does It Work? (3-Step Visual Guide) ── */}
-      <section aria-labelledby="how-it-works-heading" className="space-y-4 pt-2">
+      <section aria-labelledby="how-it-works-heading" className="space-y-4 border-y border-[#c8c8c8] py-6">
         <h2 id="how-it-works-heading" className="text-xs font-extrabold text-[#4b5563] uppercase tracking-wider flex items-center gap-1.5">
           <HelpCircle size={14} className="text-[#ff5500]" />
           <span>HOW DOES WALLETGENOME WORK?</span>
         </h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 divide-y divide-[#c8c8c8] md:grid-cols-3 md:divide-x md:divide-y-0">
           
           {/* Step 1 */}
-          <div className="card-3d p-6 space-y-3 text-[#0a0a0a] relative">
-            <div className="w-8 h-8 btn-3d-black text-white font-mono font-black flex items-center justify-center text-sm">
+          <div className="space-y-3 py-5 text-[#0a0a0a] md:px-6 md:py-2 md:first:pl-0 md:last:pr-0">
+            <div className="font-mono text-sm font-black text-[#ff5500]">
               01
             </div>
             <h3 className="text-base font-black uppercase text-[#0a0a0a]">
@@ -95,8 +95,8 @@ export default function WelcomeGuide({ onSelectDemo }: Props) {
           </div>
 
           {/* Step 2 */}
-          <div className="card-3d p-6 space-y-3 text-[#0a0a0a] relative">
-            <div className="w-8 h-8 btn-3d-orange text-white font-mono font-black flex items-center justify-center text-sm">
+          <div className="space-y-3 py-5 text-[#0a0a0a] md:px-6 md:py-2 md:first:pl-0 md:last:pr-0">
+            <div className="font-mono text-sm font-black text-[#ff5500]">
               02
             </div>
             <h3 className="text-base font-black uppercase text-[#0a0a0a]">
@@ -108,8 +108,8 @@ export default function WelcomeGuide({ onSelectDemo }: Props) {
           </div>
 
           {/* Step 3 */}
-          <div className="card-3d p-6 space-y-3 text-[#0a0a0a] relative">
-            <div className="w-8 h-8 btn-3d-black text-white font-mono font-black flex items-center justify-center text-sm">
+          <div className="space-y-3 py-5 text-[#0a0a0a] md:px-6 md:py-2 md:first:pl-0 md:last:pr-0">
+            <div className="font-mono text-sm font-black text-[#ff5500]">
               03
             </div>
             <h3 className="text-base font-black uppercase text-[#0a0a0a]">
@@ -124,18 +124,18 @@ export default function WelcomeGuide({ onSelectDemo }: Props) {
       </section>
 
       {/* ── 3. Core Capabilities (4 Feature Bento Cards) ── */}
-      <section aria-labelledby="core-capabilities-heading" className="space-y-4 pt-2">
+      <section aria-labelledby="core-capabilities-heading" className="space-y-4 border-b border-[#c8c8c8] pb-6">
         <h2 id="core-capabilities-heading" className="text-xs font-extrabold text-[#4b5563] uppercase tracking-wider flex items-center gap-1.5">
           <Layers size={14} className="text-[#ff5500]" />
           <span>WHAT YOU CAN UNCOVER ON ANY WALLET</span>
         </h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 divide-y divide-[#c8c8c8] md:grid-cols-2 md:divide-x md:divide-y-0">
           
           {/* Bento Card 1: Behavioral DNA */}
-          <div className="card-3d p-6 space-y-3 text-[#0a0a0a]">
+          <div className="space-y-3 py-5 text-[#0a0a0a] md:pr-6 md:odd:pl-0 md:even:pl-6">
             <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 btn-3d-black text-[#ff5500] flex items-center justify-center flex-shrink-0">
+              <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center border border-[#0a0a0a] bg-[#0a0a0a] text-[#ff5500]">
                 <Dna size={20} />
               </div>
               <div>
@@ -153,9 +153,9 @@ export default function WelcomeGuide({ onSelectDemo }: Props) {
           </div>
 
           {/* Bento Card 2: Interactive Capital Flow */}
-          <div className="card-3d p-6 space-y-3 text-[#0a0a0a]">
+          <div className="space-y-3 py-5 text-[#0a0a0a] md:pr-6 md:odd:pl-0 md:even:pl-6">
             <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 btn-3d-black text-[#059669] flex items-center justify-center flex-shrink-0">
+              <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center border border-[#0a0a0a] bg-[#0a0a0a] text-[#059669]">
                 <GitFork size={20} />
               </div>
               <div>
@@ -173,9 +173,9 @@ export default function WelcomeGuide({ onSelectDemo }: Props) {
           </div>
 
           {/* Bento Card 3: Universal Social Identities */}
-          <div className="card-3d p-6 space-y-3 text-[#0a0a0a]">
+          <div className="space-y-3 py-5 text-[#0a0a0a] md:pr-6 md:odd:pl-0 md:even:pl-6">
             <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 btn-3d-black text-[#3b82f6] flex items-center justify-center flex-shrink-0">
+              <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center border border-[#0a0a0a] bg-[#0a0a0a] text-[#3b82f6]">
                 <UserCheck size={20} />
               </div>
               <div>
@@ -193,9 +193,9 @@ export default function WelcomeGuide({ onSelectDemo }: Props) {
           </div>
 
           {/* Bento Card 4: Security & Approval Audit */}
-          <div className="card-3d p-6 space-y-3 text-[#0a0a0a]">
+          <div className="space-y-3 py-5 text-[#0a0a0a] md:pr-6 md:odd:pl-0 md:even:pl-6">
             <div className="flex items-center gap-2.5">
-              <div className="w-9 h-9 btn-3d-black text-[#dc2626] flex items-center justify-center flex-shrink-0">
+              <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center border border-[#0a0a0a] bg-[#0a0a0a] text-[#dc2626]">
                 <ShieldCheck size={20} />
               </div>
               <div>
@@ -216,7 +216,7 @@ export default function WelcomeGuide({ onSelectDemo }: Props) {
       </section>
 
       {/* ── 4.5. Methodology & Algorithmic Docs Callout Banner ── */}
-      <div className="card-3d-dark p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div className="border-y border-[#272a38] bg-[#121318] px-5 py-6 flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="space-y-1 text-center sm:text-left">
           <div className="flex items-center gap-2 justify-center sm:justify-start">
             <BookOpen size={16} className="text-[#ff5500]" />
@@ -230,7 +230,7 @@ export default function WelcomeGuide({ onSelectDemo }: Props) {
         </div>
         <Link
           href="/docs"
-          className="btn-3d-orange text-white text-xs font-mono font-bold uppercase tracking-wider px-4 py-2 flex items-center gap-1.5 flex-shrink-0 cursor-pointer"
+          className="btn-3d-orange min-h-11 text-white text-xs font-mono font-bold uppercase tracking-wider px-4 py-2 flex items-center gap-1.5 flex-shrink-0 cursor-pointer"
         >
           <span>READ THE DOCS</span>
           <ArrowRight size={13} />
@@ -238,7 +238,7 @@ export default function WelcomeGuide({ onSelectDemo }: Props) {
       </div>
 
       {/* ── 5. Trust Indicators & FAQ Bar ── */}
-      <div className="card-3d p-5 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-bold text-[#4b5563]">
+      <div className="border-y border-[#c8c8c8] py-5 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-bold text-[#4b5563]">
         <div className="flex items-center gap-2">
           <Lock size={15} className="text-[#059669]" />
           <span className="text-[#0a0a0a]">100% Read-Only & Safe:</span>

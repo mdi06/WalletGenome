@@ -71,8 +71,8 @@ export default function InteractionsPanel({ results }: Props) {
       <div className="border border-[#c8c8c8] bg-[#f3f4f6] p-3 text-xs font-bold text-[#4b5563]">
         USD gas and volume values use timestamp-matched historical prices or explicit stablecoin assumptions. Estimated or unpriced scans are withheld before this view renders.
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="card-3d p-5 text-[#0a0a0a] space-y-1">
+      <div className="grid grid-cols-1 border-y border-[#c8c8c8] sm:grid-cols-3 sm:divide-x sm:divide-[#c8c8c8]">
+        <div className="space-y-1 border-b border-[#c8c8c8] px-0 py-4 text-[#0a0a0a] sm:border-b-0 sm:px-5">
           <div className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider">
             TOTAL PROTOCOL FAMILIES
           </div>
@@ -81,7 +81,7 @@ export default function InteractionsPanel({ results }: Props) {
           </div>
         </div>
 
-        <div className="card-3d p-5 text-[#0a0a0a] space-y-1">
+        <div className="space-y-1 border-b border-[#c8c8c8] px-0 py-4 text-[#0a0a0a] sm:border-b-0 sm:px-5">
           <div className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider">
             COUNTERPARTY ADDRESSES
           </div>
@@ -90,7 +90,7 @@ export default function InteractionsPanel({ results }: Props) {
           </div>
         </div>
 
-        <div className="card-3d p-5 text-[#0a0a0a] space-y-1">
+        <div className="space-y-1 px-0 py-4 text-[#0a0a0a] sm:px-5">
           <div className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider">
             MOST INTERACTED PROTOCOL
           </div>
@@ -108,7 +108,7 @@ export default function InteractionsPanel({ results }: Props) {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setActiveView('protocols')}
-            className={`px-4 py-2 text-xs font-black cursor-pointer ${
+            className={`min-h-11 px-4 py-2 text-xs font-black cursor-pointer ${
               activeView === 'protocols'
                 ? 'btn-3d-black text-white'
                 : 'btn-3d-neutral text-[#4b5563] hover:text-black'
@@ -118,7 +118,7 @@ export default function InteractionsPanel({ results }: Props) {
           </button>
           <button
             onClick={() => setActiveView('counterparties')}
-            className={`px-4 py-2 text-xs font-black cursor-pointer ${
+            className={`min-h-11 px-4 py-2 text-xs font-black cursor-pointer ${
               activeView === 'counterparties'
                 ? 'btn-3d-black text-white'
                 : 'btn-3d-neutral text-[#4b5563] hover:text-black'
@@ -151,7 +151,7 @@ export default function InteractionsPanel({ results }: Props) {
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
-              className={`text-xs font-bold px-3 py-1 cursor-pointer uppercase ${
+              className={`min-h-11 text-xs font-bold px-3 py-1 cursor-pointer uppercase ${
                 selectedCategory === cat
                   ? 'btn-3d-orange text-white'
                   : 'btn-3d-neutral text-[#4b5563]'

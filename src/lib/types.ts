@@ -211,6 +211,7 @@ export type TransactionCategory =
 
 export interface ProcessedTokenTransfer {
   hash: string;
+  logIndex?: string;
   timestamp: number;
   date: string;
   from: string;

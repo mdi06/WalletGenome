@@ -28,24 +28,9 @@ export default function ActivityHeatmap({ results }: Props) {
 
   return (
     <div className="space-y-4">
-      <table className="sr-only">
-        <caption>Transaction activity by UTC day and hour</caption>
-        <thead>
-          <tr><th>Day</th><th>Hour UTC</th><th>Transactions</th></tr>
-        </thead>
-        <tbody>
-          {cells.filter(cell => cell.count > 0).map(cell => (
-            <tr key={`${cell.day}-${cell.hour}`}>
-              <th>{DAY_LABELS[cell.day]}</th>
-              <td>{cell.hour}:00</td>
-              <td>{cell.count}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
       {/* Stat Badges */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-        <div className="card-3d p-2.5 flex items-center gap-2">
+      <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
+        <div className="card-3d flex items-center gap-2 p-2.5">
           <Calendar size={14} className="text-[#ff5500]" />
           <div>
             <div className="text-[10px] font-extrabold text-[#4b5563] uppercase">Active Days</div>
@@ -53,7 +38,7 @@ export default function ActivityHeatmap({ results }: Props) {
           </div>
         </div>
 
-        <div className="card-3d p-2.5 flex items-center gap-2">
+        <div className="card-3d flex items-center gap-2 p-2.5">
           <Flame size={14} className="text-[#ff5500]" />
           <div>
             <div className="text-[10px] font-extrabold text-[#4b5563] uppercase">Streak</div>
@@ -61,7 +46,7 @@ export default function ActivityHeatmap({ results }: Props) {
           </div>
         </div>
 
-        <div className="card-3d p-2.5 flex items-center gap-2">
+        <div className="card-3d flex items-center gap-2 p-2.5">
           <Clock size={14} className="text-[#0a0a0a]" />
           <div>
             <div className="text-[10px] font-extrabold text-[#4b5563] uppercase">Peak Hour</div>
@@ -69,7 +54,7 @@ export default function ActivityHeatmap({ results }: Props) {
           </div>
         </div>
 
-        <div className="card-3d p-2.5 flex items-center gap-2">
+        <div className="card-3d flex items-center gap-2 p-2.5">
           <Zap size={14} className="text-[#ff5500]" />
           <div>
             <div className="text-[10px] font-extrabold text-[#4b5563] uppercase">Peak Day</div>
@@ -83,7 +68,7 @@ export default function ActivityHeatmap({ results }: Props) {
         className="horizontal-scroll-region overflow-x-auto pt-1"
         tabIndex={0}
         role="region"
-        aria-label="Transaction activity heatmap; scroll horizontally for all hours"
+        aria-label={`Transaction activity heatmap by UTC day and hour; ${profile.totalActiveDays} active days, peak day ${profile.mostActiveDay}, peak hour ${profile.mostActiveHour}:00 UTC. Scroll horizontally for all hours.`}
       >
         <div className="min-w-[540px] space-y-1">
           {/* Hour labels */}

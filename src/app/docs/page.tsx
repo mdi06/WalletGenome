@@ -18,6 +18,7 @@ import {
   Cpu,
   Database,
   Compass,
+  ChevronDown,
   ArrowLeft,
   Sparkles,
   Copy,
@@ -146,6 +147,9 @@ export default function DocsPage() {
     );
   }, [searchQuery]);
 
+  const activeSectionDefinition =
+    SECTIONS.find(section => section.id === activeSection) ?? SECTIONS[0];
+
   const handleCopyLink = (id: string) => {
     const url = `${window.location.origin}/docs#${id}`;
     navigator.clipboard.writeText(url);
@@ -154,12 +158,12 @@ export default function DocsPage() {
   };
 
   return (
-    <main className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+    <main className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
       {/* ── Top Brand Header ── */}
       <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <Link
           href="/"
-          className="flex items-center text-left cursor-pointer group"
+          className="inline-flex min-h-11 items-center text-left cursor-pointer group"
         >
           <span className="text-xl sm:text-2xl font-black tracking-tight text-black font-sans uppercase">
             WALLET<span className="text-[#ff5500]">.</span>GENOME
@@ -170,7 +174,7 @@ export default function DocsPage() {
           {/* Back to Scanner Link */}
           <Link
             href="/"
-            className="btn-3d-neutral text-[#0a0a0a] text-xs font-bold px-3 py-1.5 flex items-center gap-1.5 cursor-pointer"
+            className="btn-3d-neutral min-h-11 text-[#0a0a0a] text-xs font-bold px-3 py-1.5 flex items-center gap-1.5 cursor-pointer"
           >
             <Search size={13} className="text-[#ff5500]" />
             <span>SCANNER</span>
@@ -217,16 +221,65 @@ export default function DocsPage() {
         </div>
       </div>
 
+      {/* ── Compact Mobile Documentation Index ── */}
+      <details className="lg:hidden card-3d overflow-hidden p-3">
+        <summary className="group flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 px-2 py-1 text-xs font-black uppercase tracking-wider text-[#0a0a0a] outline-none focus-visible:outline-2 focus-visible:outline-offset-[-4px] focus-visible:outline-[#ff5500] [&::-webkit-details-marker]:hidden">
+          <span className="flex min-w-0 flex-col items-start gap-0.5">
+            <span className="flex items-center gap-1.5">
+              <Compass size={14} className="shrink-0 text-[#ff5500]" aria-hidden="true" />
+              <span>TABLE OF CONTENTS</span>
+            </span>
+            <span className="max-w-full truncate pl-5.5 text-[10px] font-mono font-bold normal-case tracking-normal text-[#6b7280]">
+              {activeSectionDefinition.title}
+            </span>
+          </span>
+          <span className="flex shrink-0 items-center gap-2 text-[10px] font-mono text-[#4b5563]">
+            <span>{filteredSections.length} TOPICS</span>
+            <ChevronDown size={15} aria-hidden="true" className="transition-transform group-open:rotate-180" />
+          </span>
+        </summary>
+        <nav aria-label="Documentation sections" className="mt-2 border-t border-[#c8c8c8] pt-2">
+          <div className="grid gap-1">
+            {filteredSections.length > 0 ? (
+              filteredSections.map(s => {
+                const IconComponent = s.icon;
+                const isSelected = activeSection === s.id;
+                return (
+                  <a
+                    key={s.id}
+                    href={`#${s.id}`}
+                    onClick={() => setActiveSection(s.id)}
+                    className={`flex min-h-11 items-center gap-2 px-3 py-2 text-xs font-bold transition-colors ${
+                      isSelected
+                        ? 'bg-[#0a0a0a] text-white'
+                        : 'text-[#0a0a0a] hover:bg-[#f3f4f6]'
+                    }`}
+                  >
+                    <IconComponent size={14} className="shrink-0 text-[#ff5500]" aria-hidden="true" />
+                    <span className="min-w-0 flex-1 truncate">{s.title}</span>
+                    <span className={`shrink-0 text-[10px] font-mono ${isSelected ? 'text-gray-300' : 'text-[#6b7280]'}`}>
+                      {s.category.split('. ')[0]}
+                    </span>
+                  </a>
+                );
+              })
+            ) : (
+              <p className="px-3 py-3 text-xs font-medium text-[#4b5563]">No documentation sections match this search.</p>
+            )}
+          </div>
+        </nav>
+      </details>
+
       {/* ── Main Layout: Sidebar Navigation + Content ── */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         
         {/* ── Left Sticky Sidebar: Table of Contents ── */}
-        <aside className="lg:col-span-4 lg:sticky lg:top-6 space-y-5">
-          <div className="card-3d p-5 space-y-4">
+        <aside className="hidden lg:col-span-4 lg:sticky lg:top-6 lg:block space-y-8">
+          <section aria-labelledby="docs-index-heading" className="border-y border-[#c8c8c8] py-5 space-y-4">
             <div className="flex items-center justify-between text-xs font-black uppercase tracking-wider text-[#4b5563]">
               <span className="flex items-center gap-1.5">
                 <Compass size={14} className="text-[#ff5500]" />
-                TABLE OF CONTENTS
+                <span id="docs-index-heading">TABLE OF CONTENTS</span>
               </span>
               <span className="btn-3d-neutral text-[10px] font-mono text-[#0a0a0a] px-2 py-0.5">
                 {filteredSections.length} TOPICS
@@ -242,7 +295,7 @@ export default function DocsPage() {
                     key={s.id}
                     href={`#${s.id}`}
                     onClick={() => setActiveSection(s.id)}
-                    className={`block p-3 text-xs font-bold transition-all ${
+                    className={`block min-h-11 p-3 text-xs font-bold transition-all ${
                       isSelected
                         ? 'btn-3d-black text-white'
                         : 'card-3d-interactive text-[#0a0a0a]'
@@ -259,18 +312,18 @@ export default function DocsPage() {
                 );
               })}
             </div>
-          </div>
+          </section>
 
           {/* Quick Technical Summary Card */}
-          <div className="card-3d p-5 space-y-3 text-xs font-mono text-[#0a0a0a]">
+          <section aria-labelledby="computation-stats-heading" className="border-y border-[#c8c8c8] py-5 space-y-3 text-xs font-mono text-[#0a0a0a]">
             <div className="font-black text-[#0a0a0a] flex items-center gap-1.5">
               <Zap size={13} className="text-[#ff5500]" />
-              KEY COMPUTATION STATS
+              <span id="computation-stats-heading">KEY COMPUTATION STATS</span>
             </div>
             <div className="grid grid-cols-2 gap-2.5 text-[11px] pt-1">
               <div className="well-recessed-light p-2.5 space-y-0.5">
                 <div className="text-[#6b7280]">CHAINS</div>
-                <div className="font-bold text-sm text-[#0a0a0a]">5 EVM Networks</div>
+                <div className="font-bold text-sm text-[#0a0a0a]">4 EVM Networks</div>
               </div>
               <div className="well-recessed-light p-2.5 space-y-0.5">
                 <div className="text-[#6b7280]">SYBIL CACHE</div>
@@ -285,12 +338,12 @@ export default function DocsPage() {
                 <div className="font-bold text-sm text-[#0a0a0a]">6 Dimensions</div>
               </div>
             </div>
-          </div>
+          </section>
         </aside>
 
         {/* ── Right Detailed Content ── */}
         <div className="lg:col-span-8 space-y-8">
-          <section id="reporting-contract" className="card-3d p-6 sm:p-8 space-y-5 text-[#0a0a0a]">
+          <section id="reporting-contract" className="border-y border-[#c8c8c8] py-6 sm:py-8 space-y-5 text-[#0a0a0a]">
             <div className="space-y-1 border-b border-[#c8c8c8] pb-3">
               <span className="badge-3d text-[10px] font-mono font-black text-[#ff5500] uppercase tracking-wider px-2 py-0.5">
                 CANONICAL API CONTRACT
@@ -340,7 +393,7 @@ export default function DocsPage() {
           {/* ========================================================================= */}
           {/* 1. PIPELINE ARCHITECTURE */}
           {/* ========================================================================= */}
-          <section id="pipeline-architecture" className="card-3d p-6 sm:p-8 space-y-5 text-[#0a0a0a]">
+          <section id="pipeline-architecture" className="border-y border-[#c8c8c8] py-6 sm:py-8 space-y-5 text-[#0a0a0a]">
             <div className="flex items-center justify-between border-b border-[#c8c8c8] pb-3">
               <div className="space-y-1">
                 <span className="badge-3d text-[10px] font-mono font-black text-[#ff5500] uppercase tracking-wider px-2 py-0.5">
@@ -352,7 +405,7 @@ export default function DocsPage() {
               </div>
               <button
                 onClick={() => handleCopyLink('pipeline-architecture')}
-                className="btn-3d-neutral p-2 text-[#4b5563] hover:text-black cursor-pointer"
+                className="btn-3d-neutral inline-flex min-h-11 min-w-11 items-center justify-center p-2 text-[#4b5563] hover:text-black cursor-pointer"
                 title="Copy anchor link"
               >
                 {copiedId === 'pipeline-architecture' ? <Check size={14} className="text-green-600" /> : <Copy size={14} />}
@@ -414,7 +467,7 @@ export default function DocsPage() {
           {/* ========================================================================= */}
           {/* 2. CALLDATA CATEGORIZATION */}
           {/* ========================================================================= */}
-          <section id="calldata-categorization" className="card-3d p-6 sm:p-8 space-y-5 text-[#0a0a0a]">
+          <section id="calldata-categorization" className="border-y border-[#c8c8c8] py-6 sm:py-8 space-y-5 text-[#0a0a0a]">
             <div className="flex items-center justify-between border-b border-[#c8c8c8] pb-3">
               <div className="space-y-1">
                 <span className="badge-3d text-[10px] font-mono font-black text-[#ff5500] uppercase tracking-wider px-2 py-0.5">
@@ -426,7 +479,7 @@ export default function DocsPage() {
               </div>
               <button
                 onClick={() => handleCopyLink('calldata-categorization')}
-                className="btn-3d-neutral p-2 text-[#4b5563] hover:text-black cursor-pointer"
+                className="btn-3d-neutral inline-flex min-h-11 min-w-11 items-center justify-center p-2 text-[#4b5563] hover:text-black cursor-pointer"
                 title="Copy anchor link"
               >
                 {copiedId === 'calldata-categorization' ? <Check size={14} className="text-green-600" /> : <Copy size={14} />}
@@ -506,7 +559,7 @@ export default function DocsPage() {
           {/* ========================================================================= */}
           {/* 3. BEHAVIORAL FINGERPRINT */}
           {/* ========================================================================= */}
-          <section id="behavioral-fingerprint" className="card-3d p-6 sm:p-8 space-y-5 text-[#0a0a0a]">
+          <section id="behavioral-fingerprint" className="border-y border-[#c8c8c8] py-6 sm:py-8 space-y-5 text-[#0a0a0a]">
             <div className="flex items-center justify-between border-b border-[#c8c8c8] pb-3">
               <div className="space-y-1">
                 <span className="badge-3d text-[10px] font-mono font-black text-[#ff5500] uppercase tracking-wider px-2 py-0.5">
@@ -518,7 +571,7 @@ export default function DocsPage() {
               </div>
               <button
                 onClick={() => handleCopyLink('behavioral-fingerprint')}
-                className="btn-3d-neutral p-2 text-[#4b5563] hover:text-black cursor-pointer"
+                className="btn-3d-neutral inline-flex min-h-11 min-w-11 items-center justify-center p-2 text-[#4b5563] hover:text-black cursor-pointer"
                 title="Copy anchor link"
               >
                 {copiedId === 'behavioral-fingerprint' ? <Check size={14} className="text-green-600" /> : <Copy size={14} />}
@@ -632,7 +685,7 @@ export default function DocsPage() {
           {/* ========================================================================= */}
           {/* 4. COMPOSITE RISK ENGINE */}
           {/* ========================================================================= */}
-          <section id="risk-score-engine" className="card-3d p-6 sm:p-8 space-y-5 text-[#0a0a0a]">
+          <section id="risk-score-engine" className="border-y border-[#c8c8c8] py-6 sm:py-8 space-y-5 text-[#0a0a0a]">
             <div className="flex items-center justify-between border-b border-[#c8c8c8] pb-3">
               <div className="space-y-1">
                 <span className="badge-3d text-[10px] font-mono font-black text-[#ff5500] uppercase tracking-wider px-2 py-0.5">
@@ -644,7 +697,7 @@ export default function DocsPage() {
               </div>
               <button
                 onClick={() => handleCopyLink('risk-score-engine')}
-                className="btn-3d-neutral p-2 text-[#4b5563] hover:text-black cursor-pointer"
+                className="btn-3d-neutral inline-flex min-h-11 min-w-11 items-center justify-center p-2 text-[#4b5563] hover:text-black cursor-pointer"
                 title="Copy anchor link"
               >
                 {copiedId === 'risk-score-engine' ? <Check size={14} className="text-green-600" /> : <Copy size={14} />}
@@ -715,7 +768,7 @@ export default function DocsPage() {
           {/* ========================================================================= */}
           {/* 5. SYBIL RADAR & MEDIA SCORING */}
           {/* ========================================================================= */}
-          <section id="sybil-radar-media" className="card-3d p-6 sm:p-8 space-y-5 text-[#0a0a0a]">
+          <section id="sybil-radar-media" className="border-y border-[#c8c8c8] py-6 sm:py-8 space-y-5 text-[#0a0a0a]">
             <div className="flex items-center justify-between border-b border-[#c8c8c8] pb-3">
               <div className="space-y-1">
                 <span className="badge-3d text-[10px] font-mono font-black text-[#ff5500] uppercase tracking-wider px-2 py-0.5">
@@ -727,7 +780,7 @@ export default function DocsPage() {
               </div>
               <button
                 onClick={() => handleCopyLink('sybil-radar-media')}
-                className="btn-3d-neutral p-2 text-[#4b5563] hover:text-black cursor-pointer"
+                className="btn-3d-neutral inline-flex min-h-11 min-w-11 items-center justify-center p-2 text-[#4b5563] hover:text-black cursor-pointer"
                 title="Copy anchor link"
               >
                 {copiedId === 'sybil-radar-media' ? <Check size={14} className="text-green-600" /> : <Copy size={14} />}
@@ -812,7 +865,7 @@ export default function DocsPage() {
           {/* ========================================================================= */}
           {/* 6. APPROVALS & EXPOSURE */}
           {/* ========================================================================= */}
-          <section id="approvals-exposure-audit" className="card-3d p-6 sm:p-8 space-y-5 text-[#0a0a0a]">
+          <section id="approvals-exposure-audit" className="border-y border-[#c8c8c8] py-6 sm:py-8 space-y-5 text-[#0a0a0a]">
             <div className="flex items-center justify-between border-b border-[#c8c8c8] pb-3">
               <div className="space-y-1">
                 <span className="badge-3d text-[10px] font-mono font-black text-[#ff5500] uppercase tracking-wider px-2 py-0.5">
@@ -824,7 +877,7 @@ export default function DocsPage() {
               </div>
               <button
                 onClick={() => handleCopyLink('approvals-exposure-audit')}
-                className="btn-3d-neutral p-2 text-[#4b5563] hover:text-black cursor-pointer"
+                className="btn-3d-neutral inline-flex min-h-11 min-w-11 items-center justify-center p-2 text-[#4b5563] hover:text-black cursor-pointer"
                 title="Copy anchor link"
               >
                 {copiedId === 'approvals-exposure-audit' ? <Check size={14} className="text-green-600" /> : <Copy size={14} />}
@@ -867,7 +920,7 @@ export default function DocsPage() {
           {/* ========================================================================= */}
           {/* 8. TEMPORAL ACTIVITY */}
           {/* ========================================================================= */}
-          <section id="temporal-activity-heatmap" className="card-3d p-6 sm:p-8 space-y-5 text-[#0a0a0a]">
+          <section id="temporal-activity-heatmap" className="border-y border-[#c8c8c8] py-6 sm:py-8 space-y-5 text-[#0a0a0a]">
             <div className="flex items-center justify-between border-b border-[#c8c8c8] pb-3">
               <div className="space-y-1">
                 <span className="badge-3d text-[10px] font-mono font-black text-[#ff5500] uppercase tracking-wider px-2 py-0.5">
@@ -879,7 +932,7 @@ export default function DocsPage() {
               </div>
               <button
                 onClick={() => handleCopyLink('temporal-activity-heatmap')}
-                className="btn-3d-neutral p-2 text-[#4b5563] hover:text-black cursor-pointer"
+                className="btn-3d-neutral inline-flex min-h-11 min-w-11 items-center justify-center p-2 text-[#4b5563] hover:text-black cursor-pointer"
                 title="Copy anchor link"
               >
                 {copiedId === 'temporal-activity-heatmap' ? <Check size={14} className="text-green-600" /> : <Copy size={14} />}
@@ -913,7 +966,7 @@ export default function DocsPage() {
           {/* ========================================================================= */}
           {/* 9. NETWORK TOPOLOGIES */}
           {/* ========================================================================= */}
-          <section id="capital-cluster-topologies" className="card-3d p-6 sm:p-8 space-y-5 text-[#0a0a0a]">
+          <section id="capital-cluster-topologies" className="border-y border-[#c8c8c8] py-6 sm:py-8 space-y-5 text-[#0a0a0a]">
             <div className="flex items-center justify-between border-b border-[#c8c8c8] pb-3">
               <div className="space-y-1">
                 <span className="badge-3d text-[10px] font-mono font-black text-[#ff5500] uppercase tracking-wider px-2 py-0.5">
@@ -925,7 +978,7 @@ export default function DocsPage() {
               </div>
               <button
                 onClick={() => handleCopyLink('capital-cluster-topologies')}
-                className="btn-3d-neutral p-2 text-[#4b5563] hover:text-black cursor-pointer"
+                className="btn-3d-neutral inline-flex min-h-11 min-w-11 items-center justify-center p-2 text-[#4b5563] hover:text-black cursor-pointer"
                 title="Copy anchor link"
               >
                 {copiedId === 'capital-cluster-topologies' ? <Check size={14} className="text-green-600" /> : <Copy size={14} />}
@@ -966,7 +1019,7 @@ export default function DocsPage() {
           {/* ========================================================================= */}
           {/* 10. DECENTRALIZED IDENTITY */}
           {/* ========================================================================= */}
-          <section id="decentralized-identity" className="card-3d p-6 sm:p-8 space-y-5 text-[#0a0a0a]">
+          <section id="decentralized-identity" className="border-y border-[#c8c8c8] py-6 sm:py-8 space-y-5 text-[#0a0a0a]">
             <div className="flex items-center justify-between border-b border-[#c8c8c8] pb-3">
               <div className="space-y-1">
                 <span className="badge-3d text-[10px] font-mono font-black text-[#ff5500] uppercase tracking-wider px-2 py-0.5">
@@ -978,7 +1031,7 @@ export default function DocsPage() {
               </div>
               <button
                 onClick={() => handleCopyLink('decentralized-identity')}
-                className="btn-3d-neutral p-2 text-[#4b5563] hover:text-black cursor-pointer"
+                className="btn-3d-neutral inline-flex min-h-11 min-w-11 items-center justify-center p-2 text-[#4b5563] hover:text-black cursor-pointer"
                 title="Copy anchor link"
               >
                 {copiedId === 'decentralized-identity' ? <Check size={14} className="text-green-600" /> : <Copy size={14} />}
@@ -1032,7 +1085,7 @@ export default function DocsPage() {
           {/* ========================================================================= */}
           {/* 11. TECHNICAL COMPLEXITY SPECIFICATIONS */}
           {/* ========================================================================= */}
-          <section id="complexity-matrix" className="card-3d p-6 sm:p-8 space-y-5 text-[#0a0a0a]">
+          <section id="complexity-matrix" className="border-y border-[#c8c8c8] py-6 sm:py-8 space-y-5 text-[#0a0a0a]">
             <div className="flex items-center justify-between border-b border-[#c8c8c8] pb-3">
               <div className="space-y-1">
                 <span className="badge-3d text-[10px] font-mono font-black text-[#ff5500] uppercase tracking-wider px-2 py-0.5">
@@ -1044,7 +1097,7 @@ export default function DocsPage() {
               </div>
               <button
                 onClick={() => handleCopyLink('complexity-matrix')}
-                className="btn-3d-neutral p-2 text-[#4b5563] hover:text-black cursor-pointer"
+                className="btn-3d-neutral inline-flex min-h-11 min-w-11 items-center justify-center p-2 text-[#4b5563] hover:text-black cursor-pointer"
                 title="Copy anchor link"
               >
                 {copiedId === 'complexity-matrix' ? <Check size={14} className="text-green-600" /> : <Copy size={14} />}
@@ -1117,7 +1170,7 @@ export default function DocsPage() {
             <div className="pt-6 border-t border-[#c8c8c8] flex items-center justify-between flex-wrap gap-4">
               <Link
                 href="/"
-                className="btn-3d-orange text-white text-xs font-mono font-black uppercase tracking-wider px-5 py-2.5 flex items-center gap-2 cursor-pointer"
+                className="btn-3d-orange min-h-11 text-white text-xs font-mono font-black uppercase tracking-wider px-5 py-2.5 flex items-center gap-2 cursor-pointer"
               >
                 <ArrowLeft size={14} />
                 <span>LAUNCH FORENSICS SCANNER</span>
@@ -1125,7 +1178,7 @@ export default function DocsPage() {
               <button
                 type="button"
                 onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-                className="btn-3d-neutral text-xs font-mono font-bold text-[#0a0a0a] px-4 py-2 cursor-pointer"
+                className="btn-3d-neutral min-h-11 text-xs font-mono font-bold text-[#0a0a0a] px-4 py-2 cursor-pointer"
               >
                 BACK TO TOP ↑
               </button>

@@ -66,9 +66,9 @@ export default function GasSummaryPanel({ results }: Props) {
 
   return (
     <div className="space-y-6">
-      {/* ── Top Metric Cards ── */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="card-3d p-5 text-[#0a0a0a] space-y-1">
+      {/* ── Top Metrics ── */}
+      <div className="grid grid-cols-1 border-y border-[#c8c8c8] sm:grid-cols-3 sm:divide-x sm:divide-[#c8c8c8]">
+        <div className="space-y-1 border-b border-[#c8c8c8] px-0 py-4 text-[#0a0a0a] sm:border-b-0 sm:px-5">
           <div className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider">
             TOTAL GAS CONSUMPTION
           </div>
@@ -83,7 +83,7 @@ export default function GasSummaryPanel({ results }: Props) {
           </div>
         </div>
 
-        <div className="card-3d p-5 text-[#0a0a0a] space-y-1">
+        <div className="space-y-1 border-b border-[#c8c8c8] px-0 py-4 text-[#0a0a0a] sm:border-b-0 sm:px-5">
           <div className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider">
             FAILED TRANSACTIONS BURN
           </div>
@@ -95,7 +95,7 @@ export default function GasSummaryPanel({ results }: Props) {
           </div>
         </div>
 
-        <div className="card-3d p-5 text-[#0a0a0a] space-y-1">
+        <div className="space-y-1 px-0 py-4 text-[#0a0a0a] sm:px-5">
           <div className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider">
             ACTIVE NETWORKS
           </div>
@@ -113,11 +113,11 @@ export default function GasSummaryPanel({ results }: Props) {
         <span className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider block">
           GAS SPENT BY NETWORK
         </span>
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+        <div className="grid grid-cols-2 border-y border-[#c8c8c8] sm:grid-cols-5 sm:divide-x sm:divide-[#c8c8c8]">
           {results.map(r => {
             const nativeSymbol = getChainConfig(r.chainId)?.nativeToken?.symbol || 'ETH';
             return (
-              <div key={r.chainId} className="card-3d p-3.5 text-[#0a0a0a] space-y-1">
+              <div key={r.chainId} className="space-y-1 border-b border-[#c8c8c8] px-0 py-3.5 text-[#0a0a0a] sm:border-b-0 sm:px-3.5">
                 <div className="flex justify-between items-center text-xs font-bold">
                   <span className="text-[#0a0a0a]">{r.chainName}</span>
                   <span className="btn-3d-neutral font-mono text-[9px] px-1.5 py-0.2">{r.transactionCount} txs</span>

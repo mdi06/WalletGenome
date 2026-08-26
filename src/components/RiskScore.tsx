@@ -35,9 +35,9 @@ export default function RiskScore({ results }: Props) {
   const hasRisks = factorList.length > 0;
 
   return (
-    <div className="card-3d p-5 text-[#0a0a0a] space-y-4">
+    <section aria-labelledby="risk-factor-decomposition-heading" className="card-3d p-5 text-[#0a0a0a] space-y-4">
       <div className="flex justify-between items-center gap-2">
-        <span className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider block">
+        <span id="risk-factor-decomposition-heading" className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider block">
           RISK FACTOR DECOMPOSITION
         </span>
         {results.length > 1 && (
@@ -101,6 +101,6 @@ export default function RiskScore({ results }: Props) {
           </div>
         )}
       </div>
-    </div>
+    </section>
   );
 }

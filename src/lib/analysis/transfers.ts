@@ -7,6 +7,39 @@ function hasVerifiedHistoricalValue(
     && (leg.valueUSDProvenance === 'historical' || leg.valueUSDProvenance === 'stablecoin_assumption');
 }
 
+export function getTokenTransferIdentity(transfer: ProcessedTokenTransfer): string {
+  const hash = transfer.hash.trim().toLowerCase();
+  const logIndex = transfer.logIndex?.trim();
+
+  if (hash && logIndex) {
+    return `${transfer.chainId}:${hash}:log:${logIndex}`;
+  }
+
+  return [
+    'fallback',
+    transfer.chainId,
+    hash,
+    transfer.direction,
+    transfer.contractAddress.trim().toLowerCase(),
+    transfer.from.trim().toLowerCase(),
+    transfer.to.trim().toLowerCase(),
+    transfer.value,
+  ].join(':');
+}
+
+export function deduplicateTokenTransfers<T extends ProcessedTokenTransfer>(
+  transfers: readonly T[],
+): T[] {
+  const seen = new Set<string>();
+
+  return transfers.filter(transfer => {
+    const identity = getTokenTransferIdentity(transfer);
+    if (seen.has(identity)) return false;
+    seen.add(identity);
+    return true;
+  });
+}
+
 export function analyzeTransfers(
   transactions: ProcessedTransaction[],
   tokenTransfers: ProcessedTokenTransfer[],
@@ -27,12 +60,13 @@ export function analyzeTransfers(
     .slice(0, topN);
 
   // Token transfers
-  const tokenOutbound = tokenTransfers
+  const uniqueTokenTransfers = deduplicateTokenTransfers(tokenTransfers);
+  const tokenOutbound = uniqueTokenTransfers
     .filter(t => t.direction === 'out')
     .sort((a, b) => (b.valueUSD ?? 0) - (a.valueUSD ?? 0))
     .slice(0, topN);
 
-  const tokenInbound = tokenTransfers
+  const tokenInbound = uniqueTokenTransfers
     .filter(t => t.direction === 'in')
     .sort((a, b) => (b.valueUSD ?? 0) - (a.valueUSD ?? 0))
     .slice(0, topN);
@@ -44,8 +78,8 @@ export function analyzeTransfers(
   const eligibleNativeOutbound = transactions.filter(tx =>
     tx.from.toLowerCase() === lower && tx.valueFormatted > 0 && !tx.isError
   );
-  const eligibleTokenInbound = tokenTransfers.filter(t => t.direction === 'in' && t.valueFormatted > 0);
-  const eligibleTokenOutbound = tokenTransfers.filter(t => t.direction === 'out' && t.valueFormatted > 0);
+  const eligibleTokenInbound = uniqueTokenTransfers.filter(t => t.direction === 'in' && t.valueFormatted > 0);
+  const eligibleTokenOutbound = uniqueTokenTransfers.filter(t => t.direction === 'out' && t.valueFormatted > 0);
   const eligibleLegs = [
     ...eligibleNativeInbound,
     ...eligibleNativeOutbound,

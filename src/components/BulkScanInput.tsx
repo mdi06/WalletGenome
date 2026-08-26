@@ -77,7 +77,7 @@ export default function BulkScanInput({ onScanCluster, isLoading }: Props) {
           type="button"
           onClick={handleLoadSample}
           disabled={isLoading}
-          className="btn-3d-neutral text-xs font-bold text-[#ff5500] hover:text-black px-2.5 py-1 flex items-center gap-1.5 cursor-pointer"
+          className="btn-3d-neutral min-h-11 text-xs font-bold text-[#ff5500] hover:text-black px-2.5 py-1 flex items-center gap-1.5 cursor-pointer"
         >
           <Sparkles size={12} className="text-[#ff5500]" />
           <span>Load Sample Cluster (4 Wallets)</span>
@@ -155,7 +155,7 @@ export default function BulkScanInput({ onScanCluster, isLoading }: Props) {
           type="button"
           onClick={handleSubmit}
           disabled={isLoading || parsedAddresses.length === 0}
-          className={`font-mono font-black text-xs px-5 py-2.5 flex items-center justify-center gap-2 cursor-pointer select-none text-white ${
+          className={`min-h-11 font-mono font-black text-xs px-5 py-2.5 flex items-center justify-center gap-2 cursor-pointer select-none text-white ${
             isLoading
               ? 'btn-3d-orange animate-pulse-glow'
               : 'btn-3d-orange disabled:opacity-50'

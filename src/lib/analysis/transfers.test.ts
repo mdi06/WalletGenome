@@ -1,7 +1,7 @@
 import assert from 'node:assert';
 import { describe, it } from 'node:test';
 import type { ProcessedTokenTransfer, ProcessedTransaction } from '../types';
-import { analyzeTransfers } from './transfers';
+import { analyzeTransfers, deduplicateTokenTransfers } from './transfers';
 
 const wallet = '0x1111111111111111111111111111111111111111';
 const counterparty = '0x2222222222222222222222222222222222222222';
@@ -59,6 +59,46 @@ function tokenTransfer(
 }
 
 describe('Verified capital flow', () => {
+  it('deduplicates repeated token events without collapsing distinct legs in one transaction', () => {
+    const first = tokenTransfer('in', 100, 'historical');
+    const distinctLeg = {
+      ...first,
+      to: '0x4444444444444444444444444444444444444444',
+      value: '2000000000000000000',
+      valueFormatted: 2,
+    };
+    const sameEventWithLogIndex = { ...first, logIndex: '7' };
+
+    const unique = deduplicateTokenTransfers([
+      first,
+      { ...first },
+      distinctLeg,
+      sameEventWithLogIndex,
+    ]);
+
+    assert.strictEqual(unique.length, 3);
+    assert.strictEqual(unique[0], first);
+    assert.strictEqual(unique[1], distinctLeg);
+    assert.strictEqual(unique[2], sameEventWithLogIndex);
+  });
+
+  it('deduplicates token events before ranking and coverage totals', () => {
+    const first = tokenTransfer('in', 100, 'historical');
+    const distinctLeg = {
+      ...first,
+      to: '0x4444444444444444444444444444444444444444',
+      value: '2000000000000000000',
+      valueFormatted: 2,
+      valueUSD: 200,
+    };
+
+    const summary = analyzeTransfers([], [first, { ...first }, distinctLeg], wallet);
+
+    assert.strictEqual(summary.topInbound.length, 2);
+    assert.strictEqual(summary.capitalFlowCoverage.totalLegs, 2);
+    assert.strictEqual(summary.totalInboundUSD, 300);
+  });
+
   it('includes historical and stablecoin values while excluding spot estimates and unpriced legs', () => {
     const summary = analyzeTransfers([
       nativeTransfer('in', 100, 'historical'),

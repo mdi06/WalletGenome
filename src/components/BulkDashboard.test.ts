@@ -36,6 +36,7 @@ describe('Cluster dashboard provider availability messaging', () => {
     };
 
     const markup = renderToStaticMarkup(createElement(BulkDashboard, { data, onInspectWallet: () => {} }));
+    assert.match(markup, /<details/);
     assert.match(markup, /1 of 2 wallets completed/i);
     assert.match(markup, /Explorer timed out/i);
     assert.doesNotMatch(markup, /INDEPENDENT PORTFOLIO/i);

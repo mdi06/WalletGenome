@@ -10,14 +10,14 @@ export default function SiteFooter() {
           <p>Read-only, evidence-aware EVM wallet analytics. No wallet connection or signature required.</p>
         </div>
         <nav aria-label="Wallet analytics topics" className="flex max-w-3xl flex-wrap gap-x-4 gap-y-2 sm:justify-end">
-          <Link href="/docs" className="font-bold text-[#0a0a0a] hover:text-[#ff5500]">
+          <Link href="/docs" className="inline-flex min-h-11 items-center font-bold text-[#0a0a0a] hover:text-[#ff5500]">
             Methodology
           </Link>
           {SEO_LANDING_PAGES.map(page => (
             <Link
               key={page.slug}
               href={`/${page.slug}`}
-              className="font-bold text-[#0a0a0a] hover:text-[#ff5500]"
+              className="inline-flex min-h-11 items-center font-bold text-[#0a0a0a] hover:text-[#ff5500]"
             >
               {page.title}
             </Link>

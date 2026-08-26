@@ -86,6 +86,7 @@ export default function Dashboard({ data }: DashboardProps) {
 
   const { aggregated, metrics, sybilReport, identityReport } = data;
   const availabilityMessage = getAvailabilityMessage(data.status);
+  const hasProviderWarnings = Boolean(availabilityMessage) || (data.chainWarnings?.length ?? 0) > 0;
   const hasDefinitiveMetrics = metrics.riskScore !== null
     && metrics.riskGrade !== null
     && metrics.sybilProbability !== null;
@@ -131,19 +132,7 @@ export default function Dashboard({ data }: DashboardProps) {
 
   return (
     <div className="min-w-0 space-y-6 animate-fade-in-up">
-      {availabilityMessage && <DashboardStatusPanel data={data} />}
-
-      {/* ── Chain Warnings / Degradation Alert ── */}
-      {data.chainWarnings && data.chainWarnings.length > 0 && (
-        <div className="bg-[#fffbeb] border-l-4 border-l-[#f59e0b] p-3 space-y-1 text-xs border border-[#fde68a]">
-          {data.chainWarnings.map((w, idx) => (
-            <div key={idx} className="font-bold text-[#92400e] flex items-center gap-2">
-              <span>⚠️</span>
-              <span>{w.message}</span>
-            </div>
-          ))}
-        </div>
-      )}
+      {hasProviderWarnings && <DashboardStatusPanel data={data} />}
 
       {/* ── Tab Navigation Bar & Export Action ── */}
       <div
@@ -221,8 +210,8 @@ export default function Dashboard({ data }: DashboardProps) {
             <div className="lg:col-span-3 space-y-6">
               
               {/* Persona Identity Card */}
-              <div className="card-3d p-6 text-[#0a0a0a] flex flex-col items-center text-center space-y-4">
-                <span className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider">
+              <section aria-labelledby="persona-identity-heading" className="card-3d p-6 text-[#0a0a0a] flex flex-col items-center text-center space-y-4">
+                <span id="persona-identity-heading" className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider">
                   PERSONA IDENTITY
                 </span>
 
@@ -299,12 +288,12 @@ export default function Dashboard({ data }: DashboardProps) {
                     </div>
                   </div>
                 </div>
-              </div>
+              </section>
 
-              {/* Security Ratings Card */}
-              <div className="card-3d p-6 text-[#0a0a0a] space-y-4">
+              {/* Security Ratings */}
+              <section aria-labelledby="security-ratings-heading" className="card-3d p-6 text-[#0a0a0a] space-y-4">
                 <div className="flex justify-between items-center">
-                  <span className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider">
+                  <span id="security-ratings-heading" className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider">
                     SECURITY RATINGS
                   </span>
                   <span className="btn-3d-neutral text-xs font-bold font-mono px-2 py-0.5 text-[#0a0a0a]">
@@ -348,7 +337,7 @@ export default function Dashboard({ data }: DashboardProps) {
                   </div>
 
                 </div>
-              </div>
+              </section>
 
             </div>
 
@@ -356,9 +345,9 @@ export default function Dashboard({ data }: DashboardProps) {
             <div className="lg:col-span-6 space-y-6">
               
               {/* Activity Heatmap (LTM) */}
-              <div className="card-3d p-6 text-[#0a0a0a] space-y-3">
+              <section aria-labelledby="transaction-heatmap-heading" className="card-3d p-6 text-[#0a0a0a] space-y-3">
                 <div className="flex justify-between items-center">
-                  <span className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider">
+                  <span id="transaction-heatmap-heading" className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider">
                     TRANSACTION HEATMAP (LTM)
                   </span>
                   <span className="btn-3d-neutral text-xs font-bold font-mono px-2 py-0.5 text-[#0a0a0a]">
@@ -367,11 +356,11 @@ export default function Dashboard({ data }: DashboardProps) {
                 </div>
 
                 <ActivityHeatmap results={data.chains} />
-              </div>
+              </section>
 
               {/* Protocol Identity Badges */}
-              <div className="card-3d p-6 text-[#0a0a0a] space-y-3">
-                <span className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider block">
+              <section aria-labelledby="protocol-badges-heading" className="card-3d p-6 text-[#0a0a0a] space-y-3">
+                <span id="protocol-badges-heading" className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider block">
                   PROTOCOL IDENTITY BADGES
                 </span>
 
@@ -395,12 +384,12 @@ export default function Dashboard({ data }: DashboardProps) {
                     NO DIRECT PROTOCOL BADGES DETECTED ON SCANNED CHAINS
                   </p>
                 )}
-              </div>
+              </section>
 
               {/* Lifetime Gas & Chain Activity */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="card-3d p-6 text-[#0a0a0a] space-y-2">
-                  <span className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider block">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <section aria-labelledby="lifetime-gas-heading" className="card-3d p-6 space-y-2 text-[#0a0a0a]">
+                  <span id="lifetime-gas-heading" className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider block">
                     LIFETIME GAS
                   </span>
                   <div className="text-3xl font-black text-[#ff5500] font-mono truncate">
@@ -409,11 +398,11 @@ export default function Dashboard({ data }: DashboardProps) {
                   <div className="text-xs font-bold text-[#4b5563] font-mono">
                     Total Spent (≈ {formattedGasUSD})
                   </div>
-                </div>
+                </section>
 
-                <div className="card-3d p-6 text-[#0a0a0a] space-y-3">
+                <section aria-labelledby="chain-activity-heading" className="card-3d p-6 space-y-3 text-[#0a0a0a]">
                   <div className="flex items-center justify-between gap-3">
-                    <span className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider">
+                    <span id="chain-activity-heading" className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider">
                       CHAIN ACTIVITY
                     </span>
                     <span className={`badge-3d text-[9px] font-mono font-bold px-2 py-0.5 border ${
@@ -467,7 +456,7 @@ export default function Dashboard({ data }: DashboardProps) {
                       </div>
                     ))}
                   </div>
-                </div>
+                </section>
               </div>
 
               {/* 6-Dimension Quantitative Breakdown */}
@@ -479,8 +468,8 @@ export default function Dashboard({ data }: DashboardProps) {
             <div className="lg:col-span-3 space-y-6">
               
               {/* 3D Risk Grade Card */}
-              <div className="card-3d p-6 text-[#0a0a0a] space-y-4">
-                <span className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider block">
+              <section aria-labelledby="risk-grade-heading" className="card-3d p-6 text-[#0a0a0a] space-y-4">
+                <span id="risk-grade-heading" className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider block">
                   RISK GRADE
                 </span>
 
@@ -510,11 +499,11 @@ export default function Dashboard({ data }: DashboardProps) {
                     />
                   </div>
                 </div>
-              </div>
+              </section>
 
               {/* Real Interactive Behavioral Radar */}
-              <div className="card-3d p-6 text-[#0a0a0a] space-y-4 overflow-hidden">
-                <span className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider block">
+              <section aria-labelledby="behavioral-radar-heading" className="card-3d p-6 text-[#0a0a0a] space-y-4 overflow-hidden">
+                <span id="behavioral-radar-heading" className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider block">
                   BEHAVIORAL RADAR
                 </span>
 
@@ -529,7 +518,7 @@ export default function Dashboard({ data }: DashboardProps) {
                     </div>
                   ))}
                 </div>
-              </div>
+              </section>
 
               {/* Risk Score Factor Deductions */}
               {hasDefinitiveMetrics && <RiskScore results={data.chains} />}
@@ -540,29 +529,29 @@ export default function Dashboard({ data }: DashboardProps) {
         </div>
       )}
 
-      {/* ── Other Tab Views (3D Enclosures) ── */}
+      {/* ── Other Tab Views ── */}
       {activeTab === 'flow' && (
-        <div id="dashboard-flow-panel" role="tabpanel" aria-labelledby="dashboard-flow-tab" className="card-3d p-6">
+        <div id="dashboard-flow-panel" role="tabpanel" aria-labelledby="dashboard-flow-tab" className="border-t border-[#c8c8c8] pt-6">
           <CapitalFlowGraph results={data.chains} metrics={data.metrics} />
         </div>
       )}
       {activeTab === 'protocols' && (
-        <div id="dashboard-protocols-panel" role="tabpanel" aria-labelledby="dashboard-protocols-tab" className="card-3d p-6">
+        <div id="dashboard-protocols-panel" role="tabpanel" aria-labelledby="dashboard-protocols-tab" className="border-t border-[#c8c8c8] pt-6">
           <InteractionsPanel results={data.chains} />
         </div>
       )}
       {activeTab === 'gas' && (
-        <div id="dashboard-gas-panel" role="tabpanel" aria-labelledby="dashboard-gas-tab" className="card-3d p-6">
+        <div id="dashboard-gas-panel" role="tabpanel" aria-labelledby="dashboard-gas-tab" className="border-t border-[#c8c8c8] pt-6">
           <GasSummaryPanel results={data.chains} />
         </div>
       )}
       {activeTab === 'transfers' && (
-        <div id="dashboard-transfers-panel" role="tabpanel" aria-labelledby="dashboard-transfers-tab" className="card-3d p-6">
+        <div id="dashboard-transfers-panel" role="tabpanel" aria-labelledby="dashboard-transfers-tab" className="border-t border-[#c8c8c8] pt-6">
           <TransferTable results={data.chains} />
         </div>
       )}
       {activeTab === 'approvals' && (
-        <div id="dashboard-approvals-panel" role="tabpanel" aria-labelledby="dashboard-approvals-tab" className="card-3d p-6">
+        <div id="dashboard-approvals-panel" role="tabpanel" aria-labelledby="dashboard-approvals-tab" className="border-t border-[#c8c8c8] pt-6">
           <ApprovalAudit results={data.chains} />
         </div>
       )}

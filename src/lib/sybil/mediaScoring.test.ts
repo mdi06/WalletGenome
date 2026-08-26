@@ -285,6 +285,7 @@ describe('MEDIA Sybil Model & API Data Flow Tests', () => {
         tokenSymbol: 'USDC',
         tokenDecimal: '6',
         transactionIndex: '0',
+        logIndex: '4',
         gas: '50000',
         gasPrice: '20000000000',
         gasUsed: '40000',
@@ -304,5 +305,6 @@ describe('MEDIA Sybil Model & API Data Flow Tests', () => {
     assert.strictEqual(processedTransfers.length, 1);
     assert.strictEqual(processedTransfers[0].direction, 'out');
     assert.strictEqual(processedTransfers[0].tokenSymbol, 'USDC');
+    assert.strictEqual(processedTransfers[0].logIndex, '4');
   });
 });

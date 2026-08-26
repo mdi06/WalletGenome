@@ -12,6 +12,7 @@ import { HelpCircle, LayoutDashboard, Search, Layers, BookOpen, Zap } from 'luci
 import { useWalletScanner } from '@/hooks/useWalletScanner';
 import { getNextTabIndex } from '@/lib/accessibility/tabs';
 import DemoSnapshotNotice from '@/components/DemoSnapshotNotice';
+import { getIndexingStatus, shouldShowDemoSnapshotNotice, type IndexingStatus } from '@/lib/indexingStatus';
 
 const Dashboard = dynamic(() => import('@/components/Dashboard'), {
   loading: () => (
@@ -33,6 +34,33 @@ const BulkDashboard = dynamic(() => import('@/components/BulkDashboard'), {
 
 const SCAN_MODES = ['single', 'cluster'] as const;
 
+const INDEXING_STATUS_PRESENTATION: Record<IndexingStatus, {
+  label: string;
+  dotClassName: string;
+  badgeClassName: string;
+}> = {
+  live: {
+    label: 'Live',
+    dotClassName: 'led-live',
+    badgeClassName: 'bg-[#ff5500] text-white',
+  },
+  'saved-snapshot': {
+    label: 'Saved snapshot',
+    dotClassName: 'led-clean',
+    badgeClassName: 'bg-[#059669] text-white',
+  },
+  partial: {
+    label: 'Partial',
+    dotClassName: 'led-warn',
+    badgeClassName: 'bg-[#f59e0b] text-[#0a0a0a]',
+  },
+  unavailable: {
+    label: 'Unavailable',
+    dotClassName: 'h-2 w-2 border border-white/80 bg-[#dc2626] shadow-[0_0_6px_#dc2626]',
+    badgeClassName: 'bg-[#dc2626] text-white',
+  },
+};
+
 export default function Home() {
   const {
     scanMode,
@@ -53,6 +81,15 @@ export default function Home() {
     handleDemoSnapshot,
     handleClusterScan
   } = useWalletScanner();
+
+  const indexingStatus = getIndexingStatus({
+    scanMode,
+    activeDemoSnapshot: Boolean(activeDemoSnapshot),
+    singleStatus: singleResult?.status ?? null,
+    clusterStatus: clusterResult?.status ?? null,
+    hasError: Boolean(error),
+  });
+  const indexingStatusPresentation = INDEXING_STATUS_PRESENTATION[indexingStatus];
 
   const handleInspectFromCluster = (address: string) => {
     setCurrentAddress(address);
@@ -89,7 +126,7 @@ export default function Home() {
             <button
               type="button"
               onClick={() => setShowGuide(!showGuide)}
-              className="btn-3d-neutral min-h-10 text-[#0a0a0a] text-xs font-bold px-3 py-1.5 flex items-center gap-1.5 cursor-pointer"
+              className="btn-3d-neutral min-h-11 text-[#0a0a0a] text-xs font-bold px-3 py-1.5 flex items-center gap-1.5 cursor-pointer"
             >
               {showGuide ? (
                 <>
@@ -108,16 +145,20 @@ export default function Home() {
           {/* Docs / Methodology Link */}
           <Link
             href="/docs"
-            className="btn-3d-neutral min-h-10 text-[#0a0a0a] text-xs font-bold px-3 py-1.5 flex items-center gap-1.5 cursor-pointer"
+            className="btn-3d-neutral min-h-11 text-[#0a0a0a] text-xs font-bold px-3 py-1.5 flex items-center gap-1.5 cursor-pointer"
           >
             <BookOpen size={13} className="text-[#ff5500]" />
             <span className="hidden sm:inline">Docs / methodology</span>
             <span className="sm:hidden">Docs</span>
           </Link>
 
-          <span className="badge-3d min-h-10 bg-[#ff5500] text-white text-[11px] font-bold tracking-wider px-3 py-1.5 flex items-center gap-1.5">
-            <span className="led-live" />
-            <span>Live indexing</span>
+          <span
+            className={`badge-3d min-h-10 text-[11px] font-bold tracking-wider px-3 py-1.5 flex items-center gap-1.5 ${indexingStatusPresentation.badgeClassName}`}
+            role="status"
+            aria-label={`Indexing status: ${indexingStatusPresentation.label}`}
+          >
+            <span aria-hidden="true" className={indexingStatusPresentation.dotClassName} />
+            <span>{indexingStatusPresentation.label}</span>
           </span>
         </div>
       </header>
@@ -237,7 +278,11 @@ export default function Home() {
         </div>
       )}
 
-      {activeDemoSnapshot && !showGuide && (
+      {shouldShowDemoSnapshotNotice({
+        scanMode,
+        activeDemoSnapshot: Boolean(activeDemoSnapshot),
+        showGuide,
+      }) && activeDemoSnapshot && (
         <DemoSnapshotNotice
           demo={activeDemoSnapshot}
           isLoading={isLoading}

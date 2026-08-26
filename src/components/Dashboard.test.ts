@@ -389,6 +389,21 @@ describe('Dashboard provider availability messaging', () => {
     assert.match(markup, /Withheld/);
   });
 
+  it('consolidates chain warnings into one expandable provider summary', () => {
+    const data = getMockScanResult();
+    data.chainWarnings = [
+      { chainId: 1, chainName: 'Ethereum', message: 'Ethereum has incomplete historical prices.' },
+      { chainId: 8453, chainName: 'Base', message: 'Base has incomplete historical prices.' },
+    ];
+
+    const markup = renderToStaticMarkup(createElement(Dashboard, { data }));
+    assert.match(markup, /<details/);
+    assert.match(markup, /Provider warnings/);
+    assert.match(markup, /2 provider warnings need attention/);
+    assert.match(markup, /Ethereum has incomplete historical prices/);
+    assert.doesNotMatch(markup, /Chain Warnings \/ Degradation Alert/);
+  });
+
   it('does not promote partial capital flow as a Behavioral DNA headline', () => {
     const data = getMockScanResult();
     data.chains[0].transferSummary.capitalFlowCoverage = {

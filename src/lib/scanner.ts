@@ -226,6 +226,7 @@ export function processTokenTransfers(
 
     return {
       hash: t.hash || '',
+      logIndex: t.logIndex,
       timestamp,
       date: timestampToDate(timestamp),
       from: t.from || '',

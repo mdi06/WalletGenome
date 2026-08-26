@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { ScanResult, ProcessedTokenTransfer } from '@/lib/types';
 import { getExplorerTxUrl } from '@/lib/chains';
+import { deduplicateTokenTransfers, getTokenTransferIdentity } from '@/lib/analysis/transfers';
 import { ArrowDownLeft, ArrowUpRight, ExternalLink } from 'lucide-react';
 
 interface Props {
@@ -30,7 +31,8 @@ export default function TransferTable({ results }: Props) {
     }
   }
 
-  allTransfers.sort((a, b) => (b.valueUSD || 0) - (a.valueUSD || 0));
+  const uniqueTransfers = deduplicateTokenTransfers(allTransfers);
+  uniqueTransfers.sort((a, b) => (b.valueUSD || 0) - (a.valueUSD || 0));
 
   return (
     <div className="space-y-4">
@@ -41,7 +43,7 @@ export default function TransferTable({ results }: Props) {
             <button
               key={f}
               onClick={() => setFilter(f)}
-              className={`px-3.5 py-1.5 text-xs font-bold cursor-pointer ${
+              className={`min-h-11 px-3.5 py-1.5 text-xs font-bold cursor-pointer ${
                 filter === f
                   ? 'btn-3d-black text-white'
                   : 'btn-3d-neutral text-[#4b5563]'
@@ -57,7 +59,7 @@ export default function TransferTable({ results }: Props) {
             <button
               key={c.id}
               onClick={() => setSelectedChain(c.id === 'all' ? 'all' : Number(c.id))}
-              className={`px-3 py-1 text-xs font-bold cursor-pointer ${
+              className={`min-h-11 px-3 py-1 text-xs font-bold cursor-pointer ${
                 selectedChain === c.id
                   ? 'btn-3d-black text-white'
                   : 'btn-3d-neutral text-[#4b5563]'
@@ -80,6 +82,7 @@ export default function TransferTable({ results }: Props) {
           <thead>
             <tr className="bg-[#d0d0d0] border-b border-[#c2c2c2] text-[10px] font-extrabold text-[#4b5563] uppercase tracking-wider">
               <th className="py-3 px-4">DIRECTION</th>
+              <th className="py-3 px-4">CHAIN</th>
               <th className="py-3 px-4">TOKEN</th>
               <th className="py-3 px-4 text-right">AMOUNT</th>
               <th className="py-3 px-4 text-right">USD VALUE</th>
@@ -89,12 +92,12 @@ export default function TransferTable({ results }: Props) {
             </tr>
           </thead>
           <tbody className="divide-y divide-[#c8c8c8] text-xs font-bold text-[#0a0a0a]">
-            {allTransfers.map((t, i) => {
+            {uniqueTransfers.map(t => {
               const counterparty = t.direction === 'in' ? t.from : t.to;
               const counterpartyLabel = t.direction === 'in' ? t.fromLabel : t.toLabel;
 
               return (
-                <tr key={i} className="hover:bg-white/60 transition-colors">
+                <tr key={getTokenTransferIdentity(t)} className="hover:bg-white/60 transition-colors">
                   <td className="py-3.5 px-4">
                     {t.direction === 'in' ? (
                       <span className="badge-3d inline-flex items-center gap-1 text-[#047857] bg-[#059669]/15 px-2 py-0.5 font-mono font-bold text-[11px] border border-[#059669]/40">
@@ -105,6 +108,9 @@ export default function TransferTable({ results }: Props) {
                         <ArrowUpRight size={12} /> OUT
                       </span>
                     )}
+                  </td>
+                  <td className="py-3.5 px-4 font-bold text-[#4b5563]">
+                    {t.chainName}
                   </td>
                   <td className="py-3.5 px-4 font-mono font-black text-[#0a0a0a]">
                     {t.tokenSymbol}

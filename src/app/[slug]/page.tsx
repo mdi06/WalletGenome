@@ -85,14 +85,14 @@ export default async function SeoLandingPage({ params }: LandingPageProps) {
       <JsonLd data={pageJsonLd} />
 
       <header className="flex flex-wrap items-center justify-between gap-3">
-        <Link href="/" className="text-xl sm:text-2xl font-black tracking-tight text-black uppercase">
+        <Link href="/" className="inline-flex min-h-11 items-center text-xl sm:text-2xl font-black tracking-tight text-black uppercase">
           WALLET<span className="text-[#ff5500]">.</span>GENOME
         </Link>
         <nav aria-label="Primary" className="flex items-center gap-2">
-          <Link href="/docs" className="btn-3d-neutral px-3 py-1.5 text-xs font-bold text-[#0a0a0a]">
+          <Link href="/docs" className="btn-3d-neutral inline-flex min-h-11 items-center px-3 py-1.5 text-xs font-bold text-[#0a0a0a]">
             METHODOLOGY
           </Link>
-          <Link href="/" className="btn-3d-black px-3 py-1.5 text-xs font-bold text-white">
+          <Link href="/" className="btn-3d-black inline-flex min-h-11 items-center px-3 py-1.5 text-xs font-bold text-white">
             OPEN SCANNER
           </Link>
         </nav>
@@ -108,10 +108,10 @@ export default async function SeoLandingPage({ params }: LandingPageProps) {
             {page.intro}
           </p>
           <div className="flex flex-wrap gap-3 pt-2">
-            <Link href="/" className="btn-3d-orange px-5 py-2.5 text-xs font-black text-white">
+            <Link href="/" className="btn-3d-orange inline-flex min-h-11 items-center px-5 py-2.5 text-xs font-black text-white">
               ANALYZE A PUBLIC WALLET
             </Link>
-            <Link href="/docs" className="btn-3d-neutral px-5 py-2.5 text-xs font-black text-[#0a0a0a]">
+            <Link href="/docs" className="btn-3d-neutral inline-flex min-h-11 items-center px-5 py-2.5 text-xs font-black text-[#0a0a0a]">
               REVIEW THE METHODOLOGY
             </Link>
           </div>
@@ -182,7 +182,7 @@ export default async function SeoLandingPage({ params }: LandingPageProps) {
               <Link
                 key={item.slug}
                 href={`/${item.slug}`}
-                className="border border-[#4b5563] px-3 py-2 text-xs font-bold text-white hover:border-[#ff5500] hover:text-[#ff5500]"
+                className="inline-flex min-h-11 items-center border border-[#4b5563] px-3 py-2 text-xs font-bold text-white hover:border-[#ff5500] hover:text-[#ff5500]"
               >
                 {item.title}
               </Link>

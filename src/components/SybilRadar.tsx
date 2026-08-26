@@ -32,7 +32,7 @@ export default function SybilRadar({ report }: Props) {
     : report.mediaScore?.explanation ?? 'Behavioral Sybil scoring is unavailable for this scan.';
 
   return (
-    <div className="card-3d p-5 text-[#0a0a0a] flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+    <section aria-labelledby="sybil-probability-heading" className="card-3d p-5 text-[#0a0a0a] flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
       {/* Left: Sybil Probability & Verdict */}
       <div className="flex items-center gap-4">
         <div
@@ -50,7 +50,7 @@ export default function SybilRadar({ report }: Props) {
         </div>
         <div>
           <div className="flex items-center gap-2">
-            <span className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider">
+            <span id="sybil-probability-heading" className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider">
               SYBIL PROBABILITY
             </span>
             <span className="text-sm font-black text-[#0a0a0a] font-mono">
@@ -105,7 +105,7 @@ export default function SybilRadar({ report }: Props) {
           );
         })}
       </div>
-    </div>
+    </section>
   );
 }
 
