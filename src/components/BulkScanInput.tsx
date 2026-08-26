@@ -3,6 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import { Layers, ArrowRight, Loader2, Sparkles, CheckCircle2, AlertCircle } from 'lucide-react';
 import { CHAINS, SUPPORTED_CHAIN_IDS } from '@/lib/chains';
+import { MAX_BATCH_WALLETS } from '@/lib/api/constants';
 
 interface Props {
   onScanCluster: (addresses: string[], chainIds: number[]) => void;
@@ -48,6 +49,10 @@ export default function BulkScanInput({ onScanCluster, isLoading }: Props) {
   const handleSubmit = () => {
     if (parsedAddresses.length === 0) {
       setError('Please paste at least 1 valid EVM address (0x...).');
+      return;
+    }
+    if (parsedAddresses.length > MAX_BATCH_WALLETS) {
+      setError(`Please limit each cluster scan to ${MAX_BATCH_WALLETS} wallets.`);
       return;
     }
     setError(null);
@@ -105,7 +110,7 @@ export default function BulkScanInput({ onScanCluster, isLoading }: Props) {
           {parsedAddresses.length > 0 ? (
             <span className="text-[#059669] flex items-center gap-1">
               <CheckCircle2 size={12} />
-              {parsedAddresses.length} valid {parsedAddresses.length === 1 ? 'address' : 'addresses'}
+              {parsedAddresses.length}/{MAX_BATCH_WALLETS} valid {parsedAddresses.length === 1 ? 'address' : 'addresses'}
             </span>
           ) : (
             <span className="text-gray-400">0 addresses</span>

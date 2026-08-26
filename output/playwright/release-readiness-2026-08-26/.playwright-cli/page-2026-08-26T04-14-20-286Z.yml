@@ -1,0 +1,180 @@
+- generic [active] [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e3]:
+      - button "WalletGenome Home" [ref=e4] [cursor=pointer]:
+        - generic [ref=e5]: WALLET.GENOME
+      - generic [ref=e6]:
+        - button "HOW IT WORKS" [ref=e280] [cursor=pointer]
+        - link "Docs / methodology" [ref=e7] [cursor=pointer]:
+          - /url: /docs
+        - generic [ref=e11]: Live indexing
+    - region "Wallet Forensics Console" [ref=e21]:
+      - tablist "Forensics Scan Mode" [ref=e22]:
+        - tab "Single wallet" [ref=e23] [cursor=pointer]
+        - tab "Cluster scan New" [selected] [ref=e28] [cursor=pointer]:
+          - generic [ref=e33]: Cluster scan
+          - generic [ref=e34]: New
+      - tabpanel "Cluster scan New" [ref=e231]:
+        - generic [ref=e232]:
+          - generic [ref=e233]:
+            - generic [ref=e234]:
+              - generic [ref=e239]: MULTI-WALLET CLUSTER MATRIX SCANNER
+              - generic [ref=e240]: BATCH MODE
+            - button "Load Sample Cluster (4 Wallets)" [ref=e241] [cursor=pointer]
+          - generic [ref=e246]:
+            - generic [ref=e247]: Paste EVM addresses separated by new lines, commas, or spaces
+            - textbox "Paste EVM addresses to scan" [ref=e248]:
+              - /placeholder: "Paste EVM addresses separated by new lines, commas, or spaces:\n0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045\n0x50EC05ADe8280758E2077fcBC08D878D4aef79C3"
+              - text: 0x4f3f9061c42b3961c21fd8ab71695b73df34f21b 0x7d9d9a9f8bdc443fb566c29cbcc0e54308371f90
+            - generic [ref=e249]: 2/10 valid addresses
+          - generic [ref=e251]:
+            - group "Select target EVM networks for cluster" [ref=e252]:
+              - generic [ref=e253]: "Networks:"
+              - button "Toggle Ethereum network" [pressed] [ref=e254] [cursor=pointer]:
+                - generic [ref=e256]: ETH
+              - button "Toggle Base network" [ref=e257] [cursor=pointer]:
+                - generic [ref=e259]: BASE
+              - button "Toggle Arbitrum network" [ref=e260] [cursor=pointer]:
+                - generic [ref=e262]: ARB
+              - button "Toggle Optimism network" [ref=e263] [cursor=pointer]:
+                - generic [ref=e265]: OP
+            - button "SCAN CLUSTER (2)" [ref=e279] [cursor=pointer]
+    - generic [ref=e288]:
+      - generic [ref=e289]:
+        - generic [ref=e290]:
+          - generic [ref=e291]: WALLETS SCANNED
+          - generic [ref=e292]: 2 Wallets
+          - generic [ref=e293]: 0 Total Txs
+        - generic [ref=e294]:
+          - generic [ref=e295]: COMBINED LIFETIME GAS
+          - generic [ref=e296]: $0
+          - generic [ref=e297]: Across active chains
+        - generic [ref=e298]:
+          - generic [ref=e299]: COMBINED INFLOWS
+          - generic [ref=e300]: $0
+          - generic [ref=e301]: Aggregate capital depth
+        - generic [ref=e302]:
+          - generic [ref=e303]: AVG SYBIL PROBABILITY
+          - generic [ref=e304]: 90.00%
+          - generic [ref=e305]: 2 Flagged Wallets
+        - generic [ref=e306]:
+          - generic [ref=e307]: HIGH-RISK APPROVALS
+          - generic [ref=e308]: "0"
+          - generic [ref=e309]: Require revocation audit
+      - generic [ref=e310]:
+        - generic [ref=e311]:
+          - generic [ref=e317]:
+            - generic [ref=e318]: CLUSTER FORENSIC EXECUTIVE SUMMARY
+            - text: Automated multi-wallet behavioral intelligence & correlation analysis
+          - generic [ref=e319]: INDEPENDENT PORTFOLIO
+        - paragraph [ref=e321]: No direct transfers or shared counterparties were detected between the submitted wallets in the complete returned transfer datasets.
+        - generic [ref=e322]:
+          - generic [ref=e323]:
+            - generic [ref=e324]: INTER-WALLET LINKAGE
+            - generic [ref=e330]: Zero Direct Transactions
+            - generic [ref=e331]: No cross-wallet transfers in returned data
+          - generic [ref=e332]:
+            - generic [ref=e333]: CENTRAL HUB OVERLAP
+            - generic [ref=e338]: 0% Common Overlap
+            - generic [ref=e339]: No dominant hub
+          - generic [ref=e340]:
+            - generic [ref=e341]: DOMINANT ARCHETYPE
+            - generic [ref=e354]: New Wallet (100%)
+            - generic [ref=e355]: Primary behavior pattern in cluster
+      - tablist "Cluster dashboard sections; scroll horizontally for more tabs" [ref=e356]:
+        - tab "CLUSTER LEADERBOARD 2" [selected] [ref=e357] [cursor=pointer]:
+          - generic [ref=e360]: CLUSTER LEADERBOARD
+          - generic [ref=e361]: "2"
+        - tab "INTER-WALLET FLOW GRAPH ALL WALLETS" [ref=e362] [cursor=pointer]:
+          - generic [ref=e368]: INTER-WALLET FLOW GRAPH
+          - generic [ref=e369]: ALL WALLETS
+      - tabpanel "CLUSTER LEADERBOARD 2" [ref=e370]:
+        - generic [ref=e371]:
+          - generic [ref=e372]:
+            - generic [ref=e373]:
+              - generic [ref=e374]: DIRECT INTER-WALLET TRANSFERS
+              - generic [ref=e380]: 0 TRANSACTIONS
+            - paragraph [ref=e381]: No direct token or ETH transfers detected between the wallets in this batch.
+          - generic [ref=e382]:
+            - generic [ref=e383]:
+              - generic [ref=e384]: TOP SHARED COUNTERPARTIES & HUBS
+              - generic [ref=e386]: 0 HUBS
+            - paragraph [ref=e387]: No significant shared funding sources or overlapping counterparties detected.
+        - generic [ref=e388]:
+          - generic [ref=e389]:
+            - generic [ref=e390]:
+              - generic [ref=e391]: CLUSTER WALLET AUDIT LEADERBOARD
+              - text: Click column headers to sort · Click "Inspect" for full single-wallet forensic breakdown
+            - button "EXPORT CSV" [ref=e392] [cursor=pointer]
+          - region "Cluster wallet leaderboard; scroll horizontally for all columns" [ref=e397]:
+            - table [ref=e398]:
+              - rowgroup [ref=e399]:
+                - row [ref=e400]:
+                  - columnheader "#" [ref=e401]
+                  - columnheader "WALLET IDENTITY" [ref=e402]
+                  - columnheader "PERSONA" [ref=e403]
+                  - columnheader [ref=e404]:
+                    - button "RISK GRADE" [ref=e405] [cursor=pointer]
+                  - columnheader [ref=e406]:
+                    - button "SYBIL PROB." [ref=e407] [cursor=pointer]
+                  - columnheader [ref=e408]:
+                    - button "LIFETIME GAS ▼" [ref=e409] [cursor=pointer]
+                  - columnheader [ref=e410]:
+                    - button "NET INFLOW" [ref=e411] [cursor=pointer]
+                  - columnheader [ref=e412]:
+                    - button "TRANSACTIONS" [ref=e413] [cursor=pointer]
+                  - columnheader "ACTION" [ref=e414]
+              - rowgroup [ref=e415]:
+                - row [ref=e416]:
+                  - cell "1" [ref=e417]
+                  - cell "0x4f3f...f21b 0x4f3f9061c42b3961c21fd8ab71695b73df34f21b" [ref=e418]:
+                    - generic [ref=e419]: 0x4f3f...f21b
+                    - generic [ref=e421]: "0x4f3f9061c42b3961c21fd8ab71695b73df34f21b"
+                  - cell "New Wallet" [ref=e422]
+                  - cell "A(0)" [ref=e423]:
+                    - text: A
+                    - generic [ref=e424]: (0)
+                  - cell "90%FLAGGED" [ref=e425]:
+                    - generic [ref=e426]: 90%
+                    - text: FLAGGED
+                  - cell "$0" [ref=e427]
+                  - cell "$0" [ref=e428]
+                  - cell "0 txs" [ref=e429]
+                  - cell [ref=e430]:
+                    - button "Inspect →" [ref=e431] [cursor=pointer]
+                - row [ref=e432]:
+                  - cell "2" [ref=e433]
+                  - cell "0x7d9d...1f90 0x7d9d9a9f8bdc443fb566c29cbcc0e54308371f90" [ref=e434]:
+                    - generic [ref=e435]: 0x7d9d...1f90
+                    - generic [ref=e437]: "0x7d9d9a9f8bdc443fb566c29cbcc0e54308371f90"
+                  - cell "New Wallet" [ref=e438]
+                  - cell "A(0)" [ref=e439]:
+                    - text: A
+                    - generic [ref=e440]: (0)
+                  - cell "90%FLAGGED" [ref=e441]:
+                    - generic [ref=e442]: 90%
+                    - text: FLAGGED
+                  - cell "$0" [ref=e443]
+                  - cell "$0" [ref=e444]
+                  - cell "0 txs" [ref=e445]
+                  - cell [ref=e446]:
+                    - button "Inspect →" [ref=e447] [cursor=pointer]
+  - contentinfo [ref=e218]:
+    - generic [ref=e219]:
+      - generic [ref=e220]:
+        - paragraph [ref=e221]: WalletGenome
+        - paragraph [ref=e222]: Read-only, evidence-aware EVM wallet analytics. No wallet connection or signature required.
+      - navigation "Wallet analytics topics" [ref=e223]:
+        - link "Methodology" [ref=e224] [cursor=pointer]:
+          - /url: /docs
+        - link "EVM Wallet Analytics" [ref=e225] [cursor=pointer]:
+          - /url: /evm-wallet-analytics
+        - link "Crypto Wallet Risk Checker" [ref=e226] [cursor=pointer]:
+          - /url: /crypto-wallet-risk-checker
+        - link "Token Approval Checker" [ref=e227] [cursor=pointer]:
+          - /url: /token-approval-checker
+        - link "Sybil Wallet Analysis" [ref=e228] [cursor=pointer]:
+          - /url: /sybil-wallet-analysis
+        - link "Multi-Chain Wallet Forensics" [ref=e229] [cursor=pointer]:
+          - /url: /multi-chain-wallet-forensics
+  - alert [ref=e230]

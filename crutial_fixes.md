@@ -626,16 +626,16 @@ Acceptance criteria:
 Complete before the first production deployment:
 
 - [x] Select and document supported Node.js runtime version. Evidence: Node.js 22.x is pinned in `package.json` and `.nvmrc`, documented in README, and used by the CI workflow; Vercel currently supports the pinned major runtime.
-- [ ] Confirm every API route uses the intended Node runtime; filesystem-dependent code is removed.
+- [x] Confirm every API route uses the intended Node runtime; filesystem-dependent code is removed. Evidence: all three remaining API routes explicitly declare `nodejs`; release regressions enumerate them, the production source filesystem-import scan passed, and the build exposes no removed scan-job route.
 - [ ] Configure provider secrets only in Vercel encrypted environment variables.
-- [ ] Confirm no provider secret is shipped to the client bundle or accepted from arbitrary public request bodies.
+- [x] Confirm no provider secret is shipped to the client bundle or accepted from arbitrary public request bodies. Evidence: provider variables remain server-only, exact request schemas reject client provider keys, and the 2026-08-26 build and 179-test suite passed.
 - [ ] Configure rate limiting, request budgets, and monitoring for scan endpoints.
 - [ ] Validate function duration and memory requirements using worst-case bounded scans.
 - [ ] Add security headers appropriate to the deployed application, including a tested Content Security Policy.
-- [ ] Define cache behavior explicitly; do not cache user-specific or incomplete results as complete public responses.
-- [ ] Add structured logs for request ID, duration, provider availability, partial-result status, and failure category without logging secrets.
+- [x] Define cache behavior explicitly; do not cache user-specific or incomplete results as complete public responses. Evidence: the stateless persistence policy and production-source regression passed in the 179-test suite; only complete-history, complete-price single scans are eligible for short process-local reuse.
+- [x] Add structured logs for request ID, duration, provider availability, partial-result status, and failure category without logging secrets. Evidence: both scan routes emit aggregate JSON telemetry and return `X-Request-ID`; telemetry privacy regressions and local production log inspection passed on 2026-08-26.
 - [ ] Add health/operational monitoring for provider failures, latency, and error rates.
-- [ ] Confirm privacy/retention policy for scanned wallet addresses and any saved reports.
+- [x] Confirm privacy/retention policy for scanned wallet addresses and any saved reports. Evidence: README and the typed persistence policy state request-only retention, no saved reports, no durable scan history, and no address logging in operational telemetry.
 - [ ] Verify production URLs, metadata, favicon/assets, README clone URL, and license claims.
 
 ## Final Go/No-Go Checklist
@@ -646,15 +646,15 @@ Deployment is **NO-GO** until all of the following are true:
 - [x] Every P1 metric/feature item is complete or the corresponding product claim/UI is removed. Evidence: items 5–10 above; 89/89 repository tests, TypeScript, P1-targeted ESLint, production build, and `git diff --check` passed on 2026-08-23.
 - [x] `npm run verify` passes from a clean checkout. Evidence: item 16 isolated-copy verification completed lint, generated-type typecheck, 177/177 tests, and the production build.
 - [x] Dependency audit reports no unresolved high/critical production vulnerabilities. Evidence: the item 16 clean `npm ci` audit reported 0 vulnerabilities across the locked dependency graph.
-- [ ] Single-wallet and bounded cluster browser flows pass in a production-like environment.
+- [x] Single-wallet and bounded cluster browser flows pass in a production-like environment. Evidence: `next start` completed real Ethereum-only one-wallet and two-wallet flows with rendered dashboards and zero browser console errors; `output/playwright/release-readiness-2026-08-26/verification.md` records the run.
 - [ ] Forced provider failures render explicit partial/unavailable states.
-- [ ] Historical-price gaps never appear as exact historical USD values.
-- [ ] Unauthenticated callers cannot mutate application state.
+- [x] Historical-price gaps never appear as exact historical USD values. Evidence: the fresh 179-test suite passed provenance, verified-capital-flow, approval exposure, partial-dashboard, and per-chain price-gap regressions on 2026-08-26.
+- [x] Unauthenticated callers cannot modify durable application data or version-controlled configuration. Evidence: unused process-local scan-job routes/service were removed; production code has no durable storage or filesystem dependency; known-wallet writes return HTTP 405 in route tests and the local production smoke.
 - [x] Scan endpoints have tested abuse controls.
 - [x] Mobile layouts pass at 320px, 375px, 390px, 768px, and desktop widths. Evidence: item 13; final local production checks reported document and body widths equal to each viewport width.
 - [x] Keyboard and screen-reader critical paths are verified. Evidence: item 14; focused semantics regressions, production-build keyboard navigation, accessibility-tree inspection, and the zero-critical rendered-DOM audit.
 - [ ] Vercel preview deployment is smoke-tested before promoting to production.
-- [ ] Production rollback procedure and last-known-good deployment are documented.
+- [ ] Production rollback procedure and last-known-good deployment are documented. Procedure: `docs/deployment_runbook.md`; the actual last-known-good immutable deployment URL must be recorded before promotion.
 
 ## Recommended Implementation Sequence
 

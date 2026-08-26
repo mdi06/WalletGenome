@@ -130,7 +130,6 @@ export async function processBatchScan(
 
         return { kind: 'success', item, evidence: clusterEvidence };
       } catch (walletError) {
-        console.error(`Error scanning wallet ${target}:`, walletError);
         const reason: DataAvailabilityError = {
           source: 'scan',
           code: 'provider_error',

@@ -2,6 +2,7 @@ import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import {
   BATCH_WALLET_CONCURRENCY,
+  MAX_BATCH_WALLETS,
   RequestPolicyError,
   acquireRequestSlot,
   enforceRequestRateLimit,
@@ -49,7 +50,7 @@ describe('API request policy', () => {
     );
   });
 
-  it('rejects malformed batch entries, duplicates, and unsupported chains without a wallet-count cap', () => {
+  it('rejects malformed batch entries, duplicates, unsupported chains, and oversized batches', () => {
     assert.throws(
       () => validateBatchRequest({ addresses: [123], chainIds: [1] }),
       (error: unknown) => error instanceof RequestPolicyError && error.code === 'invalid_target',
@@ -72,12 +73,20 @@ describe('API request policy', () => {
       () => validateBatchRequest({ addresses: ['vitalik.eth'], chainIds: [56] }),
       (error: unknown) => error instanceof RequestPolicyError && error.code === 'unsupported_chain',
     );
-    const expandedBatch = validateBatchRequest({
-      addresses: Array.from({ length: 25 }, (_, index) =>
+    const boundedBatch = validateBatchRequest({
+      addresses: Array.from({ length: MAX_BATCH_WALLETS }, (_, index) =>
         `0x${(index + 1).toString(16).padStart(40, '0')}`),
       chainIds: [1],
     });
-    assert.strictEqual(expandedBatch.addresses.length, 25);
+    assert.strictEqual(boundedBatch.addresses.length, MAX_BATCH_WALLETS);
+    assert.throws(
+      () => validateBatchRequest({
+        addresses: Array.from({ length: MAX_BATCH_WALLETS + 1 }, (_, index) =>
+          `0x${(index + 1).toString(16).padStart(40, '0')}`),
+        chainIds: [1],
+      }),
+      (error: unknown) => error instanceof RequestPolicyError && error.code === 'too_many_wallets',
+    );
   });
 
   it('rate-limits repeated callers deterministically', () => {

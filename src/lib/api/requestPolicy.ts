@@ -2,12 +2,14 @@ import { SUPPORTED_CHAIN_IDS } from '@/lib/chains';
 import {
   BATCH_REQUEST_TIMEOUT_MS,
   BATCH_WALLET_CONCURRENCY,
+  MAX_BATCH_WALLETS,
   SCAN_REQUEST_TIMEOUT_MS,
 } from './constants';
 
 export {
   BATCH_REQUEST_TIMEOUT_MS,
   BATCH_WALLET_CONCURRENCY,
+  MAX_BATCH_WALLETS,
   SCAN_REQUEST_TIMEOUT_MS,
 };
 
@@ -116,6 +118,13 @@ export function validateBatchRequest(body: unknown): ValidatedBatchRequest {
   assertAllowedFields(body, ['addresses', 'chainIds']);
   if (!Array.isArray(body.addresses) || body.addresses.length === 0) {
     throw new RequestPolicyError('addresses must be a non-empty array.', 400, 'invalid_addresses');
+  }
+  if (body.addresses.length > MAX_BATCH_WALLETS) {
+    throw new RequestPolicyError(
+      `addresses must contain at most ${MAX_BATCH_WALLETS} wallets.`,
+      400,
+      'too_many_wallets',
+    );
   }
   const addresses = body.addresses.map((target, index) => validateTarget(target, `addresses[${index}]`));
   if (new Set(addresses).size !== addresses.length) {

@@ -138,7 +138,7 @@ Capital Flow also publishes `capitalFlowCoverage`: verified transfer legs, total
 - Scans remain public and unauthenticated; provider credentials are server-side environment variables and are never accepted from request bodies.
 - Single and batch routes validate exact allowed fields, EVM/ENS targets, and supported chain IDs before provider work.
 - Single-wallet browser scans request an NDJSON stream from `POST /api/scan`. The same request emits scan phases, provider-response counts, cumulative history records, and the final report, so progress does not depend on process-local job storage or cross-instance polling.
-- Batch scans use the shared client/API limit of 10 unique wallets and at most 3 wallet scans concurrently.
+- Batch scans accept at most 10 unique wallets and process at most 3 wallet scans concurrently.
 - Per-caller sliding-window limits, per-instance concurrency caps, body limits, and a 280-second work budget return deterministic `4xx`, `429`, or `504` errors.
 - The in-process limiter protects each Vercel function instance; production should also mirror these limits at the platform firewall for deployment-wide enforcement.
 
@@ -231,6 +231,11 @@ npm run start
 ```
 
 `npm run verify` runs lint, deterministic Next.js route type generation plus TypeScript checking, the full regression suite, and the production build. Run it before pushing or creating a deployment. Vercel uses the same command from `vercel.json`; no lint or TypeScript bypass is configured.
+
+Use the [Vercel Preview, promotion, and rollback runbook](docs/deployment_runbook.md)
+for environment variables, deployment-wide rate limits, monitoring, Preview
+smoke tests, production promotion, and restoration of the last known good
+deployment.
 
 ---
 

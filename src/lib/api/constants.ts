@@ -1,3 +1,4 @@
 export const BATCH_WALLET_CONCURRENCY = 3;
+export const MAX_BATCH_WALLETS = 10;
 export const SCAN_REQUEST_TIMEOUT_MS = 280_000;
 export const BATCH_REQUEST_TIMEOUT_MS = 280_000;

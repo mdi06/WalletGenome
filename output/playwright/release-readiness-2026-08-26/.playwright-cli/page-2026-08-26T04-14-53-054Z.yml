@@ -1,0 +1,53 @@
+- generic [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e3]:
+      - button "WalletGenome Home" [ref=e4] [cursor=pointer]:
+        - generic [ref=e5]: WALLET.GENOME
+      - generic [ref=e6]:
+        - button "HOW IT WORKS" [ref=e280] [cursor=pointer]
+        - link "Docs / methodology" [ref=e7] [cursor=pointer]:
+          - /url: /docs
+        - generic [ref=e11]: Live indexing
+    - region "Wallet Forensics Console" [ref=e21]:
+      - tablist "Forensics Scan Mode" [ref=e22]:
+        - tab "Single wallet" [selected] [ref=e23] [cursor=pointer]
+        - tab "Cluster scan New" [ref=e28] [cursor=pointer]:
+          - generic [ref=e33]: Cluster scan
+          - generic [ref=e34]: New
+      - tabpanel "Single wallet" [ref=e448]:
+        - generic [ref=e450]:
+          - generic [ref=e451]:
+            - generic [ref=e455]: Enter EVM address (0x...) or ENS name (vitalik.eth)
+            - textbox "EVM address or ENS domain" [ref=e456]:
+              - /placeholder: Enter EVM address (0x...) or ENS name (vitalik.eth)
+              - text: "0x4f3f9061c42b3961c21fd8ab71695b73df34f21b"
+          - group "Select target EVM networks" [ref=e457]:
+            - button "Toggle Ethereum network" [pressed] [ref=e458] [cursor=pointer]:
+              - generic [ref=e460]: ETH
+            - button "Toggle Base network" [active] [ref=e461] [cursor=pointer]:
+              - generic [ref=e463]: BASE
+            - button "Toggle Arbitrum network" [pressed] [ref=e464] [cursor=pointer]:
+              - generic [ref=e466]: ARB
+            - button "Toggle Optimism network" [pressed] [ref=e467] [cursor=pointer]:
+              - generic [ref=e469]: OP
+            - button "Scan wallet address" [ref=e470] [cursor=pointer]:
+              - generic [ref=e471]: SCAN
+  - contentinfo [ref=e218]:
+    - generic [ref=e219]:
+      - generic [ref=e220]:
+        - paragraph [ref=e221]: WalletGenome
+        - paragraph [ref=e222]: Read-only, evidence-aware EVM wallet analytics. No wallet connection or signature required.
+      - navigation "Wallet analytics topics" [ref=e223]:
+        - link "Methodology" [ref=e224] [cursor=pointer]:
+          - /url: /docs
+        - link "EVM Wallet Analytics" [ref=e225] [cursor=pointer]:
+          - /url: /evm-wallet-analytics
+        - link "Crypto Wallet Risk Checker" [ref=e226] [cursor=pointer]:
+          - /url: /crypto-wallet-risk-checker
+        - link "Token Approval Checker" [ref=e227] [cursor=pointer]:
+          - /url: /token-approval-checker
+        - link "Sybil Wallet Analysis" [ref=e228] [cursor=pointer]:
+          - /url: /sybil-wallet-analysis
+        - link "Multi-Chain Wallet Forensics" [ref=e229] [cursor=pointer]:
+          - /url: /multi-chain-wallet-forensics
+  - alert [ref=e230]

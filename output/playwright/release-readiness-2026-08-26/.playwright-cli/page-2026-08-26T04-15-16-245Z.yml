@@ -1,0 +1,231 @@
+- generic [active] [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e3]:
+      - button "WalletGenome Home" [ref=e4] [cursor=pointer]:
+        - generic [ref=e5]: WALLET.GENOME
+      - generic [ref=e6]:
+        - button "HOW IT WORKS" [ref=e280] [cursor=pointer]
+        - link "Docs / methodology" [ref=e7] [cursor=pointer]:
+          - /url: /docs
+        - generic [ref=e11]: Live indexing
+    - region "Wallet Forensics Console" [ref=e21]:
+      - tablist "Forensics Scan Mode" [ref=e22]:
+        - tab "Single wallet" [selected] [ref=e23] [cursor=pointer]
+        - tab "Cluster scan New" [ref=e28] [cursor=pointer]:
+          - generic [ref=e33]: Cluster scan
+          - generic [ref=e34]: New
+      - tabpanel "Single wallet" [ref=e448]:
+        - generic [ref=e475]:
+          - generic [ref=e476]:
+            - generic [ref=e480]: Enter EVM address (0x...) or ENS name (vitalik.eth)
+            - textbox "EVM address or ENS domain" [ref=e481]:
+              - /placeholder: Enter EVM address (0x...) or ENS name (vitalik.eth)
+              - text: "0x4f3f9061c42b3961c21fd8ab71695b73df34f21b"
+          - group "Select target EVM networks" [ref=e482]:
+            - button "Toggle Ethereum network" [pressed] [ref=e483] [cursor=pointer]:
+              - generic [ref=e485]: ETH
+            - button "Toggle Base network" [pressed] [ref=e486] [cursor=pointer]:
+              - generic [ref=e488]: BASE
+            - button "Toggle Arbitrum network" [pressed] [ref=e489] [cursor=pointer]:
+              - generic [ref=e491]: ARB
+            - button "Toggle Optimism network" [pressed] [ref=e492] [cursor=pointer]:
+              - generic [ref=e494]: OP
+            - button "Scan wallet address" [ref=e495] [cursor=pointer]:
+              - generic [ref=e496]: SCAN
+    - generic [ref=e499]:
+      - generic "Dashboard sections; scroll horizontally for more tabs" [ref=e500]:
+        - tablist "Wallet dashboard sections" [ref=e501]:
+          - tab "BEHAVIORAL DNA" [selected] [ref=e502] [cursor=pointer]
+          - tab "FLOW GRAPH" [ref=e504] [cursor=pointer]
+          - tab "PROTOCOLS" [ref=e506] [cursor=pointer]
+          - tab "GAS FEES" [ref=e508] [cursor=pointer]
+          - tab "TRANSFERS" [ref=e510] [cursor=pointer]
+          - tab "APPROVALS" [ref=e512] [cursor=pointer]
+      - tabpanel "BEHAVIORAL DNA" [ref=e514]:
+        - generic [ref=e515]:
+          - generic [ref=e516]:
+            - generic [ref=e517]: 🪪
+            - generic [ref=e519]:
+              - generic [ref=e520]:
+                - heading "0x4f3f...f21b" [level=3] [ref=e521]
+                - paragraph [ref=e522]: Universal Web3 & Web2 Social Identity Graph
+              - generic [ref=e523]:
+                - generic [ref=e524]: Other resolved names
+                - generic [ref=e525]: "ethereum: 0x4f3f9061c42b3961c21fd8ab71695b73df34f21b"
+            - generic [ref=e526]:
+              - generic "0x4f3f9061c42b3961c21fd8ab71695b73df34f21b" [ref=e527]
+              - button "Copy wallet address 0x4f3f9061c42b3961c21fd8ab71695b73df34f21b" [ref=e528] [cursor=pointer]
+              - status [ref=e532]
+          - generic [ref=e533]:
+            - heading "Connected accounts" [level=4] [ref=e534]
+            - generic [ref=e535]: No public Twitter/X, Discord, GitHub, Farcaster, or Lens profiles linked to this address.
+        - generic [ref=e536]:
+          - generic [ref=e541]:
+            - generic [ref=e542]:
+              - generic [ref=e543]: SYBIL PROBABILITY
+              - generic [ref=e544]: 90%
+              - generic [ref=e545]: High Sybil Risk
+            - paragraph [ref=e546]: No transaction history detected. Fresh / unverified wallet.
+          - generic [ref=e547]:
+            - generic [ref=e548]:
+              - generic [ref=e549]: LayerZero Sybil
+              - generic [ref=e552]: CLEAN
+            - generic [ref=e553]:
+              - generic [ref=e554]: Hop Protocol
+              - generic [ref=e557]: CLEAN
+            - generic [ref=e558]:
+              - generic [ref=e559]: Umbra Mixer
+              - generic [ref=e562]: CLEAN
+            - generic [ref=e563]:
+              - generic [ref=e564]: OFAC Sanctions
+              - generic [ref=e567]: CLEAN
+            - generic [ref=e568]:
+              - generic [ref=e569]: Trusta MEDIA
+              - generic [ref=e572]: FLAGGED
+        - generic [ref=e573]:
+          - generic [ref=e574]:
+            - generic [ref=e575]:
+              - generic [ref=e576]: PERSONA IDENTITY
+              - generic [ref=e577]: 🧬
+              - generic [ref=e579]:
+                - heading "0x4f3f...f21b" [level=3] [ref=e580]
+                - generic [ref=e581]: NEW WALLET
+              - generic [ref=e582]:
+                - link "Debank" [ref=e583] [cursor=pointer]:
+                  - /url: https://debank.com/profile/0x4f3f9061c42b3961c21fd8ab71695b73df34f21b
+                - link "Etherscan" [ref=e584] [cursor=pointer]:
+                  - /url: https://etherscan.io/address/0x4f3f9061c42b3961c21fd8ab71695b73df34f21b
+              - generic [ref=e585]:
+                - generic [ref=e586]:
+                  - generic [ref=e587]: A+
+                  - generic [ref=e588]: WORST-CHAIN RISK GRADE
+                - generic [ref=e589]:
+                  - generic [ref=e590]: 90%
+                  - generic [ref=e591]: SYBIL PROB.
+            - generic [ref=e592]:
+              - generic [ref=e593]:
+                - generic [ref=e594]: SECURITY RATINGS
+                - generic [ref=e595]: Grade A
+              - generic [ref=e596]:
+                - generic [ref=e597]: "0"
+                - generic [ref=e598]: / 100 RISK
+              - generic [ref=e599]:
+                - generic [ref=e601]:
+                  - generic [ref=e602]: Worst-chain risk
+                  - generic [ref=e603]: Low
+                - generic [ref=e606]:
+                  - generic [ref=e607]: High-risk approvals
+                  - generic [ref=e608]: 0 count
+          - generic [ref=e611]:
+            - generic [ref=e612]:
+              - generic [ref=e613]:
+                - generic [ref=e614]: TRANSACTION HEATMAP (LTM)
+                - generic [ref=e615]: 0 Total Txs
+              - generic [ref=e616]: NO ACTIVITY RECORDED
+            - generic [ref=e617]:
+              - generic [ref=e618]: PROTOCOL IDENTITY BADGES
+              - paragraph [ref=e619]: NO DIRECT PROTOCOL BADGES DETECTED ON SCANNED CHAINS
+            - generic [ref=e620]:
+              - generic [ref=e621]:
+                - generic [ref=e622]: LIFETIME GAS
+                - generic [ref=e623]: 0.000 ETH
+                - generic [ref=e624]: Total Spent (≈ $0)
+              - generic [ref=e625]:
+                - generic [ref=e626]:
+                  - generic [ref=e627]: CHAIN ACTIVITY
+                  - generic [ref=e628]: COMPLETE
+                - paragraph [ref=e629]: NORMAL WALLET TRANSACTIONS BY SELECTED CHAIN
+                - generic [ref=e632]:
+                  - generic [ref=e633]: Ethereum
+                  - generic [ref=e636]: 0 TXS
+            - generic [ref=e637]:
+              - generic [ref=e638]:
+                - generic [ref=e639]: 6-DIMENSION QUANTITATIVE BREAKDOWN
+                - generic [ref=e640]: 0 Contracts · 1 Months
+              - generic [ref=e641]:
+                - generic [ref=e642]:
+                  - generic [ref=e643]:
+                    - generic [ref=e644]: DeFi Diversity
+                    - generic [ref=e645]: 0 / 100
+                  - paragraph [ref=e647]: 0 unique contracts across 0 categories
+                - generic [ref=e648]:
+                  - generic [ref=e649]:
+                    - generic [ref=e650]: Activity
+                    - generic [ref=e651]: 0 / 100
+                  - paragraph [ref=e653]: 0.0 txs/month avg
+                - generic [ref=e654]:
+                  - generic [ref=e655]:
+                    - generic [ref=e656]: Capital Efficiency
+                    - generic [ref=e657]: 0 / 100
+                  - paragraph [ref=e659]: $0 moved / $0 gas
+                - generic [ref=e660]:
+                  - generic [ref=e661]:
+                    - generic [ref=e662]: Risk Appetite
+                    - generic [ref=e663]: 0 / 100
+                  - paragraph [ref=e665]: 0.0% failed txs
+                - generic [ref=e666]:
+                  - generic [ref=e667]:
+                    - generic [ref=e668]: Maturity
+                    - generic [ref=e669]: 2 / 100
+                  - paragraph [ref=e672]: 1mo old, 0 active months
+                - generic [ref=e673]:
+                  - generic [ref=e674]:
+                    - generic [ref=e675]: Network Breadth
+                    - generic [ref=e676]: 0 / 100
+                  - paragraph [ref=e678]: 0 unique counterparties
+          - generic [ref=e679]:
+            - generic [ref=e680]:
+              - generic [ref=e681]: RISK GRADE
+              - generic [ref=e682]: A
+              - paragraph [ref=e683]: No scored security factor exceeded the documented low-risk thresholds.
+              - generic [ref=e685]:
+                - generic [ref=e686]: Worst-chain risk score
+                - generic [ref=e687]: 0 / 100
+            - generic [ref=e689]:
+              - generic [ref=e690]: BEHAVIORAL RADAR
+              - 'img "Wallet behavioral scores. DeFi Diversity: 0 out of 100; Activity: 0 out of 100; Capital Eff.: 0 out of 100; Risk Appetite: 0 out of 100; Maturity: 2 out of 100; Cross-Chain: 0 out of 100" [ref=e691]':
+                - generic [ref=e692]: "Wallet behavioral radar chart. DeFi Diversity: 0 out of 100; Activity: 0 out of 100; Capital Eff.: 0 out of 100; Risk Appetite: 0 out of 100; Maturity: 2 out of 100; Cross-Chain: 0 out of 100"
+                - application [ref=e696]:
+                  - generic [ref=e716]:
+                    - generic [ref=e717]: DeFi Diversity
+                    - generic [ref=e719]: Activity
+                    - generic [ref=e722]: Capital Eff.
+                    - generic [ref=e725]: Risk Appetite
+                    - generic [ref=e727]: Maturity
+                    - generic [ref=e730]: Cross-Chain
+              - generic [ref=e733]:
+                - generic [ref=e736]:
+                  - text: "DeFi Diversity:"
+                  - generic [ref=e737]: 0/100
+                - generic [ref=e740]:
+                  - text: "Activity:"
+                  - generic [ref=e741]: 0/100
+                - generic [ref=e744]:
+                  - text: "Capital Eff.:"
+                  - generic [ref=e745]: 0/100
+            - generic [ref=e746]:
+              - generic [ref=e747]: RISK FACTOR DECOMPOSITION
+              - generic [ref=e750]:
+                - generic [ref=e751]:
+                  - generic [ref=e752]: Clean History
+                  - generic [ref=e758]: "+0"
+                - paragraph [ref=e759]: No configured risk factor crossed its scoring threshold across the scanned chain.
+  - contentinfo [ref=e218]:
+    - generic [ref=e219]:
+      - generic [ref=e220]:
+        - paragraph [ref=e221]: WalletGenome
+        - paragraph [ref=e222]: Read-only, evidence-aware EVM wallet analytics. No wallet connection or signature required.
+      - navigation "Wallet analytics topics" [ref=e223]:
+        - link "Methodology" [ref=e224] [cursor=pointer]:
+          - /url: /docs
+        - link "EVM Wallet Analytics" [ref=e225] [cursor=pointer]:
+          - /url: /evm-wallet-analytics
+        - link "Crypto Wallet Risk Checker" [ref=e226] [cursor=pointer]:
+          - /url: /crypto-wallet-risk-checker
+        - link "Token Approval Checker" [ref=e227] [cursor=pointer]:
+          - /url: /token-approval-checker
+        - link "Sybil Wallet Analysis" [ref=e228] [cursor=pointer]:
+          - /url: /sybil-wallet-analysis
+        - link "Multi-Chain Wallet Forensics" [ref=e229] [cursor=pointer]:
+          - /url: /multi-chain-wallet-forensics
+  - alert [ref=e230]

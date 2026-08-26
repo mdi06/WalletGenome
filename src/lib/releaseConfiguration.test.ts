@@ -48,4 +48,29 @@ describe('release verification configuration', () => {
     assert.doesNotMatch(nextConfig, /ignoreDuringBuilds/);
     assert.doesNotMatch(nextConfig, /ignoreBuildErrors/);
   });
+
+  it('applies baseline security headers without disabling static rendering', () => {
+    const nextConfig = readFileSync(join(process.cwd(), 'next.config.ts'), 'utf8');
+
+    assert.match(nextConfig, /Content-Security-Policy/);
+    assert.match(nextConfig, /frame-ancestors 'none'/);
+    assert.match(nextConfig, /X-Content-Type-Options/);
+    assert.match(nextConfig, /X-Frame-Options/);
+    assert.match(nextConfig, /Referrer-Policy/);
+    assert.match(nextConfig, /Permissions-Policy/);
+    assert.doesNotMatch(nextConfig, /nonce/);
+  });
+
+  it('declares every API route on the intended Node.js runtime', () => {
+    const routeFiles = [
+      'src/app/api/scan/route.ts',
+      'src/app/api/batch-scan/route.ts',
+      'src/app/api/known-wallets/route.ts',
+    ];
+
+    for (const routeFile of routeFiles) {
+      const source = readFileSync(join(process.cwd(), routeFile), 'utf8');
+      assert.match(source, /export const runtime = ['"]nodejs['"]/);
+    }
+  });
 });
