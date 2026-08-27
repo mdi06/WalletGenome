@@ -132,7 +132,7 @@ export default function SiteHeader({
         </button>
       </div>
 
-      <div className="flex w-full min-w-0 flex-col gap-2 md:w-auto md:flex-row md:items-center md:justify-end md:gap-2">
+      <div className={`${!isMenuOpen && !showIndexingStatus ? 'hidden md:flex' : 'flex'} w-full min-w-0 flex-col gap-2 md:w-auto md:flex-row md:items-center md:justify-end md:gap-2`}>
         {showIndexingStatus && (
           <span
             className={`badge-3d order-first inline-flex min-h-11 items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider ${status.badgeClassName} md:order-last md:min-h-9 md:py-1`}

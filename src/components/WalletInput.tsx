@@ -43,12 +43,11 @@ export default function WalletInput({ onScan, isLoading, initialAddress, initial
   return (
     <div className="space-y-2">
       {/* ── 3D Tactile Input Console ── */}
-      <div className={`card-3d min-h-[232px] min-w-0 transition-all px-3 sm:px-6 md:min-h-0 md:px-5 py-3.5 flex flex-col md:flex-row items-center justify-center md:justify-between gap-3 ${
-        isLoading ? 'border-[#ff5500] ring-2 ring-[#ff5500]/30' : 'border-[#c2c2c2]'
-      }`}>
-        
+      <div className={`card-3d max-md:!bg-transparent max-md:!border-transparent max-md:!shadow-none max-md:!p-0 max-md:!min-h-0 min-h-[232px] min-w-0 transition-all px-3 sm:px-6 md:min-h-0 md:px-5 py-3.5 flex flex-col md:flex-row items-center justify-center md:justify-between gap-3 ${isLoading ? 'border-[#ff5500] ring-2 ring-[#ff5500]/30' : 'border-[#c2c2c2]'
+        }`}>
+
         {/* Left: Search Icon & Recessed Address Input Well */}
-        <div className="well-recessed-light flex w-full max-w-[288px] items-center gap-3 px-3 py-2 focus-within:border-[#963300] focus-within:ring-2 focus-within:ring-[#963300]/30 focus-within:ring-offset-1 md:max-w-none md:flex-1">
+        <div className="well-recessed-light flex w-full items-center gap-3 px-3 py-2 focus-within:border-[#963300] focus-within:ring-2 focus-within:ring-[#963300]/30 focus-within:ring-offset-1 md:max-w-none md:flex-1">
           <Search size={18} aria-hidden="true" className={`flex-shrink-0 transition-colors ${isLoading ? 'text-orange-ink' : 'text-gray-500'}`} />
           <label htmlFor="wallet-address-input" className="sr-only">
             Enter EVM address (0x...) or ENS name (vitalik.eth)
@@ -72,7 +71,7 @@ export default function WalletInput({ onScan, isLoading, initialAddress, initial
         </div>
 
         {/* Right: Network Filter Pills & 3D Scan Action Button */}
-        <div role="group" aria-label="Select target EVM networks" className="flex w-full max-w-[288px] min-w-0 items-center gap-2 flex-wrap justify-center md:w-auto md:max-w-none md:flex-nowrap md:justify-end">
+        <div role="group" aria-label="Select target EVM networks" className="flex w-full min-w-0 items-center gap-2 flex-wrap justify-center md:w-auto md:max-w-none md:flex-nowrap md:justify-end">
           {SUPPORTED_CHAIN_IDS.map(id => {
             const c = CHAINS[id];
             const isSelected = selectedChains.includes(id);
@@ -84,11 +83,10 @@ export default function WalletInput({ onScan, isLoading, initialAddress, initial
                 aria-label={`Toggle ${c.name} network`}
                 disabled={isLoading}
                 onClick={() => toggleChain(id)}
-                className={`flex-1 md:flex-none justify-center min-h-11 md:min-h-9 text-xs font-bold px-1.5 sm:px-3 md:px-2.5 py-1.5 md:py-1 cursor-pointer flex items-center gap-1 sm:gap-1.5 ${
-                  isSelected
+                className={`flex-1 md:flex-none justify-center min-h-11 md:min-h-9 text-xs font-bold px-1.5 sm:px-3 md:px-2.5 py-1.5 md:py-1 cursor-pointer flex items-center gap-1 sm:gap-1.5 ${isSelected
                     ? 'btn-3d-black text-white'
                     : 'btn-3d-neutral text-[#4b5563]'
-                } ${isLoading ? 'opacity-80' : ''}`}
+                  } ${isLoading ? 'opacity-80' : ''}`}
               >
                 <span aria-hidden="true" className={isSelected ? 'led-live rounded-full' : 'w-1.5 h-1.5 rounded-full bg-gray-400'} />
                 <span>{c.shortName}</span>
@@ -102,11 +100,10 @@ export default function WalletInput({ onScan, isLoading, initialAddress, initial
             aria-busy={isLoading}
             onClick={() => handleScan()}
             disabled={isLoading}
-            className={`w-full sm:w-auto sm:ml-1.5 min-h-11 justify-center font-mono font-black text-xs px-5 py-2.5 flex items-center gap-2 cursor-pointer select-none ${
-              isLoading
+            className={`w-full sm:w-auto sm:ml-1.5 min-h-11 justify-center font-mono font-black text-xs px-5 py-2.5 flex items-center gap-2 cursor-pointer select-none ${isLoading
                 ? 'btn-3d-orange animate-pulse-glow'
                 : 'btn-3d-orange'
-            }`}
+              }`}
           >
             {isLoading ? (
               <>

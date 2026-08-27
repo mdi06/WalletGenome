@@ -92,7 +92,7 @@ export default function Home() {
   };
 
   return (
-    <main className="min-w-0 overflow-x-clip max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-5 sm:space-y-6 lg:space-y-5">
+    <main className="min-w-0 overflow-x-clip max-w-[1400px] mx-auto p-4 sm:p-6 lg:p-8 space-y-5 sm:space-y-6 lg:space-y-5">
       <SiteHeader
         activePage="scanner"
         indexingStatus={indexingStatus}

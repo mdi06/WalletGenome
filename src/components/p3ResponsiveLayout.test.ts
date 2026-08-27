@@ -20,7 +20,7 @@ describe('P3 mobile layout contracts', () => {
 
   it('keeps the primary wallet scan action full-width on small screens', () => {
     const markup = renderToStaticMarkup(createElement(WalletInput, {
-      onScan: () => {},
+      onScan: () => { },
       isLoading: false,
     }));
 
@@ -42,7 +42,7 @@ describe('P3 mobile layout contracts', () => {
 
   it('renders the wallet search input empty by default', () => {
     const markup = renderToStaticMarkup(createElement(WalletInput, {
-      onScan: () => {},
+      onScan: () => { },
       isLoading: false,
     }));
 

@@ -175,7 +175,7 @@ export default function BulkScanInput({ onScanCluster, isLoading }: Props) {
 
       {/* ── Bottom Controls Row: Chains & Scan Action ── */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-1">
-        
+
         {/* Network Selector Pills */}
         <div role="group" aria-label="Select target EVM networks for cluster" className="flex items-center gap-1 md:gap-1.5 flex-wrap">
           <span className="text-[11px] font-extrabold text-[#4b5563] uppercase pr-1">
@@ -192,11 +192,10 @@ export default function BulkScanInput({ onScanCluster, isLoading }: Props) {
                 aria-label={`Toggle ${c.name} network`}
                 disabled={isLoading}
                 onClick={() => toggleChain(id)}
-                className={`min-h-11 md:min-h-9 text-[10px] md:text-xs font-bold px-2 md:px-2.5 py-1 cursor-pointer flex items-center gap-1 md:gap-1.5 ${
-                  isSelected
+                className={`min-h-11 md:min-h-9 text-[10px] md:text-xs font-bold px-2 md:px-2.5 py-1 cursor-pointer flex items-center gap-1 md:gap-1.5 ${isSelected
                     ? 'btn-3d-black text-white'
                     : 'btn-3d-neutral text-[#4b5563]'
-                }`}
+                  }`}
               >
                 <span aria-hidden="true" className={isSelected ? 'led-live rounded-full' : 'w-1.5 h-1.5 rounded-full bg-gray-400'} />
                 <span>{c.shortName}</span>
@@ -210,11 +209,10 @@ export default function BulkScanInput({ onScanCluster, isLoading }: Props) {
           type="button"
           onClick={handleSubmit}
           disabled={isLoading || parsedInput.validAddresses.length === 0 || hasRejectedEntries}
-          className={`min-h-11 font-mono font-black text-xs px-5 py-2.5 flex items-center justify-center gap-2 cursor-pointer select-none text-white ${
-            isLoading
+          className={`min-h-11 font-mono font-black text-xs px-5 py-2.5 flex items-center justify-center gap-2 cursor-pointer select-none text-white ${isLoading
               ? 'btn-3d-orange animate-pulse-glow'
               : 'btn-3d-orange disabled:opacity-50'
-          }`}
+            }`}
         >
           {isLoading ? (
             <>

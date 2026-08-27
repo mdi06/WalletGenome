@@ -248,14 +248,14 @@ export default function DocsPage() {
   };
 
   return (
-    <main className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-32 lg:pb-6 space-y-8">
+    <main className="max-w-[1400px] mx-auto p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-8">
       <SiteHeader activePage="docs" indexingStatus="ready" showIndexingStatus={false} />
       <div aria-live="polite" className="sr-only" role="status">{copyStatus}</div>
 
       {/* ── Hero Header ── */}
-      <div className="pt-4 pb-4 border-b border-[#c8c8c8] space-y-4">
-        <div className="badge-3d inline-flex items-center gap-2 px-3 py-1 text-xs font-mono font-bold text-[#0a0a0a]">
-          <BookOpen size={13} className="text-orange-ink" />
+      <div className="pt-2 sm:pt-4 pb-4 border-b border-[#c8c8c8] flex flex-col items-center text-center sm:items-start sm:text-left gap-4">
+        <div className="badge-3d inline-flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 px-3 py-2 sm:py-1 text-xs font-mono font-bold text-[#0a0a0a]">
+          <BookOpen size={13} className="text-orange-ink shrink-0" />
           <span>ENGINEERING DOCUMENTATION & ALGORITHMIC METHODOLOGY</span>
         </div>
         <h1 className="text-3xl sm:text-5xl font-black uppercase tracking-tight text-[#0a0a0a] leading-tight text-balance">
@@ -266,15 +266,15 @@ export default function DocsPage() {
         </p>
         <Link
           href="/"
-          className="inline-flex min-h-11 items-center gap-1.5 text-xs font-black uppercase tracking-wider text-orange-ink underline decoration-1 underline-offset-4 hover:text-[#0a0a0a]"
+          className="inline-flex min-h-11 items-center justify-center sm:justify-start gap-1.5 text-xs font-black uppercase tracking-wider text-orange-ink underline decoration-1 underline-offset-4 hover:text-[#0a0a0a]"
         >
           <Search size={13} aria-hidden="true" />
           <span>Live scanner available</span>
         </Link>
 
         {/* Live Search & Filter */}
-        <div className="pt-2 max-w-xl">
-          <label htmlFor="docs-topic-filter" className="mb-1.5 block text-[10px] font-extrabold uppercase tracking-wider text-[#4b5563]">
+        <div className="pt-2 max-w-xl w-full text-left">
+          <label htmlFor="docs-topic-filter" className="mb-1.5 block text-[10px] font-extrabold uppercase tracking-wider text-[#4b5563] text-center sm:text-left">
             Filter documentation topics
           </label>
           <div className="relative flex items-center well-recessed-light focus-within:border-[#963300] focus-within:ring-2 focus-within:ring-[#963300]/30 focus-within:ring-offset-1">
@@ -322,22 +322,20 @@ export default function DocsPage() {
 
       {/* ── Compact Mobile Documentation Index ── */}
       <details id="mobile-docs-index" ref={mobileDocsIndexRef} className="lg:hidden card-3d overflow-hidden p-3">
-        <summary ref={mobileDocsIndexSummaryRef} className="group flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 px-2 py-1 text-xs font-black uppercase tracking-wider text-[#0a0a0a] outline-none focus-visible:outline-2 focus-visible:outline-offset-[-4px] focus-visible:outline-[#963300] [&::-webkit-details-marker]:hidden">
-          <span className="flex min-w-0 flex-col items-start gap-0.5">
-            <span className="flex items-center gap-1.5">
-              <Compass size={14} className="shrink-0 text-orange-ink" aria-hidden="true" />
-              <span>TABLE OF CONTENTS</span>
-            </span>
-            <span className="max-w-full truncate pl-5.5 text-[10px] font-mono font-bold normal-case tracking-normal text-[#6b7280]">
-              {activeSectionDefinition.title}
-            </span>
+        <summary ref={mobileDocsIndexSummaryRef} className="group flex flex-col items-center text-center gap-2 px-3 py-2 cursor-pointer list-none outline-none focus-visible:outline-2 focus-visible:outline-offset-[-4px] focus-visible:outline-[#963300] [&::-webkit-details-marker]:hidden">
+          <span className="flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-[#0a0a0a]">
+            <Compass size={14} className="shrink-0 text-orange-ink" aria-hidden="true" />
+            <span>TABLE OF CONTENTS</span>
           </span>
-          <span className="flex shrink-0 items-center gap-2 text-[10px] font-mono text-[#4b5563]">
+          <span className="block max-w-full truncate text-[10px] font-mono font-bold text-[#6b7280]">
+            {activeSectionDefinition.title}
+          </span>
+          <span className="flex shrink-0 items-center justify-center gap-2 text-[10px] font-mono text-[#4b5563]">
             <span>{filteredSections.length} TOPICS</span>
             <ChevronDown size={15} aria-hidden="true" className="transition-transform group-open:rotate-180" />
           </span>
         </summary>
-        <nav aria-label="Documentation sections" className="mt-2 border-t border-[#c8c8c8] pt-2">
+        <nav aria-label="Documentation sections" className="mt-1 border-t border-[#c8c8c8] pt-2">
           <div className="grid gap-1">
             {filteredSections.length > 0 ? (
               filteredSections.map(s => {
@@ -348,11 +346,10 @@ export default function DocsPage() {
                     key={s.id}
                     href={`#${s.id}`}
                     onClick={() => setActiveSection(s.id)}
-                    className={`flex min-h-11 items-center gap-2 px-3 py-2 text-xs font-bold transition-colors ${
-                      isSelected
+                    className={`flex min-h-11 items-center gap-2 px-3 py-2 text-xs font-bold transition-colors ${isSelected
                         ? 'bg-[#0a0a0a] text-white'
                         : 'text-[#0a0a0a] hover:bg-[#f3f4f6]'
-                    }`}
+                      }`}
                   >
                     <IconComponent size={14} className={`shrink-0 ${isSelected ? 'text-[#ff5500]' : 'text-orange-ink'}`} aria-hidden="true" />
                     <span className="min-w-0 flex-1 line-clamp-2 whitespace-normal break-words leading-snug">{s.title}</span>
@@ -388,7 +385,7 @@ export default function DocsPage() {
 
       {/* ── Main Layout: Sidebar Navigation + Content ── */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-0 items-start">
-        
+
         {/* ── Left Sticky Sidebar: Table of Contents ── */}
         <aside className="hidden lg:col-span-4 lg:sticky lg:top-6 lg:block lg:border-r lg:border-[#c8c8c8] lg:pr-8 space-y-8">
           <section aria-labelledby="docs-index-heading" className="space-y-4">
@@ -404,33 +401,32 @@ export default function DocsPage() {
 
             <div className="space-y-3 max-h-[70vh] overflow-y-auto pr-1">
               {filteredSections.length > 0 ? filteredSections.map(s => {
-                  const IconComponent = s.icon;
-                  const isSelected = activeSection === s.id;
-                  return (
-                    <a
-                      key={s.id}
-                      href={`#${s.id}`}
-                      onClick={() => setActiveSection(s.id)}
-                      className={`block min-h-11 p-3 text-xs font-bold transition-all ${
-                        isSelected
-                          ? 'btn-3d-black text-white'
-                          : 'card-3d-interactive text-[#0a0a0a]'
+                const IconComponent = s.icon;
+                const isSelected = activeSection === s.id;
+                return (
+                  <a
+                    key={s.id}
+                    href={`#${s.id}`}
+                    onClick={() => setActiveSection(s.id)}
+                    className={`block min-h-11 p-3 text-xs font-bold transition-all ${isSelected
+                        ? 'btn-3d-black text-white'
+                        : 'card-3d-interactive text-[#0a0a0a]'
                       }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <IconComponent size={14} className={`flex-shrink-0 ${isSelected ? 'text-[#ff5500]' : 'text-orange-ink'}`} />
-                        <span className="truncate">{s.title}</span>
-                      </div>
-                      <div className={`text-[10px] font-mono mt-1 truncate pl-5.5 ${isSelected ? 'text-gray-300' : 'text-[#6b7280]'}`}>
-                        {s.category}
-                      </div>
-                    </a>
-                  );
-                }) : (
-                  <p role="status" className="px-3 py-3 text-xs font-medium text-[#4b5563]">
-                    No documentation topics match this filter.
-                  </p>
-                )}
+                  >
+                    <div className="flex items-center gap-2">
+                      <IconComponent size={14} className={`flex-shrink-0 ${isSelected ? 'text-[#ff5500]' : 'text-orange-ink'}`} />
+                      <span className="truncate">{s.title}</span>
+                    </div>
+                    <div className={`text-[10px] font-mono mt-1 truncate pl-5.5 ${isSelected ? 'text-gray-300' : 'text-[#6b7280]'}`}>
+                      {s.category}
+                    </div>
+                  </a>
+                );
+              }) : (
+                <p role="status" className="px-3 py-3 text-xs font-medium text-[#4b5563]">
+                  No documentation topics match this filter.
+                </p>
+              )}
             </div>
           </section>
 
@@ -465,7 +461,7 @@ export default function DocsPage() {
         <div className="lg:col-span-8 lg:pl-8 flex flex-col gap-12 divide-y divide-[#c8c8c8]">
           <section id="reporting-contract" className="space-y-5 text-[#0a0a0a]">
             <div className="space-y-1 border-b border-[#c8c8c8] pb-3">
-              <span className="badge-3d text-[10px] font-mono font-black text-orange-ink uppercase tracking-wider px-2 py-0.5">
+              <span className="badge-3d text-[10px] font-mono font-black text-orange-ink uppercase tracking-wider py-0.5">
                 CANONICAL API CONTRACT
               </span>
               <h2 className="text-xl sm:text-2xl font-black uppercase pt-1">Reporting metric definitions</h2>
@@ -509,14 +505,14 @@ export default function DocsPage() {
               </table>
             </div>
           </section>
-          
+
           {/* ========================================================================= */}
           {/* 1. PIPELINE ARCHITECTURE */}
           {/* ========================================================================= */}
           <section id="pipeline-architecture" className="pt-10 space-y-5 text-[#0a0a0a]">
             <div className="flex items-center justify-between border-b border-[#c8c8c8] pb-3">
               <div className="space-y-1">
-                <span className="badge-3d text-[10px] font-mono font-black text-orange-ink uppercase tracking-wider px-2 py-0.5">
+                <span className="badge-3d text-[10px] font-mono font-black text-orange-ink uppercase tracking-wider py-0.5">
                   SECTION 01 · DATA PIPELINE
                 </span>
                 <h2 className="text-xl sm:text-2xl font-black uppercase text-[#0a0a0a] pt-1">
@@ -543,7 +539,7 @@ export default function DocsPage() {
                 DUAL-GATEWAY FAILOVER WORKFLOW
               </div>
               <div className="bg-[#0a0a0a] text-green-400 p-3.5 text-[11px] leading-relaxed overflow-x-auto whitespace-pre border border-[#222222] shadow-inner">
-{`Client Request (Single or Cluster Batch)
+                {`Client Request (Single or Cluster Batch)
       │
       ▼
 ┌─────────────────────────────────────────────────────────────┐
@@ -590,7 +586,7 @@ export default function DocsPage() {
           <section id="calldata-categorization" className="pt-10 space-y-5 text-[#0a0a0a]">
             <div className="flex items-center justify-between border-b border-[#c8c8c8] pb-3">
               <div className="space-y-1">
-                <span className="badge-3d text-[10px] font-mono font-black text-orange-ink uppercase tracking-wider px-2 py-0.5">
+                <span className="badge-3d text-[10px] font-mono font-black text-orange-ink uppercase tracking-wider py-0.5">
                   SECTION 02 · NORMALIZATION & GAS
                 </span>
                 <h2 className="text-xl sm:text-2xl font-black uppercase text-[#0a0a0a] pt-1">
@@ -682,7 +678,7 @@ export default function DocsPage() {
           <section id="behavioral-fingerprint" className="pt-10 space-y-5 text-[#0a0a0a]">
             <div className="flex items-center justify-between border-b border-[#c8c8c8] pb-3">
               <div className="space-y-1">
-                <span className="badge-3d text-[10px] font-mono font-black text-orange-ink uppercase tracking-wider px-2 py-0.5">
+                <span className="badge-3d text-[10px] font-mono font-black text-orange-ink uppercase tracking-wider py-0.5">
                   SECTION 03 · BEHAVIORAL FORENSICS
                 </span>
                 <h2 className="text-xl sm:text-2xl font-black uppercase text-[#0a0a0a] pt-1">
@@ -704,7 +700,7 @@ export default function DocsPage() {
 
             {/* 6 Dimensions Breakdown */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 text-xs font-mono">
-              
+
               {/* Dim 1 */}
               <div className="card-3d p-4 space-y-2">
                 <div className="flex items-center justify-between flex-wrap gap-2">
@@ -808,7 +804,7 @@ export default function DocsPage() {
           <section id="risk-score-engine" className="pt-10 space-y-5 text-[#0a0a0a]">
             <div className="flex items-center justify-between border-b border-[#c8c8c8] pb-3">
               <div className="space-y-1">
-                <span className="badge-3d text-[10px] font-mono font-black text-orange-ink uppercase tracking-wider px-2 py-0.5">
+                <span className="badge-3d text-[10px] font-mono font-black text-orange-ink uppercase tracking-wider py-0.5">
                   SECTION 04 · SECURITY & AUDITING
                 </span>
                 <h2 className="text-xl sm:text-2xl font-black uppercase text-[#0a0a0a] pt-1">
@@ -891,7 +887,7 @@ export default function DocsPage() {
           <section id="sybil-radar-media" className="pt-10 space-y-5 text-[#0a0a0a]">
             <div className="flex items-center justify-between border-b border-[#c8c8c8] pb-3">
               <div className="space-y-1">
-                <span className="badge-3d text-[10px] font-mono font-black text-orange-ink uppercase tracking-wider px-2 py-0.5">
+                <span className="badge-3d text-[10px] font-mono font-black text-orange-ink uppercase tracking-wider py-0.5">
                   SECTION 05 · SYBIL & BLACKLIST DEFENSE
                 </span>
                 <h2 className="text-xl sm:text-2xl font-black uppercase text-[#0a0a0a] pt-1">
@@ -988,7 +984,7 @@ export default function DocsPage() {
           <section id="approvals-exposure-audit" className="pt-10 space-y-5 text-[#0a0a0a]">
             <div className="flex items-center justify-between border-b border-[#c8c8c8] pb-3">
               <div className="space-y-1">
-                <span className="badge-3d text-[10px] font-mono font-black text-orange-ink uppercase tracking-wider px-2 py-0.5">
+                <span className="badge-3d text-[10px] font-mono font-black text-orange-ink uppercase tracking-wider py-0.5">
                   SECTION 06 · TOKEN ALLOWANCES
                 </span>
                 <h2 className="text-xl sm:text-2xl font-black uppercase text-[#0a0a0a] pt-1">
@@ -1014,18 +1010,18 @@ export default function DocsPage() {
               </div>
               <div className="space-y-2 text-[11px]">
                 <div className="card-3d p-3">
-                  <strong>1. Calldata Spender Extraction:</strong><br/>
-                  Byte slice <code className="badge-3d px-1.5 py-0.2">input[34:74]</code> = 20-byte spender contract address.<br/>
+                  <strong>1. Calldata Spender Extraction:</strong><br />
+                  Byte slice <code className="badge-3d px-1.5 py-0.2">input[34:74]</code> = 20-byte spender contract address.<br />
                   Byte slice <code className="badge-3d px-1.5 py-0.2">input[74:138]</code> = 32-byte <code className="badge-3d px-1.5 py-0.2">uint256</code> allowance amount.
                 </div>
                 <div className="card-3d p-3">
-                  <strong>2. Allowance Classification:</strong><br/>
-                  • <code className="text-red-700 font-bold">Unlimited:</code> If amount starts with <code className="badge-3d px-1.5 py-0.2">ffff...</code> or equals $2^{256}-1$.<br/>
-                  • <code className="text-green-700 font-bold">Revoked:</code> If amount equals <code className="badge-3d px-1.5 py-0.2">0x0</code>.<br/>
+                  <strong>2. Allowance Classification:</strong><br />
+                  • <code className="text-red-700 font-bold">Unlimited:</code> If amount starts with <code className="badge-3d px-1.5 py-0.2">ffff...</code> or equals $2^{256}-1$.<br />
+                  • <code className="text-green-700 font-bold">Revoked:</code> If amount equals <code className="badge-3d px-1.5 py-0.2">0x0</code>.<br />
                   • <code className="text-blue-700 font-bold">Custom:</code> Specific finite integer allowance.
                 </div>
                 <div className="card-3d p-3">
-                  <strong>3. Net Holdings Reconstruction & Dollar Risk:</strong><br/>
+                  <strong>3. Net Holdings Reconstruction & Dollar Risk:</strong><br />
                   <div className="well-recessed-light p-2.5 font-mono text-xs mt-1.5">
                     <div>Reconstructed Token Balance = max(0, Σ(Inbound Transfers) - Σ(Outbound Transfers))</div>
                     <div>Exposed Units = min(Reconstructed Balance, Finite Allowance); unlimited approvals use the reconstructed balance.</div>
@@ -1043,7 +1039,7 @@ export default function DocsPage() {
           <section id="temporal-activity-heatmap" className="pt-10 space-y-5 text-[#0a0a0a]">
             <div className="flex items-center justify-between border-b border-[#c8c8c8] pb-3">
               <div className="space-y-1">
-                <span className="badge-3d text-[10px] font-mono font-black text-orange-ink uppercase tracking-wider px-2 py-0.5">
+                <span className="badge-3d text-[10px] font-mono font-black text-orange-ink uppercase tracking-wider py-0.5">
                   SECTION 07 · CADENCE & STREAKS
                 </span>
                 <h2 className="text-xl sm:text-2xl font-black uppercase text-[#0a0a0a] pt-1">
@@ -1068,7 +1064,7 @@ export default function DocsPage() {
                 <div className="font-black text-[#0a0a0a] uppercase">24×7 Heatmap Normalization</div>
                 <p className="text-[11px] text-[#4b5563] text-pretty">
                   Intensity per cell (day, hour) is normalized against maximum hourly volume:
-                  <br/>
+                  <br />
                   <code className="badge-3d px-1.5 py-0.5 font-bold mt-1 inline-block">Intensity(d, h) = Count(d, h) / max(Count)</code>
                 </p>
               </div>
@@ -1076,7 +1072,7 @@ export default function DocsPage() {
                 <div className="font-black text-[#0a0a0a] uppercase">O(N) Daily Streak Algorithm</div>
                 <p className="text-[11px] text-[#4b5563] text-pretty">
                   Calculates consecutive active transaction days by sorting calendar keys and measuring date deltas:
-                  <br/>
+                  <br />
                   <code className="badge-3d px-1.5 py-0.5 font-bold mt-1 inline-block">DeltaDays = (Time[i] - Time[i-1]) / 86400s</code>
                 </p>
               </div>
@@ -1089,7 +1085,7 @@ export default function DocsPage() {
           <section id="capital-cluster-topologies" className="pt-10 space-y-5 text-[#0a0a0a]">
             <div className="flex items-center justify-between border-b border-[#c8c8c8] pb-3">
               <div className="space-y-1">
-                <span className="badge-3d text-[10px] font-mono font-black text-orange-ink uppercase tracking-wider px-2 py-0.5">
+                <span className="badge-3d text-[10px] font-mono font-black text-orange-ink uppercase tracking-wider py-0.5">
                   SECTION 08 · NETWORK TOPOLOGIES
                 </span>
                 <h2 className="text-xl sm:text-2xl font-black uppercase text-[#0a0a0a] pt-1">
@@ -1119,17 +1115,17 @@ export default function DocsPage() {
               <div className="font-black text-[#0a0a0a] uppercase">Graph Layout Mathematics:</div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-[11px]">
                 <div className="card-3d p-3.5 space-y-1">
-                  <strong>1. Arkham 3-Column Topology:</strong><br/>
-                  • Column 1 (X=160): Inbound funding sources & CEX withdrawals.<br/>
-                  • Column 2 (X=550): User core address.<br/>
-                  • Column 3 (X=940): Destination DeFi protocols & recipient EOAs.<br/>
+                  <strong>1. Arkham 3-Column Topology:</strong><br />
+                  • Column 1 (X=160): Inbound funding sources & CEX withdrawals.<br />
+                  • Column 2 (X=550): User core address.<br />
+                  • Column 3 (X=940): Destination DeFi protocols & recipient EOAs.<br />
                   • Line widths: Volume-weighted stroke <code className="badge-3d px-1.5 py-0.2">W = min(8, 1.5 + log10(USD_Volume))</code>.
                 </div>
                 <div className="card-3d p-3.5 space-y-1">
-                  <strong>2. Cluster Radial Orbital Layout:</strong><br/>
-                  • Orbital Radius: <code className="badge-3d px-1.5 py-0.2">R = max(320, WalletCount × 24.5)</code> px.<br/>
-                  • Angle per wallet: <code className="badge-3d px-1.5 py-0.2">theta = (2π × i / N) - π/2</code>.<br/>
-                  • Coordinates: <code className="badge-3d px-1.5 py-0.2">X = Xc + R × cos(theta)</code>, <code className="badge-3d px-1.5 py-0.2">Y = Yc + R × sin(theta)</code>.<br/>
+                  <strong>2. Cluster Radial Orbital Layout:</strong><br />
+                  • Orbital Radius: <code className="badge-3d px-1.5 py-0.2">R = max(320, WalletCount × 24.5)</code> px.<br />
+                  • Angle per wallet: <code className="badge-3d px-1.5 py-0.2">theta = (2π × i / N) - π/2</code>.<br />
+                  • Coordinates: <code className="badge-3d px-1.5 py-0.2">X = Xc + R × cos(theta)</code>, <code className="badge-3d px-1.5 py-0.2">Y = Yc + R × sin(theta)</code>.<br />
                   • Shared Hubs placed at gravitational center with force links.
                 </div>
               </div>
@@ -1142,7 +1138,7 @@ export default function DocsPage() {
           <section id="decentralized-identity" className="pt-10 space-y-5 text-[#0a0a0a]">
             <div className="flex items-center justify-between border-b border-[#c8c8c8] pb-3">
               <div className="space-y-1">
-                <span className="badge-3d text-[10px] font-mono font-black text-orange-ink uppercase tracking-wider px-2 py-0.5">
+                <span className="badge-3d text-[10px] font-mono font-black text-orange-ink uppercase tracking-wider py-0.5">
                   SECTION 09 · SOCIAL GRAPH
                 </span>
                 <h2 className="text-xl sm:text-2xl font-black uppercase text-[#0a0a0a] pt-1">
@@ -1208,7 +1204,7 @@ export default function DocsPage() {
           <section id="complexity-matrix" className="pt-10 space-y-5 text-[#0a0a0a]">
             <div className="flex items-center justify-between border-b border-[#c8c8c8] pb-3">
               <div className="space-y-1">
-                <span className="badge-3d text-[10px] font-mono font-black text-orange-ink uppercase tracking-wider px-2 py-0.5">
+                <span className="badge-3d text-[10px] font-mono font-black text-orange-ink uppercase tracking-wider py-0.5">
                   SECTION 10 · TECHNICAL SPECIFICATIONS
                 </span>
                 <h2 className="text-xl sm:text-2xl font-black uppercase text-[#0a0a0a] pt-1">

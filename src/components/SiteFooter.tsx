@@ -3,7 +3,7 @@ import { SEO_LANDING_PAGES } from '@/lib/seo';
 
 export default function SiteFooter() {
   return (
-    <footer className="mx-auto max-w-[1400px] px-4 pb-8 pt-4 md:px-6 lg:px-8">
+    <footer className="mx-auto max-w-[1400px] p-4 sm:p-6 lg:p-8">
       <div className="flex flex-col gap-3 border-t border-[#c8c8c8] pt-5 text-xs text-[#4b5563] md:flex-row md:items-start md:justify-between">
         <div className="max-w-md space-y-1">
           <p className="font-black uppercase tracking-wider text-[#0a0a0a]">WalletGenome</p>

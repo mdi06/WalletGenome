@@ -23,14 +23,14 @@ export default function WelcomeGuide({ onSelectDemo }: Props) {
           </span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 pb-4 sm:grid sm:grid-cols-2 lg:grid-cols-4 sm:pb-0 sm:overflow-visible sm:snap-none">
           {DEMO_WALLETS.map(demo => (
             <button
               key={demo.slug}
               type="button"
               aria-label={`Load saved demo snapshot for ${demo.name}`}
               onClick={() => onSelectDemo(demo)}
-              className="card-3d-interactive p-5 text-left text-[#0a0a0a] space-y-3 flex flex-col justify-between group min-h-64"
+              className="card-3d-interactive p-5 text-left text-[#0a0a0a] space-y-3 flex flex-col justify-between group min-h-64 flex-shrink-0 w-[85vw] snap-start sm:w-auto sm:flex-shrink-1"
             >
               <span className="space-y-3 block">
                 <span className="flex items-center justify-between gap-2">
