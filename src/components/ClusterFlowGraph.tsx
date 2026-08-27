@@ -86,6 +86,7 @@ export default function ClusterFlowGraph({
   const [pan, setPan] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState<boolean>(false);
   const dragStartRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+  const rafRef = useRef<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   // ── Native Isolated Wheel Event to Prevent Page Scroll & Stutter ──
@@ -228,23 +229,36 @@ export default function ClusterFlowGraph({
 
   const activeLink = selectedLink || hoveredLink;
 
-  // ── Drag & Pan Handlers (Lag-Free) ──
-  const handleMouseDown = (e: React.MouseEvent) => {
+  // ── Drag & Pan Handlers (Pointer Events & RAF) ──
+  const handlePointerDown = (e: React.PointerEvent) => {
     if (e.button !== 0) return;
     setIsDragging(true);
+    e.currentTarget.setPointerCapture(e.pointerId);
     dragStartRef.current = { x: e.clientX - pan.x, y: e.clientY - pan.y };
   };
 
-  const handleMouseMove = (e: React.MouseEvent) => {
+  const handlePointerMove = (e: React.PointerEvent) => {
     if (!isDragging) return;
-    setPan({
-      x: e.clientX - dragStartRef.current.x,
-      y: e.clientY - dragStartRef.current.y,
+    if (rafRef.current !== null) return;
+    
+    rafRef.current = requestAnimationFrame(() => {
+      setPan({
+        x: e.clientX - dragStartRef.current.x,
+        y: e.clientY - dragStartRef.current.y,
+      });
+      rafRef.current = null;
     });
   };
 
-  const handleMouseUp = () => {
+  const handlePointerUp = (e: React.PointerEvent) => {
     setIsDragging(false);
+    if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    }
+    if (rafRef.current !== null) {
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = null;
+    }
   };
 
   const handleZoomIn = (e: React.MouseEvent) => {
@@ -288,10 +302,10 @@ export default function ClusterFlowGraph({
       {/* ── High-Performance Interactive Canvas Container ── */}
       <div
         ref={containerRef}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerUp}
         className={`relative bg-[#0d0f17] border border-[#cecece] shadow-inner overflow-hidden select-none touch-none ${
           isDragging ? 'cursor-grabbing' : 'cursor-grab'
         }`}

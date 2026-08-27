@@ -180,6 +180,8 @@ export default function InteractionsPanel({ results }: Props) {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setActiveView('protocols')}
+            aria-pressed={activeView === 'protocols'}
+            aria-controls="protocols-panel"
             className={`min-h-11 md:min-h-9 px-4 md:px-3 py-2 md:py-1.5 text-xs font-black cursor-pointer ${
               activeView === 'protocols'
                 ? 'btn-3d-black text-white'
@@ -190,6 +192,8 @@ export default function InteractionsPanel({ results }: Props) {
           </button>
           <button
             onClick={() => setActiveView('counterparties')}
+            aria-pressed={activeView === 'counterparties'}
+            aria-controls="protocols-panel"
             className={`min-h-11 md:min-h-9 px-4 md:px-3 py-2 md:py-1.5 text-xs font-black cursor-pointer ${
               activeView === 'counterparties'
                 ? 'btn-3d-black text-white'
@@ -200,7 +204,7 @@ export default function InteractionsPanel({ results }: Props) {
           </button>
         </div>
 
-        <div className="relative w-full sm:w-64 well-recessed-light">
+        <div className="relative w-full sm:w-64 well-recessed-light focus-within:border-[#963300] focus-within:ring-2 focus-within:ring-[#963300]/30 focus-within:ring-offset-1">
           <Search size={14} className="absolute left-3 top-3 text-gray-500" />
           <input
             type="text"
@@ -223,6 +227,7 @@ export default function InteractionsPanel({ results }: Props) {
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
+              aria-pressed={selectedCategory === cat}
               className={`min-h-11 text-xs font-bold px-3 py-1 md:min-h-9 md:px-2.5 cursor-pointer uppercase ${
                 selectedCategory === cat
                   ? 'btn-3d-orange text-[#0a0a0a]'
@@ -237,6 +242,7 @@ export default function InteractionsPanel({ results }: Props) {
 
       {/* ── Data Table Well ── */}
       <div
+        id="protocols-panel"
         className="horizontal-scroll-region well-recessed-light overflow-hidden overflow-x-auto"
         tabIndex={0}
         role="region"
@@ -257,21 +263,39 @@ export default function InteractionsPanel({ results }: Props) {
               </tr>
             </thead>
             <tbody className="divide-y divide-[#cecece] text-xs font-bold text-[#0a0a0a]">
-              {filteredProtocols.map((p, i) => {
-                const protocolKey = `${p.chainId}:${p.name}`;
-                const isExpanded = expandedProtocols.has(protocolKey);
-                const hasSubContracts = p.contracts && p.contracts.length > 1;
+              {filteredProtocols.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="py-12 text-center">
+                    <div className="flex flex-col items-center justify-center space-y-3">
+                      <span className="text-xs font-mono font-bold text-[#6b7280]">NO MATCHING PROTOCOLS FOUND</span>
+                      {(searchQuery !== '' || selectedCategory !== 'all') && (
+                        <button 
+                          onClick={() => { setSearchQuery(''); setSelectedCategory('all'); }}
+                          className="btn-3d-neutral px-4 py-2 text-[10px] font-black uppercase tracking-wider text-[#0a0a0a]"
+                        >
+                          Clear Filters
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                filteredProtocols.map((p, i) => {
+                  const protocolKey = `${p.chainId}:${p.name}`;
+                  const isExpanded = expandedProtocols.has(protocolKey);
+                  const hasSubContracts = p.contracts && p.contracts.length > 1;
+                  const isUnclassified = isUnclassifiedProtocol(p);
 
-                return (
-                  <React.Fragment key={protocolKey}>
-                    <tr className="hover:bg-[#d5d5d5] transition-colors">
-                      <td className="py-3.5 px-4 font-mono text-[#777777]">{i + 1}</td>
-                      <td className="py-3.5 px-4 font-extrabold text-[#0a0a0a] flex items-center gap-2">
-                        {p.name}
-                        {p.protocol !== p.name && (
-                          <span className="text-[10px] font-semibold text-[#555555]">({p.protocol})</span>
-                        )}
-                      </td>
+                  return (
+                    <React.Fragment key={protocolKey}>
+                      <tr className="hover:bg-[#d5d5d5] transition-colors">
+                        <td className="py-3.5 px-4 font-mono text-[#777777]">{i + 1}</td>
+                        <td className="py-3.5 px-4 font-extrabold text-[#0a0a0a] flex items-center gap-2">
+                          {isUnclassified ? 'Unclassified contracts' : p.name}
+                          {!isUnclassified && p.protocol !== p.name && (
+                            <span className="text-[10px] font-semibold text-[#555555]">({p.protocol})</span>
+                          )}
+                        </td>
                       <td className="py-3.5 px-4">
                         <span className="bg-[#d0d0d0] text-[#0a0a0a] text-[10px] font-bold px-2 py-0.5 uppercase">
                           {formatCategoryLabel(p.category)}
@@ -294,6 +318,7 @@ export default function InteractionsPanel({ results }: Props) {
                         {hasSubContracts ? (
                           <button
                             onClick={() => toggleExpand(protocolKey)}
+                            aria-pressed={isExpanded}
                             className="text-xs font-bold text-orange-ink hover:underline flex items-center gap-1 ml-auto cursor-pointer"
                           >
                             <span>{p.contracts.length} contracts</span>
@@ -348,7 +373,7 @@ export default function InteractionsPanel({ results }: Props) {
                     )}
                   </React.Fragment>
                 );
-              })}
+              }))}
             </tbody>
           </table>
         ) : (

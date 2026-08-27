@@ -1,4 +1,5 @@
 import type { ClusterScanResult } from '@/lib/types';
+import { unsuccessfulResponseError } from './scanClientError';
 
 interface RunClusterScanRequestOptions {
   addresses: string[];
@@ -18,8 +19,7 @@ export async function runClusterScanRequest({
   });
 
   if (!response.ok) {
-    const payload = await response.json().catch(() => null) as { error?: string } | null;
-    throw new Error(payload?.error || `HTTP ${response.status}`);
+    throw await unsuccessfulResponseError(response);
   }
 
   return response.json() as Promise<ClusterScanResult>;

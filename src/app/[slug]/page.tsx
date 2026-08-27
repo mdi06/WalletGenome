@@ -9,6 +9,7 @@ import {
   SEO_LANDING_PAGES,
   SITE_NAME,
 } from '@/lib/seo';
+import SiteHeader from '@/components/SiteHeader';
 
 export const dynamicParams = false;
 
@@ -84,22 +85,10 @@ export default async function SeoLandingPage({ params }: LandingPageProps) {
     <main className="max-w-[1120px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
       <JsonLd data={pageJsonLd} />
 
-      <header className="flex flex-wrap items-center justify-between gap-3">
-        <Link href="/" className="inline-flex min-h-11 items-center text-xl sm:text-2xl font-black tracking-tight text-black uppercase">
-          WALLET<span className="text-[#ff5500]">.</span>GENOME
-        </Link>
-        <nav aria-label="Primary" className="flex items-center gap-2">
-          <Link href="/docs" className="btn-3d-neutral inline-flex min-h-11 items-center px-3 py-1.5 text-xs font-bold text-[#0a0a0a]">
-            METHODOLOGY
-          </Link>
-          <Link href="/" className="btn-3d-black inline-flex min-h-11 items-center px-3 py-1.5 text-xs font-bold text-white">
-            OPEN SCANNER
-          </Link>
-        </nav>
-      </header>
+      <SiteHeader activePage="" indexingStatus="ready" showIndexingStatus={false} />
 
       <article className="space-y-8">
-        <section className="card-3d p-6 sm:p-10 space-y-5">
+        <section className="well-recessed-light p-6 sm:p-10 space-y-5">
           <p className="text-xs font-mono font-black tracking-wider text-orange-ink">{page.eyebrow}</p>
           <h1 className="max-w-4xl text-3xl sm:text-5xl font-black uppercase tracking-tight leading-tight text-[#0a0a0a]">
             {page.heading}
@@ -123,7 +112,7 @@ export default async function SeoLandingPage({ params }: LandingPageProps) {
           </h2>
           <div className="grid gap-4 md:grid-cols-3">
             {page.capabilities.map(capability => (
-              <div key={capability.title} className="card-3d p-5 space-y-2">
+              <div key={capability.title} className="p-5 space-y-2 border border-[#c8c8c8] bg-white">
                 <h3 className="text-sm font-black uppercase text-[#0a0a0a]">{capability.title}</h3>
                 <p className="text-xs leading-relaxed text-[#374151]">{capability.description}</p>
               </div>
@@ -132,7 +121,7 @@ export default async function SeoLandingPage({ params }: LandingPageProps) {
         </section>
 
         <div className="grid gap-5 md:grid-cols-2">
-          <section aria-labelledby="useful-for-heading" className="card-3d p-6 space-y-4">
+          <section aria-labelledby="useful-for-heading" className="well-recessed-light p-6 space-y-4">
             <h2 id="useful-for-heading" className="text-lg font-black uppercase text-[#0a0a0a]">Useful for</h2>
             <ul className="space-y-3 text-sm text-[#374151]">
               {page.usefulFor.map(item => (
@@ -144,7 +133,7 @@ export default async function SeoLandingPage({ params }: LandingPageProps) {
             </ul>
           </section>
 
-          <section aria-labelledby="limits-heading" className="card-3d p-6 space-y-4">
+          <section aria-labelledby="limits-heading" className="well-recessed-light p-6 space-y-4">
             <h2 id="limits-heading" className="text-lg font-black uppercase text-[#0a0a0a]">Important limits</h2>
             <ul className="space-y-3 text-sm text-[#374151]">
               {page.limitations.map(item => (
@@ -163,7 +152,7 @@ export default async function SeoLandingPage({ params }: LandingPageProps) {
           </h2>
           <div className="space-y-3">
             {page.faqs.map(faq => (
-              <details key={faq.question} className="card-3d p-5 group">
+              <details key={faq.question} className="p-5 group border border-[#c8c8c8] bg-white">
                 <summary className="cursor-pointer list-none text-sm font-black text-[#0a0a0a]">
                   {faq.question}
                 </summary>
@@ -173,7 +162,7 @@ export default async function SeoLandingPage({ params }: LandingPageProps) {
           </div>
         </section>
 
-        <aside aria-labelledby="related-heading" className="card-3d-dark p-6 space-y-4">
+        <aside aria-labelledby="related-heading" className="bg-[#121318] p-6 space-y-4">
           <h2 id="related-heading" className="text-sm font-black uppercase tracking-wider text-white">
             Related wallet-analysis topics
           </h2>

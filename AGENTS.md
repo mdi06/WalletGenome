@@ -55,7 +55,9 @@ Always verify changes with the appropriate commands:
 - **In-Memory Caching**: Respect cache TTLs for Sybil list syncs and historical price lookups to prevent redundant network overhead.
 
 ### UI & UX Aesthetics
-- **Dark Forensics Theme**: Maintain high-contrast dark aesthetic (slate/zinc dark backgrounds with glowing emerald, cyan, violet, and amber accents).
+- **Design Source of Truth**: Read `DESIGN.md` before UI changes. It records the current app's visual language and responsive rules; `DESIGN_AUDIT.md` records findings, not an alternative theme or automatic approval to redesign.
+- **Current Forensics Theme**: Preserve light gray page backgrounds, white cards, near-black text and structural controls, orange primary actions, sharp rectangular geometry, and restrained tactile shadows. Dark panels and semantic chart/status colors are local treatments, not a global dark theme.
+- **Shared Styles**: Reuse `src/app/globals.css` tokens and existing components. Keep component-specific sizing in component markup. Do not introduce a second palette; update `DESIGN.md` when the user approves a new shared design decision.
 - **Responsive & Accessible**: Ensure charts resize cleanly across mobile and desktop viewports, with legible tooltips and accessible color contrasts.
 
 ---

@@ -48,7 +48,7 @@ export default function WalletInput({ onScan, isLoading, initialAddress, initial
       }`}>
         
         {/* Left: Search Icon & Recessed Address Input Well */}
-        <div className="well-recessed-light flex w-full items-center gap-3 px-3 py-2 md:flex-1">
+        <div className="well-recessed-light flex w-full max-w-[288px] items-center gap-3 px-3 py-2 focus-within:border-[#963300] focus-within:ring-2 focus-within:ring-[#963300]/30 focus-within:ring-offset-1 md:max-w-none md:flex-1">
           <Search size={18} aria-hidden="true" className={`flex-shrink-0 transition-colors ${isLoading ? 'text-orange-ink' : 'text-gray-500'}`} />
           <label htmlFor="wallet-address-input" className="sr-only">
             Enter EVM address (0x...) or ENS name (vitalik.eth)
@@ -72,7 +72,7 @@ export default function WalletInput({ onScan, isLoading, initialAddress, initial
         </div>
 
         {/* Right: Network Filter Pills & 3D Scan Action Button */}
-        <div role="group" aria-label="Select target EVM networks" className="flex w-full min-w-0 items-center gap-2 flex-wrap justify-center md:w-auto md:flex-nowrap md:justify-end">
+        <div role="group" aria-label="Select target EVM networks" className="flex w-full max-w-[288px] min-w-0 items-center gap-2 flex-wrap justify-center md:w-auto md:max-w-none md:flex-nowrap md:justify-end">
           {SUPPORTED_CHAIN_IDS.map(id => {
             const c = CHAINS[id];
             const isSelected = selectedChains.includes(id);

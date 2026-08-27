@@ -1,7 +1,7 @@
 import type { DataAvailabilityStatus } from './types';
 
 export type ScanMode = 'single' | 'cluster';
-export type IndexingStatus = 'live' | 'saved-snapshot' | 'partial' | 'unavailable';
+export type IndexingStatus = 'ready' | 'scanning' | 'completed' | 'saved' | 'partial' | 'unavailable';
 
 interface IndexingStatusInput {
   scanMode: ScanMode;
@@ -9,6 +9,7 @@ interface IndexingStatusInput {
   singleStatus: DataAvailabilityStatus | null;
   clusterStatus: DataAvailabilityStatus | null;
   hasError: boolean;
+  isLoading: boolean;
 }
 
 interface DemoSnapshotNoticeInput {
@@ -31,12 +32,16 @@ export function getIndexingStatus({
   singleStatus,
   clusterStatus,
   hasError,
+  isLoading,
 }: IndexingStatusInput): IndexingStatus {
-  if (scanMode === 'single' && activeDemoSnapshot) return 'saved-snapshot';
+  if (isLoading) return 'scanning';
+  if (scanMode === 'single' && activeDemoSnapshot) return 'saved';
 
   const selectedStatus = scanMode === 'single' ? singleStatus : clusterStatus;
+  
   if (selectedStatus === 'unavailable' || (hasError && selectedStatus === null)) return 'unavailable';
   if (selectedStatus === 'partial') return 'partial';
+  if (selectedStatus === 'complete') return 'completed';
 
-  return 'live';
+  return 'ready';
 }

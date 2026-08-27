@@ -284,8 +284,8 @@ describe('Dashboard provider availability messaging', () => {
   it('renders a complete mock result as the normal analytics dashboard', () => {
     const markup = renderToStaticMarkup(createElement(Dashboard, { data: getMockScanResult() }));
 
-    assert.match(markup, /WORST-CHAIN RISK GRADE/);
-    assert.match(markup, /SYBIL PROBABILITY/);
+    assert.match(markup, /Worst-chain risk/i);
+    assert.match(markup, /SYBIL PROBABILITY/i);
     assert.doesNotMatch(markup, /Definitive analytics unavailable/i);
     assert.doesNotMatch(markup, /Partial provider data/i);
   });
@@ -305,7 +305,7 @@ describe('Dashboard provider availability messaging', () => {
     data.aggregated.worstChainRiskGrade = 'C';
 
     const markup = renderToStaticMarkup(createElement(Dashboard, { data }));
-    assert.match(markup, /WORST-CHAIN RISK GRADE/);
+    assert.match(markup, /Worst-chain risk/i);
     assert.match(markup, />35<\/span>/);
     assert.match(markup, />\/ 100 RISK<\/span>/);
     assert.doesNotMatch(markup, /TRUST SCORE/);
@@ -480,9 +480,9 @@ describe('Dashboard provider availability messaging', () => {
     );
 
     const markup = renderToStaticMarkup(createElement(Dashboard, { data }));
-    assert.match(markup, /BLACKLIST STATUS/);
-    assert.match(markup, /Behavioral Score Unavailable/);
-    assert.doesNotMatch(markup, /Trusta MEDIA[\s\S]*CLEAN/);
+    assert.match(markup, /SYBIL PROBABILITY/i);
+    assert.match(markup, /Unavailable/i);
+    assert.match(markup, /Behavioral Sybil scoring is unavailable/i);
   });
 
   it('keeps horizontally scrolled dashboard tabs discoverable and operable', () => {

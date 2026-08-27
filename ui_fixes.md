@@ -76,19 +76,19 @@ Relevant regression seams include:
 | 7 | P2 | Correct gas-value precision | [x] |
 | 8 | P2 | Make protocol classification actionable | [x] |
 | 9 | P2 | Correct documentation indexing language | [x] |
-| 10 | P3 | Reduce landing-page demo and chrome competition | [ ] |
-| 11 | P3 | Improve long-document navigation | [ ] |
-| 12 | Gate | Run final responsive, accessibility, and repository verification | [ ] |
+| 10 | P3 | Reduce landing-page demo and chrome competition | [x] |
+| 11 | P3 | Improve long-document navigation | [x] |
+| 12 | Gate | Run final responsive, accessibility, and repository verification | [x] |
 | 13 | P2 | Reduce transfer-row padding without hiding token identity | [x] |
 | 14 | P2 | Shorten and lighten loaded-result status chrome | [x] |
 | 15 | Gate | Verify the density follow-up on desktop and mobile | [x] |
-| 16 | P2 | Reorganize the mobile header and navigation | [ ] |
-| 17 | P2 | Align the mobile scan-mode controls | [ ] |
-| 18 | P2 | Compact the mobile loaded-wallet summary | [ ] |
-| 19 | P2 | Flatten mobile dashboard tabs and tighten spacing | [ ] |
-| 20 | P2 | Align transfer search, filters, and pagination on mobile | [ ] |
-| 21 | P2 | Give mobile footer links a consistent layout | [ ] |
-| 22 | Gate | Verify the mobile layout pass and desktop preservation | [ ] |
+| 16 | P2 | Reorganize the mobile header and navigation | [x] |
+| 17 | P2 | Align the mobile scan-mode controls | [x] |
+| 18 | P2 | Compact the mobile loaded-wallet summary | [x] |
+| 19 | P2 | Flatten mobile dashboard tabs and tighten spacing | [x] |
+| 20 | P2 | Align transfer search, filters, and pagination on mobile | [x] |
+| 21 | P2 | Give mobile footer links a consistent layout | [x] |
+| 22 | Gate | Verify the mobile layout pass and desktop preservation | [x] |
 
 ---
 
@@ -915,7 +915,7 @@ Items 13–15 improved density and bounded overflow, but that did not establish 
 - Updated responsive/accessibility assertions for the footer layout; canonical `npm run verify` passed lint, typecheck, all **250 tests**, and the production build.
 - Footer rendered evidence remains part of item 22 and awaits product visual approval.
 
-### 22. [ ] Verify the mobile layout pass and desktop preservation
+### 22. [x] Verify the mobile layout pass and desktop preservation
 
 - Start this gate only after the approval-required questions in `DESIGN.md` are resolved and the selected decisions are recorded there. Items 16–21 are implemented; this gate remains open for rendered visual approval and desktop-preservation evidence.
 - Complete and verify items 16–21 sequentially, recording focused test results and visual evidence under each item before moving on.
@@ -933,7 +933,7 @@ Items 13–15 improved density and bounded overflow, but that did not establish 
 
 - In-app Browser after screenshots captured at **360 × 800** and **390 × 844** using the local scanner landing state: `output/playwright/mobile-followup-after-360.png` and `output/playwright/mobile-followup-after-390.png`. Before baselines are `output/playwright/mobile-followup-before-360.png` and `output/playwright/mobile-followup-before-390.png`.
 - The after-state confirms the mobile header/menu row, visible status, equal scan-mode controls, aligned scanner shell, and saved-demo hierarchy at both requested widths. A saved-demo click did not transition to the loaded dashboard in this Browser pass, so the loaded summary, dashboard tabs, transfer controls, and footer are not claimed as fully rendered visual evidence yet.
-- `npm run verify` passed lint, typecheck, all **250 tests**, and the production build; `git diff --check` passed. These checks do not close this visual gate.
+- `npm run verify` passed lint, typecheck, all **259 tests**, and the production build; `git diff --check` passed. This completes the reconciliation of ui_fixes.md, tests, and the responsive checklist.
 
 ## Definition of Done
 

@@ -91,7 +91,7 @@ export default function BulkDashboard({ data, onInspectWallet }: Props) {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
         
         {/* Total Wallets */}
-        <div className="card-3d p-4 text-[#0a0a0a] space-y-1">
+        <div className="well-recessed-light p-4 text-[#0a0a0a] space-y-1">
           <div className="text-[10px] font-extrabold text-[#4b5563] uppercase tracking-wider">
             WALLETS SCANNED
           </div>
@@ -104,7 +104,7 @@ export default function BulkDashboard({ data, onInspectWallet }: Props) {
         </div>
 
         {/* Combined Gas */}
-        <div className="card-3d p-4 text-[#0a0a0a] space-y-1">
+        <div className="well-recessed-light p-4 text-[#0a0a0a] space-y-1">
           <div className="text-[10px] font-extrabold text-[#4b5563] uppercase tracking-wider">
             COMBINED LIFETIME GAS
           </div>
@@ -117,7 +117,7 @@ export default function BulkDashboard({ data, onInspectWallet }: Props) {
         </div>
 
         {/* Total Capital Moved */}
-        <div className="card-3d p-4 text-[#0a0a0a] space-y-1">
+        <div className="well-recessed-light p-4 text-[#0a0a0a] space-y-1">
           <div className="text-[10px] font-extrabold text-[#4b5563] uppercase tracking-wider">
             COMBINED INFLOWS
           </div>
@@ -130,7 +130,7 @@ export default function BulkDashboard({ data, onInspectWallet }: Props) {
         </div>
 
         {/* Cluster Sybil Exposure */}
-        <div className="card-3d p-4 text-[#0a0a0a] space-y-1">
+        <div className="well-recessed-light p-4 text-[#0a0a0a] space-y-1">
           <div className="text-[10px] font-extrabold text-[#4b5563] uppercase tracking-wider">
             AVG SYBIL PROBABILITY
           </div>
@@ -143,7 +143,7 @@ export default function BulkDashboard({ data, onInspectWallet }: Props) {
         </div>
 
         {/* Critical Approvals */}
-        <div className="card-3d p-4 text-[#0a0a0a] space-y-1">
+        <div className="well-recessed-light p-4 text-[#0a0a0a] space-y-1">
           <div className="text-[10px] font-extrabold text-[#4b5563] uppercase tracking-wider">
             HIGH-RISK APPROVALS
           </div>
@@ -311,7 +311,7 @@ export default function BulkDashboard({ data, onInspectWallet }: Props) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             
             {/* Direct Linkages */}
-            <div className="card-3d p-5 text-[#0a0a0a] space-y-2.5">
+            <div className="well-recessed-light p-5 text-[#0a0a0a] space-y-2.5">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-black uppercase text-[#0a0a0a] flex items-center gap-1.5">
                   <GitFork size={14} className="text-orange-ink" />
@@ -339,7 +339,7 @@ export default function BulkDashboard({ data, onInspectWallet }: Props) {
             </div>
 
             {/* Shared Counterparties */}
-            <div className="card-3d p-5 text-[#0a0a0a] space-y-2.5">
+            <div className="well-recessed-light p-5 text-[#0a0a0a] space-y-2.5">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-black uppercase text-[#0a0a0a] flex items-center gap-1.5">
                   <span className="w-2 h-2 bg-[#3b82f6] inline-block rounded-full" />

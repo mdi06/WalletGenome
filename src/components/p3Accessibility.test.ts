@@ -27,13 +27,11 @@ describe('P3 accessibility contracts', () => {
     assert.doesNotMatch(source, /<th\s+onClick=/);
   });
 
-  it('keeps the featured demo and quieter demo list as keyboard-accessible actions', () => {
+  it('keeps the demo list as keyboard-accessible actions', () => {
     const source = readSource('./WelcomeGuide.tsx');
-    assert.match(source, /data-demo-layout="featured-primary"/);
-    assert.match(source, /aria-label=\{`Load saved demo snapshot for \$\{featuredDemo\.name\}`\}/);
-    assert.match(source, /onClick=\{\(\) => onSelectDemo\(featuredDemo\)\}/);
-    assert.match(source, /secondaryDemos\.map\(demo =>/);
+    assert.match(source, /DEMO_WALLETS\.map\(demo =>/);
     assert.match(source, /aria-label=\{`Load saved demo snapshot for \$\{demo\.name\}`\}/);
+    assert.match(source, /onClick=\{\(\) => onSelectDemo\(demo\)\}/);
     assert.doesNotMatch(source, /absolute inset-0/);
   });
 
@@ -59,8 +57,8 @@ describe('P3 accessibility contracts', () => {
     assert.doesNotMatch(pageSource, /Live indexing/);
     assert.match(pageSource, /indexingStatus=\{indexingStatus\}/);
     assert.match(headerSource, /Indexing status:/);
-    assert.match(headerSource, /Live indexing/);
-    assert.match(statusSource, /'live' \| 'saved-snapshot' \| 'partial' \| 'unavailable'/);
+    assert.match(headerSource, /Live scan/);
+    assert.match(statusSource, /'ready' \| 'scanning' \| 'completed' \| 'saved' \| 'partial' \| 'unavailable'/);
     assert.match(statusSource, /scanMode === 'single' && activeDemoSnapshot/);
   });
 
@@ -70,7 +68,7 @@ describe('P3 accessibility contracts', () => {
     const headerSource = readSource('./SiteHeader.tsx');
 
     assert.match(pageSource, /<SiteHeader[\s\S]*activePage="scanner"/);
-    assert.match(docsSource, /<SiteHeader activePage="docs" indexingStatus="live" showIndexingStatus=\{false\}/);
+    assert.match(docsSource, /<SiteHeader activePage="docs" indexingStatus="ready" showIndexingStatus=\{false\}/);
     assert.match(docsSource, /Live scanner available/);
     assert.match(headerSource, /aria-label="Primary navigation"/);
     assert.match(headerSource, /aria-current=\{activePage === 'scanner'/);
@@ -136,10 +134,9 @@ describe('P3 accessibility contracts', () => {
     assert.match(guideSource, /divide-y divide-\[#c8c8c8\]/);
     assert.match(guideSource, /border-y border-\[#272a38\]/);
     assert.match(dashboardSource, /id="dashboard-flow-panel"[^>]*className="border-t border-\[#c8c8c8\]/);
-    assert.match(dashboardSource, /aria-labelledby="persona-identity-heading"[^>]*className="card-3d p-6/);
     assert.match(dashboardSource, /aria-labelledby="transaction-heatmap-heading"[^>]*className="card-3d p-6/);
     assert.match(dashboardSource, /className="grid grid-cols-1 gap-4 md:grid-cols-2"/);
-    assert.match(docsSource, /id="pipeline-architecture" className="border-y border-\[#c8c8c8\]/);
+    assert.match(docsSource, /id="pipeline-architecture" className="pt-10 space-y-5 text-\[#0a0a0a\]/);
   });
 
   it('groups flow and gas summaries into readable cards', () => {

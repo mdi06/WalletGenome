@@ -17,21 +17,47 @@ const SAMPLE_CLUSTER = [
   '0xb8c2c29ee19d8307cb7255e1cd9cbde883a267d5', // nick.eth
 ];
 
+interface ParsedClusterInput {
+  validAddresses: string[];
+  duplicateAddresses: string[];
+  duplicateEntryCount: number;
+  invalidEntries: string[];
+  invalidEntryCount: number;
+}
+
+export function parseBulkWalletEntries(rawText: string): ParsedClusterInput {
+  const tokens = rawText
+    .split(/[\n,\s]+/)
+    .map(token => token.trim().toLowerCase())
+    .filter(token => token.length > 0);
+  const validTokens = tokens.filter(token => /^0x[a-f0-9]{40}$/i.test(token));
+  const invalidTokens = tokens.filter(token => !/^0x[a-f0-9]{40}$/i.test(token));
+  const tokenCounts = new Map<string, number>();
+
+  validTokens.forEach(token => tokenCounts.set(token, (tokenCounts.get(token) ?? 0) + 1));
+
+  return {
+    validAddresses: Array.from(tokenCounts.keys()),
+    duplicateAddresses: Array.from(tokenCounts.entries())
+      .filter(([, count]) => count > 1)
+      .map(([address]) => address),
+    duplicateEntryCount: validTokens.length - tokenCounts.size,
+    invalidEntries: Array.from(new Set(invalidTokens)),
+    invalidEntryCount: invalidTokens.length,
+  };
+}
+
 export default function BulkScanInput({ onScanCluster, isLoading }: Props) {
   const [rawText, setRawText] = useState('');
   const [selectedChains, setSelectedChains] = useState<number[]>([1, 8453, 42161]);
   const [error, setError] = useState<string | null>(null);
 
-  // Parse valid addresses dynamically
-  const parsedAddresses = useMemo(() => {
-    const tokens = rawText
-      .split(/[\n,\s]+/)
-      .map(t => t.trim().toLowerCase())
-      .filter(t => t.length > 0);
-
-    const valid = Array.from(new Set(tokens.filter(t => /^0x[a-f0-9]{40}$/i.test(t))));
-    return valid;
-  }, [rawText]);
+  const parsedInput = useMemo(() => parseBulkWalletEntries(rawText), [rawText]);
+  const hasRejectedEntries = parsedInput.duplicateEntryCount > 0 || parsedInput.invalidEntryCount > 0;
+  const addressDescriptionIds = [
+    error ? 'bulk-address-error' : null,
+    hasRejectedEntries ? 'bulk-address-rejected' : null,
+  ].filter((id): id is string => id !== null).join(' ') || undefined;
 
   const toggleChain = (chainId: number) => {
     setSelectedChains(prev =>
@@ -47,16 +73,20 @@ export default function BulkScanInput({ onScanCluster, isLoading }: Props) {
   };
 
   const handleSubmit = () => {
-    if (parsedAddresses.length === 0) {
+    if (hasRejectedEntries) {
+      setError('Remove invalid or duplicate wallet entries before scanning.');
+      return;
+    }
+    if (parsedInput.validAddresses.length === 0) {
       setError('Please paste at least 1 valid EVM address (0x...).');
       return;
     }
-    if (parsedAddresses.length > MAX_BATCH_WALLETS) {
+    if (parsedInput.validAddresses.length > MAX_BATCH_WALLETS) {
       setError(`Please limit each cluster scan to ${MAX_BATCH_WALLETS} wallets.`);
       return;
     }
     setError(null);
-    onScanCluster(parsedAddresses, selectedChains);
+    onScanCluster(parsedInput.validAddresses, selectedChains);
   };
 
   return (
@@ -85,15 +115,15 @@ export default function BulkScanInput({ onScanCluster, isLoading }: Props) {
       </div>
 
       {/* ── Textarea Input Well ── */}
-      <div className="relative well-recessed-light p-1">
+      <div className="relative well-recessed-light p-1 focus-within:border-[#963300] focus-within:ring-2 focus-within:ring-[#963300]/30 focus-within:ring-offset-1">
         <label htmlFor="bulk-address-input" className="sr-only">
           Paste EVM addresses separated by new lines, commas, or spaces
         </label>
         <textarea
           id="bulk-address-input"
           aria-label="Paste EVM addresses to scan"
-          aria-invalid={Boolean(error)}
-          aria-describedby={error ? 'bulk-address-error' : undefined}
+          aria-invalid={Boolean(error) || hasRejectedEntries}
+          aria-describedby={addressDescriptionIds}
           value={rawText}
           disabled={isLoading}
           onChange={e => {
@@ -106,23 +136,48 @@ export default function BulkScanInput({ onScanCluster, isLoading }: Props) {
         />
 
         {/* Counter Badge */}
-        <div className="absolute bottom-2.5 right-3 flex items-center gap-1.5 text-[11px] font-mono font-bold bg-white/80 px-2 py-0.5 border border-gray-200 shadow-sm">
-          {parsedAddresses.length > 0 ? (
+        <div aria-live="polite" className="absolute bottom-2.5 right-3 flex items-center gap-1.5 text-[11px] font-mono font-bold bg-white/80 px-2 py-0.5 border border-gray-200 shadow-sm">
+          {parsedInput.validAddresses.length > 0 ? (
             <span className="text-[#047857] flex items-center gap-1">
               <CheckCircle2 size={12} />
-              {parsedAddresses.length}/{MAX_BATCH_WALLETS} valid {parsedAddresses.length === 1 ? 'address' : 'addresses'}
+              {parsedInput.validAddresses.length}/{MAX_BATCH_WALLETS} unique valid {parsedInput.validAddresses.length === 1 ? 'address' : 'addresses'}
             </span>
           ) : (
             <span className="text-gray-400">0 addresses</span>
           )}
+          {parsedInput.duplicateEntryCount > 0 && (
+            <span className="text-[#b45300]">· {parsedInput.duplicateEntryCount} duplicate {parsedInput.duplicateEntryCount === 1 ? 'entry' : 'entries'}</span>
+          )}
+          {parsedInput.invalidEntryCount > 0 && (
+            <span className="text-[#b91c1c]">· {parsedInput.invalidEntryCount} invalid {parsedInput.invalidEntryCount === 1 ? 'entry' : 'entries'}</span>
+          )}
         </div>
       </div>
+
+      {hasRejectedEntries && (
+        <div id="bulk-address-rejected" role="alert" className="flex items-start gap-1.5 text-xs text-[#92400e] font-bold card-3d border-l-4 border-l-[#f59e0b] p-2">
+          <AlertCircle size={13} className="mt-0.5 shrink-0" />
+          <div className="space-y-1">
+            <p>Remove invalid or duplicate entries before Cluster Scan runs.</p>
+            {parsedInput.invalidEntries.length > 0 && (
+              <p>
+                Invalid: <span className="break-all font-mono">{parsedInput.invalidEntries.join(', ')}</span>
+              </p>
+            )}
+            {parsedInput.duplicateAddresses.length > 0 && (
+              <p>
+                Duplicates: <span className="break-all font-mono">{parsedInput.duplicateAddresses.join(', ')}</span>
+              </p>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* ── Bottom Controls Row: Chains & Scan Action ── */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-1">
         
         {/* Network Selector Pills */}
-        <div role="group" aria-label="Select target EVM networks for cluster" className="flex items-center gap-1.5 flex-wrap">
+        <div role="group" aria-label="Select target EVM networks for cluster" className="flex items-center gap-1 md:gap-1.5 flex-wrap">
           <span className="text-[11px] font-extrabold text-[#4b5563] uppercase pr-1">
             Networks:
           </span>
@@ -137,7 +192,7 @@ export default function BulkScanInput({ onScanCluster, isLoading }: Props) {
                 aria-label={`Toggle ${c.name} network`}
                 disabled={isLoading}
                 onClick={() => toggleChain(id)}
-                className={`min-h-11 md:min-h-9 text-xs font-bold px-3 md:px-2.5 py-1 cursor-pointer flex items-center gap-1.5 ${
+                className={`min-h-11 md:min-h-9 text-[10px] md:text-xs font-bold px-2 md:px-2.5 py-1 cursor-pointer flex items-center gap-1 md:gap-1.5 ${
                   isSelected
                     ? 'btn-3d-black text-white'
                     : 'btn-3d-neutral text-[#4b5563]'
@@ -154,7 +209,7 @@ export default function BulkScanInput({ onScanCluster, isLoading }: Props) {
         <button
           type="button"
           onClick={handleSubmit}
-          disabled={isLoading || parsedAddresses.length === 0}
+          disabled={isLoading || parsedInput.validAddresses.length === 0 || hasRejectedEntries}
           className={`min-h-11 font-mono font-black text-xs px-5 py-2.5 flex items-center justify-center gap-2 cursor-pointer select-none text-white ${
             isLoading
               ? 'btn-3d-orange animate-pulse-glow'
@@ -164,11 +219,11 @@ export default function BulkScanInput({ onScanCluster, isLoading }: Props) {
           {isLoading ? (
             <>
               <Loader2 size={13} className="animate-spin text-white" />
-              <span>SCANNING CLUSTER ({parsedAddresses.length} WALLETS)...</span>
+              <span>SCANNING CLUSTER ({parsedInput.validAddresses.length} WALLETS)...</span>
             </>
           ) : (
             <>
-              <span>SCAN CLUSTER ({parsedAddresses.length})</span>
+              <span>SCAN CLUSTER ({parsedInput.validAddresses.length})</span>
               <ArrowRight size={13} strokeWidth={3} />
             </>
           )}

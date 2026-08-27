@@ -11,21 +11,21 @@ const baseInput = {
 };
 
 describe('indexing status presentation', () => {
-  it('reports a live state when the selected mode has no result yet', () => {
-    assert.strictEqual(getIndexingStatus(baseInput), 'live');
+  it('reports a ready state when the selected mode has no result yet', () => {
+    assert.strictEqual(getIndexingStatus({ ...baseInput, isLoading: false }), 'ready');
   });
 
   it('labels an active single-wallet demo as a saved snapshot', () => {
     assert.strictEqual(
-      getIndexingStatus({ ...baseInput, activeDemoSnapshot: true }),
-      'saved-snapshot',
+      getIndexingStatus({ ...baseInput, activeDemoSnapshot: true, isLoading: false }),
+      'saved',
     );
   });
 
   it('does not carry the single-wallet demo label into cluster mode', () => {
     assert.strictEqual(
-      getIndexingStatus({ ...baseInput, scanMode: 'cluster', activeDemoSnapshot: true }),
-      'live',
+      getIndexingStatus({ ...baseInput, scanMode: 'cluster', activeDemoSnapshot: true, isLoading: false }),
+      'ready',
     );
   });
 
@@ -61,16 +61,16 @@ describe('indexing status presentation', () => {
 
   it('uses the selected mode result status and ignores the other mode', () => {
     assert.strictEqual(
-      getIndexingStatus({ ...baseInput, scanMode: 'single', singleStatus: 'partial', clusterStatus: 'unavailable' }),
+      getIndexingStatus({ ...baseInput, scanMode: 'single', singleStatus: 'partial', clusterStatus: 'unavailable', isLoading: false }),
       'partial',
     );
     assert.strictEqual(
-      getIndexingStatus({ ...baseInput, scanMode: 'cluster', singleStatus: 'partial', clusterStatus: 'unavailable' }),
+      getIndexingStatus({ ...baseInput, scanMode: 'cluster', singleStatus: 'partial', clusterStatus: 'unavailable', isLoading: false }),
       'unavailable',
     );
   });
 
   it('reports an unavailable state when the selected scan fails before returning a result', () => {
-    assert.strictEqual(getIndexingStatus({ ...baseInput, hasError: true }), 'unavailable');
+    assert.strictEqual(getIndexingStatus({ ...baseInput, hasError: true, isLoading: false }), 'unavailable');
   });
 });

@@ -9,9 +9,6 @@ interface Props {
 }
 
 export default function WelcomeGuide({ onSelectDemo }: Props) {
-  const featuredDemo = DEMO_WALLETS[0];
-  const secondaryDemos = DEMO_WALLETS.slice(1);
-
   return (
     <div className="space-y-12 py-2 animate-fade-in-up">
       {/* ── 1. One-Click Interactive Showcase Profiles ── */}
@@ -26,74 +23,45 @@ export default function WelcomeGuide({ onSelectDemo }: Props) {
           </span>
         </div>
 
-        <div data-demo-layout="featured-primary" className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]">
-          <button
-            type="button"
-            aria-label={`Load saved demo snapshot for ${featuredDemo.name}`}
-            onClick={() => onSelectDemo(featuredDemo)}
-            className="card-3d-interactive group flex min-h-64 flex-col justify-between p-5 text-left text-[#0a0a0a]"
-          >
-            <span className="space-y-3">
-              <span className="flex items-center justify-between gap-2">
-                <span className="text-[9px] font-mono font-extrabold uppercase tracking-wider text-orange-ink">
-                  Featured saved snapshot
-                </span>
-                <span className="badge-3d flex-shrink-0 border border-[#059669]/30 bg-[#059669]/10 px-1.5 py-0.2 font-mono text-[9px] font-black text-[#047857]">
-                  Saved · non-live
-                </span>
-              </span>
-
-              <span className="block space-y-2">
-                <span className="block text-[10px] font-mono font-extrabold uppercase tracking-wider text-[#4b5563]">
-                  {featuredDemo.role}
-                </span>
-                <span id="featured-demo-title" className="block text-xl font-black text-[#0a0a0a] font-mono transition-colors group-hover:text-orange-ink">
-                  {featuredDemo.ens}
-                </span>
-                <span className="block max-w-xl text-xs leading-relaxed text-[#4b5563] text-pretty">
-                  Public multi-chain demo data for {featuredDemo.name}. The dashboard keeps the original provider and pricing completeness warnings.
-                </span>
-              </span>
-            </span>
-
-            <span className="mt-6 flex items-center justify-between gap-3 border-t border-[#c8c8c8] pt-3">
-              <span className="min-w-0 truncate text-[10px] font-mono font-bold text-[#6b7280]">
-                Four chains · Updated {formatDemoSnapshotDate(featuredDemo.generatedAt)}
-              </span>
-              <span aria-hidden="true" className="flex flex-shrink-0 items-center gap-1 text-xs font-black uppercase tracking-wider text-[#0a0a0a] transition-colors group-hover:text-orange-ink">
-                <span>Open snapshot</span>
-                <ArrowRight size={12} />
-              </span>
-            </span>
-          </button>
-
-          <div data-demo-layout="secondary-list" aria-label="More saved demo wallets" className="divide-y divide-[#c8c8c8] border-y border-[#c8c8c8]">
-            {secondaryDemos.map(demo => (
-              <button
-                key={demo.slug}
-                type="button"
-                aria-label={`Load saved demo snapshot for ${demo.name}`}
-                onClick={() => onSelectDemo(demo)}
-                className="group grid min-h-20 w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-3 py-3 text-left text-[#0a0a0a] transition-colors hover:bg-white/60"
-              >
-                <span className="min-w-0 space-y-1">
-                  <span className="block truncate text-[9px] font-mono font-extrabold uppercase tracking-wider text-[#4b5563]">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {DEMO_WALLETS.map(demo => (
+            <button
+              key={demo.slug}
+              type="button"
+              aria-label={`Load saved demo snapshot for ${demo.name}`}
+              onClick={() => onSelectDemo(demo)}
+              className="card-3d-interactive p-5 text-left text-[#0a0a0a] space-y-3 flex flex-col justify-between group min-h-64"
+            >
+              <span className="space-y-3 block">
+                <span className="flex items-center justify-between gap-2">
+                  <span className="text-[9px] font-mono font-extrabold text-[#4b5563] uppercase tracking-wider truncate">
                     {demo.role}
                   </span>
-                  <span className="block truncate text-sm font-black font-mono transition-colors group-hover:text-orange-ink">
-                    {demo.ens}
-                  </span>
-                  <span className="block truncate text-[10px] font-mono font-bold text-[#6b7280]">
-                    Four chains · Updated {formatDemoSnapshotDate(demo.generatedAt)} · Saved, non-live
+                  <span className="badge-3d flex-shrink-0 border border-[#059669]/30 bg-[#059669]/10 px-1.5 py-0.2 font-mono text-[9px] font-black text-[#047857]">
+                    Saved · non-live
                   </span>
                 </span>
-                <span aria-hidden="true" className="flex items-center gap-1 text-[10px] font-black uppercase tracking-wider text-[#4b5563] group-hover:text-orange-ink">
-                  <span className="hidden sm:inline">Open</span>
-                  <ArrowRight size={13} />
+
+                <span className="block text-xl font-black text-[#0a0a0a] font-mono group-hover:text-orange-ink transition-colors">
+                  {demo.ens}
                 </span>
-              </button>
-            ))}
-          </div>
+
+                <span className="block text-xs text-[#4b5563] leading-relaxed text-pretty">
+                  Public multi-chain demo data for {demo.name}. The dashboard keeps the original provider and pricing completeness warnings.
+                </span>
+              </span>
+
+              <span className="mt-6 pt-3 border-t border-[#c8c8c8] flex items-center justify-between gap-2">
+                <span className="min-w-0 truncate text-[10px] font-mono font-bold text-[#6b7280]">
+                  Four chains · Updated {formatDemoSnapshotDate(demo.generatedAt)}
+                </span>
+                <span aria-hidden="true" className="flex flex-shrink-0 items-center gap-1 text-xs font-black uppercase tracking-wider text-[#0a0a0a] transition-colors group-hover:text-orange-ink">
+                  <span className="sr-only sm:not-sr-only">Open</span>
+                  <ArrowRight size={12} />
+                </span>
+              </span>
+            </button>
+          ))}
         </div>
       </section>
 

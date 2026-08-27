@@ -3,6 +3,7 @@ import { Inter, JetBrains_Mono } from "next/font/google";
 import JsonLd, { type JsonLdObject } from "@/components/JsonLd";
 import SiteFooter from "@/components/SiteFooter";
 import { absoluteUrl, getSiteUrl, SITE_DESCRIPTION, SITE_NAME } from "@/lib/seo";
+import { WebVitals } from "@/components/WebVitals";
 import "./globals.css";
 
 const inter = Inter({
@@ -95,6 +96,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`}>
       <body className="bg-[#ebebeb] text-[#0a0a0a] antialiased font-sans selection:bg-[#ff5500] selection:text-[#0a0a0a]">
+        <WebVitals />
         <JsonLd data={applicationJsonLd} />
         {children}
         <SiteFooter />

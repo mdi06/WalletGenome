@@ -7,7 +7,7 @@ import SiteHeader from './SiteHeader';
 test('renders the logo as a home link when no guide action is provided', () => {
   const markup = renderToStaticMarkup(createElement(SiteHeader, {
     activePage: 'scanner',
-    indexingStatus: 'live',
+    indexingStatus: 'ready',
   }));
 
   assert.match(markup, /aria-label="WalletGenome home"[^>]*href="\/"/);
@@ -17,7 +17,7 @@ test('renders the logo as a home link when no guide action is provided', () => {
 test('keeps the logo guide action available for a loaded dashboard', () => {
   const markup = renderToStaticMarkup(createElement(SiteHeader, {
     activePage: 'scanner',
-    indexingStatus: 'live',
+    indexingStatus: 'ready',
     onBrandClick: () => {},
   }));
 
@@ -28,12 +28,12 @@ test('keeps the logo guide action available for a loaded dashboard', () => {
 test('renders a single mobile navigation disclosure with status outside the closed region', () => {
   const markup = renderToStaticMarkup(createElement(SiteHeader, {
     activePage: 'scanner',
-    indexingStatus: 'live',
+    indexingStatus: 'ready',
   }));
 
   assert.match(markup, /aria-controls="primary-navigation-menu"/);
   assert.match(markup, /aria-expanded="false"/);
   assert.match(markup, /id="primary-navigation-menu" data-open="false" class="hidden [^"]*md:flex/);
-  assert.match(markup, /role="status"[^>]*aria-label="Indexing status: Live indexing"/);
+  assert.match(markup, /role="status"[^>]*aria-label="Indexing status: Ready"/);
   assert.match(markup, /Open navigation/);
 });

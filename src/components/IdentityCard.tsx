@@ -8,9 +8,10 @@ import { ExternalLink, Globe, MessageSquare, Send, CheckCircle2, Copy } from 'lu
 interface Props {
   identity?: WalletIdentityReport;
   address: string;
+  persona?: string;
 }
 
-export default function IdentityCard({ identity, address }: Props) {
+export default function IdentityCard({ identity, address, persona }: Props) {
   const hasSocials = identity && identity.socials && identity.socials.length > 0;
   const linkedSocialHandles = new Set(
     (identity?.socials ?? []).map(social => social.handle.replace(/^@/, '').toLowerCase()),
@@ -19,6 +20,12 @@ export default function IdentityCard({ identity, address }: Props) {
     domain => !linkedSocialHandles.has(domain.identity.replace(/^@/, '').toLowerCase()),
   );
   const [copyStatus, setCopyStatus] = useState('');
+  const [isExpanded, setIsExpanded] = useState(true);
+
+  React.useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setIsExpanded(window.innerWidth >= 768);
+  }, []);
 
   const copyAddress = async () => {
     try {
@@ -58,11 +65,16 @@ export default function IdentityCard({ identity, address }: Props) {
             <h3 className="truncate text-lg font-black text-[#0a0a0a] tracking-tight" title={identity?.primaryName || address}>
               {identity?.primaryName ? identity.primaryName : `${address.slice(0, 6)}...${address.slice(-4)}`}
             </h3>
-            {identity?.description ? (
-              <p className="mt-1 text-xs text-[#4b5563] line-clamp-2">{identity.description}</p>
-            ) : (
-              <p className="mt-1 text-xs text-[#4b5563]">Universal Web3 & Web2 Social Identity Graph</p>
+          <div className="flex items-center gap-2 mt-1">
+            {persona && (
+              <span className="badge-3d bg-black text-white px-2 py-0.5 text-[10px] font-extrabold tracking-widest uppercase">
+                {persona}
+              </span>
             )}
+            <p className="text-xs text-[#4b5563] line-clamp-2">
+              {identity?.description ? identity.description : 'Universal Web3 & Web2 Social Identity Graph'}
+            </p>
+          </div>
           </div>
 
           {standaloneDomains.length > 0 && (
@@ -101,22 +113,29 @@ export default function IdentityCard({ identity, address }: Props) {
 
       {/* Connected accounts */}
       {hasSocials ? (
-        <div className="space-y-3 pt-4 border-t border-[#c8c8c8]">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <h4 className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider">
+        <details
+          className="group pt-4 border-t border-[#c8c8c8] open:pb-2 [&_svg.chevron]:open:rotate-180"
+          open={isExpanded}
+          onToggle={(e) => setIsExpanded(e.currentTarget.open)}
+        >
+          <summary className="flex flex-wrap items-center justify-between gap-2 cursor-pointer outline-none focus-visible:ring-2 focus-visible:ring-[#ff5500] p-1 -m-1 list-none [&::-webkit-details-marker]:hidden">
+            <h4 className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider group-open:text-[#0a0a0a] flex items-center gap-1.5">
               Connected accounts
+              <svg className="chevron w-3 h-3 text-[#6b7280] transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
             </h4>
             <span className="badge-3d text-[11px] font-mono font-bold px-3 py-1 bg-[#059669]/15 text-[#047857] border border-[#059669]/40 flex items-center gap-1.5">
               <CheckCircle2 size={12} aria-hidden="true" />
               <span>{identity.socials.length} services</span>
             </span>
-          </div>
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-3">
+          </summary>
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-3 mt-4">
             {identity.socials.map((s, i) => (
               <SocialServiceBadge key={`${s.platform}-${s.handle}-${i}`} social={s} />
             ))}
           </div>
-        </div>
+        </details>
       ) : (
         <div className="space-y-2 pt-4 border-t border-[#c8c8c8]">
           <h4 className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider">

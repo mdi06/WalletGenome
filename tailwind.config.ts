@@ -8,24 +8,9 @@ const config: Config = {
   ],
   theme: {
     extend: {
-      colors: {
-        telemetry: {
-          bg: '#0a0c12',
-          chassis: '#151720',
-          module: '#1a1c26',
-          border: '#282c3b',
-          'border-light': '#363c4e',
-          ochre: '#e2b868',
-          sage: '#9fc499',
-          'sage-track': '#192218',
-          amber: '#ff8c00',
-          'amber-glow': 'rgba(255, 140, 0, 0.25)',
-          red: '#f87171',
-          tape: '#faf6ee',
-          'tape-text': '#1b1d24',
-          'grid-red': '#261215',
-        },
-      },
+      // DESIGN.md defines the current light/orange theme. Shared color and
+      // surface tokens live in src/app/globals.css; do not add a second palette.
+      // Preserve existing font utilities here; font cleanup is a separate change.
       fontFamily: {
         mono: ['var(--font-space-mono)', 'JetBrains Mono', 'Courier New', 'monospace'],
         display: ['var(--font-share-tech)', 'Space Mono', 'monospace'],

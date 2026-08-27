@@ -64,6 +64,7 @@ export default function Home() {
     singleStatus: singleResult?.status ?? null,
     clusterStatus: clusterResult?.status ?? null,
     hasError: Boolean(error),
+    isLoading,
   });
   const handleInspectFromCluster = (address: string) => {
     setIsScanEditorOpen(false);

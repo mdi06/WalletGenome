@@ -70,8 +70,9 @@ export default function GasSummaryPanel({ results }: Props) {
       {/* ── Top Metrics ── */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <div className="card-3d space-y-1 p-4 text-[#0a0a0a] sm:p-5 lg:p-4">
-          <div className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider">
-            TOTAL GAS CONSUMPTION
+          <div className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider flex items-center justify-between">
+            <span>TOTAL GAS CONSUMPTION</span>
+            <span className="text-[9px] text-[#f59e0b] font-mono normal-case">Observed history</span>
           </div>
           <div className="text-3xl font-black text-[#0a0a0a] font-mono">
             {formatNativeTokenValue(totalGasETH, 'ETH')}

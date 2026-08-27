@@ -4,11 +4,14 @@ import { readFileSync } from 'node:fs';
 
 const css = readFileSync(new URL('./globals.css', import.meta.url), 'utf8');
 
-it('limits navigation motion to users who allow it and keeps Docs scrolls preference-aware', () => {
+it('keeps page scrolling native and limits motion to explicit navigation', () => {
   const docsSource = readFileSync(new URL('./docs/page.tsx', import.meta.url), 'utf8');
-  assert.match(css, /@media \(prefers-reduced-motion: no-preference\)\s*\{\s*html\s*\{\s*scroll-behavior: smooth;/);
+  assert.doesNotMatch(css, /scroll-behavior\s*:\s*smooth/);
   assert.match(css, /@media \(max-width: 767px\) and \(prefers-reduced-motion: no-preference\)\s*\{\s*\.mobile-navigation-disclosure\[data-open='true'\]/);
-  assert.match(docsSource, /getElementById\(nextSectionId\)\?\.scrollIntoView\(\{ behavior: 'auto'/);
+  const filterUpdateStart = docsSource.indexOf('const updateTopicFilter');
+  const filterClearStart = docsSource.indexOf('const clearTopicFilter');
+  assert.doesNotMatch(docsSource.slice(filterUpdateStart, filterClearStart), /scrollIntoView/);
+  assert.match(docsSource, /const clearTopicFilter[\s\S]*docsSearchInputRef\.current\?\.focus\(\)/);
   assert.match(docsSource, /window\.scrollTo\(\{ top: 0, behavior: 'auto' \}\)/);
 });
 

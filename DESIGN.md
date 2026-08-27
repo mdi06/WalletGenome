@@ -1,12 +1,14 @@
 # Design
 
 ## Source of truth
-- Status: Needs refresh — preserve the previously approved desktop composition and mobile decisions below. The 2026-08-27 audit found implementation drift and unresolved guidance conflicts; its recommendations are proposals, not approval to implement or redesign.
+- Status: Active — the user requested alignment with the current web app on 2026-08-27. The existing light gray, white, black, and orange visual language is authoritative. Known implementation issues remain tracked separately; this status does not certify that all audit findings are fixed.
 - Last refreshed: 2026-08-27
+- Decision ownership: This file is the design reference; `AGENTS.md` directs contributors here. `src/app/globals.css` owns shared visual tokens/classes, while components own local layout and responsive sizing. Audit proposals and historical checklist entries do not override the current contract or authorize a redesign.
+- Alignment evidence: inspected the current local scanner at `http://127.0.0.1:3010/` at 1440 × 900 and 390 × 844, plus the current layout, CSS, Tailwind config, and component source. Confirmed the light theme and a 288px mobile address well. This is local development evidence, not a deployed-site check; no live scan was submitted.
 - Primary product surfaces: Wallet scanner, saved-snapshot result dashboard, cluster scan, and methodology docs.
 - Evidence reviewed: `ui_fixes.md` items 13–22, especially the mobile layout follow-up items 16–22; `src/app/globals.css`; `SiteHeader`, scanner mode controls, `LoadedScanSummary`, `Dashboard`, `TransferTable`, and `SiteFooter`; the supplied mobile screenshots cited by `ui_fixes.md`; and the rendered evidence in `output/playwright/density-item14-after-390.png`, `output/playwright/density-item13-transfers-390.png`, `output/playwright/p3-item11-docs-top-390.png`, `output/playwright/p3-item11-docs-mid-390.png`, and `output/playwright/density-item15-saved-1440.png`.
 - Evidence rule: screenshots establish hierarchy, alignment, and composition targets, not CSS-pixel measurements. The implementation pass must establish fresh measurements at the widths and states listed in `ui_fixes.md` item 22.
-- Current audit: `DESIGN_AUDIT.md`, with fresh browser screenshots in `output/design-audit-2026-08-27/`. Reviewed the current dirty working tree, not a release build. Previous screenshots and checklist claims are historical context, not evidence that the current version passes.
+- Audit reference: `DESIGN_AUDIT.md`, with screenshots in `output/design-audit-2026-08-27/`. That audit reviewed the then-current dirty working tree, not a release build. Its screenshots and checklist claims are historical context, not evidence that the current version passes. Follow-up notes distinguish resolved guidance from remaining implementation work.
 - Audit coverage: all seven public content routes, all six single-wallet result tabs, cluster input, shared navigation/footer, and source-level review of cluster results, progress, provider states, and share metadata. See the audit for untested states and explicit limits.
 
 ## Brand
@@ -48,6 +50,22 @@
 - Motion: Below 768px, opening the mobile navigation fades it in with a 4px downward movement over 180ms (ease-out); closing hides it immediately so links leave the tab order. Desktop navigation does not animate. Anchor, Docs topic, and back-to-top navigation use native smooth scrolling only when reduced motion is not requested; touch/wheel scrolling stays native, with no scroll interception or added momentum library.
 - Imagery/iconography: Lucide icons and restrained forensic/data visualizations.
 
+### Current palette and ownership
+
+| Role | Existing value / source | Usage |
+| --- | --- | --- |
+| Rendered page background | `#ebebeb` in `src/app/layout.tsx` | Current page canvas; preserve it. |
+| Shared page token | `--bg-page: #eaebef` in `src/app/globals.css` | Existing CSS base and related light surfaces. The layout overrides the body background; do not normalize these grays as part of a documentation change. |
+| Cards / local dark panels | `--bg-card: #ffffff` / `--bg-card-dark: #121318` | White primary surfaces; dark panels remain local accents. |
+| Main / muted text | `--text-main: #0a0a0a` / `--text-muted: #4b5563` | High-contrast content hierarchy. |
+| Brand orange | `--color-orange: #ff5500` | Primary action fills and highlights, not small text on white. |
+| Orange text / focus | `--color-orange-ink: #963300` | Readable orange labels, focus outlines, and indicators. |
+| Borders / shadows | Existing `--border-*` and `--shadow-*` tokens | Sharp geometry and the existing raised/recessed controls. |
+
+- Semantic colors: Preserve existing risk, network, chart, and evidence-state colors. They communicate data; they are not competing brand themes.
+- Tailwind: The unused dark `telemetry` palette was removed during alignment. Use the shared CSS tokens/classes and existing utilities rather than restoring it.
+- Typography scope: Preserve the currently rendered font stacks. `layout.tsx` declares Inter and JetBrains Mono, while Tailwind utilities and CSS overrides affect the result; the inspected scanner currently computes to a system sans-serif stack, including its address input. Font-variable/utility cleanup requires separate visual verification and is not part of this theme alignment.
+
 ## Components
 - Existing components to reuse: `SiteHeader`, `WalletInput`, `BulkScanInput`, `LoadedScanSummary`, `Dashboard`, `TransferTable`, `ApprovalAudit`, `FilterDropdown`, and status disclosures.
 - New/changed components: Responsive sizing and spacing variants only; a mobile header disclosure and mobile presentation variants for scan modes, loaded summary, dashboard tabs, transfer filters, and footer links. No new design-system layer.
@@ -84,21 +102,29 @@
 
 ## Implementation constraints
 - Framework/styling system: Next.js 16 App Router, React 19, TypeScript, Tailwind CSS 3, and Lucide React.
-- Design-token constraints: Extend existing CSS tokens/classes before introducing new patterns.
-- Performance constraints: Keep existing dynamic dashboard boundaries and avoid provider calls for UI verification.
+- Design-token constraints: Extend existing CSS tokens/classes before introducing new patterns. Preserve the current light theme, component dimensions, typography, and behavior unless the user explicitly requests changes; a token cleanup must not silently alter the rendered app.
+- Performance constraints: Keep existing dynamic dashboard boundaries and avoid provider calls for UI verification. Production inspection confirmed that the home page defers `Dashboard` and `BulkDashboard`, and `Dashboard` in turn defers every non-default analytics tab; retain that structure. Recharts is a deferred shared chunk for the radar and gas views, not part of the entry dashboard payload. Before changing the graph inspector, throttle pan/zoom state updates to animation frames and use pointer events so touch support and rendering cost are addressed together. Establish real-user or lab budgets (LCP, INP, CLS, route JS, and tab-open latency) before pursuing bundle reductions; build artifacts alone are not field performance evidence.
 - Compatibility constraints: Preserve current client/server boundaries and existing static snapshot behavior.
 - Test/screenshot expectations: Items 16–21 are recorded as implemented in `ui_fixes.md`; item 22 remains open. The current audit does not close it. Verify at 320/360/390px and 1280/1440px, including keyboard, touch-target, reduced-motion, zoom, overflow, saved/partial/unavailable/loading, docs, Cluster Scan, and footer states. Run focused regression tests, `git diff --check`, and the canonical `npm run verify`; use deterministic fixtures for UI checks. This design refresh itself makes no UI implementation changes.
-- Current verification: lint passed; `npm test` ran 251 tests, 250 passed and one failed because the wallet input no longer has the contract's `max-w-[288px] md:max-w-none` classes. Do not silently weaken that assertion or restore a layout without resolving the intended mobile design. Audit measurements are local browser evidence, not production, Safari, assistive-technology, or zoom certification.
+- Historical audit verification: the original audit recorded a passing production build/lint and 252/253 passing tests, with a mobile-width failure. The current source now restores the 288px constraint, also measured in the alignment browser check; do not treat that old failure as a current result. Audit measurements and bundle inspection are local evidence, not production, Safari, assistive-technology, zoom, or real-user performance certification.
+- Alignment verification (2026-08-27): `npm run verify` passed (lint, typecheck, 259/259 tests, production build); `git diff --check` passed. Tailwind compiled CSS before/after removal of the unused palette was byte-for-byte identical (SHA-256 `c906607fd823fb6946b75a594579d07ac5f790cca2453a0c244e01818f8daafd`). The local post-change scanner retained the light appearance and 288px input well at 390px, with no page-wide horizontal overflow. No rendered CSS, component behavior, or font settings changed in this alignment. Existing unrelated working-tree fixes were preserved; no deployment was performed.
 
 ## Open questions
 - [x] Approved — Use the `md` transition (around 768px) for the mobile composition so tablet widths retain the readable single-column rules.
 - [x] Approved — Use an inline disclosure button for full-address inspection in `LoadedScanSummary`; keep copy as a separate explicit action.
 - [x] Approved — Use a 3px orange-ink bottom rule as the active marker for flattened mobile dashboard tabs.
-- [ ] Theme conflict / product owner: `AGENTS.md` asks for a dark forensic theme, while this pre-existing contract and the rendered app use light gray, white, black, and orange. Preserve current UI during the audit; resolve the conflicting instructions before any theme change.
-- [ ] Mobile console width / product owner: retain the approved 288px centered inner column or approve the current wider controls? The implementation and regression test presently disagree.
+- [x] Theme conflict resolved — On 2026-08-27, the user requested alignment with the current app. Preserve light gray, white, black, and orange; `AGENTS.md` now agrees, and the unused dark Tailwind palette is removed. No theme switch is authorized.
+- [x] Mobile console width — Retain the existing approved 288px centered inner column. The current source and the 390px browser check now agree with that rule; no wider-layout approval is needed for this alignment. The broader item 22 verification remains separate.
 - [ ] Mobile result priority / product owner: approve a compact identity summary and collapsed secondary accounts so blacklist/risk information is reached sooner, without changing desktop composition?
 - [ ] Transfer scope / product owner: is the intended feature a top-token-transfer browser or a full transfer-history search? Label the existing subset immediately in a future approved fix; any expansion needs separate data/performance acceptance criteria.
 - [ ] Accessibility scope / product owner: confirm the intended AA version and browser/assistive-technology matrix. This audit is not a compliance certification.
+
+## Working with design changes
+
+1. Identify the affected screen, requested change, mobile/desktop scope, and appearance or behavior to preserve.
+2. Read the relevant sections here and reuse existing components/styles. Change local layout in the component; change shared visual rules in `globals.css` only when the intended scope is app-wide.
+3. If the request approves a new shared rule, update this document and any conflicting guidance in the same change. Do not treat unrelated audit proposals as approved work.
+4. Verify with the applicable tests and fresh browser checks. Record what passed and any remaining limitations; keep historical audit evidence separate from current results.
 
 ## Audit handoff
 

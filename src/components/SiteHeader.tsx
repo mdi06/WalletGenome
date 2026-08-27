@@ -7,7 +7,7 @@ import { BookOpen, Menu, Search, X } from 'lucide-react';
 import type { IndexingStatus } from '@/lib/indexingStatus';
 
 interface SiteHeaderProps {
-  activePage: 'scanner' | 'docs';
+  activePage?: 'scanner' | 'docs' | string;
   indexingStatus: IndexingStatus;
   showIndexingStatus?: boolean;
   onBrandClick?: () => void;
@@ -19,15 +19,25 @@ const STATUS_PRESENTATION: Record<IndexingStatus, {
   dotClassName: string;
   badgeClassName: string;
 }> = {
-  live: {
-    label: 'Live indexing',
-    dotClassName: 'led-live',
+  ready: {
+    label: 'Ready',
+    dotClassName: 'w-2 h-2 rounded-full bg-[#6b7280]',
+    badgeClassName: 'bg-[#e5e5e5] text-[#4b5563]',
+  },
+  scanning: {
+    label: 'Scanning',
+    dotClassName: 'led-warn animate-pulse',
     badgeClassName: 'badge-brand-orange',
   },
-  'saved-snapshot': {
+  completed: {
+    label: 'Live scan',
+    dotClassName: 'led-live',
+    badgeClassName: 'bg-[#ff5500] text-[#0a0a0a]',
+  },
+  saved: {
     label: 'Saved snapshot',
     dotClassName: 'led-clean',
-    badgeClassName: 'bg-[#059669] text-[#0a0a0a]',
+    badgeClassName: 'bg-[#059669] text-white',
   },
   partial: {
     label: 'Partial data',

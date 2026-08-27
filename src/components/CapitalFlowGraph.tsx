@@ -38,6 +38,40 @@ interface GraphLink {
   color: string;
 }
 
+export const FLOW_GRAPH_NODE_WIDTH = 130;
+export const FLOW_GRAPH_NODE_GAP = 20;
+const FLOW_GRAPH_CANVAS_WIDTH = 900;
+
+interface GraphNodePosition {
+  x: number;
+  y: number;
+}
+
+export function layoutProtocolNodes<T extends GraphNodePosition>(
+  protocolNodes: readonly T[],
+): T[] {
+  if (protocolNodes.length === 0) return [];
+
+  const topCount = Math.ceil(protocolNodes.length / 2);
+  const rows = [
+    { nodes: protocolNodes.slice(0, topCount), y: 70 },
+    { nodes: protocolNodes.slice(topCount), y: 490 },
+  ];
+
+  return rows.flatMap(row => {
+    const rowWidth = row.nodes.length * FLOW_GRAPH_NODE_WIDTH
+      + Math.max(0, row.nodes.length - 1) * FLOW_GRAPH_NODE_GAP;
+    const firstCenterX = (FLOW_GRAPH_CANVAS_WIDTH - rowWidth) / 2
+      + FLOW_GRAPH_NODE_WIDTH / 2;
+
+    return row.nodes.map((node, index) => ({
+      ...node,
+      x: firstCenterX + index * (FLOW_GRAPH_NODE_WIDTH + FLOW_GRAPH_NODE_GAP),
+      y: row.y,
+    }));
+  });
+}
+
 function truncAddr(addr: string): string {
   if (!addr) return '';
   return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
@@ -315,20 +349,7 @@ export default function CapitalFlowGraph({ results, metrics }: Props) {
       node.y = 40 + (i + 1) * step;
     });
 
-    const protoTop = protocolNodes.slice(0, Math.ceil(protocolNodes.length / 2));
-    const protoBottom = protocolNodes.slice(Math.ceil(protocolNodes.length / 2));
-
-    protoTop.forEach((node, i) => {
-      const step = 400 / (protoTop.length + 1);
-      node.x = 250 + (i + 1) * step;
-      node.y = 70;
-    });
-
-    protoBottom.forEach((node, i) => {
-      const step = 400 / (protoBottom.length + 1);
-      node.x = 250 + (i + 1) * step;
-      node.y = 490;
-    });
+    const positionedProtocolNodes = layoutProtocolNodes(protocolNodes);
 
     outflowNodes.forEach((node, i) => {
       const step = 500 / (outflowNodes.length + 1);
@@ -339,7 +360,7 @@ export default function CapitalFlowGraph({ results, metrics }: Props) {
     const activeNodes = [
       nodeMap.get('center')!,
       ...inflowNodes,
-      ...protocolNodes,
+      ...positionedProtocolNodes,
       ...outflowNodes,
     ];
 
@@ -624,7 +645,12 @@ export default function CapitalFlowGraph({ results, metrics }: Props) {
                   transform={`translate(${node.x}, ${node.y})`}
                   onMouseEnter={() => setHoveredNodeId(node.id)}
                   onMouseLeave={() => setHoveredNodeId(null)}
+                  onFocus={() => setHoveredNodeId(node.id)}
+                  onBlur={() => setHoveredNodeId(null)}
                   onClick={() => handleNodeClick(node)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleNodeClick(node)}
+                  tabIndex={0}
+                  className="focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-ink"
                   style={{ cursor: 'pointer' }}
                 >
                   <circle r="36" fill="#000000" stroke="#ff5500" strokeWidth="3" />
@@ -657,13 +683,18 @@ export default function CapitalFlowGraph({ results, metrics }: Props) {
                 transform={`translate(${node.x}, ${node.y})`}
                 onMouseEnter={() => setHoveredNodeId(node.id)}
                 onMouseLeave={() => setHoveredNodeId(null)}
+                onFocus={() => setHoveredNodeId(node.id)}
+                onBlur={() => setHoveredNodeId(null)}
                 onClick={() => handleNodeClick(node)}
+                onKeyDown={(e) => e.key === 'Enter' && handleNodeClick(node)}
+                tabIndex={0}
+                className="focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-ink"
                 style={{ cursor: 'pointer' }}
               >
                 <rect
-                  x="-65"
+                  x={-FLOW_GRAPH_NODE_WIDTH / 2}
                   y={nodeBoxY}
-                  width="130"
+                  width={FLOW_GRAPH_NODE_WIDTH}
                   height={nodeBoxHeight}
                   fill="#11131a"
                   stroke={isHovered ? '#ffffff' : nodeBorder}

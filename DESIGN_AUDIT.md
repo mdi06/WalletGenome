@@ -181,15 +181,30 @@ Priority guide: **P1** = repair before treating the affected flow as ready; **P2
 
 ### F15 · P2 · Design documentation and tests disagree with the current implementation
 
+- Alignment follow-up (2026-08-27): the user requested matching the current app. The light gray/white/black/orange theme is now canonical in `DESIGN.md` and `AGENTS.md`; the unused dark Tailwind `telemetry` palette was removed. Current source and a fresh 390px local browser check show the approved 288px input well restored by existing fixes. The original evidence below is historical; checklist reconciliation and item 22's broader verification are not closed by this alignment.
 - Evidence: AGENTS requests a dark theme, but the current pre-existing DESIGN contract and UI use light gray/white/orange. The input no longer contains the approved 288px maximum inner width; fresh measured well widths are 291px at 360 and 321px at 390. The corresponding responsive test fails. The implementation-order table in `ui_fixes.md` still has unchecked rows whose detailed sections are marked complete.
 - Impact: future work can unintentionally reverse accepted decisions or weaken tests to match accidental drift. A green past checklist is not proof for this tree.
 - Recommendation: obtain the two product choices recorded in DESIGN.md; reconcile the contract, implementation, and test in a later authorized change. Then refresh checklist summary status from current evidence. Do not silently switch themes or amend the test during this audit.
 - Acceptance: one agreed theme/width rule; tests assert that rule plus rendered behavior; item 22 closes only with its required evidence. Contract: **Source of truth**, **Implementation constraints**, **Open questions**.
 
+### F16 · P2 · Cluster graph interaction performs a React state update for every wheel or mouse-move event
+
+- Evidence: `ClusterFlowGraph.tsx:96–105` calls `setScale` on every non-passive wheel event, and `ClusterFlowGraph.tsx:238–244` calls `setPan` for every drag mouse move. The graph re-renders its SVG nodes and links from those state updates. The control path is mouse-only (`onMouse*`), while the container disables native touch behavior with `touch-none`.
+- Impact: a ten-wallet cluster is bounded, so this is not currently a proven crash or entry-page bottleneck. It can still produce avoidable input latency on lower-power devices and leaves touch users without equivalent pan/inspect behavior.
+- Recommendation: move transient pan/zoom values behind a `requestAnimationFrame` throttle, commit the final value on pointer release, and use Pointer Events with explicit keyboard alternatives for inspection. Measure INP and graph frame time before and after; do not replace the SVG or introduce a canvas library without evidence.
+- Acceptance: continuous wheel/drag input causes at most one state commit per animation frame; touch and mouse pan work; reduced-motion and keyboard inspection remain available; a deterministic 10-wallet fixture has an interaction-performance check. Contract: **Accessibility**, **Responsive behavior**, **Implementation constraints**.
+
+### F17 · P3 · The loading strategy is sound, but the app has no performance budget or field measurement
+
+- Evidence: the production build succeeds and retains the intended lazy boundaries: `page.tsx:18–34` defers the two dashboards; `Dashboard.tsx:16–77` defers radar, flow, heatmap, protocols, gas, transfers, and approvals. The built main home chunk is about 56 KB uncompressed; the Recharts shared chunk is about 272 KB uncompressed and only appears with deferred radar/gas routes. No `web-vitals`/`useReportWebVitals` implementation or committed Lighthouse/bundle baseline exists.
+- Impact: the initial experience is protected from the heaviest visualizations, but there is no measurement to identify slow scan-result hydration, tab-open latency, or mobile interaction regressions. File sizes are not a substitute for LCP, INP, or CLS.
+- Recommendation: preserve the current boundaries; add a repeatable production-profile check and RUM/lab budget for LCP, INP, CLS, route JavaScript, and deferred-tab opening. Prioritize measured regressions over speculative memoization of four-chain aggregates.
+- Acceptance: a documented mobile and desktop baseline exists for `/`, saved results, and a deferred chart tab; CI flags material regression against agreed budgets; trace results distinguish provider wait time from client render time. Contract: **Implementation constraints**, **Test/screenshot expectations**.
+
 ## Source-only follow-ups, not reproduced failures
 
 - `docs/page.tsx:206` reports link-copy success immediately without awaiting/catching the clipboard promise. Add truthful success/failure feedback and a topic-specific accessible name in a future fix. Clipboard-denied state was not tested here.
-- Cluster graph inspectors include fixed 280px minimum-width overlays and mouse-based panning. Test 320px containment, touch interaction, and keyboard inspection with a deterministic cluster fixture before claiming parity.
+- Cluster graph inspectors include fixed 280px minimum-width overlays. Test 320px containment and keyboard inspection with a deterministic cluster fixture before claiming parity; the pan/touch and state-update issue is now tracked in F16.
 - Complete-state risk factor decomposition and partial/unavailable cluster summaries were inspected in source/tests but not rendered during this run. Do not treat the saved partial single-wallet result as coverage of those branches.
 - Loading source has an elapsed timer, real phase/counter labels, a polite status message, and determinate/indeterminate progress behavior. Provider stalls, cancellation expectations, offline recovery, and error layouts need fixture-based runtime testing.
 - Gas chart values are rounded to whole USD before plotting, while other screens preserve sub-cent values. Test dust-only monthly data and make its display rule explicit; this audit did not reproduce a dust chart.
@@ -199,21 +214,24 @@ Priority guide: **P1** = repair before treating the affected flow as ready; **P2
 1. Resolve the theme/mobile-width governance questions without changing the approved composition.
 2. Repair F01–F05 individually, each with a regression test and a fresh rendered check.
 3. Correct evidence-window/status/count language (F07, F08, F10) and rendered semantics (F09, F11, F12).
-4. Approve and implement the mobile result prioritization and shared topic shell (F06, F13).
-5. Consolidate secondary visual details (F14); reconcile checklist evidence (F15).
-6. Finish the existing item-22 gate using deterministic complete/partial/unavailable/cluster/loading fixtures, keyboard checks, real zoom and reduced-motion testing, then canonical repository verification. No deployment is included.
+4. Repair graph input handling and establish a performance baseline (F16, F17) before attempting speculative bundle or rendering rewrites.
+5. Approve and implement the mobile result prioritization and shared topic shell (F06, F13).
+6. Consolidate secondary visual details (F14); reconcile checklist evidence (F15).
+7. Finish the existing item-22 gate using deterministic complete/partial/unavailable/cluster/loading fixtures, keyboard checks, real zoom and reduced-motion testing, then canonical repository verification. No deployment is included.
 
 ## Verification results and limitations
 
 | Check | Result |
 | --- | --- |
+| `npm run build` | Passed (Next.js 16.3.1 production build) |
 | `npm run lint` | Passed |
-| `npm test` | First attempt blocked by sandbox IPC permissions; approved retry executed 251 tests: 250 passed, 1 failed |
+| `npm test` | First attempt blocked by sandbox IPC permissions; approved retry executed 253 tests: 252 passed, 1 failed |
 | Failed test | `src/components/p3ResponsiveLayout.test.ts:31`: expected wallet input classes `max-w-[288px] md:max-w-none`, absent in current source |
 | Failure repeat | A second run reproduced the same one failing test |
 | `git diff --check` | Passed before report creation; rerun at handoff |
 | Browser | Seven routes, six saved single-wallet tabs, cluster input; fresh captures and targeted interactions above |
 | Scanner dimensions | Mobile network/Scan buttons 44px; desktop networks 36px and Scan 44px; mobile input well 38px; no measured page overflow in the seven tested widths |
+| Performance evidence | Production chunk inspection confirms nested dashboard-tab code splitting; no field metrics, Lighthouse baseline, or CPU-throttled interaction trace was captured |
 | UI changes | None; only design/audit documentation and fresh screenshots |
 
 Not tested: provider-backed fresh scans, complete-state dashboard/risk decomposition, unavailable-state dashboard, completed/partial cluster browser flows, export download, actual clipboard writes/denial, every graph/filter combination, all four saved demos, real mobile devices, Safari/iOS, screen readers, real 200% zoom, forced colors, reduced-motion runtime, offline/429/timeout states, production build/deployment, or unknown-route/error-page recovery. No formal color-contrast certification, performance benchmark, or analytics-math audit was performed. Some styling and semantics findings come from current source in addition to screenshots and are labeled accordingly.

@@ -37,13 +37,6 @@
   --ease-out-quad: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Keep touch/wheel scrolling native; animate only navigation scrolls. */
-@media (prefers-reduced-motion: no-preference) {
-  html {
-    scroll-behavior: smooth;
-  }
-}
-
 @keyframes mobileNavigationOpen {
   from {
     opacity: 0;

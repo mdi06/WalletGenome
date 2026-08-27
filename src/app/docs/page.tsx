@@ -42,6 +42,15 @@ interface DocSection {
 
 const SECTIONS: DocSection[] = [
   {
+    id: 'reporting-contract',
+    category: '0. API Specifications',
+    title: 'Reporting Metric Definitions',
+    badge: 'CANONICAL API CONTRACT',
+    summary: 'Standardized definitions for on-chain metrics returned by the API and displayed in the dashboard.',
+    icon: BookOpen,
+    filePath: 'src/lib/reportingContract.ts',
+  },
+  {
     id: 'pipeline-architecture',
     category: '1. Architecture & Ingestion',
     title: 'Multi-Chain Pipeline & Rate-Resilient Data Gateway',
@@ -137,7 +146,9 @@ export default function DocsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeSection, setActiveSection] = useState('pipeline-architecture');
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [copyStatus, setCopyStatus] = useState<string>('');
   const [showMobileTopicJump, setShowMobileTopicJump] = useState(false);
+  const docsSearchInputRef = useRef<HTMLInputElement>(null);
   const mobileDocsIndexRef = useRef<HTMLDetailsElement>(null);
   const mobileDocsIndexSummaryRef = useRef<HTMLElement>(null);
 
@@ -200,14 +211,27 @@ export default function DocsPage() {
     if (!nextSectionId) return;
 
     setActiveSection(nextSectionId);
-    document.getElementById(nextSectionId)?.scrollIntoView({ behavior: 'auto', block: 'start' });
   };
 
-  const handleCopyLink = (id: string) => {
-    const url = `${window.location.origin}/docs#${id}`;
-    navigator.clipboard.writeText(url);
-    setCopiedId(id);
-    setTimeout(() => setCopiedId(null), 2000);
+  const clearTopicFilter = () => {
+    setSearchQuery('');
+    docsSearchInputRef.current?.focus();
+  };
+
+  const handleCopyLink = async (id: string) => {
+    try {
+      if (!navigator.clipboard) throw new Error('Clipboard API unavailable');
+      const url = `${window.location.origin}/docs#${id}`;
+      await navigator.clipboard.writeText(url);
+      setCopiedId(id);
+      setCopyStatus('Section link copied to clipboard');
+      setTimeout(() => {
+        setCopiedId(null);
+        setCopyStatus('');
+      }, 2000);
+    } catch {
+      setCopyStatus('Unable to copy link');
+    }
   };
 
   const handleJumpToTopic = () => {
@@ -225,7 +249,8 @@ export default function DocsPage() {
 
   return (
     <main className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-32 lg:pb-6 space-y-8">
-      <SiteHeader activePage="docs" indexingStatus="live" showIndexingStatus={false} />
+      <SiteHeader activePage="docs" indexingStatus="ready" showIndexingStatus={false} />
+      <div aria-live="polite" className="sr-only" role="status">{copyStatus}</div>
 
       {/* ── Hero Header ── */}
       <div className="pt-4 pb-4 border-b border-[#c8c8c8] space-y-4">
@@ -252,9 +277,10 @@ export default function DocsPage() {
           <label htmlFor="docs-topic-filter" className="mb-1.5 block text-[10px] font-extrabold uppercase tracking-wider text-[#4b5563]">
             Filter documentation topics
           </label>
-          <div className="relative flex items-center well-recessed-light">
+          <div className="relative flex items-center well-recessed-light focus-within:border-[#963300] focus-within:ring-2 focus-within:ring-[#963300]/30 focus-within:ring-offset-1">
             <Search className="absolute left-3.5 text-[#4b5563]" size={16} aria-hidden="true" />
             <input
+              ref={docsSearchInputRef}
               id="docs-topic-filter"
               type="text"
               placeholder="Filter by title, category, or component path"
@@ -266,7 +292,7 @@ export default function DocsPage() {
             {searchQuery && (
               <button
                 type="button"
-                onClick={() => setSearchQuery('')}
+                onClick={clearTopicFilter}
                 aria-label="Clear documentation topic filter"
                 title="Clear documentation topic filter"
                 className="btn-3d-neutral absolute right-1 inline-flex min-h-11 min-w-11 items-center justify-center p-2 text-[#4b5563] hover:text-black"
@@ -284,7 +310,7 @@ export default function DocsPage() {
             {searchQuery && (
               <button
                 type="button"
-                onClick={() => setSearchQuery('')}
+                onClick={clearTopicFilter}
                 className="min-h-11 px-2 py-1 underline underline-offset-2 hover:text-black"
               >
                 Clear filter
@@ -361,11 +387,11 @@ export default function DocsPage() {
       )}
 
       {/* ── Main Layout: Sidebar Navigation + Content ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-0 items-start">
         
         {/* ── Left Sticky Sidebar: Table of Contents ── */}
-        <aside className="hidden lg:col-span-4 lg:sticky lg:top-6 lg:block space-y-8">
-          <section aria-labelledby="docs-index-heading" className="border-y border-[#c8c8c8] py-5 space-y-4">
+        <aside className="hidden lg:col-span-4 lg:sticky lg:top-6 lg:block lg:border-r lg:border-[#c8c8c8] lg:pr-8 space-y-8">
+          <section aria-labelledby="docs-index-heading" className="space-y-4">
             <div className="flex items-center justify-between text-xs font-black uppercase tracking-wider text-[#4b5563]">
               <span className="flex items-center gap-1.5">
                 <Compass size={14} className="text-orange-ink" />
@@ -409,7 +435,7 @@ export default function DocsPage() {
           </section>
 
           {/* Quick Technical Summary Card */}
-          <section aria-labelledby="computation-stats-heading" className="border-y border-[#c8c8c8] py-5 space-y-3 text-xs font-mono text-[#0a0a0a]">
+          <section aria-labelledby="computation-stats-heading" className="border-t border-[#c8c8c8] pt-6 space-y-3 text-xs font-mono text-[#0a0a0a]">
             <div className="font-black text-[#0a0a0a] flex items-center gap-1.5">
               <Zap size={13} className="text-orange-ink" />
               <span id="computation-stats-heading">KEY COMPUTATION STATS</span>
@@ -436,8 +462,8 @@ export default function DocsPage() {
         </aside>
 
         {/* ── Right Detailed Content ── */}
-        <div className="lg:col-span-8 space-y-8">
-          <section id="reporting-contract" className="border-y border-[#c8c8c8] py-6 sm:py-8 space-y-5 text-[#0a0a0a]">
+        <div className="lg:col-span-8 lg:pl-8 flex flex-col gap-12 divide-y divide-[#c8c8c8]">
+          <section id="reporting-contract" className="space-y-5 text-[#0a0a0a]">
             <div className="space-y-1 border-b border-[#c8c8c8] pb-3">
               <span className="badge-3d text-[10px] font-mono font-black text-orange-ink uppercase tracking-wider px-2 py-0.5">
                 CANONICAL API CONTRACT
@@ -487,7 +513,7 @@ export default function DocsPage() {
           {/* ========================================================================= */}
           {/* 1. PIPELINE ARCHITECTURE */}
           {/* ========================================================================= */}
-          <section id="pipeline-architecture" className="border-y border-[#c8c8c8] py-6 sm:py-8 space-y-5 text-[#0a0a0a]">
+          <section id="pipeline-architecture" className="pt-10 space-y-5 text-[#0a0a0a]">
             <div className="flex items-center justify-between border-b border-[#c8c8c8] pb-3">
               <div className="space-y-1">
                 <span className="badge-3d text-[10px] font-mono font-black text-orange-ink uppercase tracking-wider px-2 py-0.5">
@@ -561,7 +587,7 @@ export default function DocsPage() {
           {/* ========================================================================= */}
           {/* 2. CALLDATA CATEGORIZATION */}
           {/* ========================================================================= */}
-          <section id="calldata-categorization" className="border-y border-[#c8c8c8] py-6 sm:py-8 space-y-5 text-[#0a0a0a]">
+          <section id="calldata-categorization" className="pt-10 space-y-5 text-[#0a0a0a]">
             <div className="flex items-center justify-between border-b border-[#c8c8c8] pb-3">
               <div className="space-y-1">
                 <span className="badge-3d text-[10px] font-mono font-black text-orange-ink uppercase tracking-wider px-2 py-0.5">
@@ -653,7 +679,7 @@ export default function DocsPage() {
           {/* ========================================================================= */}
           {/* 3. BEHAVIORAL FINGERPRINT */}
           {/* ========================================================================= */}
-          <section id="behavioral-fingerprint" className="border-y border-[#c8c8c8] py-6 sm:py-8 space-y-5 text-[#0a0a0a]">
+          <section id="behavioral-fingerprint" className="pt-10 space-y-5 text-[#0a0a0a]">
             <div className="flex items-center justify-between border-b border-[#c8c8c8] pb-3">
               <div className="space-y-1">
                 <span className="badge-3d text-[10px] font-mono font-black text-orange-ink uppercase tracking-wider px-2 py-0.5">
@@ -779,7 +805,7 @@ export default function DocsPage() {
           {/* ========================================================================= */}
           {/* 4. COMPOSITE RISK ENGINE */}
           {/* ========================================================================= */}
-          <section id="risk-score-engine" className="border-y border-[#c8c8c8] py-6 sm:py-8 space-y-5 text-[#0a0a0a]">
+          <section id="risk-score-engine" className="pt-10 space-y-5 text-[#0a0a0a]">
             <div className="flex items-center justify-between border-b border-[#c8c8c8] pb-3">
               <div className="space-y-1">
                 <span className="badge-3d text-[10px] font-mono font-black text-orange-ink uppercase tracking-wider px-2 py-0.5">
@@ -862,7 +888,7 @@ export default function DocsPage() {
           {/* ========================================================================= */}
           {/* 5. SYBIL RADAR & MEDIA SCORING */}
           {/* ========================================================================= */}
-          <section id="sybil-radar-media" className="border-y border-[#c8c8c8] py-6 sm:py-8 space-y-5 text-[#0a0a0a]">
+          <section id="sybil-radar-media" className="pt-10 space-y-5 text-[#0a0a0a]">
             <div className="flex items-center justify-between border-b border-[#c8c8c8] pb-3">
               <div className="space-y-1">
                 <span className="badge-3d text-[10px] font-mono font-black text-orange-ink uppercase tracking-wider px-2 py-0.5">
@@ -959,7 +985,7 @@ export default function DocsPage() {
           {/* ========================================================================= */}
           {/* 6. APPROVALS & EXPOSURE */}
           {/* ========================================================================= */}
-          <section id="approvals-exposure-audit" className="border-y border-[#c8c8c8] py-6 sm:py-8 space-y-5 text-[#0a0a0a]">
+          <section id="approvals-exposure-audit" className="pt-10 space-y-5 text-[#0a0a0a]">
             <div className="flex items-center justify-between border-b border-[#c8c8c8] pb-3">
               <div className="space-y-1">
                 <span className="badge-3d text-[10px] font-mono font-black text-orange-ink uppercase tracking-wider px-2 py-0.5">
@@ -1014,7 +1040,7 @@ export default function DocsPage() {
           {/* ========================================================================= */}
           {/* 8. TEMPORAL ACTIVITY */}
           {/* ========================================================================= */}
-          <section id="temporal-activity-heatmap" className="border-y border-[#c8c8c8] py-6 sm:py-8 space-y-5 text-[#0a0a0a]">
+          <section id="temporal-activity-heatmap" className="pt-10 space-y-5 text-[#0a0a0a]">
             <div className="flex items-center justify-between border-b border-[#c8c8c8] pb-3">
               <div className="space-y-1">
                 <span className="badge-3d text-[10px] font-mono font-black text-orange-ink uppercase tracking-wider px-2 py-0.5">
@@ -1060,7 +1086,7 @@ export default function DocsPage() {
           {/* ========================================================================= */}
           {/* 9. NETWORK TOPOLOGIES */}
           {/* ========================================================================= */}
-          <section id="capital-cluster-topologies" className="border-y border-[#c8c8c8] py-6 sm:py-8 space-y-5 text-[#0a0a0a]">
+          <section id="capital-cluster-topologies" className="pt-10 space-y-5 text-[#0a0a0a]">
             <div className="flex items-center justify-between border-b border-[#c8c8c8] pb-3">
               <div className="space-y-1">
                 <span className="badge-3d text-[10px] font-mono font-black text-orange-ink uppercase tracking-wider px-2 py-0.5">
@@ -1113,7 +1139,7 @@ export default function DocsPage() {
           {/* ========================================================================= */}
           {/* 10. DECENTRALIZED IDENTITY */}
           {/* ========================================================================= */}
-          <section id="decentralized-identity" className="border-y border-[#c8c8c8] py-6 sm:py-8 space-y-5 text-[#0a0a0a]">
+          <section id="decentralized-identity" className="pt-10 space-y-5 text-[#0a0a0a]">
             <div className="flex items-center justify-between border-b border-[#c8c8c8] pb-3">
               <div className="space-y-1">
                 <span className="badge-3d text-[10px] font-mono font-black text-orange-ink uppercase tracking-wider px-2 py-0.5">
@@ -1179,7 +1205,7 @@ export default function DocsPage() {
           {/* ========================================================================= */}
           {/* 11. TECHNICAL COMPLEXITY SPECIFICATIONS */}
           {/* ========================================================================= */}
-          <section id="complexity-matrix" className="border-y border-[#c8c8c8] py-6 sm:py-8 space-y-5 text-[#0a0a0a]">
+          <section id="complexity-matrix" className="pt-10 space-y-5 text-[#0a0a0a]">
             <div className="flex items-center justify-between border-b border-[#c8c8c8] pb-3">
               <div className="space-y-1">
                 <span className="badge-3d text-[10px] font-mono font-black text-orange-ink uppercase tracking-wider px-2 py-0.5">

@@ -99,7 +99,8 @@ export default function ActivityHeatmap({ results }: Props) {
                 return (
                   <div
                     key={hourIdx}
-                    className="w-5 h-5 shrink-0 flex-none transition-transform hover:scale-110 cursor-default rounded-[1px]"
+                    tabIndex={0}
+                    className="w-5 h-5 shrink-0 flex-none transition-transform hover:scale-110 focus:scale-110 focus:outline-none focus:ring-1 focus:ring-orange-ink cursor-default rounded-[1px]"
                     style={bgStyle}
                     title={`${dayLabel} ${hourIdx}:00 UTC — ${count} txs`}
                   />

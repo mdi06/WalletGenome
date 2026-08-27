@@ -7,7 +7,7 @@ import BehavioralFingerprint from './BehavioralFingerprint';
 import RiskScore from './RiskScore';
 import SybilRadar from './SybilRadar';
 import IdentityCard from './IdentityCard';
-import { ExternalLink } from 'lucide-react';
+
 import { buildDashboardViewModel } from '@/lib/viewModels/dashboardViewModels';
 import DashboardStatusPanel, { getAvailabilityMessage } from './status/DashboardStatusPanel';
 import { getNextTabIndex } from '@/lib/accessibility/tabs';
@@ -61,7 +61,7 @@ const GasSummaryPanel = dynamic(() => import('./GasSummaryPanel'), {
 const TransferTable = dynamic(() => import('./TransferTable'), {
   loading: () => (
     <div className="p-8 text-center text-xs font-mono font-bold text-gray-500 uppercase tracking-wider animate-pulse">
-      Loading Transfers...
+      Loading Top Token Transfers...
     </div>
   ),
   ssr: false,
@@ -93,6 +93,21 @@ export default function Dashboard({ data, showStatusPanel = true }: DashboardPro
   const hasDefinitiveMetrics = metrics.riskScore !== null
     && metrics.riskGrade !== null
     && metrics.sybilProbability !== null;
+  const { dateRangeLabel } = React.useMemo(() => {
+    const activeDates = new Set<string>();
+    for (const chain of data.chains) {
+      if (chain.activityProfile?.activeDates) {
+        for (const date of chain.activityProfile.activeDates) activeDates.add(date);
+      }
+    }
+    const dates = Array.from(activeDates).sort();
+    if (dates.length === 0) return { dateRangeLabel: 'OBSERVED HISTORY' };
+    
+    const start = new Date(dates[0]).toLocaleDateString(undefined, { month: 'short', year: 'numeric' });
+    const end = new Date(dates[dates.length - 1]).toLocaleDateString(undefined, { month: 'short', year: 'numeric' });
+    return { dateRangeLabel: start === end ? start.toUpperCase() : `${start.toUpperCase()} - ${end.toUpperCase()}` };
+  }, [data.chains]);
+
   if (data.chains.length === 0) {
     return showStatusPanel ? <DashboardStatusPanel data={data} /> : null;
   }
@@ -103,13 +118,11 @@ export default function Dashboard({ data, showStatusPanel = true }: DashboardPro
     chainActivityStatus,
     formattedGasUSD,
     persona,
-    primaryName,
     protocolBadges,
     protocolCount,
     radarData,
     riskGrade,
     riskScore,
-    sybilProbability: sybilProb,
     totalGasETH,
   } = buildDashboardViewModel(data);
 
@@ -118,7 +131,7 @@ export default function Dashboard({ data, showStatusPanel = true }: DashboardPro
     { id: 'flow', label: 'FLOW GRAPH' },
     { id: 'protocols', label: 'PROTOCOLS', count: protocolCount },
     { id: 'gas', label: 'GAS FEES' },
-    { id: 'transfers', label: 'TRANSFERS' },
+    { id: 'transfers', label: 'TOP TOKEN TRANSFERS' },
     { id: 'approvals', label: 'APPROVALS', count: approvalCount },
   ];
 
@@ -143,9 +156,6 @@ export default function Dashboard({ data, showStatusPanel = true }: DashboardPro
     document.getElementById(`dashboard-${nextTab}-tab`)?.focus();
     scrollDashboardTabIntoView(nextTab);
   };
-
-
-
   return (
     <div className="min-w-0 space-y-4 md:space-y-5 animate-fade-in-up">
       {showStatusPanel && hasProviderWarnings && <DashboardStatusPanel data={data} />}
@@ -216,106 +226,32 @@ export default function Dashboard({ data, showStatusPanel = true }: DashboardPro
           aria-labelledby="dashboard-dna-tab"
           className="space-y-6 md:space-y-5"
         >
-          {/* Universal Resolved Identity Banner */}
-          <IdentityCard identity={identityReport} address={data.address} />
-
-          {/* Sybil Radar Bar */}
-          <SybilRadar report={sybilReport} />
+          {/* Mobile: Sybil First, Desktop: Identity First */}
+          <div className="flex flex-col">
+            <div className="order-2 md:order-1 mt-6 md:mt-0 mb-0 md:mb-5">
+              <IdentityCard identity={identityReport} address={data.address} persona={persona} />
+            </div>
+            <div className="order-1 md:order-2">
+              <SybilRadar report={sybilReport} />
+            </div>
+          </div>
 
           {/* Main 3-Column Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-5 items-start">
             
             {/* ══════════════ LEFT COLUMN (Span 3) ══════════════ */}
-            <div className="lg:col-span-3 space-y-6 lg:space-y-5">
+            <div className="lg:col-span-3 flex flex-col gap-6 lg:gap-5">
               
-              {/* Persona Identity Card */}
-              <section aria-labelledby="persona-identity-heading" className="card-3d p-6 lg:p-5 text-[#0a0a0a] flex flex-col items-center text-center space-y-4">
-                <span id="persona-identity-heading" className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider">
-                  PERSONA IDENTITY
-                </span>
-
-                <div className="w-20 h-20 btn-3d-orange flex items-center justify-center text-[#0a0a0a]">
-                  <span className="text-3xl font-black">🧬</span>
-                </div>
-
-                <div className="space-y-1.5">
-                  <h3 className="text-lg font-black text-[#0a0a0a] tracking-tight truncate max-w-[200px]">
-                    {primaryName}
-                  </h3>
-                  <div className="btn-3d-black text-white text-[10px] font-extrabold tracking-widest uppercase px-3 py-1">
-                    {persona.toUpperCase()}
-                  </div>
-                </div>
-
-                {/* Social Buttons */}
-                <div className="flex items-center gap-1.5 flex-wrap justify-center pt-1">
-                  {identityReport?.socials && identityReport.socials.length > 0 ? (
-                    identityReport.socials.map((s, i) => (
-                      <a
-                        key={i}
-                        href={s.link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="btn-3d-neutral text-xs font-bold text-[#0a0a0a] px-2.5 py-1 flex items-center gap-1 cursor-pointer"
-                      >
-                        <span>{s.platform === 'twitter' ? 'X' : s.platform.toUpperCase()}</span>
-                        <ExternalLink size={10} />
-                      </a>
-                    ))
-                  ) : (
-                    <>
-                      <a
-                        href={`https://debank.com/profile/${data.address}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="btn-3d-neutral text-xs font-bold text-[#0a0a0a] px-3 py-1 cursor-pointer"
-                      >
-                        Debank
-                      </a>
-                      <a
-                        href={`https://etherscan.io/address/${data.address}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="btn-3d-neutral text-xs font-bold text-[#0a0a0a] px-3 py-1 cursor-pointer"
-                      >
-                        Etherscan
-                      </a>
-                    </>
-                  )}
-                </div>
-
-                {/* Sunken Bottom Stats Well */}
-                <div className="w-full well-recessed-light p-3 grid grid-cols-2 gap-2 text-center">
-                  <div>
-                    <div className="text-lg font-black text-[#0a0a0a] font-mono">
-                      {riskGrade === null ? 'N/A' : riskGrade === 'A' ? 'A+' : riskGrade}
-                    </div>
-                    <div className="text-[10px] font-bold text-[#4b5563] uppercase tracking-wider">
-                      WORST-CHAIN RISK GRADE
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-lg font-black text-[#0a0a0a] font-mono">
-                      {sybilProb === null
-                        ? metrics.blacklistStatus === 'unavailable'
-                          ? 'N/A'
-                          : metrics.blacklistStatus.toUpperCase()
-                        : `${sybilProb}%`}
-                    </div>
-                    <div className="text-[10px] font-bold text-[#4b5563] uppercase tracking-wider">
-                      {sybilProb === null ? 'BLACKLIST STATUS' : 'SYBIL PROB.'}
-                    </div>
-                  </div>
-                </div>
-              </section>
+              {/* Persona identity card removed - merged into IdentityCard */}
 
               {/* Security Ratings */}
-              <section aria-labelledby="security-ratings-heading" className="card-3d p-6 lg:p-5 text-[#0a0a0a] space-y-4">
+              <div className="order-1 lg:order-2">
+                <section aria-labelledby="security-ratings-heading" className="card-3d p-6 lg:p-5 text-[#0a0a0a] space-y-4">
                 <div className="flex justify-between items-center">
-                  <span id="security-ratings-heading" className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider">
+                  <h2 id="security-ratings-heading" className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider m-0">
                     SECURITY RATINGS
-                  </span>
-                  <span className="btn-3d-neutral text-xs font-bold font-mono px-2 py-0.5 text-[#0a0a0a]">
+                  </h2>
+                  <span className="badge-3d border border-[#c8c8c8] text-xs font-bold font-mono px-2 py-0.5 text-[#0a0a0a]">
                     Grade {riskGrade ?? 'N/A'}
                   </span>
                 </div>
@@ -357,6 +293,7 @@ export default function Dashboard({ data, showStatusPanel = true }: DashboardPro
 
                 </div>
               </section>
+              </div>
 
             </div>
 
@@ -366,10 +303,10 @@ export default function Dashboard({ data, showStatusPanel = true }: DashboardPro
               {/* Activity Heatmap (LTM) */}
               <section aria-labelledby="transaction-heatmap-heading" className="card-3d p-6 lg:p-5 text-[#0a0a0a] space-y-3">
                 <div className="flex justify-between items-center">
-                  <span id="transaction-heatmap-heading" className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider">
-                    TRANSACTION HEATMAP (LTM)
-                  </span>
-                  <span className="btn-3d-neutral text-xs font-bold font-mono px-2 py-0.5 text-[#0a0a0a]">
+                  <h2 id="transaction-heatmap-heading" className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider m-0">
+                    TRANSACTION HEATMAP ({dateRangeLabel})
+                  </h2>
+                  <span className="badge-3d border border-[#c8c8c8] text-xs font-bold font-mono px-2 py-0.5 text-[#0a0a0a]">
                     {aggregated.totalTransactions} Total Txs
                   </span>
                 </div>
@@ -379,9 +316,9 @@ export default function Dashboard({ data, showStatusPanel = true }: DashboardPro
 
               {/* Protocol Identity Badges */}
               <section aria-labelledby="protocol-badges-heading" className="card-3d p-6 lg:p-5 text-[#0a0a0a] space-y-3">
-                <span id="protocol-badges-heading" className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider block">
+                <h2 id="protocol-badges-heading" className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider block m-0">
                   PROTOCOL IDENTITY BADGES
-                </span>
+                </h2>
 
                 {protocolBadges.length > 0 ? (
                   <div className="flex flex-wrap gap-2 pt-1">
@@ -390,8 +327,8 @@ export default function Dashboard({ data, showStatusPanel = true }: DashboardPro
                         key={i}
                         className={`text-xs font-mono font-bold px-3 py-1.5 tracking-wider ${
                           i === 0
-                            ? 'btn-3d-orange text-[#0a0a0a]'
-                            : 'btn-3d-neutral text-[#0a0a0a]'
+                            ? 'badge-3d bg-[#ff5500] text-[#0a0a0a]'
+                            : 'badge-3d border border-[#c8c8c8] bg-white text-[#0a0a0a]'
                         }`}
                       >
                         {badge}
@@ -408,9 +345,10 @@ export default function Dashboard({ data, showStatusPanel = true }: DashboardPro
               {/* Lifetime Gas & Chain Activity */}
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <section aria-labelledby="lifetime-gas-heading" className="card-3d p-6 lg:p-5 space-y-2 text-[#0a0a0a]">
-                  <span id="lifetime-gas-heading" className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider block">
-                    LIFETIME GAS
-                  </span>
+                  <h2 id="lifetime-gas-heading" className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider block flex items-center justify-between m-0">
+                    <span>LIFETIME GAS</span>
+                    <span className="text-[9px] text-[#f59e0b] font-mono normal-case">Observed history</span>
+                  </h2>
                   <div className="text-3xl font-black text-orange-ink font-mono truncate">
                     {formatNativeTokenValue(totalGasETH, 'ETH')}
                   </div>
@@ -421,9 +359,9 @@ export default function Dashboard({ data, showStatusPanel = true }: DashboardPro
 
                 <section aria-labelledby="chain-activity-heading" className="card-3d p-6 lg:p-5 space-y-3 text-[#0a0a0a]">
                   <div className="flex items-center justify-between gap-3">
-                    <span id="chain-activity-heading" className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider">
+                    <h2 id="chain-activity-heading" className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider m-0">
                       CHAIN ACTIVITY
-                    </span>
+                    </h2>
                     <span className={`badge-3d text-[9px] font-mono font-bold px-2 py-0.5 border ${
                       chainActivityStatus === 'complete'
                         ? 'bg-[#059669]/10 text-[#047857] border-[#059669]/30'
@@ -468,7 +406,7 @@ export default function Dashboard({ data, showStatusPanel = true }: DashboardPro
                             />
                           </div>
                         ) : chain.status === 'partial' ? (
-                          <div className="text-[9px] font-mono font-bold text-[#a14f08] uppercase">
+                          <div className="text-[9px] font-mono font-bold text-[#a14f08]">
                             At least this many records returned
                           </div>
                         ) : null}
@@ -488,9 +426,9 @@ export default function Dashboard({ data, showStatusPanel = true }: DashboardPro
               
               {/* 3D Risk Grade Card */}
               <section aria-labelledby="risk-grade-heading" className="card-3d p-6 lg:p-5 text-[#0a0a0a] space-y-4">
-                <span id="risk-grade-heading" className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider block">
+                <h2 id="risk-grade-heading" className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider block m-0">
                   RISK GRADE
-                </span>
+                </h2>
 
                 <div className="text-7xl font-black text-orange-ink font-mono leading-none">
                   {riskGrade ?? 'N/A'}
@@ -522,9 +460,9 @@ export default function Dashboard({ data, showStatusPanel = true }: DashboardPro
 
               {/* Real Interactive Behavioral Radar */}
               <section aria-labelledby="behavioral-radar-heading" className="card-3d p-6 lg:p-5 text-[#0a0a0a] space-y-4 overflow-hidden">
-                <span id="behavioral-radar-heading" className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider block">
+                <h2 id="behavioral-radar-heading" className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider block m-0">
                   BEHAVIORAL RADAR
-                </span>
+                </h2>
 
                 <BehavioralRadarChart radarData={radarData} />
 

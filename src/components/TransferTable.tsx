@@ -58,11 +58,17 @@ export default function TransferTable({ results }: Props) {
 
   return (
     <div className="space-y-4">
+      <section aria-labelledby="top-token-transfers-heading" className="border-b border-[#c8c8c8] pb-3">
+        <h3 id="top-token-transfers-heading" className="text-sm font-black uppercase tracking-wider text-[#0a0a0a]">Top token transfers</h3>
+        <p id="top-token-transfers-scope" className="mt-1 text-[11px] font-bold leading-relaxed text-[#4b5563]">
+          Subset of the highest-value token transfers returned for each chain and direction (up to 20 per group). Search, direction, network, and pagination apply only to this subset. Rows are sorted by USD value descending; native and internal transfers are not shown.
+        </p>
+      </section>
       {/* ── Controls Row ── */}
       <section aria-label="Transfer table controls" className="card-3d flex flex-col gap-3 p-3 md:p-3">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
           <div className="min-w-0 flex-1">
-            <label htmlFor="transfer-search" className="mb-1.5 block text-[10px] font-extrabold uppercase tracking-wider text-[#4b5563]">Search transfers</label>
+            <label htmlFor="transfer-search" className="mb-1.5 block text-[10px] font-extrabold uppercase tracking-wider text-[#4b5563]">Search top token transfers</label>
             <span className="flex min-h-11 items-center gap-2 border border-[#b8bbc3] bg-white px-3 focus-within:border-[#963300] focus-within:ring-2 focus-within:ring-[#963300]/30 focus-within:ring-offset-1 md:min-h-9">
               <Search size={14} aria-hidden="true" className="shrink-0 text-[#6b7280]" />
               <input
@@ -72,7 +78,8 @@ export default function TransferTable({ results }: Props) {
                 inputMode="search"
                 value={searchQuery}
                 onChange={event => updateSearchQuery(event.target.value)}
-                placeholder="Token, contract, hash, counterparty, or label"
+                placeholder="Search this subset by token, contract, hash, or counterparty"
+                aria-describedby="top-token-transfers-scope"
                 className="min-w-0 flex-1 bg-transparent text-base font-bold text-[#0a0a0a] outline-none placeholder:font-medium placeholder:text-[#6b7280] md:text-xs"
               />
               {searchQuery && (
@@ -104,7 +111,7 @@ export default function TransferTable({ results }: Props) {
                     : 'btn-3d-neutral text-[#4b5563]'
                 }`}
               >
-                {f === 'all' ? 'All Transfers' : f === 'in' ? 'Inbound' : 'Outbound'}
+                {f === 'all' ? 'All Top Token Transfers' : f === 'in' ? 'Inbound' : 'Outbound'}
               </button>
             ))}
           </div>
@@ -144,25 +151,25 @@ export default function TransferTable({ results }: Props) {
         <div className="flex flex-col gap-3 border-t border-[#c8c8c8] pt-3 text-xs font-bold text-[#4b5563] md:flex-row md:items-center md:justify-between">
           <p aria-live="polite">
             {filteredTransfers.length === 0
-              ? 'No transfers match the current filters.'
-              : `Showing ${paginatedTransfers.firstVisible}–${paginatedTransfers.lastVisible} of ${filteredTransfers.length} matching transfers`}
+              ? 'No top token transfers match the current filters.'
+              : `Showing ${paginatedTransfers.firstVisible}–${paginatedTransfers.lastVisible} of ${filteredTransfers.length} matching top token transfers`}
           </p>
           <div className="flex items-center gap-2">
             <button
               type="button"
-              aria-label="Previous transfers page"
+              aria-label="Previous top token transfers page"
               onClick={() => setPage(paginatedTransfers.currentPage - 1)}
               disabled={paginatedTransfers.currentPage === 1}
               className="btn-3d-neutral inline-flex min-h-11 min-w-11 md:min-h-9 md:min-w-9 items-center justify-center disabled:cursor-not-allowed disabled:opacity-40"
             >
               <ChevronLeft size={15} aria-hidden="true" />
             </button>
-            <span aria-label={`Transfers page ${paginatedTransfers.currentPage} of ${paginatedTransfers.pageCount}`} className="min-w-24 text-center font-mono">
+            <span aria-label={`Top token transfers page ${paginatedTransfers.currentPage} of ${paginatedTransfers.pageCount}`} className="min-w-24 text-center font-mono">
               Page {paginatedTransfers.currentPage} of {paginatedTransfers.pageCount}
             </span>
             <button
               type="button"
-              aria-label="Next transfers page"
+              aria-label="Next top token transfers page"
               onClick={() => setPage(paginatedTransfers.currentPage + 1)}
               disabled={paginatedTransfers.currentPage === paginatedTransfers.pageCount}
               className="btn-3d-neutral inline-flex min-h-11 min-w-11 md:min-h-9 md:min-w-9 items-center justify-center disabled:cursor-not-allowed disabled:opacity-40"
@@ -178,7 +185,7 @@ export default function TransferTable({ results }: Props) {
         className="horizontal-scroll-region well-recessed-light overflow-hidden overflow-x-auto"
         tabIndex={0}
         role="region"
-        aria-label="Wallet transfers table; scroll horizontally for all columns"
+        aria-label="Top token transfers table; native and internal transfers are not shown; scroll horizontally for all columns"
       >
         <table className="w-full text-left border-collapse">
           <thead>

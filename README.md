@@ -11,6 +11,10 @@
 
 Built with Next.js 16, TypeScript, and Recharts, this tool ingests raw transaction histories and token transfers across **Ethereum, Base, Arbitrum, and Optimism**, enriching them with historical USD pricing, protocol contract labels, and quantitative risk heuristics.
 
+### Design reference
+
+Read [DESIGN.md](DESIGN.md) before changing the UI. It defines the current light gray, white, black, and orange appearance, responsive rules, and how to record new design decisions. Shared styles live in `src/app/globals.css`; local sizing stays with the components. [DESIGN_AUDIT.md](DESIGN_AUDIT.md) tracks findings and follow-up evidence, not automatic approval to redesign.
+
 ---
 
 ## ✨ Key Analytics Features

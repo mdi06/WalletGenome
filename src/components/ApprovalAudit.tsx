@@ -145,7 +145,7 @@ export default function ApprovalAudit({ results }: Props) {
         <div className="flex flex-col gap-3 lg:flex-row lg:items-end">
           <label htmlFor="approval-search" className="min-w-0 flex-1">
             <span className="mb-1.5 block text-[10px] font-extrabold uppercase tracking-wider text-[#4b5563]">Search approvals</span>
-            <span className="flex min-h-11 md:min-h-9 items-center gap-2 border border-[#b8bbc3] bg-white px-3">
+            <span className="flex min-h-11 md:min-h-9 items-center gap-2 border border-[#b8bbc3] bg-white px-3 focus-within:border-[#963300] focus-within:ring-2 focus-within:ring-[#963300]/30 focus-within:ring-offset-1">
               <Search size={14} aria-hidden="true" className="shrink-0 text-[#6b7280]" />
               <input
                 id="approval-search"

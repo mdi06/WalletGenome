@@ -1,5 +1,6 @@
 import type { DisplayScanProgress } from '@/lib/scanProgress';
 import type { MultiChainScanResult } from '@/lib/types';
+import { unsuccessfulResponseError } from './scanClientError';
 
 export interface ScanStreamProgressUpdate {
   progress: DisplayScanProgress;
@@ -61,8 +62,7 @@ export async function runSingleWalletScanStream({
   });
 
   if (!response.ok) {
-    const payload = await response.json().catch(() => null) as { error?: string } | null;
-    throw new Error(payload?.error || `HTTP ${response.status}`);
+    throw await unsuccessfulResponseError(response);
   }
   if (!response.body) {
     throw new Error('The scan service did not provide a progress stream.');

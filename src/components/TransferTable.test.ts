@@ -67,17 +67,33 @@ it('renders a 50-row page with live count and operable pagination controls', () 
 
   const markup = renderToStaticMarkup(createElement(TransferTable, { results: [result] }));
 
-  assert.match(markup, /Search transfers/);
+  assert.match(markup, /Search top token transfers/);
   assert.match(markup, /id="transfer-network"/);
   assert.match(markup, /Network/);
   assert.match(markup, /grid grid-cols-3 gap-2 md:flex/);
-  assert.match(markup, /Showing 1–50 of 55 matching transfers/);
+  assert.match(markup, /Showing 1–50 of 55 matching top token transfers/);
   assert.match(markup, /Page 1 of 2/);
-  assert.match(markup, /aria-label="Previous transfers page"/);
-  assert.match(markup, /aria-label="Next transfers page"/);
-  assert.match(markup, /role="region" aria-label="Wallet transfers table; scroll horizontally for all columns"/);
+  assert.match(markup, /aria-label="Previous top token transfers page"/);
+  assert.match(markup, /aria-label="Next top token transfers page"/);
+  assert.match(markup, /role="region" aria-label="Top token transfers table; native and internal transfers are not shown; scroll horizontally for all columns"/);
   assert.match(markup, new RegExp(`/tx/0x${'0'.repeat(62)}31`));
   assert.doesNotMatch(markup, new RegExp(`/tx/0x${'0'.repeat(62)}50`));
+});
+
+it('labels the transfer table scope and excludes native transfer rows', () => {
+  const result = getMockScanResult().chains[0];
+  const rows = collectTransferTableRows([result], 'all', 'all');
+  const markup = renderToStaticMarkup(createElement(TransferTable, { results: [result] }));
+  const emptyMarkup = renderToStaticMarkup(createElement(TransferTable, { results: [] }));
+
+  assert.match(markup, /Top token transfers/);
+  assert.match(markup, /up to 20 per group/);
+  assert.match(markup, /Search, direction, network, and pagination apply only to this subset/);
+  assert.match(markup, /Rows are sorted by USD value descending/);
+  assert.match(markup, /Search this subset by token, contract, hash, or counterparty/);
+  assert.match(emptyMarkup, /No top token transfers match the current filters/);
+  assert.ok(rows.every(row => row.fromLabel !== 'Coinbase Hot Wallet'));
+  assert.doesNotMatch(markup, /Coinbase Hot Wallet/);
 });
 
 it('shows token identity and suppresses legacy ticker-only USD values', () => {

@@ -13,8 +13,10 @@ interface LoadedScanSummaryProps {
 }
 
 const EVIDENCE_LABELS: Record<IndexingStatus, string> = {
-  live: 'Live scan',
-  'saved-snapshot': 'Saved snapshot',
+  ready: 'Ready',
+  scanning: 'Scanning',
+  completed: 'Live scan',
+  saved: 'Saved snapshot',
   partial: 'Partial evidence',
   unavailable: 'Evidence unavailable',
 };
