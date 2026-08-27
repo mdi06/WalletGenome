@@ -31,7 +31,7 @@ export default function ActivityHeatmap({ results }: Props) {
       {/* Stat Badges */}
       <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-4">
         <div className="card-3d flex items-center gap-2 p-2.5">
-          <Calendar size={14} className="text-[#ff5500]" />
+          <Calendar size={14} className="text-orange-ink" />
           <div>
             <div className="text-[10px] font-extrabold text-[#4b5563] uppercase">Active Days</div>
             <div className="text-xs font-black text-[#0a0a0a] font-mono">{profile.totalActiveDays} days</div>
@@ -39,7 +39,7 @@ export default function ActivityHeatmap({ results }: Props) {
         </div>
 
         <div className="card-3d flex items-center gap-2 p-2.5">
-          <Flame size={14} className="text-[#ff5500]" />
+          <Flame size={14} className="text-orange-ink" />
           <div>
             <div className="text-[10px] font-extrabold text-[#4b5563] uppercase">Streak</div>
             <div className="text-xs font-black text-[#0a0a0a] font-mono">{profile.longestStreakDays} days</div>
@@ -55,7 +55,7 @@ export default function ActivityHeatmap({ results }: Props) {
         </div>
 
         <div className="card-3d flex items-center gap-2 p-2.5">
-          <Zap size={14} className="text-[#ff5500]" />
+          <Zap size={14} className="text-orange-ink" />
           <div>
             <div className="text-[10px] font-extrabold text-[#4b5563] uppercase">Peak Day</div>
             <div className="text-xs font-black text-[#0a0a0a] font-mono">{profile.mostActiveDay}</div>

@@ -16,6 +16,7 @@ interface GraphNode {
   id: string;
   label: string;
   subLabel?: string;
+  chainName?: string;
   type: 'inflow' | 'center' | 'protocol' | 'outflow';
   category?: string;
   volumeUSD: number;
@@ -57,6 +58,10 @@ export function formatGraphVolume(volumeUSD: number, txCount: number): string {
 
 export function formatGraphSummaryValue(value: number | null): string {
   return value === null ? 'Unavailable' : formatCompactUSD(value);
+}
+
+export function formatGraphNetworkLabel(chainName: string | undefined, chainId: number): string {
+  return chainName?.trim() || `Chain ${chainId}`;
 }
 
 export default function CapitalFlowGraph({ results, metrics }: Props) {
@@ -198,6 +203,7 @@ export default function CapitalFlowGraph({ results, metrics }: Props) {
           id: pId,
           label: p.name,
           subLabel: p.protocol !== p.name ? p.protocol : undefined,
+          chainName: p.chainName,
           type: 'protocol',
           category: p.category as string,
           volumeUSD: 0,
@@ -353,7 +359,7 @@ export default function CapitalFlowGraph({ results, metrics }: Props) {
 
   return (
     <div className="space-y-7">
-      <section aria-labelledby="flow-summary-heading" className="border-y border-[#c8c8c8] py-5 text-[#0a0a0a] space-y-4">
+      <section aria-labelledby="flow-summary-heading" className="card-3d space-y-4 p-4 text-[#0a0a0a] sm:p-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
             <h3 id="flow-summary-heading" className="text-xs font-black uppercase tracking-wider">{flowSummaryTitle}</h3>
@@ -379,7 +385,7 @@ export default function CapitalFlowGraph({ results, metrics }: Props) {
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <div className="well-recessed-light p-3">
+          <div className="well-recessed-light p-4">
             <div className="text-[10px] font-black text-[#4b5563] uppercase">
               {hasObservedLowerBound ? 'Observed Priced Inflow' : 'Verified Inflow'}
             </div>
@@ -388,16 +394,16 @@ export default function CapitalFlowGraph({ results, metrics }: Props) {
             </div>
             {displayedInflowUSD === null && <div className="mt-1 text-[10px] font-bold text-[#92400e]">USD value unavailable</div>}
           </div>
-          <div className="well-recessed-light p-3">
+          <div className="well-recessed-light p-4">
             <div className="text-[10px] font-black text-[#4b5563] uppercase">
               {hasObservedLowerBound ? 'Observed Priced Outflow' : 'Verified Outflow'}
             </div>
-            <div className={`text-xl font-black font-mono mt-1 ${displayedOutflowUSD === null ? 'text-[#92400e]' : 'text-[#ff5500]'}`}>
+            <div className={`text-xl font-black font-mono mt-1 ${displayedOutflowUSD === null ? 'text-[#92400e]' : 'text-orange-ink'}`}>
               {formatGraphSummaryValue(displayedOutflowUSD)}
             </div>
             {displayedOutflowUSD === null && <div className="mt-1 text-[10px] font-bold text-[#92400e]">USD value unavailable</div>}
           </div>
-          <div className="well-recessed-light p-3">
+          <div className="well-recessed-light p-4">
             <div className="text-[10px] font-black text-[#4b5563] uppercase">
               {hasObservedLowerBound ? 'Net Observed Priced Flow' : 'Net Verified Flow'}
             </div>
@@ -434,14 +440,14 @@ export default function CapitalFlowGraph({ results, metrics }: Props) {
 
       {/* ── Highlighted recipient evidence ── */}
       {mostInteractedWallet ? (
-        <section aria-labelledby="most-interacted-heading" className="border-y border-[#c8c8c8] py-5 text-[#0a0a0a] flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <section aria-labelledby="most-interacted-heading" className="card-3d flex flex-col items-start justify-between gap-4 p-4 text-[#0a0a0a] md:flex-row md:items-center sm:p-5">
           <div className="flex items-center gap-3.5">
-            <div className="w-12 h-12 btn-3d-orange text-white flex items-center justify-center font-black text-xl flex-shrink-0">
+            <div className="w-12 h-12 btn-3d-orange text-[#0a0a0a] flex items-center justify-center font-black text-xl flex-shrink-0">
               <Trophy size={24} />
             </div>
             <div className="space-y-0.5">
               <div className="flex items-center gap-2">
-                <span id="most-interacted-heading" className="text-[10px] font-extrabold tracking-widest text-[#ff5500] uppercase">
+                <span id="most-interacted-heading" className="text-[10px] font-extrabold tracking-widest text-orange-ink uppercase">
                   MOST INTERACTED RECIPIENT WALLET
                 </span>
                 <span className="badge-3d text-[10px] font-mono font-bold px-2 py-0.5 bg-[#d0d0d0] text-[#0a0a0a]">
@@ -456,7 +462,7 @@ export default function CapitalFlowGraph({ results, metrics }: Props) {
                   type="button"
                   aria-label={`View ${mostInteractedWallet.label || mostInteractedWallet.address} on block explorer`}
                   onClick={() => handleNodeClick(mostInteractedWallet)}
-                  className="min-h-11 min-w-11 inline-flex items-center justify-center text-[#6b7280] hover:text-[#ff5500] transition-colors cursor-pointer"
+                  className="min-h-11 min-w-11 md:min-h-9 md:min-w-9 inline-flex items-center justify-center text-[#6b7280] hover:text-orange-ink transition-colors cursor-pointer"
                   title="View on Explorer"
                 >
                   <ExternalLink size={13} />
@@ -465,12 +471,12 @@ export default function CapitalFlowGraph({ results, metrics }: Props) {
             </div>
           </div>
 
-          <div className="flex items-center gap-6 font-mono self-start md:self-center border-t md:border-t-0 border-[#c8c8c8] pt-2 md:pt-0 w-full md:w-auto justify-between md:justify-end">
-            <div>
+          <div className="grid w-full grid-cols-1 gap-2 font-mono sm:grid-cols-2 md:w-auto">
+            <div className="well-recessed-light min-w-40 p-3">
               <div className="text-[10px] font-bold text-[#4b5563] uppercase">TRANSACTIONS SENT</div>
-              <div className="text-xl font-black text-[#ff5500]">{mostInteractedWallet.txCount} TXS</div>
+              <div className="text-xl font-black text-orange-ink">{mostInteractedWallet.txCount} TXS</div>
             </div>
-            <div>
+            <div className="well-recessed-light min-w-48 p-3">
               <div className="text-[10px] font-bold text-[#4b5563] uppercase">TOTAL CAPITAL SENT</div>
               <div className={`text-xl font-black ${mostInteractedWallet.volumeUSD > 0 ? 'text-[#0a0a0a]' : 'text-[#92400e]'}`}>
                 {formatGraphVolume(mostInteractedWallet.volumeUSD, mostInteractedWallet.txCount)}
@@ -480,20 +486,20 @@ export default function CapitalFlowGraph({ results, metrics }: Props) {
           </div>
         </section>
       ) : (
-        <div className="border-y border-[#c8c8c8] py-4 text-[#4b5563] text-xs font-mono font-bold">
+        <div className="card-3d p-4 text-[#4b5563] text-xs font-mono font-bold">
           No external recipient EOA wallets recorded in outbound transfer events.
         </div>
       )}
 
       {/* ── Controls Row ── */}
-      <div className="flex flex-col gap-3 border-y border-[#c8c8c8] py-3 lg:flex-row lg:items-center lg:justify-between">
+      <div className="card-3d flex flex-col gap-3 p-3 lg:flex-row lg:items-center lg:justify-between">
         <div className="horizontal-scroll-region flex min-w-0 items-center gap-2 overflow-x-auto pb-1">
           <span className="shrink-0 text-xs font-bold text-[#4b5563] uppercase">Min Volume:</span>
           {[0, 100, 500, 2000, 10000].map(amt => (
             <button
               key={amt}
               onClick={() => setMinVolume(amt)}
-              className={`min-h-11 px-3 py-1 text-xs font-bold cursor-pointer ${
+              className={`min-h-11 px-3 py-1 md:min-h-9 md:px-2.5 cursor-pointer text-xs font-bold ${
                 minVolume === amt
                   ? 'btn-3d-black text-white'
                   : 'btn-3d-neutral text-[#4b5563]'
@@ -516,7 +522,7 @@ export default function CapitalFlowGraph({ results, metrics }: Props) {
             <button
               key={c.id}
               onClick={() => setSelectedChain(c.id)}
-              className={`min-h-11 px-3 py-1 text-xs font-bold cursor-pointer ${
+              className={`min-h-11 px-3 py-1 md:min-h-9 md:px-2.5 cursor-pointer text-xs font-bold ${
                 selectedChain === c.id
                   ? 'btn-3d-black text-white'
                   : 'btn-3d-neutral text-[#4b5563]'
@@ -550,7 +556,11 @@ export default function CapitalFlowGraph({ results, metrics }: Props) {
           <p>{nodes.length} nodes and {links.length} connections are shown for the selected filters.</p>
           <ul>
             {nodes.filter(node => node.type !== 'center').map(node => (
-              <li key={node.id}>{node.type}: {node.label}, {node.txCount} transactions, {formatGraphVolume(node.volumeUSD, node.txCount)}.</li>
+              <li key={node.id}>
+                {node.type}: {node.label}
+                {node.type === 'protocol' && ` on ${formatGraphNetworkLabel(node.chainName, node.chainId)}`}
+                , {node.txCount} transactions, {formatGraphVolume(node.volumeUSD, node.txCount)}.
+              </li>
             ))}
           </ul>
         </div>
@@ -635,6 +645,11 @@ export default function CapitalFlowGraph({ results, metrics }: Props) {
               : node.type === 'outflow'
               ? '#f59e0b'
               : '#3b82f6';
+            const networkLabel = node.type === 'protocol'
+              ? formatGraphNetworkLabel(node.chainName, node.chainId)
+              : null;
+            const nodeBoxHeight = networkLabel ? 48 : 36;
+            const nodeBoxY = networkLabel ? -24 : -18;
 
             return (
               <g
@@ -647,17 +662,22 @@ export default function CapitalFlowGraph({ results, metrics }: Props) {
               >
                 <rect
                   x="-65"
-                  y="-18"
+                  y={nodeBoxY}
                   width="130"
-                  height="36"
+                  height={nodeBoxHeight}
                   fill="#11131a"
                   stroke={isHovered ? '#ffffff' : nodeBorder}
                   strokeWidth={node.isTopRecipient || isHovered ? 2 : 1}
                 />
-                <text x="0" y="-2" textAnchor="middle" fill="#ffffff" style={{ fontSize: 11, fontWeight: 700 }}>
+                <text x="0" y={networkLabel ? -10 : -2} textAnchor="middle" fill="#ffffff" style={{ fontSize: 11, fontWeight: 700 }}>
                   {node.label.length > 13 ? node.label.slice(0, 12) + '…' : node.label}
                 </text>
-                <text x="0" y="11" textAnchor="middle" fill={nodeBorder} style={{ fontSize: 9, fontWeight: 700, fontFamily: 'monospace' }}>
+                {networkLabel && (
+                  <text className="flow-network-label" x="0" y="2" textAnchor="middle" fill="#a4adbf" style={{ fontSize: 8, fontWeight: 700 }}>
+                    {networkLabel}
+                  </text>
+                )}
+                <text x="0" y={networkLabel ? 16 : 11} textAnchor="middle" fill={nodeBorder} style={{ fontSize: 9, fontWeight: 700, fontFamily: 'monospace' }}>
                   {node.isTopRecipient ? `★ TOP (${node.txCount} txs)` : `${formatGraphVolume(node.volumeUSD, node.txCount)} · ${node.txCount} txs`}
                 </text>
               </g>
@@ -675,6 +695,12 @@ export default function CapitalFlowGraph({ results, metrics }: Props) {
               <span className="text-[10px] font-bold px-2 py-0.5 bg-[#d0d0d0] uppercase">{hoveredNode.type}</span>
             </div>
             <div className="text-xs space-y-1 font-mono">
+              {hoveredNode.type === 'protocol' && (
+                <div className="flex justify-between text-[#555555]">
+                  <span>Network:</span>
+                  <span className="font-bold text-[#0a0a0a]">{formatGraphNetworkLabel(hoveredNode.chainName, hoveredNode.chainId)}</span>
+                </div>
+              )}
               <div className="flex justify-between text-[#555555]">
                 <span>Address:</span>
                 <span className="font-bold text-[#0a0a0a]">{truncAddr(hoveredNode.address)}</span>
@@ -687,14 +713,14 @@ export default function CapitalFlowGraph({ results, metrics }: Props) {
               </div>
               <div className="flex justify-between text-[#555555]">
                 <span>Transactions:</span>
-                <span className="font-bold text-[#ff5500]">{hoveredNode.txCount} calls</span>
+                <span className="font-bold text-orange-ink">{hoveredNode.txCount} calls</span>
               </div>
             </div>
             {hoveredNode.address && (
               <button
                 type="button"
                 onClick={() => handleNodeClick(hoveredNode)}
-                className="w-full min-h-11 mt-2 bg-black hover:bg-[#b33c00] text-white text-xs font-bold py-1.5 px-3 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                className="w-full min-h-11 md:min-h-9 mt-2 bg-black hover:bg-[#b33c00] text-white text-xs font-bold py-1.5 md:py-1 px-3 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
               >
                 <span>Open Block Explorer</span>
                 <ExternalLink size={12} />
@@ -706,19 +732,23 @@ export default function CapitalFlowGraph({ results, metrics }: Props) {
       </section>
 
       <details className="border-y border-[#c8c8c8] p-3 text-xs text-[#0a0a0a]">
-        <summary className="min-h-11 cursor-pointer py-3 font-bold">Accessible capital flow data</summary>
+        <summary className="min-h-11 md:min-h-9 cursor-pointer py-3 md:py-2 font-bold">Accessible capital flow data</summary>
         <ul className="mt-2 space-y-2 border-t border-[#c8c8c8] pt-3">
           {nodes.filter(node => node.type !== 'center').map(node => (
             <li key={node.id} className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <span>{node.type}: {node.label}, {node.txCount} transactions, {formatGraphVolume(node.volumeUSD, node.txCount)}.</span>
+              <span>
+                {node.type}: {node.label}
+                {node.type === 'protocol' && ` on ${formatGraphNetworkLabel(node.chainName, node.chainId)}`}
+                , {node.txCount} transactions, {formatGraphVolume(node.volumeUSD, node.txCount)}.
+              </span>
               {node.address && (
                 <a
                   href={getExplorerAddressUrl(node.chainId, node.address)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="btn-3d-neutral inline-flex min-h-11 items-center justify-center px-3 py-2 font-bold"
+                  className="btn-3d-neutral inline-flex min-h-11 md:min-h-9 items-center justify-center px-3 py-2 md:py-1.5 font-bold"
                 >
-                  Open {node.label} on explorer
+                  Open {node.label}{node.type === 'protocol' ? ` on ${formatGraphNetworkLabel(node.chainName, node.chainId)}` : ''} on explorer
                 </a>
               )}
             </li>
@@ -727,13 +757,13 @@ export default function CapitalFlowGraph({ results, metrics }: Props) {
       </details>
 
       {/* ── Ranked counterparty evidence ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-2">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-5 pt-2">
         
         {/* Left: Top Outbound Wallets (You Sent To) */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-xs font-black text-[#0a0a0a] uppercase tracking-wider flex items-center gap-1.5">
-              <ArrowUpRight size={15} className="text-[#ff5500]" />
+              <ArrowUpRight size={15} className="text-orange-ink" />
               TOP RECIPIENT WALLETS (MOST SENT TO)
             </span>
             <span className="text-xs font-bold font-mono text-[#555555]">
@@ -765,7 +795,7 @@ export default function CapitalFlowGraph({ results, metrics }: Props) {
                       <div className="font-bold text-[#0a0a0a]">{w.label || truncAddr(w.address)}</div>
                       {w.label && <div className="text-[10px] text-[#555555]">{truncAddr(w.address)}</div>}
                     </td>
-                    <td className="py-2.5 px-3 text-right font-mono font-black text-[#ff5500]">
+                    <td className="py-2.5 px-3 text-right font-mono font-black text-orange-ink">
                       {w.txCount} txs
                     </td>
                     <td className={`py-2.5 px-3 text-right font-mono font-bold ${w.volumeUSD > 0 ? 'text-[#0a0a0a]' : 'text-[#92400e]'}`}>
@@ -774,7 +804,7 @@ export default function CapitalFlowGraph({ results, metrics }: Props) {
                     <td className="py-2.5 px-3 text-right">
                       <button
                         onClick={() => handleNodeClick(w)}
-                        className="inline-flex min-h-11 min-w-11 items-center justify-center text-[#555555] hover:text-black cursor-pointer"
+                        className="inline-flex min-h-11 min-w-11 md:min-h-9 md:min-w-9 items-center justify-center text-[#555555] hover:text-black cursor-pointer"
                         title="View on Explorer"
                       >
                         <ExternalLink size={13} className="ml-auto" />
@@ -791,7 +821,7 @@ export default function CapitalFlowGraph({ results, metrics }: Props) {
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <span className="text-xs font-black text-[#0a0a0a] uppercase tracking-wider flex items-center gap-1.5">
-              <ArrowDownLeft size={15} className="text-[#059669]" />
+              <ArrowDownLeft size={15} className="text-[#047857]" />
               TOP FUNDING WALLETS (MOST RECEIVED FROM)
             </span>
             <span className="text-xs font-bold font-mono text-[#555555]">
@@ -823,7 +853,7 @@ export default function CapitalFlowGraph({ results, metrics }: Props) {
                       <div className="font-bold text-[#0a0a0a]">{w.label || truncAddr(w.address)}</div>
                       {w.label && <div className="text-[10px] text-[#555555]">{truncAddr(w.address)}</div>}
                     </td>
-                    <td className="py-2.5 px-3 text-right font-mono font-black text-[#059669]">
+                    <td className="py-2.5 px-3 text-right font-mono font-black text-[#047857]">
                       {w.txCount} txs
                     </td>
                     <td className={`py-2.5 px-3 text-right font-mono font-bold ${w.volumeUSD > 0 ? 'text-[#0a0a0a]' : 'text-[#92400e]'}`}>
@@ -832,7 +862,7 @@ export default function CapitalFlowGraph({ results, metrics }: Props) {
                     <td className="py-2.5 px-3 text-right">
                       <button
                         onClick={() => handleNodeClick(w)}
-                        className="inline-flex min-h-11 min-w-11 items-center justify-center text-[#555555] hover:text-black cursor-pointer"
+                        className="inline-flex min-h-11 min-w-11 md:min-h-9 md:min-w-9 items-center justify-center text-[#555555] hover:text-black cursor-pointer"
                         title="View on Explorer"
                       >
                         <ExternalLink size={13} className="ml-auto" />

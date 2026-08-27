@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import {
   BookOpen,
@@ -23,9 +23,12 @@ import {
   Sparkles,
   Copy,
   Check,
+  X,
 } from 'lucide-react';
 import { REPORTING_METRIC_DEFINITIONS } from '@/lib/reportingContract';
 import { RISK_GRADE_BANDS, RISK_MODEL } from '@/lib/analysis/riskModel';
+import { filterDocumentationTopics, getFirstMatchingDocumentationTopicId } from './docsNavigation';
+import SiteHeader from '@/components/SiteHeader';
 
 interface DocSection {
   id: string;
@@ -134,21 +137,71 @@ export default function DocsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeSection, setActiveSection] = useState('pipeline-architecture');
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [showMobileTopicJump, setShowMobileTopicJump] = useState(false);
+  const mobileDocsIndexRef = useRef<HTMLDetailsElement>(null);
+  const mobileDocsIndexSummaryRef = useRef<HTMLElement>(null);
 
   const filteredSections = useMemo(() => {
-    if (!searchQuery.trim()) return SECTIONS;
-    const q = searchQuery.toLowerCase();
-    return SECTIONS.filter(
-      s =>
-        s.title.toLowerCase().includes(q) ||
-        s.summary.toLowerCase().includes(q) ||
-        s.category.toLowerCase().includes(q) ||
-        s.filePath.toLowerCase().includes(q)
-    );
+    return filterDocumentationTopics(SECTIONS, searchQuery);
   }, [searchQuery]);
 
   const activeSectionDefinition =
     SECTIONS.find(section => section.id === activeSection) ?? SECTIONS[0];
+
+  useEffect(() => {
+    const mobileDocsIndex = mobileDocsIndexRef.current;
+    if (!mobileDocsIndex || typeof IntersectionObserver === 'undefined') return;
+
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry) setShowMobileTopicJump(!entry.isIntersecting);
+    }, { threshold: 0 });
+    observer.observe(mobileDocsIndex);
+
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const syncActiveSectionFromHash = () => {
+      const hashId = window.location.hash.slice(1);
+      if (SECTIONS.some(section => section.id === hashId)) {
+        setActiveSection(hashId);
+      }
+    };
+
+    syncActiveSectionFromHash();
+    window.addEventListener('hashchange', syncActiveSectionFromHash);
+    return () => window.removeEventListener('hashchange', syncActiveSectionFromHash);
+  }, []);
+
+  useEffect(() => {
+    if (typeof IntersectionObserver === 'undefined') return;
+
+    const sections = SECTIONS
+      .map(section => document.getElementById(section.id))
+      .filter((section): section is HTMLElement => section !== null);
+    if (sections.length === 0) return;
+
+    const observer = new IntersectionObserver(entries => {
+      const visibleSection = entries
+        .filter(entry => entry.isIntersecting)
+        .sort((left, right) => left.boundingClientRect.top - right.boundingClientRect.top)[0];
+
+      if (visibleSection) setActiveSection(visibleSection.target.id);
+    }, { rootMargin: '-96px 0px -65% 0px', threshold: 0 });
+
+    sections.forEach(section => observer.observe(section));
+    return () => observer.disconnect();
+  }, []);
+
+  const updateTopicFilter = (value: string) => {
+    setSearchQuery(value);
+
+    const nextSectionId = getFirstMatchingDocumentationTopicId(SECTIONS, value, activeSection);
+    if (!nextSectionId) return;
+
+    setActiveSection(nextSectionId);
+    document.getElementById(nextSectionId)?.scrollIntoView({ behavior: 'auto', block: 'start' });
+  };
 
   const handleCopyLink = (id: string) => {
     const url = `${window.location.origin}/docs#${id}`;
@@ -157,46 +210,27 @@ export default function DocsPage() {
     setTimeout(() => setCopiedId(null), 2000);
   };
 
+  const handleJumpToTopic = () => {
+    const mobileDocsIndex = mobileDocsIndexRef.current;
+    if (!mobileDocsIndex) return;
+
+    mobileDocsIndex.open = true;
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    mobileDocsIndex.scrollIntoView({
+      behavior: prefersReducedMotion ? 'auto' : 'smooth',
+      block: 'start',
+    });
+    window.requestAnimationFrame(() => mobileDocsIndexSummaryRef.current?.focus());
+  };
+
   return (
-    <main className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
-      {/* ── Top Brand Header ── */}
-      <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <Link
-          href="/"
-          className="inline-flex min-h-11 items-center text-left cursor-pointer group"
-        >
-          <span className="text-xl sm:text-2xl font-black tracking-tight text-black font-sans uppercase">
-            WALLET<span className="text-[#ff5500]">.</span>GENOME
-          </span>
-        </Link>
-
-        <div className="flex flex-wrap items-center gap-2">
-          {/* Back to Scanner Link */}
-          <Link
-            href="/"
-            className="btn-3d-neutral min-h-11 text-[#0a0a0a] text-xs font-bold px-3 py-1.5 flex items-center gap-1.5 cursor-pointer"
-          >
-            <Search size={13} className="text-[#ff5500]" />
-            <span>SCANNER</span>
-          </Link>
-
-          {/* Active Docs Badge */}
-          <div className="btn-3d-black text-white text-xs font-bold px-3 py-1.5 flex items-center gap-1.5">
-            <BookOpen size={13} className="text-[#ff5500]" />
-            <span>DOCS / METHODOLOGY</span>
-          </div>
-
-          <span className="badge-3d bg-[#ff5500] text-white text-[11px] font-bold tracking-wider px-3 py-1.5 flex items-center gap-1.5">
-            <span className="led-live" />
-            <span>LIVE INDEXING</span>
-          </span>
-        </div>
-      </header>
+    <main className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-6 pb-32 lg:pb-6 space-y-8">
+      <SiteHeader activePage="docs" indexingStatus="live" showIndexingStatus={false} />
 
       {/* ── Hero Header ── */}
       <div className="pt-4 pb-4 border-b border-[#c8c8c8] space-y-4">
         <div className="badge-3d inline-flex items-center gap-2 px-3 py-1 text-xs font-mono font-bold text-[#0a0a0a]">
-          <BookOpen size={13} className="text-[#ff5500]" />
+          <BookOpen size={13} className="text-orange-ink" />
           <span>ENGINEERING DOCUMENTATION & ALGORITHMIC METHODOLOGY</span>
         </div>
         <h1 className="text-3xl sm:text-5xl font-black uppercase tracking-tight text-[#0a0a0a] leading-tight text-balance">
@@ -205,28 +239,67 @@ export default function DocsPage() {
         <p className="text-sm sm:text-base text-[#4b5563] font-medium max-w-4xl leading-relaxed text-pretty">
           A clear breakdown of the core algorithms, data pipelines, and security checks powering WalletGenome&apos;s on-chain analysis.
         </p>
+        <Link
+          href="/"
+          className="inline-flex min-h-11 items-center gap-1.5 text-xs font-black uppercase tracking-wider text-orange-ink underline decoration-1 underline-offset-4 hover:text-[#0a0a0a]"
+        >
+          <Search size={13} aria-hidden="true" />
+          <span>Live scanner available</span>
+        </Link>
 
         {/* Live Search & Filter */}
         <div className="pt-2 max-w-xl">
+          <label htmlFor="docs-topic-filter" className="mb-1.5 block text-[10px] font-extrabold uppercase tracking-wider text-[#4b5563]">
+            Filter documentation topics
+          </label>
           <div className="relative flex items-center well-recessed-light">
-            <Search className="absolute left-3.5 text-gray-500" size={16} />
+            <Search className="absolute left-3.5 text-[#4b5563]" size={16} aria-hidden="true" />
             <input
+              id="docs-topic-filter"
               type="text"
-              placeholder="Search algorithms, formulas, or components (e.g. 'Shannon entropy', 'MEDIA', 'Approvals')..."
+              placeholder="Filter by title, category, or component path"
               value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              className="w-full bg-transparent text-xs font-mono font-bold pl-10 pr-4 py-2.5 text-[#0a0a0a] placeholder:text-gray-400 focus:outline-none"
+              onChange={e => updateTopicFilter(e.target.value)}
+              aria-describedby="docs-topic-filter-status"
+              className="w-full bg-transparent text-xs font-mono font-bold pl-10 pr-12 py-2.5 text-[#0a0a0a] placeholder:text-[#4b5563] focus:outline-none"
             />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                aria-label="Clear documentation topic filter"
+                title="Clear documentation topic filter"
+                className="btn-3d-neutral absolute right-1 inline-flex min-h-11 min-w-11 items-center justify-center p-2 text-[#4b5563] hover:text-black"
+              >
+                <X size={14} aria-hidden="true" />
+              </button>
+            )}
+          </div>
+          <div className="mt-2 flex items-center justify-between gap-3 text-[10px] font-mono font-bold text-[#4b5563]">
+            <p id="docs-topic-filter-status" role="status" aria-live="polite">
+              {searchQuery.trim() && filteredSections.length === 0
+                ? `No documentation topics match “${searchQuery.trim()}”.`
+                : `${filteredSections.length} documentation topic${filteredSections.length === 1 ? '' : 's'}`}
+            </p>
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => setSearchQuery('')}
+                className="min-h-11 px-2 py-1 underline underline-offset-2 hover:text-black"
+              >
+                Clear filter
+              </button>
+            )}
           </div>
         </div>
       </div>
 
       {/* ── Compact Mobile Documentation Index ── */}
-      <details className="lg:hidden card-3d overflow-hidden p-3">
-        <summary className="group flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 px-2 py-1 text-xs font-black uppercase tracking-wider text-[#0a0a0a] outline-none focus-visible:outline-2 focus-visible:outline-offset-[-4px] focus-visible:outline-[#ff5500] [&::-webkit-details-marker]:hidden">
+      <details id="mobile-docs-index" ref={mobileDocsIndexRef} className="lg:hidden card-3d overflow-hidden p-3">
+        <summary ref={mobileDocsIndexSummaryRef} className="group flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 px-2 py-1 text-xs font-black uppercase tracking-wider text-[#0a0a0a] outline-none focus-visible:outline-2 focus-visible:outline-offset-[-4px] focus-visible:outline-[#963300] [&::-webkit-details-marker]:hidden">
           <span className="flex min-w-0 flex-col items-start gap-0.5">
             <span className="flex items-center gap-1.5">
-              <Compass size={14} className="shrink-0 text-[#ff5500]" aria-hidden="true" />
+              <Compass size={14} className="shrink-0 text-orange-ink" aria-hidden="true" />
               <span>TABLE OF CONTENTS</span>
             </span>
             <span className="max-w-full truncate pl-5.5 text-[10px] font-mono font-bold normal-case tracking-normal text-[#6b7280]">
@@ -255,8 +328,8 @@ export default function DocsPage() {
                         : 'text-[#0a0a0a] hover:bg-[#f3f4f6]'
                     }`}
                   >
-                    <IconComponent size={14} className="shrink-0 text-[#ff5500]" aria-hidden="true" />
-                    <span className="min-w-0 flex-1 truncate">{s.title}</span>
+                    <IconComponent size={14} className={`shrink-0 ${isSelected ? 'text-[#ff5500]' : 'text-orange-ink'}`} aria-hidden="true" />
+                    <span className="min-w-0 flex-1 line-clamp-2 whitespace-normal break-words leading-snug">{s.title}</span>
                     <span className={`shrink-0 text-[10px] font-mono ${isSelected ? 'text-gray-300' : 'text-[#6b7280]'}`}>
                       {s.category.split('. ')[0]}
                     </span>
@@ -270,6 +343,23 @@ export default function DocsPage() {
         </nav>
       </details>
 
+      {showMobileTopicJump && (
+        <div className="pointer-events-none fixed inset-x-4 bottom-4 z-30 flex justify-end lg:hidden">
+          <button
+            type="button"
+            onClick={handleJumpToTopic}
+            aria-label="Jump to documentation topics"
+            className="pointer-events-auto card-3d-interactive inline-flex min-h-11 max-w-full items-center gap-2 px-3 py-2 text-left text-xs font-black uppercase tracking-wider text-[#0a0a0a]"
+          >
+            <Compass size={14} className="shrink-0 text-orange-ink" aria-hidden="true" />
+            <span className="truncate">Jump to topic</span>
+            <span className="max-w-[9rem] truncate border-l border-[#c8c8c8] pl-2 text-[10px] font-mono font-bold normal-case tracking-normal text-[#4b5563]">
+              {activeSectionDefinition.title}
+            </span>
+          </button>
+        </div>
+      )}
+
       {/* ── Main Layout: Sidebar Navigation + Content ── */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         
@@ -278,7 +368,7 @@ export default function DocsPage() {
           <section aria-labelledby="docs-index-heading" className="border-y border-[#c8c8c8] py-5 space-y-4">
             <div className="flex items-center justify-between text-xs font-black uppercase tracking-wider text-[#4b5563]">
               <span className="flex items-center gap-1.5">
-                <Compass size={14} className="text-[#ff5500]" />
+                <Compass size={14} className="text-orange-ink" />
                 <span id="docs-index-heading">TABLE OF CONTENTS</span>
               </span>
               <span className="btn-3d-neutral text-[10px] font-mono text-[#0a0a0a] px-2 py-0.5">
@@ -287,37 +377,41 @@ export default function DocsPage() {
             </div>
 
             <div className="space-y-3 max-h-[70vh] overflow-y-auto pr-1">
-              {filteredSections.map(s => {
-                const IconComponent = s.icon;
-                const isSelected = activeSection === s.id;
-                return (
-                  <a
-                    key={s.id}
-                    href={`#${s.id}`}
-                    onClick={() => setActiveSection(s.id)}
-                    className={`block min-h-11 p-3 text-xs font-bold transition-all ${
-                      isSelected
-                        ? 'btn-3d-black text-white'
-                        : 'card-3d-interactive text-[#0a0a0a]'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <IconComponent size={14} className="text-[#ff5500] flex-shrink-0" />
-                      <span className="truncate">{s.title}</span>
-                    </div>
-                    <div className={`text-[10px] font-mono mt-1 truncate pl-5.5 ${isSelected ? 'text-gray-300' : 'text-[#6b7280]'}`}>
-                      {s.category}
-                    </div>
-                  </a>
-                );
-              })}
+              {filteredSections.length > 0 ? filteredSections.map(s => {
+                  const IconComponent = s.icon;
+                  const isSelected = activeSection === s.id;
+                  return (
+                    <a
+                      key={s.id}
+                      href={`#${s.id}`}
+                      onClick={() => setActiveSection(s.id)}
+                      className={`block min-h-11 p-3 text-xs font-bold transition-all ${
+                        isSelected
+                          ? 'btn-3d-black text-white'
+                          : 'card-3d-interactive text-[#0a0a0a]'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <IconComponent size={14} className={`flex-shrink-0 ${isSelected ? 'text-[#ff5500]' : 'text-orange-ink'}`} />
+                        <span className="truncate">{s.title}</span>
+                      </div>
+                      <div className={`text-[10px] font-mono mt-1 truncate pl-5.5 ${isSelected ? 'text-gray-300' : 'text-[#6b7280]'}`}>
+                        {s.category}
+                      </div>
+                    </a>
+                  );
+                }) : (
+                  <p role="status" className="px-3 py-3 text-xs font-medium text-[#4b5563]">
+                    No documentation topics match this filter.
+                  </p>
+                )}
             </div>
           </section>
 
           {/* Quick Technical Summary Card */}
           <section aria-labelledby="computation-stats-heading" className="border-y border-[#c8c8c8] py-5 space-y-3 text-xs font-mono text-[#0a0a0a]">
             <div className="font-black text-[#0a0a0a] flex items-center gap-1.5">
-              <Zap size={13} className="text-[#ff5500]" />
+              <Zap size={13} className="text-orange-ink" />
               <span id="computation-stats-heading">KEY COMPUTATION STATS</span>
             </div>
             <div className="grid grid-cols-2 gap-2.5 text-[11px] pt-1">
@@ -331,7 +425,7 @@ export default function DocsPage() {
               </div>
               <div className="well-recessed-light p-2.5 space-y-0.5">
                 <div className="text-[#6b7280]">LOOKUP TIME</div>
-                <div className="font-bold text-sm text-[#059669]">~0.01 ms (Set)</div>
+                <div className="font-bold text-sm text-[#047857]">~0.01 ms (Set)</div>
               </div>
               <div className="well-recessed-light p-2.5 space-y-0.5">
                 <div className="text-[#6b7280]">SCORING AXES</div>
@@ -345,7 +439,7 @@ export default function DocsPage() {
         <div className="lg:col-span-8 space-y-8">
           <section id="reporting-contract" className="border-y border-[#c8c8c8] py-6 sm:py-8 space-y-5 text-[#0a0a0a]">
             <div className="space-y-1 border-b border-[#c8c8c8] pb-3">
-              <span className="badge-3d text-[10px] font-mono font-black text-[#ff5500] uppercase tracking-wider px-2 py-0.5">
+              <span className="badge-3d text-[10px] font-mono font-black text-orange-ink uppercase tracking-wider px-2 py-0.5">
                 CANONICAL API CONTRACT
               </span>
               <h2 className="text-xl sm:text-2xl font-black uppercase pt-1">Reporting metric definitions</h2>
@@ -396,7 +490,7 @@ export default function DocsPage() {
           <section id="pipeline-architecture" className="border-y border-[#c8c8c8] py-6 sm:py-8 space-y-5 text-[#0a0a0a]">
             <div className="flex items-center justify-between border-b border-[#c8c8c8] pb-3">
               <div className="space-y-1">
-                <span className="badge-3d text-[10px] font-mono font-black text-[#ff5500] uppercase tracking-wider px-2 py-0.5">
+                <span className="badge-3d text-[10px] font-mono font-black text-orange-ink uppercase tracking-wider px-2 py-0.5">
                   SECTION 01 · DATA PIPELINE
                 </span>
                 <h2 className="text-xl sm:text-2xl font-black uppercase text-[#0a0a0a] pt-1">
@@ -419,7 +513,7 @@ export default function DocsPage() {
             {/* Architecture Card */}
             <div className="well-recessed-light p-4 space-y-3 font-mono text-xs overflow-hidden">
               <div className="text-xs font-black uppercase text-black flex items-center gap-1.5">
-                <Database size={14} className="text-[#ff5500]" />
+                <Database size={14} className="text-orange-ink" />
                 DUAL-GATEWAY FAILOVER WORKFLOW
               </div>
               <div className="bg-[#0a0a0a] text-green-400 p-3.5 text-[11px] leading-relaxed overflow-x-auto whitespace-pre border border-[#222222] shadow-inner">
@@ -470,7 +564,7 @@ export default function DocsPage() {
           <section id="calldata-categorization" className="border-y border-[#c8c8c8] py-6 sm:py-8 space-y-5 text-[#0a0a0a]">
             <div className="flex items-center justify-between border-b border-[#c8c8c8] pb-3">
               <div className="space-y-1">
-                <span className="badge-3d text-[10px] font-mono font-black text-[#ff5500] uppercase tracking-wider px-2 py-0.5">
+                <span className="badge-3d text-[10px] font-mono font-black text-orange-ink uppercase tracking-wider px-2 py-0.5">
                   SECTION 02 · NORMALIZATION & GAS
                 </span>
                 <h2 className="text-xl sm:text-2xl font-black uppercase text-[#0a0a0a] pt-1">
@@ -502,7 +596,7 @@ export default function DocsPage() {
                 </thead>
                 <tbody className="divide-y divide-[#c8c8c8] text-xs font-bold text-[#0a0a0a]">
                   <tr className="hover:bg-white/60 transition-colors">
-                    <td className="p-3 font-black text-[#ff5500]">approval</td>
+                    <td className="p-3 font-black text-orange-ink">approval</td>
                     <td className="p-3"><code className="badge-3d px-1.5 py-0.5 font-bold">0x095ea7b3</code>, <code className="badge-3d px-1.5 py-0.5">approve()</code></td>
                     <td className="p-3 text-[#374151]">ERC-20 token allowance approvals to DEXs, bridges, or custom spenders.</td>
                   </tr>
@@ -543,7 +637,7 @@ export default function DocsPage() {
             {/* Gas Computation Formula */}
             <div className="card-3d p-5 space-y-2">
               <div className="text-xs font-black uppercase flex items-center gap-1.5">
-                <Scale size={13} className="text-[#ff5500]" />
+                <Scale size={13} className="text-orange-ink" />
                 GAS & LIFETIME FEE VALUATION FORMULA
               </div>
               <div className="well-recessed-light p-3.5 font-mono text-xs text-[#0a0a0a] space-y-1">
@@ -562,7 +656,7 @@ export default function DocsPage() {
           <section id="behavioral-fingerprint" className="border-y border-[#c8c8c8] py-6 sm:py-8 space-y-5 text-[#0a0a0a]">
             <div className="flex items-center justify-between border-b border-[#c8c8c8] pb-3">
               <div className="space-y-1">
-                <span className="badge-3d text-[10px] font-mono font-black text-[#ff5500] uppercase tracking-wider px-2 py-0.5">
+                <span className="badge-3d text-[10px] font-mono font-black text-orange-ink uppercase tracking-wider px-2 py-0.5">
                   SECTION 03 · BEHAVIORAL FORENSICS
                 </span>
                 <h2 className="text-xl sm:text-2xl font-black uppercase text-[#0a0a0a] pt-1">
@@ -589,7 +683,7 @@ export default function DocsPage() {
               <div className="card-3d p-4 space-y-2">
                 <div className="flex items-center justify-between flex-wrap gap-2">
                   <span className="font-black text-black uppercase">1. DeFi Diversity</span>
-                  <span className="badge-3d text-[10px] bg-[#ff5500] text-white px-2 py-0.5 whitespace-nowrap">0–100 PTS</span>
+                  <span className="badge-3d badge-brand-orange text-[10px] px-2 py-0.5 whitespace-nowrap">0–100 PTS</span>
                 </div>
                 <p className="text-[11px] text-[#4b5563] leading-relaxed text-pretty">
                   Measures breadth of smart contracts and distinct protocols used.
@@ -656,12 +750,12 @@ export default function DocsPage() {
             {/* Persona Decision Tree */}
             <div className="well-recessed-light p-5 space-y-3 font-mono text-xs">
               <div className="text-xs font-black uppercase text-black flex items-center gap-1.5">
-                <Sparkles size={14} className="text-[#ff5500]" />
+                <Sparkles size={14} className="text-orange-ink" />
                 AUTOMATED PERSONA CLASSIFICATION DECISION TREE
               </div>
               <div className="space-y-2 text-[11px]">
                 <div className="card-3d p-3 border-l-4 border-l-[#ff5500]">
-                  <strong>DeFi Power User:</strong> <code className="text-[#ff5500] font-bold">UniqueContracts &gt; 50</code> OR <code className="text-[#ff5500] font-bold">DeFi Diversity &gt; 60</code>. Multi-year on-chain presence with broad multi-protocol routing.
+                  <strong>DeFi Power User:</strong> <code className="text-orange-ink font-bold">UniqueContracts &gt; 50</code> OR <code className="text-orange-ink font-bold">DeFi Diversity &gt; 60</code>. Multi-year on-chain presence with broad multi-protocol routing.
                 </div>
                 <div className="card-3d p-3 border-l-4 border-l-black">
                   <strong>Active Trader:</strong> <code className="text-black font-bold">SwapCount &gt; 40% of Txs</code> AND <code className="text-black font-bold">Activity &gt; 50</code>. High-frequency DEX rotation.
@@ -688,7 +782,7 @@ export default function DocsPage() {
           <section id="risk-score-engine" className="border-y border-[#c8c8c8] py-6 sm:py-8 space-y-5 text-[#0a0a0a]">
             <div className="flex items-center justify-between border-b border-[#c8c8c8] pb-3">
               <div className="space-y-1">
-                <span className="badge-3d text-[10px] font-mono font-black text-[#ff5500] uppercase tracking-wider px-2 py-0.5">
+                <span className="badge-3d text-[10px] font-mono font-black text-orange-ink uppercase tracking-wider px-2 py-0.5">
                   SECTION 04 · SECURITY & AUDITING
                 </span>
                 <h2 className="text-xl sm:text-2xl font-black uppercase text-[#0a0a0a] pt-1">
@@ -722,7 +816,7 @@ export default function DocsPage() {
                 <tbody className="divide-y divide-[#c8c8c8] text-xs font-bold text-[#0a0a0a]">
                   <tr className="hover:bg-white/60 transition-colors">
                     <td className="p-3 font-bold">1. High-Risk Unlimited Approvals</td>
-                    <td className="p-3 font-bold text-[#ff5500]">{RISK_MODEL.highRiskApprovals.maxImpact} pts</td>
+                    <td className="p-3 font-bold text-orange-ink">{RISK_MODEL.highRiskApprovals.maxImpact} pts</td>
                     <td className="p-3 font-mono">{`min(${RISK_MODEL.highRiskApprovals.maxImpact}, HighRiskApprovals × ${RISK_MODEL.highRiskApprovals.impactPerApproval})`}</td>
                     <td className="p-3"><span className="badge-3d bg-[#dc2626]/15 text-[#b91c1c] border border-[#dc2626]/40 px-2 py-0.5 font-bold">Critical</span></td>
                   </tr>
@@ -734,7 +828,7 @@ export default function DocsPage() {
                   </tr>
                   <tr className="hover:bg-white/60 transition-colors">
                     <td className="p-3 font-bold">2. Failed Transaction Ratio</td>
-                    <td className="p-3 font-bold text-[#ff5500]">{RISK_MODEL.failedTransactions.maxImpact} pts</td>
+                    <td className="p-3 font-bold text-orange-ink">{RISK_MODEL.failedTransactions.maxImpact} pts</td>
                     <td className="p-3 font-mono">{`min(${RISK_MODEL.failedTransactions.maxImpact}, round(FailedRatio × ${RISK_MODEL.failedTransactions.ratioMultiplier})) if FailedRatio > 5%`}</td>
                     <td className="p-3"><span className="badge-3d bg-[#f59e0b]/15 text-[#b45309] border border-[#f59e0b]/40 px-2 py-0.5 font-bold">Warning</span></td>
                   </tr>
@@ -771,7 +865,7 @@ export default function DocsPage() {
           <section id="sybil-radar-media" className="border-y border-[#c8c8c8] py-6 sm:py-8 space-y-5 text-[#0a0a0a]">
             <div className="flex items-center justify-between border-b border-[#c8c8c8] pb-3">
               <div className="space-y-1">
-                <span className="badge-3d text-[10px] font-mono font-black text-[#ff5500] uppercase tracking-wider px-2 py-0.5">
+                <span className="badge-3d text-[10px] font-mono font-black text-orange-ink uppercase tracking-wider px-2 py-0.5">
                   SECTION 05 · SYBIL & BLACKLIST DEFENSE
                 </span>
                 <h2 className="text-xl sm:text-2xl font-black uppercase text-[#0a0a0a] pt-1">
@@ -835,7 +929,7 @@ export default function DocsPage() {
             {/* MEDIA Heuristic Model Deep Dive */}
             <div className="well-recessed-light p-5 space-y-3 font-mono text-xs">
               <div className="text-xs font-black uppercase text-black flex items-center gap-1.5">
-                <Scale size={14} className="text-[#ff5500]" />
+                <Scale size={14} className="text-orange-ink" />
                 TRUSTA AI / MEDIA COMPOSITE FORMULATION
               </div>
               <div className="card-3d-dark p-3.5 text-xs text-white space-y-1">
@@ -868,7 +962,7 @@ export default function DocsPage() {
           <section id="approvals-exposure-audit" className="border-y border-[#c8c8c8] py-6 sm:py-8 space-y-5 text-[#0a0a0a]">
             <div className="flex items-center justify-between border-b border-[#c8c8c8] pb-3">
               <div className="space-y-1">
-                <span className="badge-3d text-[10px] font-mono font-black text-[#ff5500] uppercase tracking-wider px-2 py-0.5">
+                <span className="badge-3d text-[10px] font-mono font-black text-orange-ink uppercase tracking-wider px-2 py-0.5">
                   SECTION 06 · TOKEN ALLOWANCES
                 </span>
                 <h2 className="text-xl sm:text-2xl font-black uppercase text-[#0a0a0a] pt-1">
@@ -909,7 +1003,7 @@ export default function DocsPage() {
                   <div className="well-recessed-light p-2.5 font-mono text-xs mt-1.5">
                     <div>Reconstructed Token Balance = max(0, Σ(Inbound Transfers) - Σ(Outbound Transfers))</div>
                     <div>Exposed Units = min(Reconstructed Balance, Finite Allowance); unlimited approvals use the reconstructed balance.</div>
-                    <div className="font-bold text-[#ff5500]">Estimated Exposure (USD) = Exposed Units × Unit Price (USD)</div>
+                    <div className="font-bold text-orange-ink">Estimated Exposure (USD) = Exposed Units × Unit Price (USD)</div>
                     <div>Unknown balance or price = unavailable. A verified zero reconstructed balance is shown separately as zero balance.</div>
                   </div>
                 </div>
@@ -923,7 +1017,7 @@ export default function DocsPage() {
           <section id="temporal-activity-heatmap" className="border-y border-[#c8c8c8] py-6 sm:py-8 space-y-5 text-[#0a0a0a]">
             <div className="flex items-center justify-between border-b border-[#c8c8c8] pb-3">
               <div className="space-y-1">
-                <span className="badge-3d text-[10px] font-mono font-black text-[#ff5500] uppercase tracking-wider px-2 py-0.5">
+                <span className="badge-3d text-[10px] font-mono font-black text-orange-ink uppercase tracking-wider px-2 py-0.5">
                   SECTION 07 · CADENCE & STREAKS
                 </span>
                 <h2 className="text-xl sm:text-2xl font-black uppercase text-[#0a0a0a] pt-1">
@@ -969,7 +1063,7 @@ export default function DocsPage() {
           <section id="capital-cluster-topologies" className="border-y border-[#c8c8c8] py-6 sm:py-8 space-y-5 text-[#0a0a0a]">
             <div className="flex items-center justify-between border-b border-[#c8c8c8] pb-3">
               <div className="space-y-1">
-                <span className="badge-3d text-[10px] font-mono font-black text-[#ff5500] uppercase tracking-wider px-2 py-0.5">
+                <span className="badge-3d text-[10px] font-mono font-black text-orange-ink uppercase tracking-wider px-2 py-0.5">
                   SECTION 08 · NETWORK TOPOLOGIES
                 </span>
                 <h2 className="text-xl sm:text-2xl font-black uppercase text-[#0a0a0a] pt-1">
@@ -1022,7 +1116,7 @@ export default function DocsPage() {
           <section id="decentralized-identity" className="border-y border-[#c8c8c8] py-6 sm:py-8 space-y-5 text-[#0a0a0a]">
             <div className="flex items-center justify-between border-b border-[#c8c8c8] pb-3">
               <div className="space-y-1">
-                <span className="badge-3d text-[10px] font-mono font-black text-[#ff5500] uppercase tracking-wider px-2 py-0.5">
+                <span className="badge-3d text-[10px] font-mono font-black text-orange-ink uppercase tracking-wider px-2 py-0.5">
                   SECTION 09 · SOCIAL GRAPH
                 </span>
                 <h2 className="text-xl sm:text-2xl font-black uppercase text-[#0a0a0a] pt-1">
@@ -1053,7 +1147,7 @@ export default function DocsPage() {
                 </thead>
                 <tbody className="divide-y divide-[#c8c8c8] text-xs font-bold text-[#0a0a0a]">
                   <tr className="hover:bg-white/60 transition-colors">
-                    <td className="p-3 font-black text-[#ff5500]">ENS (.eth)</td>
+                    <td className="p-3 font-black text-orange-ink">ENS (.eth)</td>
                     <td className="p-3 font-bold">10 (Highest)</td>
                     <td className="p-3"><code className="badge-3d px-1.5 py-0.5">https://app.ens.domains/&#123;name&#125;</code></td>
                   </tr>
@@ -1088,7 +1182,7 @@ export default function DocsPage() {
           <section id="complexity-matrix" className="border-y border-[#c8c8c8] py-6 sm:py-8 space-y-5 text-[#0a0a0a]">
             <div className="flex items-center justify-between border-b border-[#c8c8c8] pb-3">
               <div className="space-y-1">
-                <span className="badge-3d text-[10px] font-mono font-black text-[#ff5500] uppercase tracking-wider px-2 py-0.5">
+                <span className="badge-3d text-[10px] font-mono font-black text-orange-ink uppercase tracking-wider px-2 py-0.5">
                   SECTION 10 · TECHNICAL SPECIFICATIONS
                 </span>
                 <h2 className="text-xl sm:text-2xl font-black uppercase text-[#0a0a0a] pt-1">
@@ -1170,14 +1264,14 @@ export default function DocsPage() {
             <div className="pt-6 border-t border-[#c8c8c8] flex items-center justify-between flex-wrap gap-4">
               <Link
                 href="/"
-                className="btn-3d-orange min-h-11 text-white text-xs font-mono font-black uppercase tracking-wider px-5 py-2.5 flex items-center gap-2 cursor-pointer"
+                className="btn-3d-orange min-h-11 text-[#0a0a0a] text-xs font-mono font-black uppercase tracking-wider px-5 py-2.5 flex items-center gap-2 cursor-pointer"
               >
                 <ArrowLeft size={14} />
                 <span>LAUNCH FORENSICS SCANNER</span>
               </Link>
               <button
                 type="button"
-                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                onClick={() => window.scrollTo({ top: 0, behavior: 'auto' })}
                 className="btn-3d-neutral min-h-11 text-xs font-mono font-bold text-[#0a0a0a] px-4 py-2 cursor-pointer"
               >
                 BACK TO TOP ↑

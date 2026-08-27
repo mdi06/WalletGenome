@@ -30,7 +30,7 @@ export default function ProviderStatusSummary({
 
   return (
     <details className={`animate-fade-in-up overflow-hidden border-2 ${toneClasses.container}`}>
-      <summary className="group flex min-h-14 cursor-pointer list-none items-center justify-between gap-4 px-4 py-3 font-bold outline-none focus-visible:outline-2 focus-visible:outline-offset-[-4px] focus-visible:outline-[#ff5500] [&::-webkit-details-marker]:hidden">
+      <summary className="group flex min-h-11 md:min-h-10 cursor-pointer list-none items-center justify-between gap-4 px-4 py-3 md:py-2 font-bold outline-none focus-visible:outline-2 focus-visible:outline-offset-[-4px] focus-visible:outline-[#963300] [&::-webkit-details-marker]:hidden">
         <span className="flex min-w-0 items-start gap-2.5">
           <AlertTriangle size={16} aria-hidden="true" className={`mt-0.5 shrink-0 ${toneClasses.icon}`} />
           <span className="min-w-0">
@@ -43,7 +43,7 @@ export default function ProviderStatusSummary({
           <ChevronDown size={15} aria-hidden="true" className="transition-transform group-open:rotate-180" />
         </span>
       </summary>
-      <div className={`space-y-4 border-t-2 p-4 ${toneClasses.detail}`} role="region" aria-label={`${title} details`}>
+      <div className={`space-y-4 md:space-y-3 border-t-2 p-4 md:p-3 ${toneClasses.detail}`} role="region" aria-label={`${title} details`}>
         {children}
       </div>
     </details>

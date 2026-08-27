@@ -1,4 +1,4 @@
-import { STABLECOINS, TOKEN_COINGECKO_IDS } from './chains';
+import { STABLECOINS } from './chains';
 import { MemoryCache, getDomainLimiter } from './cache';
 import { DataAvailabilityStatus, DataAvailabilityError, PriceQuote } from './types';
 
@@ -462,26 +462,20 @@ const VERIFIED_TOKEN_ADDRESSES: Record<string, string> = {
   '0x4200000000000000000000000000000000000042': 'optimism',
 };
 
+export function isTrustedTokenContract(contractAddress?: string | null): boolean {
+  if (!contractAddress || typeof contractAddress !== 'string') return false;
+
+  const lower = contractAddress.trim().toLowerCase();
+  return Boolean(STABLECOINS[lower] || VERIFIED_TOKEN_ADDRESSES[lower]);
+}
+
 export function resolveCoingeckoId(
   contractAddress?: string | null,
-  tokenSymbol?: string | null
 ): string | null {
-  if (contractAddress && typeof contractAddress === 'string') {
-    const lower = contractAddress.toLowerCase();
-    if (STABLECOINS[lower]) {
-      return STABLECOINS[lower].coingeckoId;
-    }
-    if (VERIFIED_TOKEN_ADDRESSES[lower]) {
-      return VERIFIED_TOKEN_ADDRESSES[lower];
-    }
-  }
+  if (!contractAddress || typeof contractAddress !== 'string') return null;
 
-  if (tokenSymbol && typeof tokenSymbol === 'string') {
-    const sym = tokenSymbol.toUpperCase().trim();
-    if (TOKEN_COINGECKO_IDS[sym]) {
-      return TOKEN_COINGECKO_IDS[sym];
-    }
-  }
-
-  return null;
+  const lower = contractAddress.trim().toLowerCase();
+  return STABLECOINS[lower]?.coingeckoId
+    ?? VERIFIED_TOKEN_ADDRESSES[lower]
+    ?? null;
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { MultiChainScanResult } from '@/lib/types';
 import BehavioralFingerprint from './BehavioralFingerprint';
@@ -11,6 +11,7 @@ import { ExternalLink } from 'lucide-react';
 import { buildDashboardViewModel } from '@/lib/viewModels/dashboardViewModels';
 import DashboardStatusPanel, { getAvailabilityMessage } from './status/DashboardStatusPanel';
 import { getNextTabIndex } from '@/lib/accessibility/tabs';
+import { formatNativeTokenValue } from '@/lib/utils/dashboardUtils';
 
 const BehavioralRadarChart = dynamic(() => import('./BehavioralRadarChart'), {
   loading: () => (
@@ -77,12 +78,14 @@ const ApprovalAudit = dynamic(() => import('./ApprovalAudit'), {
 
 interface DashboardProps {
   data: MultiChainScanResult;
+  showStatusPanel?: boolean;
 }
 
 type TabId = 'dna' | 'flow' | 'protocols' | 'gas' | 'transfers' | 'approvals';
 
-export default function Dashboard({ data }: DashboardProps) {
+export default function Dashboard({ data, showStatusPanel = true }: DashboardProps) {
   const [activeTab, setActiveTab] = useState<TabId>('dna');
+  const tabRefs = useRef<Partial<Record<TabId, HTMLButtonElement | null>>>({});
 
   const { aggregated, metrics, sybilReport, identityReport } = data;
   const availabilityMessage = getAvailabilityMessage(data.status);
@@ -91,7 +94,7 @@ export default function Dashboard({ data }: DashboardProps) {
     && metrics.riskGrade !== null
     && metrics.sybilProbability !== null;
   if (data.chains.length === 0) {
-    return <DashboardStatusPanel data={data} />;
+    return showStatusPanel ? <DashboardStatusPanel data={data} /> : null;
   }
 
   const {
@@ -119,6 +122,18 @@ export default function Dashboard({ data }: DashboardProps) {
     { id: 'approvals', label: 'APPROVALS', count: approvalCount },
   ];
 
+  const scrollDashboardTabIntoView = (tabId: TabId) => {
+    const tab = tabRefs.current[tabId];
+    if (!tab) return;
+
+    const prefersReducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+    tab.scrollIntoView({
+      behavior: prefersReducedMotion ? 'auto' : 'smooth',
+      block: 'nearest',
+      inline: 'nearest',
+    });
+  };
+
   const handleDashboardTabKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
     const nextIndex = getNextTabIndex(tabs.findIndex(tab => tab.id === activeTab), tabs.length, event.key);
     if (nextIndex === null) return;
@@ -126,22 +141,23 @@ export default function Dashboard({ data }: DashboardProps) {
     const nextTab = tabs[nextIndex].id;
     setActiveTab(nextTab);
     document.getElementById(`dashboard-${nextTab}-tab`)?.focus();
+    scrollDashboardTabIntoView(nextTab);
   };
 
 
 
   return (
-    <div className="min-w-0 space-y-6 animate-fade-in-up">
-      {hasProviderWarnings && <DashboardStatusPanel data={data} />}
+    <div className="min-w-0 space-y-4 md:space-y-5 animate-fade-in-up">
+      {showStatusPanel && hasProviderWarnings && <DashboardStatusPanel data={data} />}
 
       {/* ── Tab Navigation Bar & Export Action ── */}
       <div
-        className="horizontal-scroll-region flex items-center justify-between border-b border-[#c8c8c8] pt-2 pb-2.5 px-1 overflow-x-auto gap-3"
+        className="dashboard-tabs-scroll-region horizontal-scroll-region flex items-center justify-between gap-3 overflow-x-auto border-b border-[#c8c8c8] px-0 pb-1 md:px-1 md:pb-2.5 md:pt-2"
         tabIndex={0}
         aria-label="Dashboard sections; scroll horizontally for more tabs"
       >
         <div
-          className="flex items-center gap-2 sm:gap-3"
+          className="flex min-w-max items-center gap-1 md:gap-3"
           role="tablist"
           aria-label="Wallet dashboard sections"
         >
@@ -156,19 +172,22 @@ export default function Dashboard({ data }: DashboardProps) {
                 aria-selected={isActive}
                 aria-controls={`dashboard-${tab.id}-panel`}
                 tabIndex={isActive ? 0 : -1}
+                data-active={isActive}
+                ref={element => {
+                  tabRefs.current[tab.id] = element;
+                }}
                 onKeyDown={handleDashboardTabKeyDown}
-                onClick={() => setActiveTab(tab.id)}
-                className={`min-h-11 px-3.5 py-2 text-xs font-black tracking-wider transition-all whitespace-nowrap cursor-pointer flex items-center gap-2 ${
-                  isActive
-                    ? 'btn-3d-black text-white'
-                    : 'btn-3d-neutral text-[#4b5563] hover:text-black font-bold'
-                }`}
+                onClick={() => {
+                  setActiveTab(tab.id);
+                  scrollDashboardTabIntoView(tab.id);
+                }}
+                className="dashboard-tab relative inline-flex min-h-11 shrink-0 items-center gap-2 px-3 py-2 text-xs font-black tracking-wider transition-colors whitespace-nowrap cursor-pointer md:min-h-9 md:px-3.5 md:py-1.5"
               >
                 <span>{tab.label}</span>
                 {typeof tab.count === 'number' && tab.count > 0 && (
                   <span
                     className={`text-[10px] font-mono px-1.5 py-0.2 badge-3d ${
-                      isActive ? 'bg-[#ff5500] text-white' : 'bg-[#d0d0d0] text-[#333333]'
+                      isActive ? 'bg-[#ff5500] text-[#0a0a0a]' : 'bg-[#d0d0d0] text-[#333333]'
                     }`}
                   >
                     {tab.count}
@@ -195,7 +214,7 @@ export default function Dashboard({ data }: DashboardProps) {
           id="dashboard-dna-panel"
           role="tabpanel"
           aria-labelledby="dashboard-dna-tab"
-          className="space-y-6"
+          className="space-y-6 md:space-y-5"
         >
           {/* Universal Resolved Identity Banner */}
           <IdentityCard identity={identityReport} address={data.address} />
@@ -204,18 +223,18 @@ export default function Dashboard({ data }: DashboardProps) {
           <SybilRadar report={sybilReport} />
 
           {/* Main 3-Column Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-5 items-start">
             
             {/* ══════════════ LEFT COLUMN (Span 3) ══════════════ */}
-            <div className="lg:col-span-3 space-y-6">
+            <div className="lg:col-span-3 space-y-6 lg:space-y-5">
               
               {/* Persona Identity Card */}
-              <section aria-labelledby="persona-identity-heading" className="card-3d p-6 text-[#0a0a0a] flex flex-col items-center text-center space-y-4">
+              <section aria-labelledby="persona-identity-heading" className="card-3d p-6 lg:p-5 text-[#0a0a0a] flex flex-col items-center text-center space-y-4">
                 <span id="persona-identity-heading" className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider">
                   PERSONA IDENTITY
                 </span>
 
-                <div className="w-20 h-20 btn-3d-orange flex items-center justify-center text-white">
+                <div className="w-20 h-20 btn-3d-orange flex items-center justify-center text-[#0a0a0a]">
                   <span className="text-3xl font-black">🧬</span>
                 </div>
 
@@ -291,7 +310,7 @@ export default function Dashboard({ data }: DashboardProps) {
               </section>
 
               {/* Security Ratings */}
-              <section aria-labelledby="security-ratings-heading" className="card-3d p-6 text-[#0a0a0a] space-y-4">
+              <section aria-labelledby="security-ratings-heading" className="card-3d p-6 lg:p-5 text-[#0a0a0a] space-y-4">
                 <div className="flex justify-between items-center">
                   <span id="security-ratings-heading" className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider">
                     SECURITY RATINGS
@@ -342,10 +361,10 @@ export default function Dashboard({ data }: DashboardProps) {
             </div>
 
             {/* ══════════════ CENTER COLUMN (Span 6) ══════════════ */}
-            <div className="lg:col-span-6 space-y-6">
+            <div className="lg:col-span-6 space-y-6 lg:space-y-5">
               
               {/* Activity Heatmap (LTM) */}
-              <section aria-labelledby="transaction-heatmap-heading" className="card-3d p-6 text-[#0a0a0a] space-y-3">
+              <section aria-labelledby="transaction-heatmap-heading" className="card-3d p-6 lg:p-5 text-[#0a0a0a] space-y-3">
                 <div className="flex justify-between items-center">
                   <span id="transaction-heatmap-heading" className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider">
                     TRANSACTION HEATMAP (LTM)
@@ -359,7 +378,7 @@ export default function Dashboard({ data }: DashboardProps) {
               </section>
 
               {/* Protocol Identity Badges */}
-              <section aria-labelledby="protocol-badges-heading" className="card-3d p-6 text-[#0a0a0a] space-y-3">
+              <section aria-labelledby="protocol-badges-heading" className="card-3d p-6 lg:p-5 text-[#0a0a0a] space-y-3">
                 <span id="protocol-badges-heading" className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider block">
                   PROTOCOL IDENTITY BADGES
                 </span>
@@ -371,7 +390,7 @@ export default function Dashboard({ data }: DashboardProps) {
                         key={i}
                         className={`text-xs font-mono font-bold px-3 py-1.5 tracking-wider ${
                           i === 0
-                            ? 'btn-3d-orange text-white'
+                            ? 'btn-3d-orange text-[#0a0a0a]'
                             : 'btn-3d-neutral text-[#0a0a0a]'
                         }`}
                       >
@@ -388,19 +407,19 @@ export default function Dashboard({ data }: DashboardProps) {
 
               {/* Lifetime Gas & Chain Activity */}
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <section aria-labelledby="lifetime-gas-heading" className="card-3d p-6 space-y-2 text-[#0a0a0a]">
+                <section aria-labelledby="lifetime-gas-heading" className="card-3d p-6 lg:p-5 space-y-2 text-[#0a0a0a]">
                   <span id="lifetime-gas-heading" className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider block">
                     LIFETIME GAS
                   </span>
-                  <div className="text-3xl font-black text-[#ff5500] font-mono truncate">
-                    {totalGasETH >= 10 ? totalGasETH.toFixed(2) : totalGasETH.toFixed(3)} ETH
+                  <div className="text-3xl font-black text-orange-ink font-mono truncate">
+                    {formatNativeTokenValue(totalGasETH, 'ETH')}
                   </div>
                   <div className="text-xs font-bold text-[#4b5563] font-mono">
                     Total Spent (≈ {formattedGasUSD})
                   </div>
                 </section>
 
-                <section aria-labelledby="chain-activity-heading" className="card-3d p-6 space-y-3 text-[#0a0a0a]">
+                <section aria-labelledby="chain-activity-heading" className="card-3d p-6 lg:p-5 space-y-3 text-[#0a0a0a]">
                   <div className="flex items-center justify-between gap-3">
                     <span id="chain-activity-heading" className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider">
                       CHAIN ACTIVITY
@@ -465,15 +484,15 @@ export default function Dashboard({ data }: DashboardProps) {
             </div>
 
             {/* ══════════════ RIGHT COLUMN (Span 3) ══════════════ */}
-            <div className="lg:col-span-3 space-y-6">
+            <div className="lg:col-span-3 space-y-6 lg:space-y-5">
               
               {/* 3D Risk Grade Card */}
-              <section aria-labelledby="risk-grade-heading" className="card-3d p-6 text-[#0a0a0a] space-y-4">
+              <section aria-labelledby="risk-grade-heading" className="card-3d p-6 lg:p-5 text-[#0a0a0a] space-y-4">
                 <span id="risk-grade-heading" className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider block">
                   RISK GRADE
                 </span>
 
-                <div className="text-7xl font-black text-[#ff5500] font-mono leading-none">
+                <div className="text-7xl font-black text-orange-ink font-mono leading-none">
                   {riskGrade ?? 'N/A'}
                 </div>
 
@@ -502,7 +521,7 @@ export default function Dashboard({ data }: DashboardProps) {
               </section>
 
               {/* Real Interactive Behavioral Radar */}
-              <section aria-labelledby="behavioral-radar-heading" className="card-3d p-6 text-[#0a0a0a] space-y-4 overflow-hidden">
+              <section aria-labelledby="behavioral-radar-heading" className="card-3d p-6 lg:p-5 text-[#0a0a0a] space-y-4 overflow-hidden">
                 <span id="behavioral-radar-heading" className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider block">
                   BEHAVIORAL RADAR
                 </span>
@@ -531,27 +550,27 @@ export default function Dashboard({ data }: DashboardProps) {
 
       {/* ── Other Tab Views ── */}
       {activeTab === 'flow' && (
-        <div id="dashboard-flow-panel" role="tabpanel" aria-labelledby="dashboard-flow-tab" className="border-t border-[#c8c8c8] pt-6">
+        <div id="dashboard-flow-panel" role="tabpanel" aria-labelledby="dashboard-flow-tab" className="border-t border-[#c8c8c8] pt-6 lg:pt-5">
           <CapitalFlowGraph results={data.chains} metrics={data.metrics} />
         </div>
       )}
       {activeTab === 'protocols' && (
-        <div id="dashboard-protocols-panel" role="tabpanel" aria-labelledby="dashboard-protocols-tab" className="border-t border-[#c8c8c8] pt-6">
+        <div id="dashboard-protocols-panel" role="tabpanel" aria-labelledby="dashboard-protocols-tab" className="border-t border-[#c8c8c8] pt-6 lg:pt-5">
           <InteractionsPanel results={data.chains} />
         </div>
       )}
       {activeTab === 'gas' && (
-        <div id="dashboard-gas-panel" role="tabpanel" aria-labelledby="dashboard-gas-tab" className="border-t border-[#c8c8c8] pt-6">
+        <div id="dashboard-gas-panel" role="tabpanel" aria-labelledby="dashboard-gas-tab" className="border-t border-[#c8c8c8] pt-6 lg:pt-5">
           <GasSummaryPanel results={data.chains} />
         </div>
       )}
       {activeTab === 'transfers' && (
-        <div id="dashboard-transfers-panel" role="tabpanel" aria-labelledby="dashboard-transfers-tab" className="border-t border-[#c8c8c8] pt-6">
+        <div id="dashboard-transfers-panel" role="tabpanel" aria-labelledby="dashboard-transfers-tab" className="border-t border-[#c8c8c8] pt-6 lg:pt-5">
           <TransferTable results={data.chains} />
         </div>
       )}
       {activeTab === 'approvals' && (
-        <div id="dashboard-approvals-panel" role="tabpanel" aria-labelledby="dashboard-approvals-tab" className="border-t border-[#c8c8c8] pt-6">
+        <div id="dashboard-approvals-panel" role="tabpanel" aria-labelledby="dashboard-approvals-tab" className="border-t border-[#c8c8c8] pt-6 lg:pt-5">
           <ApprovalAudit results={data.chains} />
         </div>
       )}

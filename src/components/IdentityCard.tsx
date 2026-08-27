@@ -34,7 +34,7 @@ export default function IdentityCard({ identity, address }: Props) {
     <div className="card-3d p-5 text-[#0a0a0a] space-y-4">
       {/* Identity summary */}
       <div className="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-4 sm:grid-cols-[auto_minmax(0,1fr)_auto]">
-        <div className="w-14 h-14 btn-3d-orange flex items-center justify-center text-white font-black flex-shrink-0 overflow-hidden">
+        <div className="w-14 h-14 btn-3d-orange flex items-center justify-center text-[#0a0a0a] font-black flex-shrink-0 overflow-hidden">
           {identity?.primaryAvatar ? (
             <Image
               src={identity.primaryAvatar}
@@ -91,7 +91,7 @@ export default function IdentityCard({ identity, address }: Props) {
             aria-label={`Copy wallet address ${address}`}
             title="Copy wallet address"
             onClick={() => void copyAddress()}
-            className="btn-3d-neutral inline-flex min-h-11 min-w-11 flex-shrink-0 items-center justify-center text-[#4b5563]"
+            className="btn-3d-neutral inline-flex min-h-11 min-w-11 md:min-h-9 md:min-w-9 flex-shrink-0 items-center justify-center text-[#4b5563]"
           >
             <Copy size={13} aria-hidden="true" />
           </button>
@@ -142,7 +142,7 @@ function SocialServiceBadge({ social }: { social: SocialLinkItem }) {
       rel="noopener noreferrer"
       className="btn-3d-neutral inline-flex min-h-11 min-w-0 w-full items-center gap-2 px-3 py-2 text-[#0a0a0a] text-xs font-bold group cursor-pointer"
     >
-      <span className="text-[#ff5500] group-hover:text-black">{icon}</span>
+      <span className="text-orange-ink group-hover:text-black">{icon}</span>
       <span className="text-[#4b5563] group-hover:text-black text-[10px] uppercase font-semibold">
         {serviceName}:
       </span>

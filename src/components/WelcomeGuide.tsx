@@ -9,13 +9,16 @@ interface Props {
 }
 
 export default function WelcomeGuide({ onSelectDemo }: Props) {
+  const featuredDemo = DEMO_WALLETS[0];
+  const secondaryDemos = DEMO_WALLETS.slice(1);
+
   return (
     <div className="space-y-12 py-2 animate-fade-in-up">
       {/* ── 1. One-Click Interactive Showcase Profiles ── */}
       <section aria-labelledby="demo-profiles-heading" className="space-y-3">
         <div className="flex items-center justify-between border-b border-[#c8c8c8] pb-3">
           <h2 id="demo-profiles-heading" className="text-xs font-extrabold text-[#4b5563] uppercase tracking-wider flex items-center gap-1.5">
-            <Activity size={14} className="text-[#ff5500]" />
+            <Activity size={14} className="text-orange-ink" />
             <span>Explore saved demo wallets</span>
           </h2>
           <span className="text-[11px] font-bold text-[#6b7280] hidden sm:inline">
@@ -23,59 +26,81 @@ export default function WelcomeGuide({ onSelectDemo }: Props) {
           </span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {DEMO_WALLETS.map(demo => (
-            <div
-              key={demo.slug}
-              className="card-3d-interactive relative p-4 text-[#0a0a0a] space-y-3 flex flex-col justify-between group"
-            >
+        <div data-demo-layout="featured-primary" className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]">
+          <button
+            type="button"
+            aria-label={`Load saved demo snapshot for ${featuredDemo.name}`}
+            onClick={() => onSelectDemo(featuredDemo)}
+            className="card-3d-interactive group flex min-h-64 flex-col justify-between p-5 text-left text-[#0a0a0a]"
+          >
+            <span className="space-y-3">
+              <span className="flex items-center justify-between gap-2">
+                <span className="text-[9px] font-mono font-extrabold uppercase tracking-wider text-orange-ink">
+                  Featured saved snapshot
+                </span>
+                <span className="badge-3d flex-shrink-0 border border-[#059669]/30 bg-[#059669]/10 px-1.5 py-0.2 font-mono text-[9px] font-black text-[#047857]">
+                  Saved · non-live
+                </span>
+              </span>
+
+              <span className="block space-y-2">
+                <span className="block text-[10px] font-mono font-extrabold uppercase tracking-wider text-[#4b5563]">
+                  {featuredDemo.role}
+                </span>
+                <span id="featured-demo-title" className="block text-xl font-black text-[#0a0a0a] font-mono transition-colors group-hover:text-orange-ink">
+                  {featuredDemo.ens}
+                </span>
+                <span className="block max-w-xl text-xs leading-relaxed text-[#4b5563] text-pretty">
+                  Public multi-chain demo data for {featuredDemo.name}. The dashboard keeps the original provider and pricing completeness warnings.
+                </span>
+              </span>
+            </span>
+
+            <span className="mt-6 flex items-center justify-between gap-3 border-t border-[#c8c8c8] pt-3">
+              <span className="min-w-0 truncate text-[10px] font-mono font-bold text-[#6b7280]">
+                Four chains · Updated {formatDemoSnapshotDate(featuredDemo.generatedAt)}
+              </span>
+              <span aria-hidden="true" className="flex flex-shrink-0 items-center gap-1 text-xs font-black uppercase tracking-wider text-[#0a0a0a] transition-colors group-hover:text-orange-ink">
+                <span>Open snapshot</span>
+                <ArrowRight size={12} />
+              </span>
+            </span>
+          </button>
+
+          <div data-demo-layout="secondary-list" aria-label="More saved demo wallets" className="divide-y divide-[#c8c8c8] border-y border-[#c8c8c8]">
+            {secondaryDemos.map(demo => (
               <button
+                key={demo.slug}
                 type="button"
                 aria-label={`Load saved demo snapshot for ${demo.name}`}
                 onClick={() => onSelectDemo(demo)}
-                className="absolute inset-0 z-10 cursor-pointer appearance-none bg-transparent"
-              />
-
-              <div className="space-y-2">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-[9px] font-mono font-extrabold text-[#4b5563] uppercase tracking-wider truncate">
+                className="group grid min-h-20 w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-4 px-3 py-3 text-left text-[#0a0a0a] transition-colors hover:bg-white/60"
+              >
+                <span className="min-w-0 space-y-1">
+                  <span className="block truncate text-[9px] font-mono font-extrabold uppercase tracking-wider text-[#4b5563]">
                     {demo.role}
                   </span>
-                  <span className="badge-3d flex-shrink-0 border border-[#059669]/30 bg-[#059669]/10 px-1.5 py-0.2 font-mono text-[9px] font-black text-[#059669]">
-                    Saved snapshot
+                  <span className="block truncate text-sm font-black font-mono transition-colors group-hover:text-orange-ink">
+                    {demo.ens}
                   </span>
-                </div>
-
-                <h3 className="text-base font-black text-[#0a0a0a] font-mono group-hover:text-[#ff5500] transition-colors">
-                  {demo.ens}
-                </h3>
-
-                <p className="text-xs text-[#4b5563] leading-relaxed line-clamp-3 text-pretty">
-                  Public multi-chain demo data for {demo.name}. The dashboard keeps the original provider and pricing completeness warnings.
-                </p>
-              </div>
-
-              <div className="pt-2.5 border-t border-[#c8c8c8] flex items-center justify-between gap-2">
-                <span className="text-[10px] font-mono font-bold text-[#6b7280] truncate">
-                  Four chains · Updated {formatDemoSnapshotDate(demo.generatedAt)}
+                  <span className="block truncate text-[10px] font-mono font-bold text-[#6b7280]">
+                    Four chains · Updated {formatDemoSnapshotDate(demo.generatedAt)} · Saved, non-live
+                  </span>
                 </span>
-                <span
-                  aria-hidden="true"
-                  className="btn-3d-black text-white font-bold text-xs px-2.5 py-1 flex items-center gap-1 flex-shrink-0 cursor-pointer"
-                >
-                  <span>Explore</span>
-                  <ArrowRight size={11} />
+                <span aria-hidden="true" className="flex items-center gap-1 text-[10px] font-black uppercase tracking-wider text-[#4b5563] group-hover:text-orange-ink">
+                  <span className="hidden sm:inline">Open</span>
+                  <ArrowRight size={13} />
                 </span>
-              </div>
-            </div>
-          ))}
+              </button>
+            ))}
+          </div>
         </div>
       </section>
 
       {/* ── 2. How Does It Work? (3-Step Visual Guide) ── */}
       <section aria-labelledby="how-it-works-heading" className="space-y-4 border-y border-[#c8c8c8] py-6">
         <h2 id="how-it-works-heading" className="text-xs font-extrabold text-[#4b5563] uppercase tracking-wider flex items-center gap-1.5">
-          <HelpCircle size={14} className="text-[#ff5500]" />
+          <HelpCircle size={14} className="text-orange-ink" />
           <span>HOW DOES WALLETGENOME WORK?</span>
         </h2>
 
@@ -83,7 +108,7 @@ export default function WelcomeGuide({ onSelectDemo }: Props) {
           
           {/* Step 1 */}
           <div className="space-y-3 py-5 text-[#0a0a0a] md:px-6 md:py-2 md:first:pl-0 md:last:pr-0">
-            <div className="font-mono text-sm font-black text-[#ff5500]">
+              <div className="font-mono text-sm font-black text-orange-ink">
               01
             </div>
             <h3 className="text-base font-black uppercase text-[#0a0a0a]">
@@ -96,7 +121,7 @@ export default function WelcomeGuide({ onSelectDemo }: Props) {
 
           {/* Step 2 */}
           <div className="space-y-3 py-5 text-[#0a0a0a] md:px-6 md:py-2 md:first:pl-0 md:last:pr-0">
-            <div className="font-mono text-sm font-black text-[#ff5500]">
+              <div className="font-mono text-sm font-black text-orange-ink">
               02
             </div>
             <h3 className="text-base font-black uppercase text-[#0a0a0a]">
@@ -109,7 +134,7 @@ export default function WelcomeGuide({ onSelectDemo }: Props) {
 
           {/* Step 3 */}
           <div className="space-y-3 py-5 text-[#0a0a0a] md:px-6 md:py-2 md:first:pl-0 md:last:pr-0">
-            <div className="font-mono text-sm font-black text-[#ff5500]">
+              <div className="font-mono text-sm font-black text-orange-ink">
               03
             </div>
             <h3 className="text-base font-black uppercase text-[#0a0a0a]">
@@ -126,7 +151,7 @@ export default function WelcomeGuide({ onSelectDemo }: Props) {
       {/* ── 3. Core Capabilities (4 Feature Bento Cards) ── */}
       <section aria-labelledby="core-capabilities-heading" className="space-y-4 border-b border-[#c8c8c8] pb-6">
         <h2 id="core-capabilities-heading" className="text-xs font-extrabold text-[#4b5563] uppercase tracking-wider flex items-center gap-1.5">
-          <Layers size={14} className="text-[#ff5500]" />
+          <Layers size={14} className="text-orange-ink" />
           <span>WHAT YOU CAN UNCOVER ON ANY WALLET</span>
         </h2>
 
@@ -230,7 +255,7 @@ export default function WelcomeGuide({ onSelectDemo }: Props) {
         </div>
         <Link
           href="/docs"
-          className="btn-3d-orange min-h-11 text-white text-xs font-mono font-bold uppercase tracking-wider px-4 py-2 flex items-center gap-1.5 flex-shrink-0 cursor-pointer"
+          className="btn-3d-orange min-h-11 text-[#0a0a0a] text-xs font-mono font-bold uppercase tracking-wider px-4 py-2 flex items-center gap-1.5 flex-shrink-0 cursor-pointer"
         >
           <span>READ THE DOCS</span>
           <ArrowRight size={13} />
@@ -246,7 +271,7 @@ export default function WelcomeGuide({ onSelectDemo }: Props) {
         </div>
         <div className="flex items-center gap-2">
           <span className="text-[#0a0a0a]">Supported Networks:</span>
-          <span className="font-mono text-[#ff5500]">Ethereum · Arbitrum · Base · Optimism</span>
+          <span className="font-mono text-orange-ink">Ethereum · Arbitrum · Base · Optimism</span>
         </div>
       </div>
 

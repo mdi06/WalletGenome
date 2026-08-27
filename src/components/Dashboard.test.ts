@@ -1,5 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
+import { readFileSync } from 'node:fs';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import Dashboard from './Dashboard';
@@ -8,6 +9,8 @@ import { extractProtocolBadges, formatCompactUSD } from '@/lib/utils/dashboardUt
 import { MultiChainScanResult, ScanResult } from '@/lib/types';
 import { buildReportingMetrics } from '@/lib/reportingContract';
 import { getMockScanResult } from '@/lib/mockData';
+
+const readDashboardSource = () => readFileSync(new URL('./Dashboard.tsx', import.meta.url), 'utf8');
 
 const completePriceProvenance = {
   historical: 1,
@@ -480,5 +483,16 @@ describe('Dashboard provider availability messaging', () => {
     assert.match(markup, /BLACKLIST STATUS/);
     assert.match(markup, /Behavioral Score Unavailable/);
     assert.doesNotMatch(markup, /Trusta MEDIA[\s\S]*CLEAN/);
+  });
+
+  it('keeps horizontally scrolled dashboard tabs discoverable and operable', () => {
+    const source = readDashboardSource();
+
+    assert.match(source, /dashboard-tabs-scroll-region/);
+    assert.match(source, /scrollIntoView/);
+    assert.match(source, /tabRefs/);
+    assert.match(source, /prefers-reduced-motion/);
+    assert.match(source, /className="dashboard-tab relative/);
+    assert.match(source, /data-active=\{isActive\}/);
   });
 });

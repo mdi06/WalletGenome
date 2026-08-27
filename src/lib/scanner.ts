@@ -206,7 +206,7 @@ export function processTokenTransfers(
     const tokenSym = t.tokenSymbol || '???';
     const tokenNm = t.tokenName || 'Unknown Token';
 
-    const coingeckoId = resolveCoingeckoId(tokenContract, tokenSym);
+    const coingeckoId = resolveCoingeckoId(tokenContract);
     let valueUSD: number | null = null;
     let valueUSDProvenance: PriceProvenance = 'unpriced';
 
@@ -308,7 +308,7 @@ export function collectPriceRequests(
   }
 
   for (const t of rawTokenTransfers) {
-    const coingeckoId = resolveCoingeckoId(t.contractAddress, t.tokenSymbol);
+    const coingeckoId = resolveCoingeckoId(t.contractAddress);
     if (!coingeckoId) continue;
     if (['tether', 'usd-coin', 'dai', 'true-usd', 'frax'].includes(coingeckoId.toLowerCase())) continue;
 

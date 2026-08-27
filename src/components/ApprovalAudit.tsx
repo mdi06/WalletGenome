@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import { RiskLevel, ScanResult } from '@/lib/types';
 import { getExplorerAddressUrl } from '@/lib/chains';
-import { ChevronLeft, ChevronRight, ExternalLink, Search } from 'lucide-react';
+import { Check, ChevronLeft, ChevronRight, Copy, ExternalLink, Search } from 'lucide-react';
 import { formatCompactUSD } from '@/lib/utils/dashboardUtils';
 import FilterDropdown from '@/components/FilterDropdown';
 import type { FilterDropdownOption } from '@/components/FilterDropdown';
@@ -14,12 +14,17 @@ interface Props {
 
 const APPROVALS_PAGE_SIZE = 50;
 
+function shortenAddress(address: string): string {
+  return `${address.slice(0, 6)}...${address.slice(-4)}`;
+}
+
 export default function ApprovalAudit({ results }: Props) {
   const [searchQuery, setSearchQuery] = useState('');
   const [riskFilter, setRiskFilter] = useState<'all' | RiskLevel>('all');
   const [chainFilter, setChainFilter] = useState<number | 'all'>('all');
   const [openDropdown, setOpenDropdown] = useState<'risk' | 'chain' | null>(null);
   const [page, setPage] = useState(1);
+  const [copiedTokenAddress, setCopiedTokenAddress] = useState<string | null>(null);
 
   const riskOptions: readonly FilterDropdownOption<'all' | RiskLevel>[] = [
     { value: 'all', label: 'All risk levels' },
@@ -81,6 +86,20 @@ export default function ApprovalAudit({ results }: Props) {
     setPage(1);
   };
 
+  const handleCopyTokenAddress = async (tokenAddress: string) => {
+    if (!navigator.clipboard?.writeText) return;
+
+    try {
+      await navigator.clipboard.writeText(tokenAddress);
+      setCopiedTokenAddress(tokenAddress);
+      window.setTimeout(() => {
+        setCopiedTokenAddress(current => current === tokenAddress ? null : current);
+      }, 2000);
+    } catch {
+      setCopiedTokenAddress(null);
+    }
+  };
+
   const chainFilterOptions: readonly FilterDropdownOption<number | 'all'>[] = [
     { value: 'all', label: 'All chains' },
     ...chainOptions.map(([chainId, chainName]) => ({ value: chainId, label: chainName })),
@@ -95,38 +114,38 @@ export default function ApprovalAudit({ results }: Props) {
     : null;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 md:space-y-5">
       {/* Top metrics */}
-      <div className="grid grid-cols-1 border-y border-[#c8c8c8] sm:grid-cols-2 lg:grid-cols-4 sm:divide-x sm:divide-y-0 sm:divide-[#c8c8c8]">
-        <div className="space-y-1 border-b border-[#c8c8c8] px-0 py-4 text-[#0a0a0a] sm:border-b-0 sm:px-5">
-          <div className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider">EST. APPROVAL EXPOSURE</div>
-          <div className="text-3xl font-black text-[#0a0a0a] font-mono">
+      <div className="grid grid-cols-2 border-y border-[#c8c8c8] lg:grid-cols-4">
+        <div className="min-w-0 space-y-1 border-b border-r border-[#c8c8c8] px-3 py-3 text-[#0a0a0a] sm:px-5 sm:py-4 lg:border-b-0">
+          <div className="break-words text-[10px] font-extrabold leading-tight tracking-wider text-[#4b5563] uppercase sm:text-[11px]">EST. APPROVAL EXPOSURE</div>
+          <div className="text-2xl font-black text-[#0a0a0a] font-mono sm:text-3xl">
             {totalExposureUSD === null ? 'Unavailable' : formatCompactUSD(totalExposureUSD)}
           </div>
           <div className="text-[10px] text-[#6b7280]">Balance-capped; see per-row provenance.</div>
         </div>
-        <div className="space-y-1 border-b border-[#c8c8c8] px-0 py-4 text-[#0a0a0a] sm:border-b-0 sm:px-5">
-          <div className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider">TOTAL ACTIVE PERMISSIONS</div>
-          <div className="text-3xl font-black text-[#0a0a0a] font-mono">{totalApprovals}</div>
+        <div className="min-w-0 space-y-1 border-b border-[#c8c8c8] px-3 py-3 text-[#0a0a0a] sm:px-5 sm:py-4 lg:border-b-0 lg:border-r">
+          <div className="break-words text-[10px] font-extrabold leading-tight tracking-wider text-[#4b5563] uppercase sm:text-[11px]">TOTAL ACTIVE PERMISSIONS</div>
+          <div className="text-2xl font-black text-[#0a0a0a] font-mono sm:text-3xl">{totalApprovals}</div>
         </div>
 
-        <div className="space-y-1 border-b border-[#c8c8c8] px-0 py-4 text-[#0a0a0a] sm:border-b-0 sm:px-5">
-          <div className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider">HIGH-RISK SPENDERS</div>
-          <div className="text-3xl font-black text-[#dc2626] font-mono">{highRisk}</div>
+        <div className="min-w-0 space-y-1 border-r border-[#c8c8c8] px-3 py-3 text-[#0a0a0a] sm:px-5 sm:py-4 lg:border-r">
+          <div className="break-words text-[10px] font-extrabold leading-tight tracking-wider text-[#4b5563] uppercase sm:text-[11px]">HIGH-RISK SPENDERS</div>
+          <div className="text-2xl font-black text-[#dc2626] font-mono sm:text-3xl">{highRisk}</div>
           <div className="text-[10px] text-[#6b7280]">Count, not USD exposure.</div>
         </div>
 
-        <div className="space-y-1 px-0 py-4 text-[#0a0a0a] sm:px-5">
-          <div className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider">UNLIMITED ALLOWANCES</div>
-          <div className="text-3xl font-black text-[#ff5500] font-mono">{unlimited}</div>
+        <div className="min-w-0 space-y-1 px-3 py-3 text-[#0a0a0a] sm:px-5 sm:py-4">
+          <div className="break-words text-[10px] font-extrabold leading-tight tracking-wider text-[#4b5563] uppercase sm:text-[11px]">UNLIMITED ALLOWANCES</div>
+          <div className="text-2xl font-black text-orange-ink font-mono sm:text-3xl">{unlimited}</div>
         </div>
       </div>
 
-      <section aria-label="Approval table controls" className="card-3d flex flex-col gap-3 p-4">
+      <section aria-label="Approval table controls" className="card-3d flex flex-col gap-3 p-4 md:p-3">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-end">
           <label htmlFor="approval-search" className="min-w-0 flex-1">
             <span className="mb-1.5 block text-[10px] font-extrabold uppercase tracking-wider text-[#4b5563]">Search approvals</span>
-            <span className="flex min-h-11 items-center gap-2 border-2 border-[#0a0a0a] bg-white px-3">
+            <span className="flex min-h-11 md:min-h-9 items-center gap-2 border border-[#b8bbc3] bg-white px-3">
               <Search size={14} aria-hidden="true" className="shrink-0 text-[#6b7280]" />
               <input
                 id="approval-search"
@@ -174,7 +193,7 @@ export default function ApprovalAudit({ results }: Props) {
               aria-label="Previous approvals page"
               onClick={() => setPage(currentPage - 1)}
               disabled={currentPage === 1}
-              className="btn-3d-neutral inline-flex min-h-11 min-w-11 items-center justify-center disabled:cursor-not-allowed disabled:opacity-40"
+              className="btn-3d-neutral inline-flex min-h-11 min-w-11 md:min-h-9 md:min-w-9 items-center justify-center disabled:cursor-not-allowed disabled:opacity-40"
             >
               <ChevronLeft size={15} aria-hidden="true" />
             </button>
@@ -186,13 +205,17 @@ export default function ApprovalAudit({ results }: Props) {
               aria-label="Next approvals page"
               onClick={() => setPage(currentPage + 1)}
               disabled={currentPage === pageCount}
-              className="btn-3d-neutral inline-flex min-h-11 min-w-11 items-center justify-center disabled:cursor-not-allowed disabled:opacity-40"
+              className="btn-3d-neutral inline-flex min-h-11 min-w-11 md:min-h-9 md:min-w-9 items-center justify-center disabled:cursor-not-allowed disabled:opacity-40"
             >
               <ChevronRight size={15} aria-hidden="true" />
             </button>
           </div>
         </div>
       </section>
+
+      <p className="sr-only" role="status" aria-live="polite">
+        {copiedTokenAddress ? `Copied token contract ${copiedTokenAddress}.` : ''}
+      </p>
 
       {/* Approvals Table Well */}
       <div
@@ -211,14 +234,43 @@ export default function ApprovalAudit({ results }: Props) {
               <th className="py-3 px-4">EST. EXPOSURE</th>
               <th className="py-3 px-4">RISK LEVEL</th>
               <th className="py-3 px-4">LAST UPDATED</th>
-              <th className="py-3 px-4 text-right">ACTION</th>
+              <th className="py-3 px-4 text-right">SPENDER ACTION</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-[#c8c8c8] text-xs font-bold text-[#0a0a0a]">
             {visibleApprovals.map(a => (
               <tr key={`${a.chainId}:${a.tokenAddress}:${a.spender}`} className="hover:bg-white/60 transition-colors">
                 <td className="py-3.5 px-4 font-mono font-black text-[#0a0a0a]">
-                  {a.tokenSymbol}
+                  <div>{a.tokenSymbol}</div>
+                  <div className="mt-1 flex items-center gap-1.5 text-[10px] font-bold text-[#6b7280]">
+                    <span title={`Token contract ${a.tokenAddress}`}>
+                      <span aria-hidden="true">{shortenAddress(a.tokenAddress)}</span>
+                      <span className="sr-only">Token contract {a.tokenAddress}</span>
+                    </span>
+                    <a
+                      href={getExplorerAddressUrl(a.chainId, a.tokenAddress)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={`View token contract ${a.tokenAddress} on block explorer`}
+                      title={`View token contract ${a.tokenAddress} on block explorer`}
+                      className="inline-flex min-h-11 min-w-11 md:min-h-9 md:min-w-9 items-center justify-center p-1 text-[#6b7280] hover:text-black"
+                    >
+                      <ExternalLink size={12} aria-hidden="true" />
+                    </a>
+                    <button
+                      type="button"
+                      onClick={() => handleCopyTokenAddress(a.tokenAddress)}
+                      aria-label={copiedTokenAddress === a.tokenAddress
+                        ? `Copied token contract ${a.tokenAddress}`
+                        : `Copy token contract ${a.tokenAddress}`}
+                      title={`Copy token contract ${a.tokenAddress}`}
+                      className="inline-flex min-h-11 min-w-11 md:min-h-9 md:min-w-9 items-center justify-center p-1 text-[#6b7280] hover:text-black"
+                    >
+                      {copiedTokenAddress === a.tokenAddress
+                        ? <Check size={12} aria-hidden="true" />
+                        : <Copy size={12} aria-hidden="true" />}
+                    </button>
+                  </div>
                 </td>
                 <td className="py-3.5 px-4 font-bold text-[#4b5563]">
                   {a.chainName}
@@ -229,7 +281,7 @@ export default function ApprovalAudit({ results }: Props) {
                 </td>
                 <td className="py-3.5 px-4 font-mono font-bold">
                   {a.isUnlimited ? (
-                    <span className="text-[#ff5500]">UNLIMITED (∞)</span>
+                    <span className="text-orange-ink">UNLIMITED (∞)</span>
                   ) : (
                     <span className="text-[#0a0a0a]">
                       {a.allowanceAmount === null ? a.allowance : `${a.allowanceAmount.toLocaleString()} ${a.tokenSymbol}`}
@@ -269,8 +321,9 @@ export default function ApprovalAudit({ results }: Props) {
                     href={getExplorerAddressUrl(a.chainId, a.spender)}
                     target="_blank"
                     rel="noopener noreferrer"
-                    aria-label={`View ${a.spenderLabel || a.spender} on block explorer`}
-                    className="text-[#6b7280] hover:text-black inline-flex min-h-11 min-w-11 items-center justify-center p-1"
+                    aria-label={`View spender contract ${a.spender} on block explorer`}
+                    title={`View spender contract ${a.spender} on block explorer`}
+                    className="text-[#6b7280] hover:text-black inline-flex min-h-11 min-w-11 md:min-h-9 md:min-w-9 items-center justify-center p-1"
                   >
                     <ExternalLink size={13} className="ml-auto" />
                   </a>

@@ -1,0 +1,908 @@
+- generic [ref=f3e1]:
+  - main [ref=f3e2]:
+    - generic [ref=f3e4]:
+      - button "Open WalletGenome guide" [ref=f3e5] [cursor=pointer]:
+        - generic [ref=f3e6]: WALLET.GENOME
+      - generic [ref=f3e7]:
+        - 'status "Indexing status: Saved snapshot" [ref=f3e119]':
+          - generic [ref=f3e10]: Saved snapshot
+        - button "Open site menu" [ref=f3e11] [cursor=pointer]
+    - region "Wallet Forensics Console" [ref=f3e13]:
+      - tablist "Forensics Scan Mode" [ref=f3e14]:
+        - tab "Single wallet" [selected] [ref=f3e15] [cursor=pointer]
+        - tab "Cluster scan" [ref=f3e20] [cursor=pointer]
+      - region "Loaded scan summary" [ref=f3e120]:
+        - generic [ref=f3e121]:
+          - generic [ref=f3e122]:
+            - generic [ref=f3e123]: Loaded wallet scan
+            - generic [ref=f3e124]: Saved snapshot
+          - generic [ref=f3e125]:
+            - heading "0xd8dA...6045" [level=2] [ref=f3e126]
+            - button "Copy wallet address 0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045" [ref=f3e127] [cursor=pointer]
+            - button "Full address" [ref=f3e131] [cursor=pointer]
+            - status [ref=f3e132]
+          - generic [ref=f3e134]:
+            - term [ref=f3e135]: "Networks:"
+            - definition [ref=f3e136]: Ethereum, Base, Arbitrum, Optimism
+        - button "Edit scan" [ref=f3e137] [cursor=pointer]
+    - region "Evidence status" [ref=f3e138]:
+      - generic [ref=f3e139]:
+        - generic [ref=f3e140]:
+          - paragraph [ref=f3e142]: Saved snapshot · Non-live
+          - paragraph [ref=f3e143]: Saved public data for Vitalik Buterin. Updated Aug 26, 2026. This view does not spend provider API quota.
+          - paragraph [ref=f3e144]: "History evidence: partial. Review data quality details below."
+        - button "Run fresh scan" [ref=f3e145] [cursor=pointer]
+      - group [ref=f3e146]:
+        - generic "Review data quality partial" [ref=f3e147] [cursor=pointer]:
+          - generic [ref=f3e148]: Review data quality
+          - generic [ref=f3e149]: partial
+    - generic [ref=f3e150]:
+      - generic "Dashboard sections; scroll horizontally for more tabs" [ref=f3e151]:
+        - tablist "Wallet dashboard sections" [ref=f3e152]:
+          - tab "BEHAVIORAL DNA" [ref=f3e153] [cursor=pointer]
+          - tab "FLOW GRAPH" [ref=f3e155] [cursor=pointer]
+          - tab "PROTOCOLS 12" [ref=f3e157] [cursor=pointer]:
+            - generic [ref=f3e158]: PROTOCOLS
+            - generic [ref=f3e159]: "12"
+          - tab "GAS FEES" [ref=f3e160] [cursor=pointer]
+          - tab "TRANSFERS" [active] [selected] [ref=f3e162] [cursor=pointer]
+          - tab "APPROVALS 2233" [ref=f3e164] [cursor=pointer]:
+            - generic [ref=f3e165]: APPROVALS
+            - generic [ref=f3e166]: "2233"
+      - tabpanel "TRANSFERS" [ref=f3e776]:
+        - generic [ref=f3e777]:
+          - region "Transfer table controls" [ref=f3e778]:
+            - generic [ref=f3e779]:
+              - generic [ref=f3e780]:
+                - generic [ref=f3e781]: Search transfers
+                - searchbox "Search transfers" [ref=f3e786]
+              - generic [ref=f3e787]:
+                - button "All Transfers" [ref=f3e788] [cursor=pointer]
+                - button "Inbound" [ref=f3e789] [cursor=pointer]
+                - button "Outbound" [ref=f3e790] [cursor=pointer]
+              - generic [ref=f3e791]:
+                - generic [ref=f3e792]: Network
+                - combobox "Network" [ref=f3e793]:
+                  - option "All networks" [selected]
+                  - option "Ethereum"
+                  - option "Arbitrum"
+                  - option "Base"
+                  - option "Optimism"
+            - generic [ref=f3e794]:
+              - paragraph [ref=f3e795]: Showing 1–50 of 109 matching transfers
+              - generic [ref=f3e796]:
+                - button "Previous transfers page" [disabled] [ref=f3e797]
+                - generic "Transfers page 1 of 3" [ref=f3e800]: Page 1 of 3
+                - button "Next transfers page" [ref=f3e801] [cursor=pointer]
+          - region "Wallet transfers table; scroll horizontally for all columns" [ref=f3e804]:
+            - table [ref=f3e805]:
+              - rowgroup [ref=f3e806]:
+                - row [ref=f3e807]:
+                  - columnheader "DIRECTION" [ref=f3e808]
+                  - columnheader "CHAIN" [ref=f3e809]
+                  - columnheader "TOKEN" [ref=f3e810]
+                  - columnheader "AMOUNT" [ref=f3e811]
+                  - columnheader "USD VALUE" [ref=f3e812]
+                  - columnheader "COUNTERPARTY" [ref=f3e813]
+                  - columnheader "TIME" [ref=f3e814]
+                  - columnheader "ACTION" [ref=f3e815]
+              - rowgroup [ref=f3e816]:
+                - row [ref=f3e817]:
+                  - cell "OUT" [ref=f3e818]
+                  - cell "Optimism" [ref=f3e823]
+                  - cell "Optimism OP Token contract 0x4200000000000000000000000000000000000042" [ref=f3e824]:
+                    - generic [ref=f3e825]: Optimism
+                    - generic [ref=f3e826]: OP
+                    - generic "Token contract 0x4200000000000000000000000000000000000042" [ref=f3e827]: Contract 0x4200...0042
+                  - cell "1000000.0000" [ref=f3e828]
+                  - cell "$908,232.69 historical" [ref=f3e829]:
+                    - generic [ref=f3e830]: $908,232.69
+                    - generic [ref=f3e831]: historical
+                  - cell "0x2501...b3f0" [ref=f3e832]
+                  - cell "11/06/2022" [ref=f3e834]
+                  - cell [ref=f3e835]:
+                    - link "View OP transfer on block explorer" [ref=f3e836] [cursor=pointer]:
+                      - /url: https://optimistic.etherscan.io/tx/0x307bb65281f8127f558278c9be10d425346040d7aba820efa7acb2012ce3b833
+                - row [ref=f3e841]:
+                  - cell "IN" [ref=f3e842]
+                  - cell "Optimism" [ref=f3e847]
+                  - cell "Optimism OP Token contract 0x4200000000000000000000000000000000000042" [ref=f3e848]:
+                    - generic [ref=f3e849]: Optimism
+                    - generic [ref=f3e850]: OP
+                    - generic "Token contract 0x4200000000000000000000000000000000000042" [ref=f3e851]: Contract 0x4200...0042
+                  - cell "1000000.0000" [ref=f3e852]
+                  - cell "$852,152.22 historical" [ref=f3e853]:
+                    - generic [ref=f3e854]: $852,152.22
+                    - generic [ref=f3e855]: historical
+                  - cell "0x4f3a...cb81" [ref=f3e856]
+                  - cell "09/06/2022" [ref=f3e858]
+                  - cell [ref=f3e859]:
+                    - link "View OP transfer on block explorer" [ref=f3e860] [cursor=pointer]:
+                      - /url: https://optimistic.etherscan.io/tx/0xdb693613d550e38d53d47b5fd07ce505e24e141db146fa1321710c9a86d9db6a
+                - row [ref=f3e865]:
+                  - cell "IN" [ref=f3e866]
+                  - cell "Ethereum" [ref=f3e871]
+                  - cell "Dai DAI Token contract 0x6b175474e89094c44da98b954eedeac495271d0f" [ref=f3e872]:
+                    - generic [ref=f3e873]: Dai
+                    - generic [ref=f3e874]: DAI
+                    - generic "Token contract 0x6b175474e89094c44da98b954eedeac495271d0f" [ref=f3e875]: Contract 0x6b17...1d0f
+                  - cell "761823.6397" [ref=f3e876]
+                  - cell "$761,823.64 stablecoin assumption" [ref=f3e877]:
+                    - generic [ref=f3e878]: $761,823.64
+                    - generic [ref=f3e879]: stablecoin assumption
+                  - cell "0xcb0c...e19d" [ref=f3e880]
+                  - cell "16/05/2022" [ref=f3e882]
+                  - cell [ref=f3e883]:
+                    - link "View DAI transfer on block explorer" [ref=f3e884] [cursor=pointer]:
+                      - /url: https://etherscan.io/tx/0x2de2dca7cf18a3580d8b1232548ba43164480fd04aec10ed79d97b2934468aff
+                - row [ref=f3e889]:
+                  - cell "OUT" [ref=f3e890]
+                  - cell "Ethereum" [ref=f3e895]
+                  - cell "Dai DAI Token contract 0x6b175474e89094c44da98b954eedeac495271d0f" [ref=f3e896]:
+                    - generic [ref=f3e897]: Dai
+                    - generic [ref=f3e898]: DAI
+                    - generic "Token contract 0x6b175474e89094c44da98b954eedeac495271d0f" [ref=f3e899]: Contract 0x6b17...1d0f
+                  - cell "750000.0000" [ref=f3e900]
+                  - cell "$750,000.00 stablecoin assumption" [ref=f3e901]:
+                    - generic [ref=f3e902]: $750,000.00
+                    - generic [ref=f3e903]: stablecoin assumption
+                  - cell "0xfccf...c205" [ref=f3e904]
+                  - cell "18/07/2022" [ref=f3e906]
+                  - cell [ref=f3e907]:
+                    - link "View DAI transfer on block explorer" [ref=f3e908] [cursor=pointer]:
+                      - /url: https://etherscan.io/tx/0x673ad35478c57a52087fe0b02f360bc24b8608419f98148fcbacaa15aab78c6e
+                - row [ref=f3e913]:
+                  - cell "IN" [ref=f3e914]
+                  - cell "Ethereum" [ref=f3e919]
+                  - cell "Dai DAI Token contract 0x6b175474e89094c44da98b954eedeac495271d0f" [ref=f3e920]:
+                    - generic [ref=f3e921]: Dai
+                    - generic [ref=f3e922]: DAI
+                    - generic "Token contract 0x6b175474e89094c44da98b954eedeac495271d0f" [ref=f3e923]: Contract 0x6b17...1d0f
+                  - cell "676800.0000" [ref=f3e924]
+                  - cell "$676,800.00 stablecoin assumption" [ref=f3e925]:
+                    - generic [ref=f3e926]: $676,800.00
+                    - generic [ref=f3e927]: stablecoin assumption
+                  - cell "0x5777...2168" [ref=f3e928]
+                  - cell "07/07/2022" [ref=f3e930]
+                  - cell [ref=f3e931]:
+                    - link "View DAI transfer on block explorer" [ref=f3e932] [cursor=pointer]:
+                      - /url: https://etherscan.io/tx/0xc98668a082f62087b940feaf1b17b861728e1664c7ce5a4643e762799c8f7bc2
+                - row [ref=f3e937]:
+                  - cell "OUT" [ref=f3e938]
+                  - cell "Ethereum" [ref=f3e943]
+                  - cell "Dai DAI Token contract 0x6b175474e89094c44da98b954eedeac495271d0f" [ref=f3e944]:
+                    - generic [ref=f3e945]: Dai
+                    - generic [ref=f3e946]: DAI
+                    - generic "Token contract 0x6b175474e89094c44da98b954eedeac495271d0f" [ref=f3e947]: Contract 0x6b17...1d0f
+                  - cell "496811.6658" [ref=f3e948]
+                  - cell "$496,811.67 stablecoin assumption" [ref=f3e949]:
+                    - generic [ref=f3e950]: $496,811.67
+                    - generic [ref=f3e951]: stablecoin assumption
+                  - cell "0x5777...2168" [ref=f3e952]
+                  - cell "13/06/2022" [ref=f3e954]
+                  - cell [ref=f3e955]:
+                    - link "View DAI transfer on block explorer" [ref=f3e956] [cursor=pointer]:
+                      - /url: https://etherscan.io/tx/0x6e1a6db2dfb8f96cbcc5520f3c06aaa9aeaa1ba4457aa305985aad2557ff82d2
+                - row [ref=f3e961]:
+                  - cell "IN" [ref=f3e962]
+                  - cell "Ethereum" [ref=f3e967]
+                  - cell "Dai DAI Token contract 0x6b175474e89094c44da98b954eedeac495271d0f" [ref=f3e968]:
+                    - generic [ref=f3e969]: Dai
+                    - generic [ref=f3e970]: DAI
+                    - generic "Token contract 0x6b175474e89094c44da98b954eedeac495271d0f" [ref=f3e971]: Contract 0x6b17...1d0f
+                  - cell "459508.3837" [ref=f3e972]
+                  - cell "$459,508.38 stablecoin assumption" [ref=f3e973]:
+                    - generic [ref=f3e974]: $459,508.38
+                    - generic [ref=f3e975]: stablecoin assumption
+                  - cell "0xcb0c...e19d" [ref=f3e976]
+                  - cell "18/06/2022" [ref=f3e978]
+                  - cell [ref=f3e979]:
+                    - link "View DAI transfer on block explorer" [ref=f3e980] [cursor=pointer]:
+                      - /url: https://etherscan.io/tx/0x1aebc0b8d4c5e2e7793486897873263c627678d8c1444a856720b35d6eeaaba4
+                - row [ref=f3e985]:
+                  - cell "IN" [ref=f3e986]
+                  - cell "Ethereum" [ref=f3e991]
+                  - cell "USDC USDC Token contract 0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48" [ref=f3e992]:
+                    - generic [ref=f3e993]: USDC
+                    - generic [ref=f3e994]: USDC
+                    - generic "Token contract 0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48" [ref=f3e995]: Contract 0xa0b8...eb48
+                  - cell "250500.0000" [ref=f3e996]
+                  - cell "$250,500.00 stablecoin assumption" [ref=f3e997]:
+                    - generic [ref=f3e998]: $250,500.00
+                    - generic [ref=f3e999]: stablecoin assumption
+                  - cell "0x88e6...5640" [ref=f3e1000]
+                  - cell "25/05/2022" [ref=f3e1002]
+                  - cell [ref=f3e1003]:
+                    - link "View USDC transfer on block explorer" [ref=f3e1004] [cursor=pointer]:
+                      - /url: https://etherscan.io/tx/0x9846ec9e063cea51cc50bca3a8d52874bcd7029d072df89b81928a6b226fc99c
+                - row [ref=f3e1009]:
+                  - cell "OUT" [ref=f3e1010]
+                  - cell "Ethereum" [ref=f3e1015]
+                  - cell "USDC USDC Token contract 0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48" [ref=f3e1016]:
+                    - generic [ref=f3e1017]: USDC
+                    - generic [ref=f3e1018]: USDC
+                    - generic "Token contract 0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48" [ref=f3e1019]: Contract 0xa0b8...eb48
+                  - cell "250000.0000" [ref=f3e1020]
+                  - cell "$250,000.00 stablecoin assumption" [ref=f3e1021]:
+                    - generic [ref=f3e1022]: $250,000.00
+                    - generic [ref=f3e1023]: stablecoin assumption
+                  - cell "0x1eea...01c6" [ref=f3e1024]
+                  - cell "25/05/2022" [ref=f3e1026]
+                  - cell [ref=f3e1027]:
+                    - link "View USDC transfer on block explorer" [ref=f3e1028] [cursor=pointer]:
+                      - /url: https://etherscan.io/tx/0x86c1e2536ae1c8d9aea4ac275a120072cd0cd0d5e664d3ef7abe67802460185c
+                - row [ref=f3e1033]:
+                  - cell "OUT" [ref=f3e1034]
+                  - cell "Ethereum" [ref=f3e1039]
+                  - cell "Dai DAI Token contract 0x6b175474e89094c44da98b954eedeac495271d0f" [ref=f3e1040]:
+                    - generic [ref=f3e1041]: Dai
+                    - generic [ref=f3e1042]: DAI
+                    - generic "Token contract 0x6b175474e89094c44da98b954eedeac495271d0f" [ref=f3e1043]: Contract 0x6b17...1d0f
+                  - cell "229297.6919" [ref=f3e1044]
+                  - cell "$229,297.69 stablecoin assumption" [ref=f3e1045]:
+                    - generic [ref=f3e1046]: $229,297.69
+                    - generic [ref=f3e1047]: stablecoin assumption
+                  - cell "0x6c6b...3700" [ref=f3e1048]
+                  - cell "13/06/2022" [ref=f3e1050]
+                  - cell [ref=f3e1051]:
+                    - link "View DAI transfer on block explorer" [ref=f3e1052] [cursor=pointer]:
+                      - /url: https://etherscan.io/tx/0x6e1a6db2dfb8f96cbcc5520f3c06aaa9aeaa1ba4457aa305985aad2557ff82d2
+                - row [ref=f3e1057]:
+                  - cell "IN" [ref=f3e1058]
+                  - cell "Ethereum" [ref=f3e1063]
+                  - cell "Dai DAI Token contract 0x6b175474e89094c44da98b954eedeac495271d0f" [ref=f3e1064]:
+                    - generic [ref=f3e1065]: Dai
+                    - generic [ref=f3e1066]: DAI
+                    - generic "Token contract 0x6b175474e89094c44da98b954eedeac495271d0f" [ref=f3e1067]: Contract 0x6b17...1d0f
+                  - cell "169200.0000" [ref=f3e1068]
+                  - cell "$169,200.00 stablecoin assumption" [ref=f3e1069]:
+                    - generic [ref=f3e1070]: $169,200.00
+                    - generic [ref=f3e1071]: stablecoin assumption
+                  - cell "0x6c6b...3700" [ref=f3e1072]
+                  - cell "07/07/2022" [ref=f3e1074]
+                  - cell [ref=f3e1075]:
+                    - link "View DAI transfer on block explorer" [ref=f3e1076] [cursor=pointer]:
+                      - /url: https://etherscan.io/tx/0xc98668a082f62087b940feaf1b17b861728e1664c7ce5a4643e762799c8f7bc2
+                - row [ref=f3e1081]:
+                  - cell "IN" [ref=f3e1082]
+                  - cell "Ethereum" [ref=f3e1087]
+                  - cell "USDC USDC Token contract 0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48" [ref=f3e1088]:
+                    - generic [ref=f3e1089]: USDC
+                    - generic [ref=f3e1090]: USDC
+                    - generic "Token contract 0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48" [ref=f3e1091]: Contract 0xa0b8...eb48
+                  - cell "100000.0000" [ref=f3e1092]
+                  - cell "$100,000.00 stablecoin assumption" [ref=f3e1093]:
+                    - generic [ref=f3e1094]: $100,000.00
+                    - generic [ref=f3e1095]: stablecoin assumption
+                  - cell "0x8ad5...e6d8" [ref=f3e1096]
+                  - cell "04/08/2022" [ref=f3e1098]
+                  - cell [ref=f3e1099]:
+                    - link "View USDC transfer on block explorer" [ref=f3e1100] [cursor=pointer]:
+                      - /url: https://etherscan.io/tx/0x011c3c6cbdcaf637729873ba703b4583144040c9ed9b87ed6d613292f7e70e3a
+                - row [ref=f3e1105]:
+                  - cell "IN" [ref=f3e1106]
+                  - cell "Ethereum" [ref=f3e1111]
+                  - cell "USDC USDC Token contract 0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48" [ref=f3e1112]:
+                    - generic [ref=f3e1113]: USDC
+                    - generic [ref=f3e1114]: USDC
+                    - generic "Token contract 0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48" [ref=f3e1115]: Contract 0xa0b8...eb48
+                  - cell "33138.1546" [ref=f3e1116]
+                  - cell "$33,138.15 stablecoin assumption" [ref=f3e1117]:
+                    - generic [ref=f3e1118]: $33,138.15
+                    - generic [ref=f3e1119]: stablecoin assumption
+                  - cell "0x88e6...5640" [ref=f3e1120]
+                  - cell "04/08/2022" [ref=f3e1122]
+                  - cell [ref=f3e1123]:
+                    - link "View USDC transfer on block explorer" [ref=f3e1124] [cursor=pointer]:
+                      - /url: https://etherscan.io/tx/0xf0461adb532f1e5021373f9fc0e776e9335de42b8709e704c4ee6f7df367edbd
+                - row [ref=f3e1129]:
+                  - cell "IN" [ref=f3e1130]
+                  - cell "Ethereum" [ref=f3e1135]
+                  - cell "USDC USDC Token contract 0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48" [ref=f3e1136]:
+                    - generic [ref=f3e1137]: USDC
+                    - generic [ref=f3e1138]: USDC
+                    - generic "Token contract 0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48" [ref=f3e1139]: Contract 0xa0b8...eb48
+                  - cell "12186.0800" [ref=f3e1140]
+                  - cell "$12,186.08 stablecoin assumption" [ref=f3e1141]:
+                    - generic [ref=f3e1142]: $12,186.08
+                    - generic [ref=f3e1143]: stablecoin assumption
+                  - cell "0x88e6...5640" [ref=f3e1144]
+                  - cell "04/08/2022" [ref=f3e1146]
+                  - cell [ref=f3e1147]:
+                    - link "View USDC transfer on block explorer" [ref=f3e1148] [cursor=pointer]:
+                      - /url: https://etherscan.io/tx/0x2cec9275c134038b257a98c5a512466f2151b70b98ea1440b82d4a36509d8c2b
+                - row [ref=f3e1153]:
+                  - cell "IN" [ref=f3e1154]
+                  - cell "Optimism" [ref=f3e1159]
+                  - cell "Optimism OP Token contract 0x4200000000000000000000000000000000000042" [ref=f3e1160]:
+                    - generic [ref=f3e1161]: Optimism
+                    - generic [ref=f3e1162]: OP
+                    - generic "Token contract 0x4200000000000000000000000000000000000042" [ref=f3e1163]: Contract 0x4200...0042
+                  - cell "1835.9987" [ref=f3e1164]
+                  - cell "$4,957.20 historical" [ref=f3e1165]:
+                    - generic [ref=f3e1166]: $4,957.20
+                    - generic [ref=f3e1167]: historical
+                  - cell "0x2501...b3f0" [ref=f3e1168]
+                  - cell "10/02/2023" [ref=f3e1170]
+                  - cell [ref=f3e1171]:
+                    - link "View OP transfer on block explorer" [ref=f3e1172] [cursor=pointer]:
+                      - /url: https://optimistic.etherscan.io/tx/0xdeffe471889eecf895961e4bbd56a61907c96823a47f761d391c31ce1aa16b56
+                - row [ref=f3e1177]:
+                  - cell "IN" [ref=f3e1178]
+                  - cell "Optimism" [ref=f3e1183]
+                  - cell "Optimism OP Token contract 0x4200000000000000000000000000000000000042" [ref=f3e1184]:
+                    - generic [ref=f3e1185]: Optimism
+                    - generic [ref=f3e1186]: OP
+                    - generic "Token contract 0x4200000000000000000000000000000000000042" [ref=f3e1187]: Contract 0x4200...0042
+                  - cell "3384.1477" [ref=f3e1188]
+                  - cell "$4,771.65 historical" [ref=f3e1189]:
+                    - generic [ref=f3e1190]: $4,771.65
+                    - generic [ref=f3e1191]: historical
+                  - cell "0x2501...b3f0" [ref=f3e1192]
+                  - cell "19/09/2023" [ref=f3e1194]
+                  - cell [ref=f3e1195]:
+                    - link "View OP transfer on block explorer" [ref=f3e1196] [cursor=pointer]:
+                      - /url: https://optimistic.etherscan.io/tx/0x0adf034c32a2c55a82ba43379c5e68eb3d022d5d7038192ac432e1f3f10cbde7
+                - row [ref=f3e1201]:
+                  - cell "IN" [ref=f3e1202]
+                  - cell "Optimism" [ref=f3e1207]
+                  - cell "Optimism OP Token contract 0x4200000000000000000000000000000000000042" [ref=f3e1208]:
+                    - generic [ref=f3e1209]: Optimism
+                    - generic [ref=f3e1210]: OP
+                    - generic "Token contract 0x4200000000000000000000000000000000000042" [ref=f3e1211]: Contract 0x4200...0042
+                  - cell "1746.1937" [ref=f3e1212]
+                  - cell "$2,499.67 historical" [ref=f3e1213]:
+                    - generic [ref=f3e1214]: $2,499.67
+                    - generic [ref=f3e1215]: historical
+                  - cell "0xfedf...57de" [ref=f3e1216]
+                  - cell "01/06/2022" [ref=f3e1218]
+                  - cell [ref=f3e1219]:
+                    - link "View OP transfer on block explorer" [ref=f3e1220] [cursor=pointer]:
+                      - /url: https://optimistic.etherscan.io/tx/0xb63e61e8adcb67b6d0cda0572a9aa9c2298cc8520b2d0264fa74b86a9c97a405
+                - row [ref=f3e1225]:
+                  - cell "OUT" [ref=f3e1226]
+                  - cell "Optimism" [ref=f3e1231]
+                  - cell "Optimism OP Token contract 0x4200000000000000000000000000000000000042" [ref=f3e1232]:
+                    - generic [ref=f3e1233]: Optimism
+                    - generic [ref=f3e1234]: OP
+                    - generic "Token contract 0x4200000000000000000000000000000000000042" [ref=f3e1235]: Contract 0x4200...0042
+                  - cell "7528.3807" [ref=f3e1236]
+                  - cell "$2,439.98 historical" [ref=f3e1237]:
+                    - generic [ref=f3e1238]: $2,439.98
+                    - generic [ref=f3e1239]: historical
+                  - cell "0x7825...c251" [ref=f3e1240]
+                  - cell "13/01/2026" [ref=f3e1242]
+                  - cell [ref=f3e1243]:
+                    - link "View OP transfer on block explorer" [ref=f3e1244] [cursor=pointer]:
+                      - /url: https://optimistic.etherscan.io/tx/0x5f776ccc085898cd828c840293aa035d9159ba046e09a6fd6e514de400c2047d
+                - row [ref=f3e1249]:
+                  - cell "IN" [ref=f3e1250]
+                  - cell "Optimism" [ref=f3e1255]
+                  - cell "Optimism OP Token contract 0x4200000000000000000000000000000000000042" [ref=f3e1256]:
+                    - generic [ref=f3e1257]: Optimism
+                    - generic [ref=f3e1258]: OP
+                    - generic "Token contract 0x4200000000000000000000000000000000000042" [ref=f3e1259]: Contract 0x4200...0042
+                  - cell "579.0000" [ref=f3e1260]
+                  - cell "$689.01 historical" [ref=f3e1261]:
+                    - generic [ref=f3e1262]: $689.01
+                    - generic [ref=f3e1263]: historical
+                  - cell "0x8e16...c95f" [ref=f3e1264]
+                  - cell "13/10/2023" [ref=f3e1266]
+                  - cell [ref=f3e1267]:
+                    - link "View OP transfer on block explorer" [ref=f3e1268] [cursor=pointer]:
+                      - /url: https://optimistic.etherscan.io/tx/0x17d6a2ea27ab488454fec43cde8cbfd2c82ae539c3583c7721dd18c772288caf
+                - row [ref=f3e1273]:
+                  - cell "IN" [ref=f3e1274]
+                  - cell "Optimism" [ref=f3e1279]
+                  - cell "L2 Standard Bridged WETH (Optimism) WETH Token contract 0x4200000000000000000000000000000000000006" [ref=f3e1280]:
+                    - generic [ref=f3e1281]: L2 Standard Bridged WETH (Optimism)
+                    - generic [ref=f3e1282]: WETH
+                    - generic "Token contract 0x4200000000000000000000000000000000000006" [ref=f3e1283]: Contract 0x4200...0006
+                  - cell "0.0319" [ref=f3e1284]
+                  - cell "$114.98 historical" [ref=f3e1285]:
+                    - generic [ref=f3e1286]: $114.98
+                    - generic [ref=f3e1287]: historical
+                  - cell "0x5b4e...4c81" [ref=f3e1288]
+                  - cell "01/04/2024" [ref=f3e1290]
+                  - cell [ref=f3e1291]:
+                    - link "View WETH transfer on block explorer" [ref=f3e1292] [cursor=pointer]:
+                      - /url: https://optimistic.etherscan.io/tx/0xc5af532eefb5126eac894ba77032e2c53729264603b3c107565137f0aefd26dd
+                - row [ref=f3e1297]:
+                  - cell "OUT" [ref=f3e1298]
+                  - cell "Optimism" [ref=f3e1303]
+                  - cell "USD Coin USDC Token contract 0x0b2c639c533813f4aa9d7837caf62653d097ff85" [ref=f3e1304]:
+                    - generic [ref=f3e1305]: USD Coin
+                    - generic [ref=f3e1306]: USDC
+                    - generic "Token contract 0x0b2c639c533813f4aa9d7837caf62653d097ff85" [ref=f3e1307]: Contract 0x0b2c...ff85
+                  - cell "77.1026" [ref=f3e1308]
+                  - cell "$77.10 stablecoin assumption" [ref=f3e1309]:
+                    - generic [ref=f3e1310]: $77.10
+                    - generic [ref=f3e1311]: stablecoin assumption
+                  - cell "0x7f92...3fd5" [ref=f3e1312]
+                  - cell "25/12/2024" [ref=f3e1314]
+                  - cell [ref=f3e1315]:
+                    - link "View USDC transfer on block explorer" [ref=f3e1316] [cursor=pointer]:
+                      - /url: https://optimistic.etherscan.io/tx/0xed7b7b70f7a342df8f22266875da110e1e9eed8da7c8c84ca8560850fccb8a4d
+                - row [ref=f3e1321]:
+                  - cell "IN" [ref=f3e1322]
+                  - cell "Arbitrum" [ref=f3e1327]
+                  - cell "Arbitrum Bridged WBTC (Arbitrum One) WBTC Token contract 0x2f2a2543b76a4166549f7aab2e75bef0aefc5b0f" [ref=f3e1328]:
+                    - generic [ref=f3e1329]: Arbitrum Bridged WBTC (Arbitrum One)
+                    - generic [ref=f3e1330]: WBTC
+                    - generic "Token contract 0x2f2a2543b76a4166549f7aab2e75bef0aefc5b0f" [ref=f3e1331]: Contract 0x2f2a...5b0f
+                  - cell "0.0010" [ref=f3e1332]
+                  - cell "$75.42 historical" [ref=f3e1333]:
+                    - generic [ref=f3e1334]: $75.42
+                    - generic [ref=f3e1335]: historical
+                  - cell "0x5f5a...28ce" [ref=f3e1336]
+                  - cell "19/04/2026" [ref=f3e1338]
+                  - cell [ref=f3e1339]:
+                    - link "View WBTC transfer on block explorer" [ref=f3e1340] [cursor=pointer]:
+                      - /url: https://arbiscan.io/tx/0xa5c9331ffdb1ad6ad67e84d488c40d1f9b7a13834de1c3447457034193422271
+                - row [ref=f3e1345]:
+                  - cell "IN" [ref=f3e1346]
+                  - cell "Optimism" [ref=f3e1351]
+                  - cell "USD Coin USDC Token contract 0x0b2c639c533813f4aa9d7837caf62653d097ff85" [ref=f3e1352]:
+                    - generic [ref=f3e1353]: USD Coin
+                    - generic [ref=f3e1354]: USDC
+                    - generic "Token contract 0x0b2c639c533813f4aa9d7837caf62653d097ff85" [ref=f3e1355]: Contract 0x0b2c...ff85
+                  - cell "60.0000" [ref=f3e1356]
+                  - cell "$60.00 stablecoin assumption" [ref=f3e1357]:
+                    - generic [ref=f3e1358]: $60.00
+                    - generic [ref=f3e1359]: stablecoin assumption
+                  - cell "0xcb13...d7e8" [ref=f3e1360]
+                  - cell "25/12/2024" [ref=f3e1362]
+                  - cell [ref=f3e1363]:
+                    - link "View USDC transfer on block explorer" [ref=f3e1364] [cursor=pointer]:
+                      - /url: https://optimistic.etherscan.io/tx/0x88579396f31e75230a6fe40405f44b70ac3cb9514bc9d5f9c1b5ca63e2324061
+                - row [ref=f3e1369]:
+                  - cell "IN" [ref=f3e1370]
+                  - cell "Arbitrum" [ref=f3e1375]
+                  - cell "USDT0 USDT0 Token contract 0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9" [ref=f3e1376]:
+                    - generic [ref=f3e1377]: USDT0
+                    - generic [ref=f3e1378]: USDT0
+                    - generic "Token contract 0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9" [ref=f3e1379]: Contract 0xfd08...cbb9
+                  - cell "58.1617" [ref=f3e1380]
+                  - cell "$58.16 stablecoin assumption" [ref=f3e1381]:
+                    - generic [ref=f3e1382]: $58.16
+                    - generic [ref=f3e1383]: stablecoin assumption
+                  - cell "0x6990...98ec" [ref=f3e1384]
+                  - cell "22/01/2024" [ref=f3e1386]
+                  - cell [ref=f3e1387]:
+                    - link "View USDT0 transfer on block explorer" [ref=f3e1388] [cursor=pointer]:
+                      - /url: https://arbiscan.io/tx/0x5cbe9fc21a121c5f05e17881ae1d447d37945510cc59cfa88804babc375ea8f9
+                - row [ref=f3e1393]:
+                  - cell "OUT" [ref=f3e1394]
+                  - cell "Optimism" [ref=f3e1399]
+                  - cell "Optimism OP Token contract 0x4200000000000000000000000000000000000042" [ref=f3e1400]:
+                    - generic [ref=f3e1401]: Optimism
+                    - generic [ref=f3e1402]: OP
+                    - generic "Token contract 0x4200000000000000000000000000000000000042" [ref=f3e1403]: Contract 0x4200...0042
+                  - cell "30.6004" [ref=f3e1404]
+                  - cell "$58.14 historical" [ref=f3e1405]:
+                    - generic [ref=f3e1406]: $58.14
+                    - generic [ref=f3e1407]: historical
+                  - cell "0xfc1f...9d05" [ref=f3e1408]
+                  - cell "25/12/2024" [ref=f3e1410]
+                  - cell [ref=f3e1411]:
+                    - link "View OP transfer on block explorer" [ref=f3e1412] [cursor=pointer]:
+                      - /url: https://optimistic.etherscan.io/tx/0x88579396f31e75230a6fe40405f44b70ac3cb9514bc9d5f9c1b5ca63e2324061
+                - row [ref=f3e1417]:
+                  - cell "IN" [ref=f3e1418]
+                  - cell "Arbitrum" [ref=f3e1423]
+                  - cell "USDT0 USDT0 Token contract 0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9" [ref=f3e1424]:
+                    - generic [ref=f3e1425]: USDT0
+                    - generic [ref=f3e1426]: USDT0
+                    - generic "Token contract 0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9" [ref=f3e1427]: Contract 0xfd08...cbb9
+                  - cell "46.9088" [ref=f3e1428]
+                  - cell "$46.91 stablecoin assumption" [ref=f3e1429]:
+                    - generic [ref=f3e1430]: $46.91
+                    - generic [ref=f3e1431]: stablecoin assumption
+                  - cell "0x48f0...1465" [ref=f3e1432]
+                  - cell "04/02/2024" [ref=f3e1434]
+                  - cell [ref=f3e1435]:
+                    - link "View USDT0 transfer on block explorer" [ref=f3e1436] [cursor=pointer]:
+                      - /url: https://arbiscan.io/tx/0xa021e7d73b2c2ffecf35a0eabb3dfd57a4aff30b5b17b49464e827e16e4df2bf
+                - row [ref=f3e1441]:
+                  - cell "IN" [ref=f3e1442]
+                  - cell "Arbitrum" [ref=f3e1447]
+                  - cell "USDC USDC Token contract 0xaf88d065e77c8cc2239327c5edb3a432268e5831" [ref=f3e1448]:
+                    - generic [ref=f3e1449]: USDC
+                    - generic [ref=f3e1450]: USDC
+                    - generic "Token contract 0xaf88d065e77c8cc2239327c5edb3a432268e5831" [ref=f3e1451]: Contract 0xaf88...5831
+                  - cell "42.9544" [ref=f3e1452]
+                  - cell "$42.95 stablecoin assumption" [ref=f3e1453]:
+                    - generic [ref=f3e1454]: $42.95
+                    - generic [ref=f3e1455]: stablecoin assumption
+                  - cell "0x40ef...3b10" [ref=f3e1456]
+                  - cell "01/03/2024" [ref=f3e1458]
+                  - cell [ref=f3e1459]:
+                    - link "View USDC transfer on block explorer" [ref=f3e1460] [cursor=pointer]:
+                      - /url: https://arbiscan.io/tx/0xc87546dc7a49be325a58d27aa812fbdeaafcd7df831d1538c2d64c3f114f6712
+                - row [ref=f3e1465]:
+                  - cell "IN" [ref=f3e1466]
+                  - cell "Arbitrum" [ref=f3e1471]
+                  - cell "USDT0 USDT0 Token contract 0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9" [ref=f3e1472]:
+                    - generic [ref=f3e1473]: USDT0
+                    - generic [ref=f3e1474]: USDT0
+                    - generic "Token contract 0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9" [ref=f3e1475]: Contract 0xfd08...cbb9
+                  - cell "41.1134" [ref=f3e1476]
+                  - cell "$41.11 stablecoin assumption" [ref=f3e1477]:
+                    - generic [ref=f3e1478]: $41.11
+                    - generic [ref=f3e1479]: stablecoin assumption
+                  - cell "0x0f28...a864" [ref=f3e1480]
+                  - cell "03/02/2024" [ref=f3e1482]
+                  - cell [ref=f3e1483]:
+                    - link "View USDT0 transfer on block explorer" [ref=f3e1484] [cursor=pointer]:
+                      - /url: https://arbiscan.io/tx/0x68499cc8b921719cf9bc5ac2389113c900825922a81c3708ac669beaa6a125c4
+                - row [ref=f3e1489]:
+                  - cell "IN" [ref=f3e1490]
+                  - cell "Arbitrum" [ref=f3e1495]
+                  - cell "USDC USDC Token contract 0xaf88d065e77c8cc2239327c5edb3a432268e5831" [ref=f3e1496]:
+                    - generic [ref=f3e1497]: USDC
+                    - generic [ref=f3e1498]: USDC
+                    - generic "Token contract 0xaf88d065e77c8cc2239327c5edb3a432268e5831" [ref=f3e1499]: Contract 0xaf88...5831
+                  - cell "38.6145" [ref=f3e1500]
+                  - cell "$38.61 stablecoin assumption" [ref=f3e1501]:
+                    - generic [ref=f3e1502]: $38.61
+                    - generic [ref=f3e1503]: stablecoin assumption
+                  - cell "0xf504...e222" [ref=f3e1504]
+                  - cell "01/11/2025" [ref=f3e1506]
+                  - cell [ref=f3e1507]:
+                    - link "View USDC transfer on block explorer" [ref=f3e1508] [cursor=pointer]:
+                      - /url: https://arbiscan.io/tx/0x8ae5f5314303910bfbc23ae58e49bcf01272deece1d497f2baa289542ec36406
+                - row [ref=f3e1513]:
+                  - cell "IN" [ref=f3e1514]
+                  - cell "Arbitrum" [ref=f3e1519]
+                  - cell "USDT0 USDT0 Token contract 0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9" [ref=f3e1520]:
+                    - generic [ref=f3e1521]: USDT0
+                    - generic [ref=f3e1522]: USDT0
+                    - generic "Token contract 0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9" [ref=f3e1523]: Contract 0xfd08...cbb9
+                  - cell "37.6922" [ref=f3e1524]
+                  - cell "$37.69 stablecoin assumption" [ref=f3e1525]:
+                    - generic [ref=f3e1526]: $37.69
+                    - generic [ref=f3e1527]: stablecoin assumption
+                  - cell "0x8bf6...01cd" [ref=f3e1528]
+                  - cell "13/10/2023" [ref=f3e1530]
+                  - cell [ref=f3e1531]:
+                    - link "View USDT0 transfer on block explorer" [ref=f3e1532] [cursor=pointer]:
+                      - /url: https://arbiscan.io/tx/0xd7b6853371b1e4cffd27a6db2f19477fbfb2ca3006264bd5b1a2698a82f09f8a
+                - row [ref=f3e1537]:
+                  - cell "IN" [ref=f3e1538]
+                  - cell "Optimism" [ref=f3e1543]
+                  - cell "Bridged USDT USDT Token contract 0x94b008aa00579c1307b0ef2c499ad98a8ce58e58" [ref=f3e1544]:
+                    - generic [ref=f3e1545]: Bridged USDT
+                    - generic [ref=f3e1546]: USDT
+                    - generic "Token contract 0x94b008aa00579c1307b0ef2c499ad98a8ce58e58" [ref=f3e1547]: Contract 0x94b0...8e58
+                  - cell "35.5576" [ref=f3e1548]
+                  - cell "$35.56 stablecoin assumption" [ref=f3e1549]:
+                    - generic [ref=f3e1550]: $35.56
+                    - generic [ref=f3e1551]: stablecoin assumption
+                  - cell "0xad4d...9469" [ref=f3e1552]
+                  - cell "10/04/2024" [ref=f3e1554]
+                  - cell [ref=f3e1555]:
+                    - link "View USDT transfer on block explorer" [ref=f3e1556] [cursor=pointer]:
+                      - /url: https://optimistic.etherscan.io/tx/0x65c0cc817d93a0328a0ba917d4d655243103357bbcc0cb6072be82e00be658c2
+                - row [ref=f3e1561]:
+                  - cell "IN" [ref=f3e1562]
+                  - cell "Arbitrum" [ref=f3e1567]
+                  - cell "Arbitrum Bridged WETH (Arbitrum One) WETH Token contract 0x82af49447d8a07e3bd95bd0d56f35241523fbab1" [ref=f3e1568]:
+                    - generic [ref=f3e1569]: Arbitrum Bridged WETH (Arbitrum One)
+                    - generic [ref=f3e1570]: WETH
+                    - generic "Token contract 0x82af49447d8a07e3bd95bd0d56f35241523fbab1" [ref=f3e1571]: Contract 0x82af...bab1
+                  - cell "0.0153" [ref=f3e1572]
+                  - cell "$34.22 historical" [ref=f3e1573]:
+                    - generic [ref=f3e1574]: $34.22
+                    - generic [ref=f3e1575]: historical
+                  - cell "0x703a...ed03" [ref=f3e1576]
+                  - cell "20/12/2023" [ref=f3e1578]
+                  - cell [ref=f3e1579]:
+                    - link "View WETH transfer on block explorer" [ref=f3e1580] [cursor=pointer]:
+                      - /url: https://arbiscan.io/tx/0x45764f2a0fa7a0c3359fbf6dcd29fb704f0730ba52fd41803bd4d4371fa5cd85
+                - row [ref=f3e1585]:
+                  - cell "IN" [ref=f3e1586]
+                  - cell "Arbitrum" [ref=f3e1591]
+                  - cell "Arbitrum ARB Token contract 0x912ce59144191c1204e64559fe8253a0e49e6548" [ref=f3e1592]:
+                    - generic [ref=f3e1593]: Arbitrum
+                    - generic [ref=f3e1594]: ARB
+                    - generic "Token contract 0x912ce59144191c1204e64559fe8253a0e49e6548" [ref=f3e1595]: Contract 0x912c...6548
+                  - cell "16.5400" [ref=f3e1596]
+                  - cell "$32.42 historical" [ref=f3e1597]:
+                    - generic [ref=f3e1598]: $32.42
+                    - generic [ref=f3e1599]: historical
+                  - cell "0xdff4...699e" [ref=f3e1600]
+                  - cell "11/02/2024" [ref=f3e1602]
+                  - cell [ref=f3e1603]:
+                    - link "View ARB transfer on block explorer" [ref=f3e1604] [cursor=pointer]:
+                      - /url: https://arbiscan.io/tx/0xc1d6c4299df68ae52028977564399d566a48ef31fb88c2e731457976b9516080
+                - row [ref=f3e1609]:
+                  - cell "IN" [ref=f3e1610]
+                  - cell "Arbitrum" [ref=f3e1615]
+                  - cell "MakerDAO Arbitrum Bridged DAI (Arbitrum One) DAI Token contract 0xda10009cbd5d07dd0cecc66161fc93d7c9000da1" [ref=f3e1616]:
+                    - generic [ref=f3e1617]: MakerDAO Arbitrum Bridged DAI (Arbitrum One)
+                    - generic [ref=f3e1618]: DAI
+                    - generic "Token contract 0xda10009cbd5d07dd0cecc66161fc93d7c9000da1" [ref=f3e1619]: Contract 0xda10...0da1
+                  - cell "20.0000" [ref=f3e1620]
+                  - cell "$20.00 stablecoin assumption" [ref=f3e1621]:
+                    - generic [ref=f3e1622]: $20.00
+                    - generic [ref=f3e1623]: stablecoin assumption
+                  - cell "0x2ba3...770a" [ref=f3e1624]
+                  - cell "30/03/2023" [ref=f3e1626]
+                  - cell [ref=f3e1627]:
+                    - link "View DAI transfer on block explorer" [ref=f3e1628] [cursor=pointer]:
+                      - /url: https://arbiscan.io/tx/0x32888ccfa0df43dd7bf7cd15cd30405a6cd28b7c59be6393db3998015c80cd6e
+                - row [ref=f3e1633]:
+                  - cell "IN" [ref=f3e1634]
+                  - cell "Arbitrum" [ref=f3e1639]
+                  - cell "USDC USDC Token contract 0xaf88d065e77c8cc2239327c5edb3a432268e5831" [ref=f3e1640]:
+                    - generic [ref=f3e1641]: USDC
+                    - generic [ref=f3e1642]: USDC
+                    - generic "Token contract 0xaf88d065e77c8cc2239327c5edb3a432268e5831" [ref=f3e1643]: Contract 0xaf88...5831
+                  - cell "20.0000" [ref=f3e1644]
+                  - cell "$20.00 stablecoin assumption" [ref=f3e1645]:
+                    - generic [ref=f3e1646]: $20.00
+                    - generic [ref=f3e1647]: stablecoin assumption
+                  - cell "0x31ac...5d60" [ref=f3e1648]
+                  - cell "19/04/2026" [ref=f3e1650]
+                  - cell [ref=f3e1651]:
+                    - link "View USDC transfer on block explorer" [ref=f3e1652] [cursor=pointer]:
+                      - /url: https://arbiscan.io/tx/0x973fe043a87ab3acff8b5023b3e8dbd138aff7d3b72ecb09f0290df1334b9367
+                - row [ref=f3e1657]:
+                  - cell "IN" [ref=f3e1658]
+                  - cell "Optimism" [ref=f3e1663]
+                  - cell "Optimism OP Token contract 0x4200000000000000000000000000000000000042" [ref=f3e1664]:
+                    - generic [ref=f3e1665]: Optimism
+                    - generic [ref=f3e1666]: OP
+                    - generic "Token contract 0x4200000000000000000000000000000000000042" [ref=f3e1667]: Contract 0x4200...0042
+                  - cell "10.0206" [ref=f3e1668]
+                  - cell "$18.46 historical" [ref=f3e1669]:
+                    - generic [ref=f3e1670]: $18.46
+                    - generic [ref=f3e1671]: historical
+                  - cell "0x1828...cdb4" [ref=f3e1672]
+                  - cell "17/07/2024" [ref=f3e1674]
+                  - cell [ref=f3e1675]:
+                    - link "View OP transfer on block explorer" [ref=f3e1676] [cursor=pointer]:
+                      - /url: https://optimistic.etherscan.io/tx/0xed14f872635802db2b08187db49a076797fccae3599e0cee6e363c0c42cb0b24
+                - row [ref=f3e1681]:
+                  - cell "IN" [ref=f3e1682]
+                  - cell "Arbitrum" [ref=f3e1687]
+                  - cell "USDT0 USDT0 Token contract 0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9" [ref=f3e1688]:
+                    - generic [ref=f3e1689]: USDT0
+                    - generic [ref=f3e1690]: USDT0
+                    - generic "Token contract 0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9" [ref=f3e1691]: Contract 0xfd08...cbb9
+                  - cell "14.1445" [ref=f3e1692]
+                  - cell "$14.14 stablecoin assumption" [ref=f3e1693]:
+                    - generic [ref=f3e1694]: $14.14
+                    - generic [ref=f3e1695]: stablecoin assumption
+                  - cell "0xd5b7...a1ab" [ref=f3e1696]
+                  - cell "11/11/2024" [ref=f3e1698]
+                  - cell [ref=f3e1699]:
+                    - link "View USDT0 transfer on block explorer" [ref=f3e1700] [cursor=pointer]:
+                      - /url: https://arbiscan.io/tx/0xf2a27c4e4ff2170a77ce778de90abcfb4638e2172f43b70d4bf36b6011b74df7
+                - row [ref=f3e1705]:
+                  - cell "IN" [ref=f3e1706]
+                  - cell "Optimism" [ref=f3e1711]
+                  - cell "USD Coin USDC Token contract 0x7f5c764cbc14f9669b88837ca1490cca17c31607" [ref=f3e1712]:
+                    - generic [ref=f3e1713]: USD Coin
+                    - generic [ref=f3e1714]: USDC
+                    - generic "Token contract 0x7f5c764cbc14f9669b88837ca1490cca17c31607" [ref=f3e1715]: Contract 0x7f5c...1607
+                  - cell "13.8651" [ref=f3e1716]
+                  - cell "$13.87 stablecoin assumption" [ref=f3e1717]:
+                    - generic [ref=f3e1718]: $13.87
+                    - generic [ref=f3e1719]: stablecoin assumption
+                  - cell "0xacd0...435a" [ref=f3e1720]
+                  - cell "13/11/2024" [ref=f3e1722]
+                  - cell [ref=f3e1723]:
+                    - link "View USDC transfer on block explorer" [ref=f3e1724] [cursor=pointer]:
+                      - /url: https://optimistic.etherscan.io/tx/0x3236b2607e12611389b5a6c88ec9f8c3e658b69a7faf293bb78eb4a4dce5f52c
+                - row [ref=f3e1729]:
+                  - cell "IN" [ref=f3e1730]
+                  - cell "Optimism" [ref=f3e1735]
+                  - cell "USD Coin USDC Token contract 0x7f5c764cbc14f9669b88837ca1490cca17c31607" [ref=f3e1736]:
+                    - generic [ref=f3e1737]: USD Coin
+                    - generic [ref=f3e1738]: USDC
+                    - generic "Token contract 0x7f5c764cbc14f9669b88837ca1490cca17c31607" [ref=f3e1739]: Contract 0x7f5c...1607
+                  - cell "11.0000" [ref=f3e1740]
+                  - cell "$11.00 stablecoin assumption" [ref=f3e1741]:
+                    - generic [ref=f3e1742]: $11.00
+                    - generic [ref=f3e1743]: stablecoin assumption
+                  - cell "0x1635...210c" [ref=f3e1744]
+                  - cell "10/07/2024" [ref=f3e1746]
+                  - cell [ref=f3e1747]:
+                    - link "View USDC transfer on block explorer" [ref=f3e1748] [cursor=pointer]:
+                      - /url: https://optimistic.etherscan.io/tx/0x2371eb24a5a9ec74969a0f061c17b1ece2c76d23b991c62e6218961562f3a6ca
+                - row [ref=f3e1753]:
+                  - cell "IN" [ref=f3e1754]
+                  - cell "Optimism" [ref=f3e1759]
+                  - cell "USD Coin USDC Token contract 0x0b2c639c533813f4aa9d7837caf62653d097ff85" [ref=f3e1760]:
+                    - generic [ref=f3e1761]: USD Coin
+                    - generic [ref=f3e1762]: USDC
+                    - generic "Token contract 0x0b2c639c533813f4aa9d7837caf62653d097ff85" [ref=f3e1763]: Contract 0x0b2c...ff85
+                  - cell "10.6044" [ref=f3e1764]
+                  - cell "$10.60 stablecoin assumption" [ref=f3e1765]:
+                    - generic [ref=f3e1766]: $10.60
+                    - generic [ref=f3e1767]: stablecoin assumption
+                  - cell "0x07ad...f3d7" [ref=f3e1768]
+                  - cell "29/04/2025" [ref=f3e1770]
+                  - cell [ref=f3e1771]:
+                    - link "View USDC transfer on block explorer" [ref=f3e1772] [cursor=pointer]:
+                      - /url: https://optimistic.etherscan.io/tx/0xe71d5ab428a3a4e6d160766edfe54e68d1dd74deb239d880efa243864ae69c0b
+                - row [ref=f3e1777]:
+                  - cell "IN" [ref=f3e1778]
+                  - cell "Optimism" [ref=f3e1783]
+                  - cell "USD Coin USDC Token contract 0x0b2c639c533813f4aa9d7837caf62653d097ff85" [ref=f3e1784]:
+                    - generic [ref=f3e1785]: USD Coin
+                    - generic [ref=f3e1786]: USDC
+                    - generic "Token contract 0x0b2c639c533813f4aa9d7837caf62653d097ff85" [ref=f3e1787]: Contract 0x0b2c...ff85
+                  - cell "10.0000" [ref=f3e1788]
+                  - cell "$10.00 stablecoin assumption" [ref=f3e1789]:
+                    - generic [ref=f3e1790]: $10.00
+                    - generic [ref=f3e1791]: stablecoin assumption
+                  - cell "0x8133...fcc0" [ref=f3e1792]
+                  - cell "27/06/2024" [ref=f3e1794]
+                  - cell [ref=f3e1795]:
+                    - link "View USDC transfer on block explorer" [ref=f3e1796] [cursor=pointer]:
+                      - /url: https://optimistic.etherscan.io/tx/0xfe0a7b8dea510baf78e4b330d5460638ef7785480689c54004286c705371fd37
+                - row [ref=f3e1801]:
+                  - cell "IN" [ref=f3e1802]
+                  - cell "Arbitrum" [ref=f3e1807]
+                  - cell "USDT0 USDT0 Token contract 0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9" [ref=f3e1808]:
+                    - generic [ref=f3e1809]: USDT0
+                    - generic [ref=f3e1810]: USDT0
+                    - generic "Token contract 0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9" [ref=f3e1811]: Contract 0xfd08...cbb9
+                  - cell "10.0000" [ref=f3e1812]
+                  - cell "$10.00 stablecoin assumption" [ref=f3e1813]:
+                    - generic [ref=f3e1814]: $10.00
+                    - generic [ref=f3e1815]: stablecoin assumption
+                  - cell "0x6b87...9f54" [ref=f3e1816]
+                  - cell "27/03/2024" [ref=f3e1818]
+                  - cell [ref=f3e1819]:
+                    - link "View USDT0 transfer on block explorer" [ref=f3e1820] [cursor=pointer]:
+                      - /url: https://arbiscan.io/tx/0x69f8a3aa61c2802d01b1fbc7748559e82ce3a5e9077d5fa6ec298d18387b8351
+                - row [ref=f3e1825]:
+                  - cell "IN" [ref=f3e1826]
+                  - cell "Arbitrum" [ref=f3e1831]
+                  - cell "USDC USDC Token contract 0xaf88d065e77c8cc2239327c5edb3a432268e5831" [ref=f3e1832]:
+                    - generic [ref=f3e1833]: USDC
+                    - generic [ref=f3e1834]: USDC
+                    - generic "Token contract 0xaf88d065e77c8cc2239327c5edb3a432268e5831" [ref=f3e1835]: Contract 0xaf88...5831
+                  - cell "10.0000" [ref=f3e1836]
+                  - cell "$10.00 stablecoin assumption" [ref=f3e1837]:
+                    - generic [ref=f3e1838]: $10.00
+                    - generic [ref=f3e1839]: stablecoin assumption
+                  - cell "0xd278...5ec7" [ref=f3e1840]
+                  - cell "26/05/2026" [ref=f3e1842]
+                  - cell [ref=f3e1843]:
+                    - link "View USDC transfer on block explorer" [ref=f3e1844] [cursor=pointer]:
+                      - /url: https://arbiscan.io/tx/0xef454a56e1e039244c135bf19396da3d6fef1cf072b3620d6e7ca5646312c9d0
+                - row [ref=f3e1849]:
+                  - cell "IN" [ref=f3e1850]
+                  - cell "Arbitrum" [ref=f3e1855]
+                  - cell "Arbitrum Bridged WBTC (Arbitrum One) WBTC Token contract 0x2f2a2543b76a4166549f7aab2e75bef0aefc5b0f" [ref=f3e1856]:
+                    - generic [ref=f3e1857]: Arbitrum Bridged WBTC (Arbitrum One)
+                    - generic [ref=f3e1858]: WBTC
+                    - generic "Token contract 0x2f2a2543b76a4166549f7aab2e75bef0aefc5b0f" [ref=f3e1859]: Contract 0x2f2a...5b0f
+                  - cell "0.0001" [ref=f3e1860]
+                  - cell "$9.97 historical" [ref=f3e1861]:
+                    - generic [ref=f3e1862]: $9.97
+                    - generic [ref=f3e1863]: historical
+                  - cell "0x3f76...cc6b" [ref=f3e1864]
+                  - cell "10/05/2025" [ref=f3e1866]
+                  - cell [ref=f3e1867]:
+                    - link "View WBTC transfer on block explorer" [ref=f3e1868] [cursor=pointer]:
+                      - /url: https://arbiscan.io/tx/0xf03ab3a81c7b51ad7c273630ced8a8136c200bd78c3e8d27893bfe7a4f70ea34
+                - row [ref=f3e1873]:
+                  - cell "IN" [ref=f3e1874]
+                  - cell "Arbitrum" [ref=f3e1879]
+                  - cell "USDT0 USDT0 Token contract 0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9" [ref=f3e1880]:
+                    - generic [ref=f3e1881]: USDT0
+                    - generic [ref=f3e1882]: USDT0
+                    - generic "Token contract 0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9" [ref=f3e1883]: Contract 0xfd08...cbb9
+                  - cell "8.3655" [ref=f3e1884]
+                  - cell "$8.37 stablecoin assumption" [ref=f3e1885]:
+                    - generic [ref=f3e1886]: $8.37
+                    - generic [ref=f3e1887]: stablecoin assumption
+                  - cell "0x0144...4363" [ref=f3e1888]
+                  - cell "12/01/2024" [ref=f3e1890]
+                  - cell [ref=f3e1891]:
+                    - link "View USDT0 transfer on block explorer" [ref=f3e1892] [cursor=pointer]:
+                      - /url: https://arbiscan.io/tx/0x32fc58403744b878374a18f6d40e5c29e756a7eb030610bc875fc8946c72a644
+                - row [ref=f3e1897]:
+                  - cell "IN" [ref=f3e1898]
+                  - cell "Optimism" [ref=f3e1903]
+                  - cell "L2 Standard Bridged WETH (Optimism) WETH Token contract 0x4200000000000000000000000000000000000006" [ref=f3e1904]:
+                    - generic [ref=f3e1905]: L2 Standard Bridged WETH (Optimism)
+                    - generic [ref=f3e1906]: WETH
+                    - generic "Token contract 0x4200000000000000000000000000000000000006" [ref=f3e1907]: Contract 0x4200...0006
+                  - cell "0.0020" [ref=f3e1908]
+                  - cell "$7.41 historical" [ref=f3e1909]:
+                    - generic [ref=f3e1910]: $7.41
+                    - generic [ref=f3e1911]: historical
+                  - cell "0x78ed...afdc" [ref=f3e1912]
+                  - cell "08/03/2024" [ref=f3e1914]
+                  - cell [ref=f3e1915]:
+                    - link "View WETH transfer on block explorer" [ref=f3e1916] [cursor=pointer]:
+                      - /url: https://optimistic.etherscan.io/tx/0x31f8edcce2d48053b4ba99603de5f9fd2458cf53d81e615cd4302b83f449b976
+                - row [ref=f3e1921]:
+                  - cell "IN" [ref=f3e1922]
+                  - cell "Arbitrum" [ref=f3e1927]
+                  - cell "USDC USDC Token contract 0xaf88d065e77c8cc2239327c5edb3a432268e5831" [ref=f3e1928]:
+                    - generic [ref=f3e1929]: USDC
+                    - generic [ref=f3e1930]: USDC
+                    - generic "Token contract 0xaf88d065e77c8cc2239327c5edb3a432268e5831" [ref=f3e1931]: Contract 0xaf88...5831
+                  - cell "6.7827" [ref=f3e1932]
+                  - cell "$6.78 stablecoin assumption" [ref=f3e1933]:
+                    - generic [ref=f3e1934]: $6.78
+                    - generic [ref=f3e1935]: stablecoin assumption
+                  - cell "0x3a23...97a5" [ref=f3e1936]
+                  - cell "21/02/2026" [ref=f3e1938]
+                  - cell [ref=f3e1939]:
+                    - link "View USDC transfer on block explorer" [ref=f3e1940] [cursor=pointer]:
+                      - /url: https://arbiscan.io/tx/0xb95a242642b8be7a44d93c19129779548eb7fe2f6507a489bf26dc23945c93f2
+                - row [ref=f3e1945]:
+                  - cell "IN" [ref=f3e1946]
+                  - cell "Arbitrum" [ref=f3e1951]
+                  - cell "USDT0 USDT0 Token contract 0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9" [ref=f3e1952]:
+                    - generic [ref=f3e1953]: USDT0
+                    - generic [ref=f3e1954]: USDT0
+                    - generic "Token contract 0xfd086bc7cd5c481dcc9c85ebe478a1c0b69fcbb9" [ref=f3e1955]: Contract 0xfd08...cbb9
+                  - cell "5.7559" [ref=f3e1956]
+                  - cell "$5.76 stablecoin assumption" [ref=f3e1957]:
+                    - generic [ref=f3e1958]: $5.76
+                    - generic [ref=f3e1959]: stablecoin assumption
+                  - cell "0xdff4...699e" [ref=f3e1960]
+                  - cell "13/02/2024" [ref=f3e1962]
+                  - cell [ref=f3e1963]:
+                    - link "View USDT0 transfer on block explorer" [ref=f3e1964] [cursor=pointer]:
+                      - /url: https://arbiscan.io/tx/0xc38a05c2753594d8e58934c6d845cf0ce7c8f7a3c9bd0fabf9d2404cee7fb0b9
+                - row [ref=f3e1969]:
+                  - cell "IN" [ref=f3e1970]
+                  - cell "Optimism" [ref=f3e1975]
+                  - cell "MakerDAO Optimism Bridged DAI (Optimism) DAI Token contract 0xda10009cbd5d07dd0cecc66161fc93d7c9000da1" [ref=f3e1976]:
+                    - generic [ref=f3e1977]: MakerDAO Optimism Bridged DAI (Optimism)
+                    - generic [ref=f3e1978]: DAI
+                    - generic "Token contract 0xda10009cbd5d07dd0cecc66161fc93d7c9000da1" [ref=f3e1979]: Contract 0xda10...0da1
+                  - cell "5.0000" [ref=f3e1980]
+                  - cell "$5.00 stablecoin assumption" [ref=f3e1981]:
+                    - generic [ref=f3e1982]: $5.00
+                    - generic [ref=f3e1983]: stablecoin assumption
+                  - cell "0x95d9...d9c0" [ref=f3e1984]
+                  - cell "07/06/2022" [ref=f3e1986]
+                  - cell [ref=f3e1987]:
+                    - link "View DAI transfer on block explorer" [ref=f3e1988] [cursor=pointer]:
+                      - /url: https://optimistic.etherscan.io/tx/0x79240e8e39709586c8bdc5a0d6bdeb92cf112baaae8834e43b04f31feb10ff1d
+                - row [ref=f3e1993]:
+                  - cell "IN" [ref=f3e1994]
+                  - cell "Optimism" [ref=f3e1999]
+                  - cell "USD Coin USDC Token contract 0x7f5c764cbc14f9669b88837ca1490cca17c31607" [ref=f3e2000]:
+                    - generic [ref=f3e2001]: USD Coin
+                    - generic [ref=f3e2002]: USDC
+                    - generic "Token contract 0x7f5c764cbc14f9669b88837ca1490cca17c31607" [ref=f3e2003]: Contract 0x7f5c...1607
+                  - cell "5.0000" [ref=f3e2004]
+                  - cell "$5.00 stablecoin assumption" [ref=f3e2005]:
+                    - generic [ref=f3e2006]: $5.00
+                    - generic [ref=f3e2007]: stablecoin assumption
+                  - cell "0x100b...b248" [ref=f3e2008]
+                  - cell "07/06/2022" [ref=f3e2010]
+                  - cell [ref=f3e2011]:
+                    - link "View USDC transfer on block explorer" [ref=f3e2012] [cursor=pointer]:
+                      - /url: https://optimistic.etherscan.io/tx/0x302f69bc11930a284a0c467f06819182be829bed0aff662e37f6745691843f32
+  - contentinfo [ref=f3e106]:
+    - generic [ref=f3e107]:
+      - generic [ref=f3e108]:
+        - paragraph [ref=f3e109]: WalletGenome
+        - paragraph [ref=f3e110]: Read-only, evidence-aware EVM wallet analytics. No wallet connection or signature required.
+      - navigation "Wallet analytics topics" [ref=f3e111]:
+        - link "Methodology" [ref=f3e112] [cursor=pointer]:
+          - /url: /docs
+        - link "EVM Wallet Analytics" [ref=f3e113] [cursor=pointer]:
+          - /url: /evm-wallet-analytics
+        - link "Crypto Wallet Risk Checker" [ref=f3e114] [cursor=pointer]:
+          - /url: /crypto-wallet-risk-checker
+        - link "Token Approval Checker" [ref=f3e115] [cursor=pointer]:
+          - /url: /token-approval-checker
+        - link "Sybil Wallet Analysis" [ref=f3e116] [cursor=pointer]:
+          - /url: /sybil-wallet-analysis
+        - link "Multi-Chain Wallet Forensics" [ref=f3e117] [cursor=pointer]:
+          - /url: /multi-chain-wallet-forensics
+  - alert [ref=f3e118]

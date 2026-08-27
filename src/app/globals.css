@@ -12,6 +12,7 @@
   
   --color-orange: #ff5500;
   --color-orange-dark: #b33c00;
+  --color-orange-ink: #963300;
   --color-orange-light: #fff2eb;
   --color-orange-dim: rgba(255, 85, 0, 0.12);
   
@@ -29,11 +30,35 @@
   --shadow-well-recessed: inset 0 2px 4px rgba(0, 0, 0, 0.08), inset 0 1px 2px rgba(0, 0, 0, 0.05), 0 1px 0 rgba(255, 255, 255, 0.95);
   --shadow-btn-orange: inset 0 1px 0 rgba(255, 255, 255, 0.4), 0 2.5px 0 #b33800, 0 4px 10px rgba(255, 85, 0, 0.22);
   --shadow-btn-black: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 2.5px 0 #000000, 0 4px 10px rgba(0, 0, 0, 0.18);
-  --shadow-btn-neutral: inset 0 1px 0 rgba(255, 255, 255, 1), 0 2px 0 #c0c2c8, 0 3px 6px rgba(0, 0, 0, 0.04);
+  --shadow-btn-neutral: inset 0 1px 0 rgba(255, 255, 255, 1), 0 1px 0 #d3d5db, 0 2px 4px rgba(0, 0, 0, 0.025);
 
   /* Physics Spring Easing */
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
   --ease-out-quad: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Keep touch/wheel scrolling native; animate only navigation scrolls. */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+@keyframes mobileNavigationOpen {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 767px) and (prefers-reduced-motion: no-preference) {
+  .mobile-navigation-disclosure[data-open='true'] {
+    animation: mobileNavigationOpen 180ms ease-out;
+  }
 }
 
 body {
@@ -64,6 +89,74 @@ p, .text-pretty {
   background-size: 1.5rem 100%;
 }
 
+/* Dashboard tabs keep a stronger edge fade so additional sections are discoverable on mobile. */
+.dashboard-tabs-scroll-region {
+  background-size: 2rem 100%;
+}
+
+.dashboard-tab {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  color: #4b5563;
+}
+
+.dashboard-tab::after {
+  background: var(--color-orange-ink);
+  bottom: 0;
+  content: '';
+  height: 0;
+  left: 0.5rem;
+  position: absolute;
+  right: 0.5rem;
+  transition: height 0.12s ease;
+}
+
+.dashboard-tab[data-active='true'] {
+  color: #0a0a0a;
+}
+
+.dashboard-tab[data-active='true']::after {
+  height: 3px;
+}
+
+.dashboard-tab:hover:not(:disabled) {
+  color: #0a0a0a;
+}
+
+@media (min-width: 768px) {
+  .dashboard-tab {
+    background: linear-gradient(180deg, #ffffff 0%, #f0f1f5 100%);
+    border: 1px solid #d9dbe1;
+    box-shadow: var(--shadow-btn-neutral);
+  }
+
+  .dashboard-tab[data-active='true'] {
+    background: linear-gradient(180deg, #222329 0%, #0d0e12 100%);
+    border-color: #000000;
+    box-shadow: var(--shadow-btn-black);
+    color: #ffffff;
+  }
+
+  .dashboard-tab::after {
+    display: none;
+  }
+
+  .dashboard-tab:hover:not(:disabled) {
+    background: linear-gradient(180deg, #ffffff 0%, #f7f8fa 100%);
+    border-color: #b8bbc3;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72), 0 1px 0 #bfc2c9, 0 3px 6px rgba(0, 0, 0, 0.05);
+    transform: translateY(-1px);
+  }
+
+  .dashboard-tab[data-active='true']:hover:not(:disabled) {
+    background: linear-gradient(180deg, #222329 0%, #0d0e12 100%);
+    border-color: #000000;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 3.5px 0 #000000, 0 6px 14px rgba(0, 0, 0, 0.25);
+    color: #ffffff;
+  }
+}
+
 .flow-graph-scroll {
   background-image:
     linear-gradient(to right, rgba(13, 15, 23, 0.98), rgba(13, 15, 23, 0)),
@@ -72,8 +165,17 @@ p, .text-pretty {
 
 /* ── Focus Outline Standard ── */
 :focus-visible {
-  outline: 2px solid var(--color-orange);
+  outline: 2px solid var(--color-orange-ink);
   outline-offset: 2px;
+}
+
+.text-orange-ink {
+  color: var(--color-orange-ink);
+}
+
+.badge-brand-orange {
+  background-color: var(--color-orange);
+  color: var(--text-main);
 }
 
 /* ── Smooth Modern 3D Tactile Card System (0px Sharp Precision) ── */
@@ -129,7 +231,7 @@ p, .text-pretty {
 /* ── 3D Tactile Buttons ── */
 .btn-3d-orange {
   background: linear-gradient(180deg, #ff6315 0%, #f04e00 100%);
-  color: #ffffff;
+  color: var(--text-main);
   border: 1px solid #db4600;
   border-radius: 0px !important;
   box-shadow: var(--shadow-btn-orange);
@@ -174,7 +276,7 @@ p, .text-pretty {
 .btn-3d-neutral {
   background: linear-gradient(180deg, #ffffff 0%, #f0f1f5 100%);
   color: #0a0a0a;
-  border: 1px solid #d0d2d8;
+  border: 1px solid #d9dbe1;
   border-radius: 0px !important;
   box-shadow: var(--shadow-btn-neutral);
   transition: transform 0.12s var(--ease-spring), box-shadow 0.12s ease, background-color 0.12s ease, border-color 0.12s ease;
@@ -184,15 +286,15 @@ p, .text-pretty {
 .btn-3d-neutral:hover:not(:disabled) {
   transform: translateY(-1px);
   background: linear-gradient(180deg, #ffffff 0%, #f7f8fa 100%);
-  border: 1px solid #0a0a0a;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6), 0 3px 0 #9fa1a8, 0 5px 10px rgba(0, 0, 0, 0.08);
+  border: 1px solid #b8bbc3;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.72), 0 1px 0 #bfc2c9, 0 3px 6px rgba(0, 0, 0, 0.05);
 }
 
 .btn-3d-neutral:active:not(:disabled) {
   transform: translateY(2px);
   background: #e8e9ee;
-  border: 1px solid #0a0a0a;
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1), 0 0.5px 0 #9fa1a8;
+  border: 1px solid #b8bbc3;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.08), 0 0.5px 0 #bfc2c9;
 }
 
 /* ── 3D Tactile Status Chips & Badges ── */
@@ -205,9 +307,9 @@ p, .text-pretty {
 .led-live {
   width: 8px;
   height: 8px;
-  background-color: #ff5500;
-  box-shadow: 0 0 6px #ff5500, inset 0 1px 1px rgba(255, 255, 255, 0.8);
-  border: 1px solid #cc4400;
+  background-color: var(--color-orange-ink);
+  box-shadow: 0 0 6px var(--color-orange-ink), inset 0 1px 1px rgba(255, 255, 255, 0.8);
+  border: 1px solid #7a2900;
   display: inline-block;
 }
 
@@ -223,9 +325,9 @@ p, .text-pretty {
 .led-warn {
   width: 8px;
   height: 8px;
-  background-color: #f59e0b;
-  box-shadow: 0 0 6px #f59e0b, inset 0 1px 1px rgba(255, 255, 255, 0.8);
-  border: 1px solid #d97706;
+  background-color: #92400e;
+  box-shadow: 0 0 6px #92400e, inset 0 1px 1px rgba(255, 255, 255, 0.8);
+  border: 1px solid #78350f;
   display: inline-block;
 }
 

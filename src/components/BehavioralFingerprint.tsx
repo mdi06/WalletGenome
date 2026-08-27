@@ -60,7 +60,7 @@ export default function BehavioralFingerprint({ results }: Props) {
   });
 
   return (
-    <section aria-labelledby="quantitative-breakdown-heading" className="card-3d p-6 text-[#0a0a0a] space-y-4">
+    <section aria-labelledby="quantitative-breakdown-heading" className="card-3d p-6 lg:p-5 text-[#0a0a0a] space-y-4">
       <div className="flex justify-between items-center">
         <span id="quantitative-breakdown-heading" className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider">
           6-DIMENSION QUANTITATIVE BREAKDOWN

@@ -11,10 +11,10 @@ interface Props {
 }
 
 const SAMPLE_CLUSTER = [
-  '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045', // vitalik.eth
-  '0x50EC05ADe8280758E2077fcBC08D878D4aef79C3', // hayden.eth
-  '0x648aA14e4424e0825A5cE739C8C68610e143FB79', // sassal.eth
-  '0xeB1c22baACAFac7836f20f684C946228401FF01C', // richerd.eth
+  '0x2e21f5d34208a3d5483f9829f2709e9005bf15f2', // stani.eth
+  '0x163473950fbcfcfc31ac7ad0eec26f5fe549046c', // danno.eth
+  '0x99e52ddb9e2c65febe07ddbe47432720d297a780', // ricburton.eth
+  '0xb8c2c29ee19d8307cb7255e1cd9cbde883a267d5', // nick.eth
 ];
 
 export default function BulkScanInput({ onScanCluster, isLoading }: Props) {
@@ -60,11 +60,11 @@ export default function BulkScanInput({ onScanCluster, isLoading }: Props) {
   };
 
   return (
-    <div className="space-y-3 card-3d p-5">
+    <div className="space-y-3 card-3d p-5 md:p-4">
       {/* ── Top Bar ── */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <Layers size={16} className="text-[#ff5500]" />
+          <Layers size={16} className="text-orange-ink" />
           <span className="text-xs font-black uppercase text-[#0a0a0a] tracking-wider">
             MULTI-WALLET CLUSTER MATRIX SCANNER
           </span>
@@ -77,9 +77,9 @@ export default function BulkScanInput({ onScanCluster, isLoading }: Props) {
           type="button"
           onClick={handleLoadSample}
           disabled={isLoading}
-          className="btn-3d-neutral min-h-11 text-xs font-bold text-[#ff5500] hover:text-black px-2.5 py-1 flex items-center gap-1.5 cursor-pointer"
+          className="btn-3d-neutral min-h-11 md:min-h-9 text-xs font-bold text-orange-ink hover:text-black px-2.5 py-1 flex items-center gap-1.5 cursor-pointer"
         >
-          <Sparkles size={12} className="text-[#ff5500]" />
+          <Sparkles size={12} className="text-orange-ink" />
           <span>Load Sample Cluster (4 Wallets)</span>
         </button>
       </div>
@@ -100,7 +100,7 @@ export default function BulkScanInput({ onScanCluster, isLoading }: Props) {
             setRawText(e.target.value);
             if (error) setError(null);
           }}
-          placeholder="Paste EVM addresses separated by new lines, commas, or spaces:&#10;0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045&#10;0x50EC05ADe8280758E2077fcBC08D878D4aef79C3"
+          placeholder="Paste EVM addresses separated by new lines, commas, or spaces:&#10;0x2e21f5d34208a3d5483f9829f2709e9005bf15f2&#10;0x163473950fbcfcfc31ac7ad0eec26f5fe549046c"
           rows={4}
           className="w-full bg-transparent p-2.5 text-xs font-mono font-bold text-[#0a0a0a] focus:outline-none placeholder:text-gray-400 placeholder:font-sans resize-none"
         />
@@ -108,7 +108,7 @@ export default function BulkScanInput({ onScanCluster, isLoading }: Props) {
         {/* Counter Badge */}
         <div className="absolute bottom-2.5 right-3 flex items-center gap-1.5 text-[11px] font-mono font-bold bg-white/80 px-2 py-0.5 border border-gray-200 shadow-sm">
           {parsedAddresses.length > 0 ? (
-            <span className="text-[#059669] flex items-center gap-1">
+            <span className="text-[#047857] flex items-center gap-1">
               <CheckCircle2 size={12} />
               {parsedAddresses.length}/{MAX_BATCH_WALLETS} valid {parsedAddresses.length === 1 ? 'address' : 'addresses'}
             </span>
@@ -137,7 +137,7 @@ export default function BulkScanInput({ onScanCluster, isLoading }: Props) {
                 aria-label={`Toggle ${c.name} network`}
                 disabled={isLoading}
                 onClick={() => toggleChain(id)}
-                className={`min-h-11 text-xs font-bold px-3 py-1 cursor-pointer flex items-center gap-1.5 ${
+                className={`min-h-11 md:min-h-9 text-xs font-bold px-3 md:px-2.5 py-1 cursor-pointer flex items-center gap-1.5 ${
                   isSelected
                     ? 'btn-3d-black text-white'
                     : 'btn-3d-neutral text-[#4b5563]'

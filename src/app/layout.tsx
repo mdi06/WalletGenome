@@ -94,7 +94,7 @@ const applicationJsonLd: JsonLdObject = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`}>
-      <body className="bg-[#ebebeb] text-[#0a0a0a] antialiased font-sans selection:bg-[#ff5500] selection:text-white">
+      <body className="bg-[#ebebeb] text-[#0a0a0a] antialiased font-sans selection:bg-[#ff5500] selection:text-[#0a0a0a]">
         <JsonLd data={applicationJsonLd} />
         {children}
         <SiteFooter />

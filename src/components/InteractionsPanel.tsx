@@ -4,9 +4,21 @@ import React, { useState, useMemo } from 'react';
 import { AddressInteraction, ScanResult, ProtocolInteraction } from '@/lib/types';
 import { getExplorerAddressUrl } from '@/lib/chains';
 import { ExternalLink, ChevronDown, ChevronRight, Search } from 'lucide-react';
+import { formatCategoryLabel, formatFiatUSD, formatNativeTokenValue } from '@/lib/utils/dashboardUtils';
 
 interface Props {
   results: ScanResult[];
+}
+
+interface UnclassifiedBreakdownEntry {
+  category: string;
+  label: string;
+  callCount: number;
+  contractCount: number;
+}
+
+function isUnclassifiedProtocol(protocol: ProtocolInteraction): boolean {
+  return protocol.protocol.trim().toLowerCase() === 'other';
 }
 
 export default function InteractionsPanel({ results }: Props) {
@@ -54,6 +66,38 @@ export default function InteractionsPanel({ results }: Props) {
     });
   }, [protocols, selectedCategory, searchQuery]);
 
+  const unclassifiedBreakdown = useMemo<UnclassifiedBreakdownEntry[]>(() => {
+    const categoryMap = new Map<string, { label: string; callCount: number; contracts: Set<string> }>();
+
+    protocols.filter(isUnclassifiedProtocol).forEach(protocol => {
+      const category = protocol.category.toLowerCase();
+      const entry = categoryMap.get(category) || {
+        label: formatCategoryLabel(category),
+        callCount: 0,
+        contracts: new Set<string>(),
+      };
+
+      entry.callCount += protocol.txCount;
+      protocol.contracts.forEach(contract => {
+        entry.contracts.add(`${contract.chainId}:${contract.contractAddress.toLowerCase()}`);
+      });
+      categoryMap.set(category, entry);
+    });
+
+    return Array.from(categoryMap.entries())
+      .map(([category, entry]) => ({
+        category,
+        label: entry.label,
+        callCount: entry.callCount,
+        contractCount: entry.contracts.size,
+      }))
+      .sort((a, b) => b.callCount - a.callCount || b.contractCount - a.contractCount);
+  }, [protocols]);
+
+  const topProtocol = protocols[0];
+  const topProtocolIsUnclassified = topProtocol ? isUnclassifiedProtocol(topProtocol) : false;
+  const unclassifiedContractCount = unclassifiedBreakdown.reduce((sum, entry) => sum + entry.contractCount, 0);
+
   const toggleExpand = (name: string) => {
     setExpandedProtocols(prev => {
       const next = new Set(prev);
@@ -63,10 +107,10 @@ export default function InteractionsPanel({ results }: Props) {
     });
   };
 
-  const categories = ['all', 'swap', 'bridge', 'lending', 'perps', 'staking', 'nft'];
+  const categories = ['all', 'swap', 'bridge', 'lending', 'perps', 'staking', 'nft', 'approval', 'contract_interaction', 'unknown'];
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 md:space-y-5">
       {/* ── Top Summary Header Metrics ── */}
       <div className="border border-[#c8c8c8] bg-[#f3f4f6] p-3 text-xs font-bold text-[#4b5563]">
         USD gas and volume values use timestamp-matched historical prices or explicit stablecoin assumptions. Estimated or unpriced scans are withheld before this view renders.
@@ -94,21 +138,49 @@ export default function InteractionsPanel({ results }: Props) {
           <div className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider">
             MOST INTERACTED PROTOCOL
           </div>
-          <div className="text-xl font-black text-[#ff5500] truncate">
-            {protocols[0]?.name || 'N/A'}
+          <div className="text-xl font-black text-orange-ink truncate">
+            {topProtocolIsUnclassified ? 'Unclassified contracts' : topProtocol?.name || 'N/A'}
           </div>
           <div className="text-xs font-bold text-[#4b5563] font-mono">
-            {protocols[0]?.txCount || 0} calls across {protocols[0]?.contracts?.length || 1} contracts
+            {topProtocolIsUnclassified
+              ? `${topProtocol?.txCount || 0} calls across ${unclassifiedContractCount} unclassified contracts`
+              : `${topProtocol?.txCount || 0} calls across ${topProtocol?.contracts?.length || 1} contracts`}
           </div>
         </div>
       </div>
+
+      {unclassifiedBreakdown.length > 0 && (
+        <section aria-labelledby="unclassified-activity-heading" className="card-3d space-y-3 p-4 text-[#0a0a0a] sm:p-5 md:p-4">
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <h3 id="unclassified-activity-heading" className="text-[11px] font-extrabold tracking-wider text-[#4b5563] uppercase">
+              UNCLASSIFIED ACTIVITY BREAKDOWN
+            </h3>
+            <span className="text-xs font-bold text-[#4b5563]">
+              Largest category: {unclassifiedBreakdown[0].label}
+            </span>
+          </div>
+          <p className="text-xs font-bold leading-relaxed text-[#4b5563]">
+            These calls reached contracts that are not mapped to a named protocol. Category signals remain visible so the activity can be reviewed without presenting an unsupported protocol identity.
+          </p>
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2" role="list" aria-label="Unclassified activity categories">
+            {unclassifiedBreakdown.map(entry => (
+              <div key={entry.category} role="listitem" className="flex items-center justify-between gap-3 border border-[#c8c8c8] bg-[#f3f4f6] px-3 py-2 text-xs font-bold">
+                <span>{entry.label}</span>
+                <span className="shrink-0 font-mono text-[#4b5563]">
+                  {entry.callCount} calls · {entry.contractCount} contract{entry.contractCount === 1 ? '' : 's'}
+                </span>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* ── View Switcher & Search Bar ── */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pt-2">
         <div className="flex items-center gap-2">
           <button
             onClick={() => setActiveView('protocols')}
-            className={`min-h-11 px-4 py-2 text-xs font-black cursor-pointer ${
+            className={`min-h-11 md:min-h-9 px-4 md:px-3 py-2 md:py-1.5 text-xs font-black cursor-pointer ${
               activeView === 'protocols'
                 ? 'btn-3d-black text-white'
                 : 'btn-3d-neutral text-[#4b5563] hover:text-black'
@@ -118,7 +190,7 @@ export default function InteractionsPanel({ results }: Props) {
           </button>
           <button
             onClick={() => setActiveView('counterparties')}
-            className={`min-h-11 px-4 py-2 text-xs font-black cursor-pointer ${
+            className={`min-h-11 md:min-h-9 px-4 md:px-3 py-2 md:py-1.5 text-xs font-black cursor-pointer ${
               activeView === 'counterparties'
                 ? 'btn-3d-black text-white'
                 : 'btn-3d-neutral text-[#4b5563] hover:text-black'
@@ -151,13 +223,13 @@ export default function InteractionsPanel({ results }: Props) {
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
-              className={`min-h-11 text-xs font-bold px-3 py-1 cursor-pointer uppercase ${
+              className={`min-h-11 text-xs font-bold px-3 py-1 md:min-h-9 md:px-2.5 cursor-pointer uppercase ${
                 selectedCategory === cat
-                  ? 'btn-3d-orange text-white'
+                  ? 'btn-3d-orange text-[#0a0a0a]'
                   : 'btn-3d-neutral text-[#4b5563]'
               }`}
             >
-              {cat === 'all' ? 'All' : cat}
+              {cat === 'all' ? 'All' : formatCategoryLabel(cat)}
             </button>
           ))}
         </div>
@@ -202,19 +274,19 @@ export default function InteractionsPanel({ results }: Props) {
                       </td>
                       <td className="py-3.5 px-4">
                         <span className="bg-[#d0d0d0] text-[#0a0a0a] text-[10px] font-bold px-2 py-0.5 uppercase">
-                          {p.category}
+                          {formatCategoryLabel(p.category)}
                         </span>
                       </td>
-                      <td className="py-3.5 px-4 text-right font-mono font-black text-[#ff5500]">{p.txCount}</td>
+                      <td className="py-3.5 px-4 text-right font-mono font-black text-orange-ink">{p.txCount}</td>
                       <td className="py-3.5 px-4 text-right font-mono text-[#0a0a0a]">
-                        <div>{p.totalGasNative.toFixed(4)} {p.nativeTokenSymbol}</div>
-                        <div className="text-[10px] font-normal text-[#555555]">≈ ${p.totalGasUSD.toFixed(2)}</div>
+                        <div>{formatNativeTokenValue(p.totalGasNative, p.nativeTokenSymbol)}</div>
+                        <div className="text-[10px] font-normal text-[#555555]">≈ {formatFiatUSD(p.totalGasUSD)}</div>
                       </td>
                       <td className="py-3.5 px-4 text-right font-mono text-[#0a0a0a]">
                         {p.totalVolumeUSD > 0 ? `$${p.totalVolumeUSD.toLocaleString('en-US', { maximumFractionDigits: 0 })}` : '—'}
                       </td>
                       <td className="py-3.5 px-4">
-                        <span className="bg-[#ff5500]/10 text-[#ff5500] text-[10px] font-bold px-2 py-0.5 border border-[#ff5500]/30">
+                        <span className="bg-[#ff5500]/10 text-orange-ink text-[10px] font-bold px-2 py-0.5 border border-[#ff5500]/30">
                           {p.chainName}
                         </span>
                       </td>
@@ -222,7 +294,7 @@ export default function InteractionsPanel({ results }: Props) {
                         {hasSubContracts ? (
                           <button
                             onClick={() => toggleExpand(protocolKey)}
-                            className="text-xs font-bold text-[#ff5500] hover:underline flex items-center gap-1 ml-auto cursor-pointer"
+                            className="text-xs font-bold text-orange-ink hover:underline flex items-center gap-1 ml-auto cursor-pointer"
                           >
                             <span>{p.contracts.length} contracts</span>
                             {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
@@ -233,7 +305,7 @@ export default function InteractionsPanel({ results }: Props) {
                             target="_blank"
                             rel="noopener noreferrer"
                             aria-label={`View ${p.name} contract on block explorer`}
-                            className="inline-flex min-h-11 min-w-11 items-center justify-center text-[#555555] hover:text-black"
+                            className="inline-flex min-h-11 min-w-11 md:min-h-9 md:min-w-9 items-center justify-center text-[#555555] hover:text-black"
                           >
                             <ExternalLink size={13} className="ml-auto" />
                           </a>
@@ -257,13 +329,13 @@ export default function InteractionsPanel({ results }: Props) {
                                 </div>
                                 <div className="flex items-center gap-4 text-right font-bold text-[#0a0a0a]">
                                   <span>{c.txCount} calls</span>
-                                  <span>{c.totalGasNative.toFixed(4)} {c.nativeTokenSymbol}</span>
+                                  <span>{formatNativeTokenValue(c.totalGasNative, c.nativeTokenSymbol)}</span>
                                   <a
                                     href={getExplorerAddressUrl(c.chainId, c.contractAddress)}
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     aria-label={`View ${c.name || 'contract'} on block explorer`}
-                                    className="inline-flex min-h-11 min-w-11 items-center justify-center text-[#555555] hover:text-black"
+                                    className="inline-flex min-h-11 min-w-11 md:min-h-9 md:min-w-9 items-center justify-center text-[#555555] hover:text-black"
                                   >
                                     <ExternalLink size={12} />
                                   </a>
@@ -305,10 +377,10 @@ export default function InteractionsPanel({ results }: Props) {
                       {c.type}
                     </span>
                   </td>
-                  <td className="py-3.5 px-4 text-right font-mono font-bold text-[#059669]">
+                  <td className="py-3.5 px-4 text-right font-mono font-bold text-[#047857]">
                     {c.inboundUSD > 0 ? `$${c.inboundUSD.toLocaleString('en-US', { maximumFractionDigits: 0 })}` : '—'}
                   </td>
-                  <td className="py-3.5 px-4 text-right font-mono font-bold text-[#ff5500]">
+                  <td className="py-3.5 px-4 text-right font-mono font-bold text-orange-ink">
                     {c.outboundUSD > 0 ? `$${c.outboundUSD.toLocaleString('en-US', { maximumFractionDigits: 0 })}` : '—'}
                   </td>
                   <td className="py-3.5 px-4 text-right">
@@ -317,7 +389,7 @@ export default function InteractionsPanel({ results }: Props) {
                       target="_blank"
                       rel="noopener noreferrer"
                       aria-label={`View ${c.label || c.address} on block explorer`}
-                      className="inline-flex min-h-11 min-w-11 items-center justify-center text-[#555555] hover:text-black"
+                      className="inline-flex min-h-11 min-w-11 md:min-h-9 md:min-w-9 items-center justify-center text-[#555555] hover:text-black"
                     >
                       <ExternalLink size={13} className="ml-auto" />
                     </a>

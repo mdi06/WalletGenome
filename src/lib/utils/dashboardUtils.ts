@@ -19,6 +19,64 @@ export function formatCompactUSD(value: unknown): string {
   return `$${parsed.toFixed(3)}`;
 }
 
+/**
+ * Format a fiat amount at cent precision without hiding a non-zero sub-cent value.
+ * This is intended for detailed USD labels where compact notation is not needed.
+ */
+export function formatFiatUSD(value: unknown): string {
+  const parsed = typeof value === 'number'
+    ? value
+    : Number.parseFloat(String(value ?? '').replace(/[^0-9.-]+/g, ''));
+
+  if (!Number.isFinite(parsed)) return 'Unavailable';
+  if (parsed === 0) return '$0.00';
+  if (parsed > 0 && parsed < 0.01) return '<$0.01';
+  if (parsed < 0 && parsed > -0.01) return '-<$0.01';
+
+  const sign = parsed < 0 ? '-' : '';
+  return `${sign}$${Math.abs(parsed).toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+}
+
+const CATEGORY_LABELS: Record<string, string> = {
+  approval: 'Approvals',
+  bridge: 'Bridges',
+  contract_deploy: 'Contract deployments',
+  contract_interaction: 'Contract calls',
+  lending: 'Lending',
+  nft: 'NFT activity',
+  perps: 'Perpetuals',
+  staking: 'Staking',
+  swap: 'Swaps',
+  transfer: 'Transfers',
+  unknown: 'Unknown calls',
+};
+
+export function formatCategoryLabel(category: string): string {
+  const normalized = category.trim().toLowerCase();
+  return CATEGORY_LABELS[normalized]
+    || normalized.replace(/_/g, ' ').replace(/\b\w/g, character => character.toUpperCase());
+}
+
+export function formatNativeTokenValue(value: unknown, symbol = 'ETH'): string {
+  const parsed = typeof value === 'number'
+    ? value
+    : Number.parseFloat(String(value ?? '').replace(/[^0-9.-]+/g, ''));
+  const tokenSymbol = symbol.trim() || 'ETH';
+
+  if (!Number.isFinite(parsed)) return 'Unavailable';
+  if (parsed === 0) return `0 ${tokenSymbol}`;
+
+  const absoluteValue = Math.abs(parsed);
+  if (absoluteValue < 0.0001) {
+    return parsed > 0 ? `<0.0001 ${tokenSymbol}` : `>-0.0001 ${tokenSymbol}`;
+  }
+
+  return `${parsed.toFixed(absoluteValue >= 10 ? 2 : 4)} ${tokenSymbol}`;
+}
+
 export function extractProtocolBadges(data: MultiChainScanResult): string[] {
   const badges: string[] = [];
   const protocols = data.chains.flatMap(c => c.interactionsSummary?.topProtocols || []);

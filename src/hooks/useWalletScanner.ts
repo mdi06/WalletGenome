@@ -12,11 +12,12 @@ export function useWalletScanner() {
   const autoScanStarted = useRef(false);
   const activeSingleScanId = useRef(0);
   const activeSingleScanController = useRef<AbortController | null>(null);
-  const [scanMode, setScanMode] = useState<'single' | 'cluster'>('single');
+  const [scanMode, setScanModeState] = useState<'single' | 'cluster'>('single');
   
   // Single scan state
   const [singleResult, setSingleResult] = useState<MultiChainScanResult | null>(null);
   const [currentAddress, setCurrentAddress] = useState('');
+  const [singleChainIds, setSingleChainIds] = useState<number[]>([...SUPPORTED_CHAIN_IDS]);
   const [activeDemoSnapshot, setActiveDemoSnapshot] = useState<DemoWallet | null>(null);
   
   // Cluster scan state
@@ -30,6 +31,16 @@ export function useWalletScanner() {
   const [error, setError] = useState<string | null>(null);
   const [showGuide, setShowGuide] = useState(true);
 
+  const setScanMode = useCallback((mode: 'single' | 'cluster') => {
+    setScanModeState(mode);
+    if (mode === 'cluster') {
+      setSingleResult(null);
+      setActiveDemoSnapshot(null);
+    } else {
+      setClusterResult(null);
+    }
+  }, []);
+
 
   const handleSingleScan = useCallback(async (address: string, chainIds: number[]) => {
     const scanId = ++activeSingleScanId.current;
@@ -40,6 +51,7 @@ export function useWalletScanner() {
     setError(null);
     setSingleResult(null);
     setActiveDemoSnapshot(null);
+    setSingleChainIds([...chainIds]);
     setShowGuide(false);
     setScanMode('single');
     setCurrentAddress(address);
@@ -105,7 +117,7 @@ export function useWalletScanner() {
         setProgressPercent(undefined);
       }
     }
-  }, []);
+  }, [setScanMode]);
 
   const handleDemoSnapshot = useCallback(async (demo: DemoWallet) => {
     const scanId = ++activeSingleScanId.current;
@@ -116,6 +128,7 @@ export function useWalletScanner() {
     setError(null);
     setSingleResult(null);
     setActiveDemoSnapshot(null);
+    setSingleChainIds([...SUPPORTED_CHAIN_IDS]);
     setShowGuide(false);
     setScanMode('single');
     setCurrentAddress(demo.address);
@@ -151,11 +164,13 @@ export function useWalletScanner() {
         setProgressPercent(undefined);
       }
     }
-  }, []);
+  }, [setScanMode]);
 
   const handleClusterScan = async (addresses: string[], chainIds: number[]) => {
+    setScanMode('cluster');
     setIsLoading(true);
     setError(null);
+    setSingleResult(null);
     setActiveDemoSnapshot(null);
     setShowGuide(false);
     setProgress(`Scanning cluster of ${addresses.length} wallets across ${chainIds.length} chains...`);
@@ -218,6 +233,7 @@ export function useWalletScanner() {
     singleResult,
     currentAddress,
     setCurrentAddress,
+    singleChainIds,
     activeDemoSnapshot,
     clusterResult,
     isLoading,

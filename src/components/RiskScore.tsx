@@ -54,7 +54,7 @@ export default function RiskScore({ results }: Props) {
               {/* Top Row: Icon + Label + Score */}
               <div className="flex items-start justify-between gap-2.5">
                 <div className="flex items-start gap-2 min-w-0 flex-1">
-                  <div className="mt-0.5 text-[#ff5500] flex-shrink-0">
+                  <div className="mt-0.5 text-orange-ink flex-shrink-0">
                     {f.severity === 'critical' ? <AlertTriangle size={15} /> : <FileWarning size={15} />}
                   </div>
                   <div className="min-w-0">
@@ -64,7 +64,7 @@ export default function RiskScore({ results }: Props) {
                   </div>
                 </div>
 
-                <span className="font-mono font-black text-[#ff5500] text-xs flex-shrink-0 pl-1 pt-0.5">
+                <span className="font-mono font-black text-orange-ink text-xs flex-shrink-0 pl-1 pt-0.5">
                   +{f.impact}
                 </span>
               </div>

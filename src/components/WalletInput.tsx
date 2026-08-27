@@ -8,11 +8,14 @@ interface Props {
   onScan: (address: string, chainIds: number[]) => void;
   isLoading: boolean;
   initialAddress?: string;
+  initialChainIds?: readonly number[];
 }
 
-export default function WalletInput({ onScan, isLoading, initialAddress }: Props) {
+export default function WalletInput({ onScan, isLoading, initialAddress, initialChainIds }: Props) {
   const [inputAddress, setInputAddress] = useState(initialAddress ?? '');
-  const [selectedChains, setSelectedChains] = useState<number[]>([...SUPPORTED_CHAIN_IDS]);
+  const [selectedChains, setSelectedChains] = useState<number[]>(() => (
+    initialChainIds ? [...initialChainIds] : [...SUPPORTED_CHAIN_IDS]
+  ));
   const [error, setError] = useState<string | null>(null);
 
   const toggleChain = (chainId: number) => {
@@ -40,13 +43,13 @@ export default function WalletInput({ onScan, isLoading, initialAddress }: Props
   return (
     <div className="space-y-2">
       {/* ── 3D Tactile Input Console ── */}
-      <div className={`card-3d min-w-0 transition-all px-3 sm:px-6 py-3.5 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 ${
+      <div className={`card-3d min-h-[232px] min-w-0 transition-all px-3 sm:px-6 md:min-h-0 md:px-5 py-3.5 flex flex-col md:flex-row items-center justify-center md:justify-between gap-3 ${
         isLoading ? 'border-[#ff5500] ring-2 ring-[#ff5500]/30' : 'border-[#c2c2c2]'
       }`}>
         
         {/* Left: Search Icon & Recessed Address Input Well */}
-        <div className="well-recessed-light flex items-center gap-3 flex-1 w-full px-3 py-2">
-          <Search size={18} aria-hidden="true" className={`flex-shrink-0 transition-colors ${isLoading ? 'text-[#ff5500]' : 'text-gray-500'}`} />
+        <div className="well-recessed-light flex w-full items-center gap-3 px-3 py-2 md:flex-1">
+          <Search size={18} aria-hidden="true" className={`flex-shrink-0 transition-colors ${isLoading ? 'text-orange-ink' : 'text-gray-500'}`} />
           <label htmlFor="wallet-address-input" className="sr-only">
             Enter EVM address (0x...) or ENS name (vitalik.eth)
           </label>
@@ -69,7 +72,7 @@ export default function WalletInput({ onScan, isLoading, initialAddress }: Props
         </div>
 
         {/* Right: Network Filter Pills & 3D Scan Action Button */}
-        <div role="group" aria-label="Select target EVM networks" className="flex w-full min-w-0 items-center gap-2 flex-wrap justify-start md:w-auto md:justify-end">
+        <div role="group" aria-label="Select target EVM networks" className="flex w-full min-w-0 items-center gap-2 flex-wrap justify-center md:w-auto md:flex-nowrap md:justify-end">
           {SUPPORTED_CHAIN_IDS.map(id => {
             const c = CHAINS[id];
             const isSelected = selectedChains.includes(id);
@@ -81,7 +84,7 @@ export default function WalletInput({ onScan, isLoading, initialAddress }: Props
                 aria-label={`Toggle ${c.name} network`}
                 disabled={isLoading}
                 onClick={() => toggleChain(id)}
-                className={`min-h-11 text-xs font-bold px-3 py-1.5 cursor-pointer flex items-center gap-1.5 ${
+                className={`flex-1 md:flex-none justify-center min-h-11 md:min-h-9 text-xs font-bold px-1.5 sm:px-3 md:px-2.5 py-1.5 md:py-1 cursor-pointer flex items-center gap-1 sm:gap-1.5 ${
                   isSelected
                     ? 'btn-3d-black text-white'
                     : 'btn-3d-neutral text-[#4b5563]'

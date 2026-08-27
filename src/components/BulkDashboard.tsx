@@ -85,7 +85,7 @@ export default function BulkDashboard({ data, onInspectWallet }: Props) {
   }
 
   return (
-    <div className="min-w-0 space-y-6 animate-fade-in-up">
+    <div className="min-w-0 space-y-6 md:space-y-5 animate-fade-in-up">
       
       {/* ── 1. Top Cluster Metric KPI Strip ── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
@@ -108,7 +108,7 @@ export default function BulkDashboard({ data, onInspectWallet }: Props) {
           <div className="text-[10px] font-extrabold text-[#4b5563] uppercase tracking-wider">
             COMBINED LIFETIME GAS
           </div>
-          <div className="text-2xl font-black font-mono text-[#ff5500]">
+          <div className="text-2xl font-black font-mono text-orange-ink">
             {formatCompactUSD(data.totalGasUSD)}
           </div>
           <div className="text-[11px] font-bold text-[#4b5563] font-mono">
@@ -158,7 +158,7 @@ export default function BulkDashboard({ data, onInspectWallet }: Props) {
       </div>
 
       {/* ── 2. Automated Forensic Findings & AI Summary Card ── */}
-      <div className="card-3d p-6 text-[#0a0a0a] space-y-4">
+      <div className="card-3d p-6 lg:p-5 text-[#0a0a0a] space-y-4">
         
         {/* Card Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-[#c8c8c8] pb-3">
@@ -193,7 +193,7 @@ export default function BulkDashboard({ data, onInspectWallet }: Props) {
           
           <div className="well-recessed-light p-3 space-y-1">
             <div className="text-[10px] font-extrabold text-[#4b5563] uppercase tracking-wider flex items-center gap-1">
-              <GitFork size={12} className="text-[#ff5500]" />
+              <GitFork size={12} className="text-orange-ink" />
               INTER-WALLET LINKAGE
             </div>
             <div className="text-sm font-black font-mono text-[#0a0a0a]">
@@ -248,7 +248,7 @@ export default function BulkDashboard({ data, onInspectWallet }: Props) {
           tabIndex={activeTab === 'leaderboard' ? 0 : -1}
           onKeyDown={handleClusterTabKeyDown}
           onClick={() => setActiveTab('leaderboard')}
-          className={`min-h-11 px-3.5 py-2 text-xs font-black tracking-wider transition-all whitespace-nowrap cursor-pointer flex items-center gap-2 ${
+          className={`min-h-11 md:min-h-9 px-3.5 md:px-3 py-2 md:py-1.5 text-xs font-black tracking-wider transition-all whitespace-nowrap cursor-pointer flex items-center gap-2 ${
             activeTab === 'leaderboard'
               ? 'btn-3d-black text-white'
               : 'btn-3d-neutral text-[#4b5563] hover:text-black font-bold'
@@ -256,7 +256,7 @@ export default function BulkDashboard({ data, onInspectWallet }: Props) {
         >
           <Table size={14} className={activeTab === 'leaderboard' ? 'text-[#ff5500]' : ''} />
           <span>CLUSTER LEADERBOARD</span>
-          <span className={`text-[10px] font-mono px-1.5 py-0.2 badge-3d ${activeTab === 'leaderboard' ? 'bg-[#ff5500] text-white' : 'bg-[#d0d0d0] text-black'}`}>
+          <span className={`text-[10px] font-mono px-1.5 py-0.2 badge-3d ${activeTab === 'leaderboard' ? 'bg-[#ff5500] text-[#0a0a0a]' : 'bg-[#d0d0d0] text-black'}`}>
             {data.totalWallets}
           </span>
         </button>
@@ -270,7 +270,7 @@ export default function BulkDashboard({ data, onInspectWallet }: Props) {
           tabIndex={activeTab === 'flow' ? 0 : -1}
           onKeyDown={handleClusterTabKeyDown}
           onClick={() => setActiveTab('flow')}
-          className={`min-h-11 px-3.5 py-2 text-xs font-black tracking-wider transition-all whitespace-nowrap cursor-pointer flex items-center gap-2 ${
+          className={`min-h-11 md:min-h-9 px-3.5 md:px-3 py-2 md:py-1.5 text-xs font-black tracking-wider transition-all whitespace-nowrap cursor-pointer flex items-center gap-2 ${
             activeTab === 'flow'
               ? 'btn-3d-black text-white'
               : 'btn-3d-neutral text-[#4b5563] hover:text-black font-bold'
@@ -280,7 +280,7 @@ export default function BulkDashboard({ data, onInspectWallet }: Props) {
           <span>INTER-WALLET FLOW GRAPH</span>
           <span
             className={`text-[10px] font-mono px-1.5 py-0.2 badge-3d ${
-              data.linkages.length > 0 ? 'bg-[#ff5500] text-white' : 'bg-[#d0d0d0] text-[#333333]'
+              data.linkages.length > 0 ? 'bg-[#ff5500] text-[#0a0a0a]' : 'bg-[#d0d0d0] text-[#333333]'
             }`}
           >
             {data.linkages.length > 0 ? `${data.linkages.length} LINKED` : 'ALL WALLETS'}
@@ -305,7 +305,7 @@ export default function BulkDashboard({ data, onInspectWallet }: Props) {
           id="cluster-leaderboard-panel"
           role="tabpanel"
           aria-labelledby="cluster-leaderboard-tab"
-          className="space-y-6"
+          className="space-y-6 md:space-y-5"
         >
           {/* Direct Linkages & Shared Counterparties Quick Summary */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -314,7 +314,7 @@ export default function BulkDashboard({ data, onInspectWallet }: Props) {
             <div className="card-3d p-5 text-[#0a0a0a] space-y-2.5">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-black uppercase text-[#0a0a0a] flex items-center gap-1.5">
-                  <GitFork size={14} className="text-[#ff5500]" />
+                  <GitFork size={14} className="text-orange-ink" />
                   DIRECT INTER-WALLET TRANSFERS
                 </span>
                 <span className="btn-3d-neutral text-[10px] font-mono font-bold px-2 py-0.5 text-[#0a0a0a]">
@@ -327,7 +327,7 @@ export default function BulkDashboard({ data, onInspectWallet }: Props) {
                   {data.linkages.map((l, i) => (
                     <div key={i} className="well-recessed-light p-2 text-xs font-mono font-bold flex items-center justify-between">
                       <span className="text-[#0a0a0a] truncate" title={l.evidenceTxHashes.join(', ')}>{l.detail}</span>
-                      <span className="badge-3d text-[9px] font-black uppercase px-2 py-0.5 bg-[#ff5500] text-white flex-shrink-0 ml-2">LINKED</span>
+                      <span className="badge-3d text-[9px] font-black uppercase px-2 py-0.5 bg-[#ff5500] text-[#0a0a0a] flex-shrink-0 ml-2">LINKED</span>
                     </div>
                   ))}
                 </div>
@@ -408,27 +408,27 @@ export default function BulkDashboard({ data, onInspectWallet }: Props) {
                     <th className="py-3 px-4">WALLET IDENTITY</th>
                     <th className="py-3 px-4">PERSONA</th>
                     <th aria-sort={getSortDirection('risk')} className="py-3 px-4">
-                      <button type="button" onClick={() => handleSort('risk')} className="min-h-11 font-extrabold hover:text-black">
+                      <button type="button" onClick={() => handleSort('risk')} className="min-h-11 md:min-h-9 font-extrabold hover:text-black">
                         RISK GRADE {sortField === 'risk' && (sortAsc ? '▲' : '▼')}
                       </button>
                     </th>
                     <th aria-sort={getSortDirection('sybil')} className="py-3 px-4">
-                      <button type="button" onClick={() => handleSort('sybil')} className="min-h-11 font-extrabold hover:text-black">
+                      <button type="button" onClick={() => handleSort('sybil')} className="min-h-11 md:min-h-9 font-extrabold hover:text-black">
                         SYBIL PROB. {sortField === 'sybil' && (sortAsc ? '▲' : '▼')}
                       </button>
                     </th>
                     <th aria-sort={getSortDirection('gas')} className="py-3 px-4 text-right">
-                      <button type="button" onClick={() => handleSort('gas')} className="min-h-11 font-extrabold hover:text-black">
+                      <button type="button" onClick={() => handleSort('gas')} className="min-h-11 md:min-h-9 font-extrabold hover:text-black">
                         LIFETIME GAS {sortField === 'gas' && (sortAsc ? '▲' : '▼')}
                       </button>
                     </th>
                     <th aria-sort={getSortDirection('inflow')} className="py-3 px-4 text-right">
-                      <button type="button" onClick={() => handleSort('inflow')} className="min-h-11 font-extrabold hover:text-black">
+                      <button type="button" onClick={() => handleSort('inflow')} className="min-h-11 md:min-h-9 font-extrabold hover:text-black">
                         NET INFLOW {sortField === 'inflow' && (sortAsc ? '▲' : '▼')}
                       </button>
                     </th>
                     <th aria-sort={getSortDirection('txs')} className="py-3 px-4 text-right">
-                      <button type="button" onClick={() => handleSort('txs')} className="min-h-11 font-extrabold hover:text-black">
+                      <button type="button" onClick={() => handleSort('txs')} className="min-h-11 md:min-h-9 font-extrabold hover:text-black">
                         TRANSACTIONS {sortField === 'txs' && (sortAsc ? '▲' : '▼')}
                       </button>
                     </th>
@@ -498,7 +498,7 @@ export default function BulkDashboard({ data, onInspectWallet }: Props) {
                       </td>
 
                       {/* Lifetime Gas */}
-                      <td className="py-3.5 px-4 text-right font-mono font-black text-[#ff5500]">
+                      <td className="py-3.5 px-4 text-right font-mono font-black text-orange-ink">
                         {formatCompactUSD(w.totalGasUSD)}
                       </td>
 

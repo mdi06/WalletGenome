@@ -1,8 +1,26 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
-import { batchFetchPrices, getCachedCurrentPriceQuote, getCachedPriceQuote } from './prices';
+import {
+  batchFetchPrices,
+  getCachedCurrentPriceQuote,
+  getCachedPriceQuote,
+  isTrustedTokenContract,
+  resolveCoingeckoId,
+} from './prices';
 
 describe('Historical price provenance', () => {
+  it('requires a trusted token contract instead of pricing from a ticker', () => {
+    assert.strictEqual(
+      resolveCoingeckoId('0x978a77ef76f23c06d951d2e827741ed334e2ff2f'),
+      null,
+    );
+    assert.strictEqual(isTrustedTokenContract('0x978a77ef76f23c06d951d2e827741ed334e2ff2f'), false);
+    assert.strictEqual(
+      resolveCoingeckoId('0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48'),
+      'usd-coin',
+    );
+  });
+
   it('returns stablecoins with an explicit $1 assumption', () => {
     assert.deepStrictEqual(
       getCachedPriceQuote('usd-coin', 1_700_000_000),

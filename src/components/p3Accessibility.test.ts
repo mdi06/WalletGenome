@@ -27,11 +27,14 @@ describe('P3 accessibility contracts', () => {
     assert.doesNotMatch(source, /<th\s+onClick=/);
   });
 
-  it('makes each complete demo profile card a keyboard-accessible action', () => {
+  it('keeps the featured demo and quieter demo list as keyboard-accessible actions', () => {
     const source = readSource('./WelcomeGuide.tsx');
-    assert.match(source, /card-3d-interactive[\s\S]{0,400}<button[\s\S]{0,300}onClick=\{\(\) => onSelectDemo\(demo\)\}[\s\S]{0,300}absolute inset-0/);
+    assert.match(source, /data-demo-layout="featured-primary"/);
+    assert.match(source, /aria-label=\{`Load saved demo snapshot for \$\{featuredDemo\.name\}`\}/);
+    assert.match(source, /onClick=\{\(\) => onSelectDemo\(featuredDemo\)\}/);
+    assert.match(source, /secondaryDemos\.map\(demo =>/);
     assert.match(source, /aria-label=\{`Load saved demo snapshot for \$\{demo\.name\}`\}/);
-    assert.doesNotMatch(source, /card-3d-interactive[\s\S]{0,500}<button[\s\S]{0,500}<button/);
+    assert.doesNotMatch(source, /absolute inset-0/);
   });
 
   it('renders the original saved-demo cards only once', () => {
@@ -51,11 +54,28 @@ describe('P3 accessibility contracts', () => {
 
   it('renders a state-aware top-level indexing status', () => {
     const pageSource = readSource('../app/page.tsx');
+    const headerSource = readSource('./SiteHeader.tsx');
     const statusSource = readSource('../lib/indexingStatus.ts');
     assert.doesNotMatch(pageSource, /Live indexing/);
-    assert.match(pageSource, /Indexing status:/);
+    assert.match(pageSource, /indexingStatus=\{indexingStatus\}/);
+    assert.match(headerSource, /Indexing status:/);
+    assert.match(headerSource, /Live indexing/);
     assert.match(statusSource, /'live' \| 'saved-snapshot' \| 'partial' \| 'unavailable'/);
     assert.match(statusSource, /scanMode === 'single' && activeDemoSnapshot/);
+  });
+
+  it('uses one standardized primary header on scanner and docs', () => {
+    const pageSource = readSource('../app/page.tsx');
+    const docsSource = readSource('../app/docs/page.tsx');
+    const headerSource = readSource('./SiteHeader.tsx');
+
+    assert.match(pageSource, /<SiteHeader[\s\S]*activePage="scanner"/);
+    assert.match(docsSource, /<SiteHeader activePage="docs" indexingStatus="live" showIndexingStatus=\{false\}/);
+    assert.match(docsSource, /Live scanner available/);
+    assert.match(headerSource, /aria-label="Primary navigation"/);
+    assert.match(headerSource, /aria-current=\{activePage === 'scanner'/);
+    assert.match(headerSource, /aria-current=\{activePage === 'docs'/);
+    assert.match(headerSource, />Docs \/ methodology</);
   });
 
   it('keeps navigation, footer links, and compact actions near 44px tap targets', () => {
@@ -69,8 +89,11 @@ describe('P3 accessibility contracts', () => {
     assert.match(pageSource, /btn-3d-neutral min-h-11/);
     assert.match(docsSource, /inline-flex min-h-11 min-w-11/);
     assert.match(landingSource, /inline-flex min-h-11 items-center/);
-    assert.match(footerSource, /inline-flex min-h-11 items-center/);
-    assert.match(transferSource, /min-h-11 px-3\.5 py-1\.5/);
+    assert.match(footerSource, /inline-flex min-h-11 w-full items-center justify-start/);
+    assert.match(footerSource, /flex w-full flex-col items-start gap-2 md:w-auto/);
+    assert.match(footerSource, /flex flex-col gap-3 border-t/);
+    assert.match(transferSource, /grid grid-cols-3 gap-2 md:flex/);
+    assert.match(transferSource, /min-h-11 w-full justify-center/);
     assert.match(interactionSource, /min-h-11 text-xs font-bold px-3 py-1/);
   });
 
@@ -82,10 +105,27 @@ describe('P3 accessibility contracts', () => {
 
   it('uses one compact mobile documentation index and keeps the full desktop index', () => {
     const docsSource = readSource('../app/docs/page.tsx');
-    assert.match(docsSource, /<details className="lg:hidden/);
+    assert.match(docsSource, /<details[^>]*className="lg:hidden/);
     assert.match(docsSource, /TABLE OF CONTENTS/);
     assert.match(docsSource, /aria-label="Documentation sections"/);
     assert.match(docsSource, /<aside className="hidden lg:col-span-4/);
+  });
+
+  it('provides a mobile jump control that returns focus to the native topic index', () => {
+    const docsSource = readSource('../app/docs/page.tsx');
+    assert.match(docsSource, /IntersectionObserver/);
+    assert.match(docsSource, /id="mobile-docs-index" ref=\{mobileDocsIndexRef\}/);
+    assert.match(docsSource, /aria-label="Jump to documentation topics"/);
+    assert.match(docsSource, /mobileDocsIndex\.open = true/);
+    assert.match(docsSource, /mobileDocsIndex\.scrollIntoView/);
+    assert.match(docsSource, /mobileDocsIndexSummaryRef\.current\?\.focus\(\)/);
+    assert.match(docsSource, /href=\{`#\$\{s\.id\}`\}/);
+    assert.match(docsSource, /addEventListener\('hashchange', syncActiveSectionFromHash\)/);
+    assert.match(docsSource, /removeEventListener\('hashchange', syncActiveSectionFromHash\)/);
+    assert.match(docsSource, /pb-32 lg:pb-6/);
+    assert.match(docsSource, /line-clamp-2 whitespace-normal break-words/);
+    assert.match(docsSource, /setActiveSection\(visibleSection\.target\.id\)/);
+    assert.match(docsSource, /rootMargin: '-96px 0px -65% 0px'/);
   });
 
   it('uses framed dashboard modules with dividers inside dense groups', () => {
@@ -100,6 +140,18 @@ describe('P3 accessibility contracts', () => {
     assert.match(dashboardSource, /aria-labelledby="transaction-heatmap-heading"[^>]*className="card-3d p-6/);
     assert.match(dashboardSource, /className="grid grid-cols-1 gap-4 md:grid-cols-2"/);
     assert.match(docsSource, /id="pipeline-architecture" className="border-y border-\[#c8c8c8\]/);
+  });
+
+  it('groups flow and gas summaries into readable cards', () => {
+    const flowSource = readSource('./CapitalFlowGraph.tsx');
+    const gasSource = readSource('./GasSummaryPanel.tsx');
+
+    assert.match(flowSource, /aria-labelledby="flow-summary-heading" className="card-3d/);
+    assert.match(flowSource, /aria-labelledby="most-interacted-heading" className="card-3d/);
+    assert.match(flowSource, /card-3d flex flex-col gap-3 p-3/);
+    assert.match(gasSource, /grid grid-cols-1 gap-3 sm:grid-cols-3/);
+    assert.match(gasSource, /card-3d space-y-1 p-4 text-\[#0a0a0a\] sm:p-5/);
+    assert.match(gasSource, /grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4/);
   });
 
   it('keeps the flow graph prominent and labels unavailable values explicitly', () => {
@@ -143,7 +195,9 @@ describe('P3 accessibility contracts', () => {
 
   it('renders transfer chain provenance and deduplicates rows before rendering', () => {
     const source = readSource('./TransferTable.tsx');
-    assert.match(source, /deduplicateTokenTransfers/);
+    const tableSource = readSource('../lib/transferTable.ts');
+    assert.match(source, /collectTransferTableRows/);
+    assert.match(tableSource, /deduplicateTokenTransfers/);
     assert.match(source, />CHAIN<\/th>/);
     assert.match(source, /\{t\.chainName\}/);
   });

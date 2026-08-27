@@ -8,6 +8,29 @@ import type { WalletScanResponse } from '@/lib/types';
 import CapitalFlowGraph from './CapitalFlowGraph';
 
 describe('Capital Flow Graph verified summary', () => {
+  it('renders network labels when the same protocol appears on multiple chains', () => {
+    const data = getMockScanResult();
+    const ethereumProtocol = data.chains[0].interactionsSummary.topProtocols[0];
+    data.chains[1].interactionsSummary.topProtocols = [{
+      ...ethereumProtocol,
+      chainId: 8453,
+      chainName: 'Base',
+      contracts: ethereumProtocol.contracts.map(contract => ({
+        ...contract,
+        chainId: 8453,
+        chainName: 'Base',
+      })),
+    }];
+
+    const markup = renderToStaticMarkup(createElement(CapitalFlowGraph, {
+      results: data.chains,
+      metrics: data.metrics,
+    }));
+
+    assert.match(markup, /flow-network-label[^>]*>Ethereum<\/text>/);
+    assert.match(markup, /flow-network-label[^>]*>Base<\/text>/);
+  });
+
   it('shows verified in, out, and net values with partial lower-bound coverage', () => {
     const data = getMockScanResult();
     data.metrics = {

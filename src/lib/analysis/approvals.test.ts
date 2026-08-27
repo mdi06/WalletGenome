@@ -8,7 +8,7 @@ const wallet = '0x1234567890123456789012345678901234567890';
 const spender = '0x68b3465833fb72a70ecdf485e0e4c7bd8665fc45';
 const usdc = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
 const unknownToken = '0x9999999999999999999999999999999999999999';
-const uni = '0x1f9840a85d5af5bf1d1762f825bdaddc4201f984';
+const uni = '0x1f9840a85d5af5bf1d1762f925bdaddc4201f984';
 
 function approvalInput(amount: bigint): string {
   return `0x095ea7b3${'0'.repeat(24)}${spender.slice(2)}${amount.toString(16).padStart(64, '0')}`;

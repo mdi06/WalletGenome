@@ -274,11 +274,11 @@ export default function ClusterFlowGraph({
           <span>ALL {wallets.length} WALLETS MAPPED IN CLUSTER TOPOLOGY</span>
         </div>
         <div className="flex items-center gap-4 text-[11px]">
-          <span className="flex items-center gap-1.5 text-[#ff5500]">
+          <span className="flex items-center gap-1.5 text-orange-ink">
             <span className="w-3 h-1 bg-[#ff5500]" /> Direct Transfer ({linkages.length})
           </span>
           {sharedCounterparties.length > 0 && (
-            <span className="flex items-center gap-1.5 text-[#3b82f6]">
+            <span className="flex items-center gap-1.5 text-[#1d4ed8]">
               <span className="w-3 h-1 bg-[#3b82f6]" /> Shared Counterparty Hubs ({sharedCounterparties.length})
             </span>
           )}
@@ -325,7 +325,7 @@ export default function ClusterFlowGraph({
             type="button"
             aria-label="Zoom in on cluster graph"
             onClick={handleZoomIn}
-            className="min-h-11 min-w-11 p-1.5 hover:bg-white/10 text-gray-300 hover:text-white transition-colors cursor-pointer"
+            className="min-h-11 min-w-11 md:min-h-9 md:min-w-9 p-1.5 hover:bg-white/10 text-gray-300 hover:text-white transition-colors cursor-pointer"
             title="Zoom In (+)"
           >
             <ZoomIn size={15} />
@@ -334,7 +334,7 @@ export default function ClusterFlowGraph({
             type="button"
             aria-label="Zoom out on cluster graph"
             onClick={handleZoomOut}
-            className="min-h-11 min-w-11 p-1.5 hover:bg-white/10 text-gray-300 hover:text-white transition-colors cursor-pointer"
+            className="min-h-11 min-w-11 md:min-h-9 md:min-w-9 p-1.5 hover:bg-white/10 text-gray-300 hover:text-white transition-colors cursor-pointer"
             title="Zoom Out (-)"
           >
             <ZoomOut size={15} />
@@ -347,7 +347,7 @@ export default function ClusterFlowGraph({
             type="button"
             aria-label="Reset cluster graph view"
             onClick={handleResetZoom}
-            className="min-h-11 min-w-11 p-1.5 hover:bg-white/10 text-gray-300 hover:text-white transition-colors cursor-pointer"
+            className="min-h-11 min-w-11 md:min-h-9 md:min-w-9 p-1.5 hover:bg-white/10 text-gray-300 hover:text-white transition-colors cursor-pointer"
             title="Reset View"
           >
             <RotateCcw size={14} />
@@ -523,10 +523,10 @@ export default function ClusterFlowGraph({
           >
             <div className="flex items-center justify-between border-b border-[#cecece] pb-2">
               <span className="font-black text-xs uppercase text-[#0a0a0a] flex items-center gap-1.5">
-                <GitFork size={13} className="text-[#ff5500]" />
+                <GitFork size={13} className="text-orange-ink" />
                 DIRECT INTER-WALLET TRANSFER
               </span>
-              <span className="text-[9px] font-mono font-black px-2 py-0.5 bg-[#ff5500] text-white uppercase">
+              <span className="text-[9px] font-mono font-black px-2 py-0.5 bg-[#ff5500] text-[#0a0a0a] uppercase">
                 {activeLink.txCount} TXS
               </span>
             </div>
@@ -545,7 +545,7 @@ export default function ClusterFlowGraph({
 
               <div className="flex justify-between items-center text-xs font-mono">
                 <span className="text-[#555555]">Transferred Volume:</span>
-                <span className="font-black text-base text-[#ff5500]">
+                <span className="font-black text-base text-orange-ink">
                   {activeLink.volumeUSD === null ? `Unavailable (${activeLink.valueStatus})` : formatCompactUSD(activeLink.volumeUSD ?? 0)}
                 </span>
               </div>
@@ -562,7 +562,7 @@ export default function ClusterFlowGraph({
               href={getExplorerTxUrl(activeLink.chainId || 1, activeLink.evidenceTxHashes?.[0] ?? '')}
               target="_blank"
               rel="noopener noreferrer"
-              className="w-full min-h-11 mt-2 bg-black hover:bg-[#b33c00] text-white text-xs font-bold py-1.5 px-3 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+              className="w-full min-h-11 md:min-h-9 mt-2 bg-black hover:bg-[#b33c00] text-white text-xs font-bold py-1.5 md:py-1 px-3 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
             >
               <span>View On Block Explorer</span>
               <ExternalLink size={12} />
@@ -597,7 +597,7 @@ export default function ClusterFlowGraph({
                   </div>
                   <div className="flex justify-between text-[#555555]">
                     <span>Lifetime Gas:</span>
-                    <span className="font-bold text-[#ff5500]">{formatCompactUSD(inspectorNode.totalGasUSD || 0)}</span>
+                    <span className="font-bold text-orange-ink">{formatCompactUSD(inspectorNode.totalGasUSD || 0)}</span>
                   </div>
                   <div className="flex justify-between text-[#555555]">
                     <span>Inflow Depth:</span>
@@ -607,7 +607,7 @@ export default function ClusterFlowGraph({
               ) : (
                 <div className="flex justify-between text-[#555555]">
                   <span>Shared Overlap:</span>
-                  <span className="font-bold text-[#3b82f6]">Used by {inspectorNode.sharedCount} wallets</span>
+                  <span className="font-bold text-[#1d4ed8]">Used by {inspectorNode.sharedCount} wallets</span>
                 </div>
               )}
             </div>
@@ -616,7 +616,7 @@ export default function ClusterFlowGraph({
               <button
                 type="button"
                 onClick={() => onInspectWallet(inspectorNode.address)}
-                className="w-full min-h-11 mt-2 bg-black hover:bg-[#b33c00] text-white text-xs font-bold py-1.5 px-3 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                className="w-full min-h-11 md:min-h-9 mt-2 bg-black hover:bg-[#b33c00] text-white text-xs font-bold py-1.5 md:py-1 px-3 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
               >
                 <span>Deep Dive Single Scan</span>
                 <ArrowRight size={12} />
@@ -627,7 +627,7 @@ export default function ClusterFlowGraph({
       </div>
 
       <details className="card-3d mt-3 p-3 text-xs text-[#0a0a0a]">
-        <summary className="min-h-11 cursor-pointer py-3 font-bold">Accessible cluster graph data</summary>
+        <summary className="min-h-11 md:min-h-9 cursor-pointer py-3 md:py-2 font-bold">Accessible cluster graph data</summary>
         <div className="mt-2 grid gap-4 border-t border-[#c8c8c8] pt-3 lg:grid-cols-2">
           <div>
             <h3 className="font-black">Wallets and shared hubs</h3>
@@ -639,7 +639,7 @@ export default function ClusterFlowGraph({
                     <button
                       type="button"
                       onClick={() => onInspectWallet(node.address)}
-                      className="btn-3d-neutral min-h-11 px-3 py-2 font-bold"
+                      className="btn-3d-neutral min-h-11 md:min-h-9 px-3 py-2 md:py-1.5 font-bold"
                     >
                       Inspect {node.name}
                     </button>

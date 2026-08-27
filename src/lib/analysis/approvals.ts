@@ -41,7 +41,7 @@ export function analyzeApprovals(
         existing.currentPriceUSD = 1.0;
         existing.provenance = 'stablecoin_assumption';
       } else {
-        const coingeckoId = resolveCoingeckoId(cAddr, t.tokenSymbol);
+        const coingeckoId = resolveCoingeckoId(cAddr);
         if (coingeckoId) {
           const quote = getCachedCurrentPriceQuote(coingeckoId);
           existing.currentPriceUSD = quote.priceUSD;

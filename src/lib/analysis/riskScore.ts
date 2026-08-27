@@ -6,6 +6,7 @@ import {
   ProcessedTransaction,
 } from '../types';
 import { RISK_MODEL, scoreToRiskGrade } from './riskModel';
+import { formatNativeTokenValue } from '../utils/dashboardUtils';
 
 export function computeRiskScore(
   approvalSummary: ApprovalSummary,
@@ -59,7 +60,7 @@ export function computeRiskScore(
     factors.push({
       label: `${(failedRatio * 100).toFixed(1)}% Failed Transactions`,
       impact: failedImpact,
-      description: `${gasSummary.failedTransactionCount} of ${gasSummary.transactionCount} transactions failed, wasting ${gasSummary.failedGasETH.toFixed(4)} ETH (~$${gasSummary.failedGasUSD.toFixed(2)}) in gas.`,
+      description: `${gasSummary.failedTransactionCount} of ${gasSummary.transactionCount} transactions failed, wasting ${formatNativeTokenValue(gasSummary.failedGasETH)} (~$${gasSummary.failedGasUSD.toFixed(2)}) in gas.`,
       severity: failedRatio > 0.15 ? 'warning' : 'info',
     });
   }

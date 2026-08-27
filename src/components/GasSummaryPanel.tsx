@@ -4,6 +4,7 @@ import React from 'react';
 import { ScanResult } from '@/lib/types';
 import { getChainConfig } from '@/lib/chains';
 import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, PieChart, Pie, Cell } from 'recharts';
+import { formatCategoryLabel, formatFiatUSD, formatNativeTokenValue } from '@/lib/utils/dashboardUtils';
 
 interface Props {
   results: ScanResult[];
@@ -59,21 +60,21 @@ export default function GasSummaryPanel({ results }: Props) {
   };
 
   const categoryData = Array.from(categoryMap.entries()).map(([name, value]) => ({
-    name: name.toUpperCase(),
-    value: Math.round(value),
+    name: formatCategoryLabel(name),
+    value,
     color: categoryColors[name.toLowerCase()] || '#777777',
   }));
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 md:space-y-5">
       {/* ── Top Metrics ── */}
-      <div className="grid grid-cols-1 border-y border-[#c8c8c8] sm:grid-cols-3 sm:divide-x sm:divide-[#c8c8c8]">
-        <div className="space-y-1 border-b border-[#c8c8c8] px-0 py-4 text-[#0a0a0a] sm:border-b-0 sm:px-5">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <div className="card-3d space-y-1 p-4 text-[#0a0a0a] sm:p-5 lg:p-4">
           <div className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider">
             TOTAL GAS CONSUMPTION
           </div>
           <div className="text-3xl font-black text-[#0a0a0a] font-mono">
-            {totalGasETH >= 10 ? totalGasETH.toFixed(2) : totalGasETH.toFixed(4)} ETH
+            {formatNativeTokenValue(totalGasETH, 'ETH')}
           </div>
           <div className="text-xs font-bold text-[#4b5563] font-mono">
             ≈ ${totalGasUSD.toLocaleString('en-US', { maximumFractionDigits: 0 })} USD
@@ -83,27 +84,27 @@ export default function GasSummaryPanel({ results }: Props) {
           </div>
         </div>
 
-        <div className="space-y-1 border-b border-[#c8c8c8] px-0 py-4 text-[#0a0a0a] sm:border-b-0 sm:px-5">
+        <div className="card-3d space-y-1 p-4 text-[#0a0a0a] sm:p-5 lg:p-4">
           <div className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider">
             FAILED TRANSACTIONS BURN
           </div>
           <div className="text-3xl font-black text-[#dc2626] font-mono">
-            {failedGasETH.toFixed(4)} ETH
+            {formatNativeTokenValue(failedGasETH, 'ETH')}
           </div>
           <div className="text-xs font-bold text-[#4b5563] font-mono">
             {failedTxsCount} failed txs (≈ ${failedGasUSD.toFixed(2)} lost)
           </div>
         </div>
 
-        <div className="space-y-1 px-0 py-4 text-[#0a0a0a] sm:px-5">
+        <div className="card-3d space-y-1 p-4 text-[#0a0a0a] sm:p-5 lg:p-4">
           <div className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider">
             ACTIVE NETWORKS
           </div>
-          <div className="text-3xl font-black text-[#ff5500] font-mono">
+          <div className="text-3xl font-black text-orange-ink font-mono">
             {results.length} Chains
           </div>
           <div className="text-xs font-bold text-[#4b5563] font-mono">
-            Ethereum, L2 Rollups & Sidechains
+            Ethereum and L2 rollups
           </div>
         </div>
       </div>
@@ -113,17 +114,17 @@ export default function GasSummaryPanel({ results }: Props) {
         <span className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider block">
           GAS SPENT BY NETWORK
         </span>
-        <div className="grid grid-cols-2 border-y border-[#c8c8c8] sm:grid-cols-5 sm:divide-x sm:divide-[#c8c8c8]">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {results.map(r => {
             const nativeSymbol = getChainConfig(r.chainId)?.nativeToken?.symbol || 'ETH';
             return (
-              <div key={r.chainId} className="space-y-1 border-b border-[#c8c8c8] px-0 py-3.5 text-[#0a0a0a] sm:border-b-0 sm:px-3.5">
+              <div key={r.chainId} className="card-3d space-y-1 p-4 text-[#0a0a0a]">
                 <div className="flex justify-between items-center text-xs font-bold">
                   <span className="text-[#0a0a0a]">{r.chainName}</span>
                   <span className="btn-3d-neutral font-mono text-[9px] px-1.5 py-0.2">{r.transactionCount} txs</span>
                 </div>
                 <div className="text-base font-black text-[#0a0a0a] font-mono">
-                  {(r.gasSummary?.totalGasETH || 0).toFixed(4)} {nativeSymbol}
+                  {formatNativeTokenValue(r.gasSummary?.totalGasETH, nativeSymbol)}
                 </div>
                 <div className="text-[11px] font-bold text-[#4b5563] font-mono">
                   ≈ ${(r.gasSummary?.totalGasUSD || 0).toFixed(2)}
@@ -135,7 +136,7 @@ export default function GasSummaryPanel({ results }: Props) {
       </div>
 
       {/* ── Charts Grid (Gas Over Time & Gas By Category) ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 pt-2">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-5 pt-2">
         
         {/* Bar Chart: Gas Spent Over Time */}
         <div className="lg:col-span-7 space-y-3">
@@ -143,6 +144,14 @@ export default function GasSummaryPanel({ results }: Props) {
             GAS SPENT OVER TIME (USD)
           </span>
           <div className="h-64 card-3d p-4">
+            <div className="sr-only">
+              <h3>Gas spent over time data</h3>
+              {chartData.length > 0 ? (
+                <ul>
+                  {chartData.map(entry => <li key={entry.month}>{entry.month}: {formatFiatUSD(entry.gasUSD)}</li>)}
+                </ul>
+              ) : <p>No historical gas data.</p>}
+            </div>
             {chartData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
@@ -169,6 +178,14 @@ export default function GasSummaryPanel({ results }: Props) {
             GAS BY CATEGORY
           </span>
           <div className="h-64 card-3d p-4 flex flex-col justify-between">
+            <div className="sr-only">
+              <h3>Gas by category data</h3>
+              {categoryData.length > 0 ? (
+                <ul>
+                  {categoryData.map(entry => <li key={entry.name}>{entry.name}: {formatFiatUSD(entry.value)}</li>)}
+                </ul>
+              ) : <p>No gas category data.</p>}
+            </div>
             <div className="h-40">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -192,7 +209,7 @@ export default function GasSummaryPanel({ results }: Props) {
                     <span className="w-2 h-2 flex-shrink-0 rounded-full" style={{ backgroundColor: c.color }} />
                     <span className="text-[#374151] truncate">{c.name}</span>
                   </div>
-                  <span className="font-mono text-[#0a0a0a]">${c.value}</span>
+                  <span className="font-mono text-[#0a0a0a]">{formatFiatUSD(c.value)}</span>
                 </div>
               ))}
             </div>

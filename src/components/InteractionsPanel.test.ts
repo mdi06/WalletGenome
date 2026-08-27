@@ -63,4 +63,42 @@ describe('Protocol interaction network rendering', () => {
     assert.match(markup, /Base/);
     assert.match(markup, /https:\/\/basescan\.org\/address\/0x68b346/);
   });
+
+  it('renders tiny non-zero protocol gas without displaying zero', () => {
+    const result = chainResult(1);
+    result.interactionsSummary.topProtocols[0].totalGasNative = 0.00000042;
+    result.interactionsSummary.topProtocols[0].totalGasUSD = 0.001;
+
+    const markup = renderToStaticMarkup(createElement(InteractionsPanel, { results: [result] }));
+
+    assert.match(markup, /&lt;0\.0001 ETH/);
+    assert.match(markup, /≈ &lt;\$0\.01/);
+    assert.doesNotMatch(markup, /≈ \$0\.00/);
+    assert.doesNotMatch(markup, /0\.0000 ETH/);
+  });
+
+  it('turns an Other protocol result into an actionable unclassified breakdown', () => {
+    const result = chainResult(1);
+    const unknownProtocol = result.interactionsSummary.topProtocols[0];
+    unknownProtocol.name = 'Contract (0x9999...9999)';
+    unknownProtocol.protocol = 'Other';
+    unknownProtocol.category = 'contract_interaction';
+    unknownProtocol.txCount = 3;
+    unknownProtocol.contracts = [{
+      ...unknownProtocol.contracts[0],
+      name: 'Contract (0x9999...9999)',
+      contractAddress: '0x9999999999999999999999999999999999999999',
+      txCount: 3,
+    }];
+
+    const markup = renderToStaticMarkup(createElement(InteractionsPanel, { results: [result] }));
+
+    assert.match(markup, /Unclassified contracts/);
+    assert.match(markup, /Largest category: Contract calls/);
+    assert.match(markup, /3 calls across 1 unclassified contracts/);
+    assert.match(markup, /3 calls · 1 contract/);
+    assert.match(markup, /Contract calls/);
+    assert.doesNotMatch(markup, /contract_interaction/);
+    assert.match(markup, /not mapped to a named protocol/);
+  });
 });

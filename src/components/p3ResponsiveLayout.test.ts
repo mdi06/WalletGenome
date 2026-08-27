@@ -11,9 +11,11 @@ const readSource = (relativePath: string) => readFileSync(new URL(relativePath, 
 describe('P3 mobile layout contracts', () => {
   it('keeps the page shell and header from widening narrow viewports', () => {
     const pageSource = readSource('../app/page.tsx');
+    const headerSource = readSource('./SiteHeader.tsx');
 
     assert.match(pageSource, /<main className="[^"]*min-w-0[^"]*overflow-x-clip/);
-    assert.match(pageSource, /<header className="[^"]*flex-wrap/);
+    assert.match(headerSource, /<header className="[^"]*flex-col[^"]*md:flex-row/);
+    assert.match(headerSource, /className="[^"]*w-full[^"]*min-w-0[^"]*items-center[^"]*justify-between[^"]*md:w-auto/);
   });
 
   it('keeps the primary wallet scan action full-width on small screens', () => {
@@ -24,6 +26,18 @@ describe('P3 mobile layout contracts', () => {
 
     assert.match(markup, /aria-label="Scan wallet address"[^>]*class="[^"]*w-full[^"]*sm:w-auto/);
     assert.match(markup, /aria-label="Select target EVM networks"[^>]*class="[^"]*w-full/);
+    assert.match(markup, /class="card-3d[^"]*min-h-\[232px\][^"]*md:min-h-0/);
+    assert.match(markup, /class="card-3d[^"]*flex-col[^"]*items-center[^"]*justify-center[^"]*md:justify-between/);
+    assert.match(markup, /well-recessed-light[^"]*w-full[^"]*max-w-\[288px\][^"]*md:max-w-none[^"]*md:flex-1/);
+    assert.match(markup, /aria-label="Select target EVM networks"[^>]*class="[^"]*max-w-\[288px\][^"]*justify-center[^"]*md:w-auto[^"]*md:max-w-none[^"]*md:justify-end/);
+  });
+
+  it('keeps scan modes equal-width on mobile and hides decorative cluster metadata', () => {
+    const pageSource = readSource('../app/page.tsx');
+
+    assert.match(pageSource, /className="grid grid-cols-2 gap-2[^"]*md:flex/);
+    assert.match(pageSource, /min-h-11 min-w-0 w-full justify-center/);
+    assert.match(pageSource, /badge-brand-orange hidden[^"]*md:inline-flex">New/);
   });
 
   it('renders the wallet search input empty by default', () => {

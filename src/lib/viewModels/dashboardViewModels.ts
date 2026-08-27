@@ -100,13 +100,13 @@ export function buildClusterSummary(data: ClusterScanResult) {
   const topHubOverlapPct = topHub && total > 0 ? Math.round((topHub.sharedCount / total) * 100) : 0;
 
   let coordinationLevel: 'HIGH COORDINATION CLUSTER' | 'MODERATE OVERLAP' | 'INDEPENDENT PORTFOLIO';
-  let coordinationColor = 'bg-[#059669]/10 text-[#059669] border-[#059669]/30';
+  let coordinationColor = 'bg-[#059669]/10 text-[#047857] border-[#059669]/30';
   if (directTransfers >= 5 || topHubOverlapPct >= 75) {
     coordinationLevel = 'HIGH COORDINATION CLUSTER';
-    coordinationColor = 'bg-[#ff5500]/10 text-[#ff5500] border-[#ff5500]/30';
+    coordinationColor = 'bg-[#ff5500]/10 text-orange-ink border-[#ff5500]/30';
   } else if (directLinks > 0 || topHubOverlapPct >= 40) {
     coordinationLevel = 'MODERATE OVERLAP';
-    coordinationColor = 'bg-[#f59e0b]/10 text-[#f59e0b] border-[#f59e0b]/30';
+    coordinationColor = 'bg-[#f59e0b]/10 text-[#92400e] border-[#f59e0b]/30';
   } else {
     coordinationLevel = 'INDEPENDENT PORTFOLIO';
   }

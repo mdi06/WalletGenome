@@ -46,7 +46,7 @@ export default function ProgressBar({ message, progress, scan }: ProgressBarProp
     : 'Live updates active';
 
   return (
-    <div className="card-3d p-6 text-[#0a0a0a] space-y-5 animate-fade-in-up" aria-busy="true">
+    <div className="card-3d p-6 lg:p-5 text-[#0a0a0a] space-y-5 animate-fade-in-up" aria-busy="true">
       
       {/* ── Top Status Header & Spinning Radar Wheel ── */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -65,7 +65,7 @@ export default function ProgressBar({ message, progress, scan }: ProgressBarProp
           <div className="space-y-0.5">
             <div className="flex items-center gap-2">
               <span className="led-live" />
-              <span className="text-[10px] font-mono font-extrabold tracking-widest text-[#ff5500] uppercase">
+              <span className="text-[10px] font-mono font-extrabold tracking-widest text-orange-ink uppercase">
                 ACTIVE MULTI-CHAIN PIPELINE
               </span>
             </div>

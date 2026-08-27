@@ -7,12 +7,13 @@ import BulkScanInput from '@/components/BulkScanInput';
 import ProgressBar from '@/components/ProgressBar';
 import WelcomeGuide from '@/components/WelcomeGuide';
 import { SUPPORTED_CHAIN_IDS } from '@/lib/chains';
-import Link from 'next/link';
-import { HelpCircle, LayoutDashboard, Search, Layers, BookOpen, Zap } from 'lucide-react';
+import { HelpCircle, LayoutDashboard, Search, Layers, Zap } from 'lucide-react';
 import { useWalletScanner } from '@/hooks/useWalletScanner';
 import { getNextTabIndex } from '@/lib/accessibility/tabs';
 import DemoSnapshotNotice from '@/components/DemoSnapshotNotice';
-import { getIndexingStatus, shouldShowDemoSnapshotNotice, type IndexingStatus } from '@/lib/indexingStatus';
+import { getIndexingStatus, shouldShowDemoSnapshotNotice } from '@/lib/indexingStatus';
+import SiteHeader from '@/components/SiteHeader';
+import LoadedScanSummary from '@/components/LoadedScanSummary';
 
 const Dashboard = dynamic(() => import('@/components/Dashboard'), {
   loading: () => (
@@ -34,33 +35,6 @@ const BulkDashboard = dynamic(() => import('@/components/BulkDashboard'), {
 
 const SCAN_MODES = ['single', 'cluster'] as const;
 
-const INDEXING_STATUS_PRESENTATION: Record<IndexingStatus, {
-  label: string;
-  dotClassName: string;
-  badgeClassName: string;
-}> = {
-  live: {
-    label: 'Live',
-    dotClassName: 'led-live',
-    badgeClassName: 'bg-[#ff5500] text-white',
-  },
-  'saved-snapshot': {
-    label: 'Saved snapshot',
-    dotClassName: 'led-clean',
-    badgeClassName: 'bg-[#059669] text-white',
-  },
-  partial: {
-    label: 'Partial',
-    dotClassName: 'led-warn',
-    badgeClassName: 'bg-[#f59e0b] text-[#0a0a0a]',
-  },
-  unavailable: {
-    label: 'Unavailable',
-    dotClassName: 'h-2 w-2 border border-white/80 bg-[#dc2626] shadow-[0_0_6px_#dc2626]',
-    badgeClassName: 'bg-[#dc2626] text-white',
-  },
-};
-
 export default function Home() {
   const {
     scanMode,
@@ -68,6 +42,7 @@ export default function Home() {
     singleResult,
     currentAddress,
     setCurrentAddress,
+    singleChainIds,
     activeDemoSnapshot,
     clusterResult,
     isLoading,
@@ -81,6 +56,7 @@ export default function Home() {
     handleDemoSnapshot,
     handleClusterScan
   } = useWalletScanner();
+  const [isScanEditorOpen, setIsScanEditorOpen] = React.useState(false);
 
   const indexingStatus = getIndexingStatus({
     scanMode,
@@ -89,11 +65,20 @@ export default function Home() {
     clusterStatus: clusterResult?.status ?? null,
     hasError: Boolean(error),
   });
-  const indexingStatusPresentation = INDEXING_STATUS_PRESENTATION[indexingStatus];
-
   const handleInspectFromCluster = (address: string) => {
+    setIsScanEditorOpen(false);
     setCurrentAddress(address);
     handleSingleScan(address, [...SUPPORTED_CHAIN_IDS]);
+  };
+
+  const handleSetScanMode = (mode: 'single' | 'cluster') => {
+    setIsScanEditorOpen(false);
+    setScanMode(mode);
+  };
+
+  const handleSingleScanFromForm = (address: string, chainIds: number[]) => {
+    setIsScanEditorOpen(false);
+    void handleSingleScan(address, chainIds);
   };
 
   const handleScanModeKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
@@ -101,73 +86,42 @@ export default function Home() {
     if (nextIndex === null) return;
     event.preventDefault();
     const nextMode = SCAN_MODES[nextIndex];
-    setScanMode(nextMode);
+    handleSetScanMode(nextMode);
     document.getElementById(`scan-mode-${nextMode}-tab`)?.focus();
   };
 
   return (
-    <main className="min-w-0 overflow-x-clip max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-5 sm:space-y-6">
-      {/* ── Top Brand Header ── */}
-      <header className="flex flex-wrap items-center justify-between gap-3">
-        <button
-          type="button"
-          onClick={() => setShowGuide(true)}
-          className="flex min-h-11 min-w-0 items-center text-left cursor-pointer group transition-transform active:scale-95"
-          aria-label="WalletGenome Home"
-        >
-          <span className="text-xl sm:text-2xl font-black tracking-tight text-black font-sans uppercase">
-            WALLET<span className="text-[#ff5500]">.</span>GENOME
-          </span>
-        </button>
-
-        <div className="flex w-full min-w-0 flex-wrap items-center justify-between gap-2 sm:w-auto sm:justify-end">
-          {/* How It Works Toggle */}
-          {(singleResult || clusterResult) && (
-            <button
-              type="button"
-              onClick={() => setShowGuide(!showGuide)}
-              className="btn-3d-neutral min-h-11 text-[#0a0a0a] text-xs font-bold px-3 py-1.5 flex items-center gap-1.5 cursor-pointer"
-            >
-              {showGuide ? (
-                <>
-                  <LayoutDashboard size={13} className="text-[#ff5500]" />
-                  <span>VIEW DASHBOARD</span>
-                </>
-              ) : (
-                <>
-                  <HelpCircle size={13} className="text-[#ff5500]" />
-                  <span>HOW IT WORKS</span>
-                </>
-              )}
-            </button>
-          )}
-
-          {/* Docs / Methodology Link */}
-          <Link
-            href="/docs"
-            className="btn-3d-neutral min-h-11 text-[#0a0a0a] text-xs font-bold px-3 py-1.5 flex items-center gap-1.5 cursor-pointer"
+    <main className="min-w-0 overflow-x-clip max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-5 sm:space-y-6 lg:space-y-5">
+      <SiteHeader
+        activePage="scanner"
+        indexingStatus={indexingStatus}
+        onBrandClick={showGuide ? undefined : () => setShowGuide(true)}
+        contextAction={(singleResult || clusterResult) ? (
+          <button
+            type="button"
+            onClick={() => setShowGuide(!showGuide)}
+            className="btn-3d-neutral min-h-11 inline-flex w-full items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-bold text-[#0a0a0a] cursor-pointer md:min-h-9 md:w-auto md:justify-start md:py-1"
           >
-            <BookOpen size={13} className="text-[#ff5500]" />
-            <span className="hidden sm:inline">Docs / methodology</span>
-            <span className="sm:hidden">Docs</span>
-          </Link>
-
-          <span
-            className={`badge-3d min-h-10 text-[11px] font-bold tracking-wider px-3 py-1.5 flex items-center gap-1.5 ${indexingStatusPresentation.badgeClassName}`}
-            role="status"
-            aria-label={`Indexing status: ${indexingStatusPresentation.label}`}
-          >
-            <span aria-hidden="true" className={indexingStatusPresentation.dotClassName} />
-            <span>{indexingStatusPresentation.label}</span>
-          </span>
-        </div>
-      </header>
+            {showGuide ? (
+              <>
+                <LayoutDashboard size={13} className="text-orange-ink" />
+                <span>VIEW DASHBOARD</span>
+              </>
+            ) : (
+              <>
+                <HelpCircle size={13} className="text-orange-ink" />
+                <span>HOW IT WORKS</span>
+              </>
+            )}
+          </button>
+        ) : undefined}
+      />
 
       {/* ── Product promise stays directly above the primary scan task ── */}
       {showGuide && (
         <section aria-labelledby="main-hero-title" className="text-center space-y-2 max-w-3xl mx-auto pt-2 pb-1">
           <div className="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-mono font-bold text-[#4b5563]">
-            <Zap size={13} className="text-[#ff5500]" />
+            <Zap size={13} className="text-orange-ink" />
             <span>Multi-chain behavioral forensics</span>
           </div>
           <h1 id="main-hero-title" className="text-2xl sm:text-4xl md:text-5xl font-black text-[#0a0a0a] tracking-tight leading-tight font-sans text-balance">
@@ -185,7 +139,7 @@ export default function Home() {
         <div
           role="tablist"
           aria-label="Forensics Scan Mode"
-          className="horizontal-scroll-region flex items-center gap-2.5 overflow-x-auto border-b border-[#c8c8c8] pb-2.5"
+          className="grid grid-cols-2 gap-2 border-b border-[#c8c8c8] pb-2.5 md:flex md:items-center md:gap-2.5"
         >
           <button
             id="scan-mode-single-tab"
@@ -195,8 +149,8 @@ export default function Home() {
             tabIndex={scanMode === 'single' ? 0 : -1}
             onKeyDown={handleScanModeKeyDown}
             type="button"
-            onClick={() => setScanMode('single')}
-            className={`min-h-11 px-4 py-2 text-xs font-black uppercase tracking-wider flex items-center gap-2 cursor-pointer ${
+            onClick={() => handleSetScanMode('single')}
+            className={`min-h-11 min-w-0 w-full justify-center px-2 py-2 text-center text-xs font-black uppercase leading-tight tracking-wider flex items-center gap-2 cursor-pointer md:min-h-9 md:w-auto md:flex-none md:justify-start md:px-3 md:py-1.5 md:text-left ${
               scanMode === 'single'
                 ? 'btn-3d-black text-white'
                 : 'btn-3d-neutral text-[#4b5563] hover:text-black'
@@ -214,8 +168,8 @@ export default function Home() {
             tabIndex={scanMode === 'cluster' ? 0 : -1}
             onKeyDown={handleScanModeKeyDown}
             type="button"
-            onClick={() => setScanMode('cluster')}
-            className={`min-h-11 px-4 py-2 text-xs font-black uppercase tracking-wider flex items-center gap-2 cursor-pointer ${
+            onClick={() => handleSetScanMode('cluster')}
+            className={`min-h-11 min-w-0 w-full justify-center px-2 py-2 text-center text-xs font-black uppercase leading-tight tracking-wider flex items-center gap-2 cursor-pointer md:min-h-9 md:w-auto md:flex-none md:justify-start md:px-3 md:py-1.5 md:text-left ${
               scanMode === 'cluster'
                 ? 'btn-3d-black text-white'
                 : 'btn-3d-neutral text-[#4b5563] hover:text-black'
@@ -223,7 +177,7 @@ export default function Home() {
           >
             <Layers size={13} className={scanMode === 'cluster' ? 'text-[#ff5500]' : ''} />
             <span>Cluster scan</span>
-            <span className="text-[9px] px-1.5 py-0.2 bg-[#ff5500] text-white font-mono shadow-sm">New</span>
+            <span className="badge-brand-orange hidden text-[9px] px-1.5 py-0.2 font-mono shadow-sm md:inline-flex">New</span>
           </button>
         </div>
 
@@ -235,6 +189,14 @@ export default function Home() {
           <div id="scan-mode-cluster-panel" role="tabpanel" aria-labelledby="scan-mode-cluster-tab" hidden />
         )}
         {scanMode === 'single' ? (
+          !showGuide && singleResult && !isLoading && !isScanEditorOpen ? (
+            <LoadedScanSummary
+              address={currentAddress || singleResult.address}
+              chainIds={singleChainIds}
+              evidenceMode={indexingStatus}
+              onEdit={() => setIsScanEditorOpen(true)}
+            />
+          ) : (
           <div
             id="scan-mode-single-panel"
             role="tabpanel"
@@ -242,12 +204,14 @@ export default function Home() {
             className="space-y-2"
           >
             <WalletInput
-              key={currentAddress || 'wallet-input'}
-              onScan={handleSingleScan}
+              key={`${currentAddress || 'wallet-input'}-${singleChainIds.join('-')}`}
+              onScan={handleSingleScanFromForm}
               isLoading={isLoading}
               initialAddress={currentAddress}
+              initialChainIds={singleChainIds}
             />
           </div>
+          )
         ) : (
           <div
             id="scan-mode-cluster-panel"
@@ -286,7 +250,11 @@ export default function Home() {
         <DemoSnapshotNotice
           demo={activeDemoSnapshot}
           isLoading={isLoading}
-          onRunFreshScan={() => void handleSingleScan(activeDemoSnapshot.address, [...SUPPORTED_CHAIN_IDS])}
+          data={singleResult ?? undefined}
+          onRunFreshScan={() => {
+            setIsScanEditorOpen(false);
+            void handleSingleScan(activeDemoSnapshot.address, [...SUPPORTED_CHAIN_IDS]);
+          }}
         />
       )}
 
@@ -298,7 +266,7 @@ export default function Home() {
       {!showGuide && !isLoading && (
         <>
           {scanMode === 'single' && singleResult && (
-            <Dashboard data={singleResult} />
+            <Dashboard data={singleResult} showStatusPanel={!activeDemoSnapshot} />
           )}
 
           {scanMode === 'cluster' && clusterResult && (

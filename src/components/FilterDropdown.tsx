@@ -149,10 +149,10 @@ export default function FilterDropdown<T extends string | number>({
           onOpenChange(!isOpen);
         }}
         onKeyDown={handleTriggerKeyDown}
-        className={`inline-flex min-h-11 w-full items-center justify-between gap-3 border-2 border-[#0a0a0a] px-3 text-left text-xs font-bold text-[#0a0a0a] outline-none transition-[background-color,box-shadow,transform] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#ff5500] ${
+        className={`inline-flex min-h-11 md:min-h-9 w-full items-center justify-between gap-3 border border-[#b8bbc3] px-3 text-left text-xs font-bold text-[#0a0a0a] outline-none transition-[background-color,box-shadow,transform] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#963300] ${
           isOpen
-            ? 'bg-[#f3f3f3] shadow-none translate-x-[1px] translate-y-[1px]'
-            : 'bg-white shadow-[2px_2px_0_#c8c8c8] hover:bg-[#f3f3f3]'
+            ? 'border-[#0a0a0a] bg-[#f3f3f3] shadow-none translate-x-[1px] translate-y-[1px]'
+            : 'bg-white shadow-[1px_1px_0_#d3d5db] hover:bg-[#f3f3f3]'
         }`}
       >
         <span>{selectedOption?.label ?? 'Select an option'}</span>
@@ -164,7 +164,7 @@ export default function FilterDropdown<T extends string | number>({
           id={listboxId}
           role="listbox"
           aria-label={ariaLabel}
-          className="absolute left-0 top-full z-50 mt-1 max-h-64 w-full min-w-[14rem] overflow-y-auto border-2 border-[#0a0a0a] bg-white p-1 shadow-[4px_4px_0_#0a0a0a]"
+          className="absolute left-0 top-full z-50 mt-1 max-h-64 w-full min-w-[14rem] overflow-y-auto border border-[#b8bbc3] bg-white p-1 shadow-[2px_2px_0_#c8c8c8]"
         >
           {options.map((option, index) => {
             const isSelected = option.value === value;
@@ -183,8 +183,8 @@ export default function FilterDropdown<T extends string | number>({
                 onClick={() => selectOption(index)}
                 onKeyDown={event => handleOptionKeyDown(event, index)}
                 onMouseEnter={() => setHighlightedIndex(index)}
-                  className={`flex min-h-11 w-full items-center justify-between gap-3 px-3 text-left text-xs font-bold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#ff5500] ${
-                  isHighlighted ? 'bg-[#ff5500] text-white' : 'text-[#0a0a0a] hover:bg-[#ff5500] hover:text-white'
+                  className={`flex min-h-11 md:min-h-9 w-full items-center justify-between gap-3 px-3 text-left text-xs font-bold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-[#963300] ${
+                  isHighlighted ? 'bg-[#ff5500] text-[#0a0a0a]' : 'text-[#0a0a0a] hover:bg-[#ff5500] hover:text-[#0a0a0a]'
                 }`}
               >
                 <span>{option.label}</span>

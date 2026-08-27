@@ -100,7 +100,7 @@ export default async function SeoLandingPage({ params }: LandingPageProps) {
 
       <article className="space-y-8">
         <section className="card-3d p-6 sm:p-10 space-y-5">
-          <p className="text-xs font-mono font-black tracking-wider text-[#ff5500]">{page.eyebrow}</p>
+          <p className="text-xs font-mono font-black tracking-wider text-orange-ink">{page.eyebrow}</p>
           <h1 className="max-w-4xl text-3xl sm:text-5xl font-black uppercase tracking-tight leading-tight text-[#0a0a0a]">
             {page.heading}
           </h1>
@@ -108,7 +108,7 @@ export default async function SeoLandingPage({ params }: LandingPageProps) {
             {page.intro}
           </p>
           <div className="flex flex-wrap gap-3 pt-2">
-            <Link href="/" className="btn-3d-orange inline-flex min-h-11 items-center px-5 py-2.5 text-xs font-black text-white">
+            <Link href="/" className="btn-3d-orange inline-flex min-h-11 items-center px-5 py-2.5 text-xs font-black text-[#0a0a0a]">
               ANALYZE A PUBLIC WALLET
             </Link>
             <Link href="/docs" className="btn-3d-neutral inline-flex min-h-11 items-center px-5 py-2.5 text-xs font-black text-[#0a0a0a]">
