@@ -6,6 +6,7 @@ export type IndexingStatus = 'ready' | 'scanning' | 'completed' | 'saved' | 'par
 interface IndexingStatusInput {
   scanMode: ScanMode;
   activeDemoSnapshot: boolean;
+  activeClusterSnapshot?: boolean;
   singleStatus: DataAvailabilityStatus | null;
   clusterStatus: DataAvailabilityStatus | null;
   hasError: boolean;
@@ -29,6 +30,7 @@ export function shouldShowDemoSnapshotNotice({
 export function getIndexingStatus({
   scanMode,
   activeDemoSnapshot,
+  activeClusterSnapshot = false,
   singleStatus,
   clusterStatus,
   hasError,
@@ -36,6 +38,7 @@ export function getIndexingStatus({
 }: IndexingStatusInput): IndexingStatus {
   if (isLoading) return 'scanning';
   if (scanMode === 'single' && activeDemoSnapshot) return 'saved';
+  if (scanMode === 'cluster' && activeClusterSnapshot) return 'saved';
 
   const selectedStatus = scanMode === 'single' ? singleStatus : clusterStatus;
   

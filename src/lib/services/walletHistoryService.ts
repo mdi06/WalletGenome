@@ -16,14 +16,37 @@ import {
   EtherscanTokenTransfer,
   EtherscanTransaction,
 } from '@/lib/types';
+import { sharedCache } from '@/lib/cache';
+import { PERSISTENCE_POLICY } from '@/lib/persistencePolicy';
+import type { CacheSource } from '@/lib/types';
+import { throwIfAborted } from '@/lib/cancellation';
 
 const EXPLORER_HISTORY_BUDGET_MS = 150_000;
 const MORALIS_FALLBACK_BUDGET_MS = 60_000;
+const HISTORY_CACHE_VERSION = 'v1';
+
+export type HistoryDatasetName = 'transactions' | 'tokenTransfers' | 'internalTransactions';
+
+export interface HistoryDatasetCacheMetadata {
+  fetchedAt: number;
+  source: CacheSource;
+}
+
+export interface WalletHistoryCacheMetadata {
+  datasets: Partial<Record<HistoryDatasetName, HistoryDatasetCacheMetadata>>;
+}
 
 export interface WalletHistorySources {
   transactions: DataSourceResult<EtherscanTransaction>;
   tokenTransfers: DataSourceResult<EtherscanTokenTransfer>;
   internalTransactions: DataSourceResult<EtherscanInternalTransaction>;
+  cacheMetadata?: WalletHistoryCacheMetadata;
+}
+
+export interface WalletHistoryCacheOptions {
+  cacheReadEnabled?: boolean;
+  cacheWriteEnabled?: boolean;
+  signal?: AbortSignal;
 }
 
 type MoralisDatasetFetcher<T> = (
@@ -31,6 +54,7 @@ type MoralisDatasetFetcher<T> = (
   chainId: number,
   quotaBudget: MoralisQuotaBudget,
   maxDurationMs: number,
+  signal?: AbortSignal,
 ) => Promise<DataSourceResult<T> | null>;
 
 export interface WalletHistoryServiceOptions {
@@ -39,10 +63,101 @@ export interface WalletHistoryServiceOptions {
     address: string,
     chainId: number,
     apiKey: string,
+    signal?: AbortSignal,
   ) => Promise<WalletHistorySources>;
   moralisTransactionsFetcher?: MoralisDatasetFetcher<EtherscanTransaction>;
   moralisTokenTransfersFetcher?: MoralisDatasetFetcher<EtherscanTokenTransfer>;
   moralisInternalTransactionsFetcher?: MoralisDatasetFetcher<EtherscanInternalTransaction>;
+  cacheReadEnabled?: boolean;
+  cacheWriteEnabled?: boolean;
+  signal?: AbortSignal;
+}
+
+function historyCacheKey(
+  provider: 'explorer' | 'moralis',
+  address: string,
+  chainId: number,
+  dataset: HistoryDatasetName,
+): string {
+  return `wallet-analytics:${HISTORY_CACHE_VERSION}:history:${provider}:${address.toLowerCase()}:${chainId}:${dataset}`;
+}
+
+interface CachedDatasetResult<T> {
+  result: DataSourceResult<T> | null;
+  metadata?: HistoryDatasetCacheMetadata;
+}
+
+function unavailableDataset<T>(): DataSourceResult<T> {
+  return {
+    data: [],
+    status: 'unavailable',
+    errors: [{ code: 'provider_error', message: 'No fallback dataset was available.' }],
+  };
+}
+
+async function fetchDatasetWithCache<T>(
+  key: string,
+  fetcher: () => Promise<DataSourceResult<T> | null>,
+  cacheReadEnabled: boolean,
+  cacheWriteEnabled: boolean,
+  signal?: AbortSignal,
+): Promise<CachedDatasetResult<T>> {
+  throwIfAborted(signal);
+  if (cacheReadEnabled) {
+    const cached = await sharedCache.get<DataSourceResult<T>>(
+      key,
+      PERSISTENCE_POLICY.caches.historyDatasetTtlSeconds,
+      signal,
+    );
+    if (cached?.value.status === 'complete') {
+      return {
+        result: cached.value,
+        metadata: { fetchedAt: cached.fetchedAt, source: cached.source },
+      };
+    }
+  }
+
+  const result = await fetcher();
+  throwIfAborted(signal);
+  if (!result || result.status !== 'complete') return { result };
+
+  const fetchedAt = Date.now();
+  if (cacheWriteEnabled) {
+    await sharedCache.set(
+      key,
+      result,
+      PERSISTENCE_POLICY.caches.historyDatasetTtlSeconds,
+      fetchedAt,
+      signal,
+    );
+  }
+  return { result, metadata: { fetchedAt, source: 'live' } };
+}
+
+function historyMetadata(
+  datasets: Array<[HistoryDatasetName, HistoryDatasetCacheMetadata | undefined]>,
+): WalletHistoryCacheMetadata | undefined {
+  const entries = datasets.reduce<Partial<Record<HistoryDatasetName, HistoryDatasetCacheMetadata>>>(
+    (result, [dataset, metadata]) => {
+      if (metadata) result[dataset] = metadata;
+      return result;
+    },
+    {},
+  );
+  return Object.keys(entries).length > 0 ? { datasets: entries } : undefined;
+}
+
+function mergeHistoryMetadata(
+  primary: WalletHistoryCacheMetadata | undefined,
+  updates: Array<[HistoryDatasetName, HistoryDatasetCacheMetadata | undefined]>,
+): WalletHistoryCacheMetadata | undefined {
+  const datasets: Partial<Record<HistoryDatasetName, HistoryDatasetCacheMetadata>> = {
+    ...(primary?.datasets ?? {}),
+  };
+  for (const [dataset, metadata] of updates) {
+    if (metadata) datasets[dataset] = metadata;
+  }
+  return Object.keys(datasets).length > 0 ? { datasets } : undefined;
 }
 
 function mergeErrors<T>(
@@ -82,14 +197,47 @@ export async function fetchExplorerHistorySources(
   address: string,
   chainId: number,
   apiKey: string,
+  cacheOptions: WalletHistoryCacheOptions = {},
 ): Promise<WalletHistorySources> {
-  const options = { maxDurationMs: EXPLORER_HISTORY_BUDGET_MS };
+  const cacheReadEnabled = cacheOptions.cacheReadEnabled ?? !apiKey;
+  const cacheWriteEnabled = cacheOptions.cacheWriteEnabled ?? !apiKey;
+  const options = {
+    maxDurationMs: EXPLORER_HISTORY_BUDGET_MS,
+    signal: cacheOptions.signal,
+  };
   const [transactions, tokenTransfers, internalTransactions] = await Promise.all([
-    fetchNormalTransactions(address, chainId, apiKey, 1_000, options),
-    fetchTokenTransfers(address, chainId, apiKey, 1_000, options),
-    fetchInternalTransactions(address, chainId, apiKey, 500, options),
+    fetchDatasetWithCache(
+      historyCacheKey('explorer', address, chainId, 'transactions'),
+      () => fetchNormalTransactions(address, chainId, apiKey, 1_000, options),
+      cacheReadEnabled,
+      cacheWriteEnabled,
+      cacheOptions.signal,
+    ),
+    fetchDatasetWithCache(
+      historyCacheKey('explorer', address, chainId, 'tokenTransfers'),
+      () => fetchTokenTransfers(address, chainId, apiKey, 1_000, options),
+      cacheReadEnabled,
+      cacheWriteEnabled,
+      cacheOptions.signal,
+    ),
+    fetchDatasetWithCache(
+      historyCacheKey('explorer', address, chainId, 'internalTransactions'),
+      () => fetchInternalTransactions(address, chainId, apiKey, 500, options),
+      cacheReadEnabled,
+      cacheWriteEnabled,
+      cacheOptions.signal,
+    ),
   ]);
-  return { transactions, tokenTransfers, internalTransactions };
+  return {
+    transactions: transactions.result ?? unavailableDataset<EtherscanTransaction>(),
+    tokenTransfers: tokenTransfers.result ?? unavailableDataset<EtherscanTokenTransfer>(),
+    internalTransactions: internalTransactions.result ?? unavailableDataset<EtherscanInternalTransaction>(),
+    cacheMetadata: historyMetadata([
+      ['transactions', transactions.metadata],
+      ['tokenTransfers', tokenTransfers.metadata],
+      ['internalTransactions', internalTransactions.metadata],
+    ]),
+  };
 }
 
 export function isWalletHistoryComplete(history: WalletHistorySources): boolean {
@@ -103,8 +251,9 @@ function defaultMoralisTransactionsFetcher(
   chainId: number,
   quotaBudget: MoralisQuotaBudget,
   maxDurationMs: number,
+  signal?: AbortSignal,
 ): Promise<DataSourceResult<EtherscanTransaction> | null> {
-  return fetchMoralisTransactions(address, chainId, { quotaBudget, maxDurationMs });
+  return fetchMoralisTransactions(address, chainId, { quotaBudget, maxDurationMs, signal });
 }
 
 function defaultMoralisTokenTransfersFetcher(
@@ -112,8 +261,9 @@ function defaultMoralisTokenTransfersFetcher(
   chainId: number,
   quotaBudget: MoralisQuotaBudget,
   maxDurationMs: number,
+  signal?: AbortSignal,
 ): Promise<DataSourceResult<EtherscanTokenTransfer> | null> {
-  return fetchMoralisTokenTransfers(address, chainId, { quotaBudget, maxDurationMs });
+  return fetchMoralisTokenTransfers(address, chainId, { quotaBudget, maxDurationMs, signal });
 }
 
 function defaultMoralisInternalTransactionsFetcher(
@@ -121,8 +271,9 @@ function defaultMoralisInternalTransactionsFetcher(
   chainId: number,
   quotaBudget: MoralisQuotaBudget,
   maxDurationMs: number,
+  signal?: AbortSignal,
 ): Promise<DataSourceResult<EtherscanInternalTransaction> | null> {
-  return fetchMoralisInternalTransactions(address, chainId, { quotaBudget, maxDurationMs });
+  return fetchMoralisInternalTransactions(address, chainId, { quotaBudget, maxDurationMs, signal });
 }
 
 export async function fetchWalletHistorySources(
@@ -131,15 +282,23 @@ export async function fetchWalletHistorySources(
   etherscanApiKey = '',
   options: WalletHistoryServiceOptions = {},
 ): Promise<WalletHistorySources> {
-  const explorer = await (options.explorerFetcher ?? fetchExplorerHistorySources)(
-    address,
-    chainId,
-    etherscanApiKey,
-  );
+  const cacheReadEnabled = options.cacheReadEnabled ?? !options.explorerFetcher;
+  const cacheWriteEnabled = options.cacheWriteEnabled ?? !options.explorerFetcher;
+  const explorer = options.explorerFetcher
+    ? await options.explorerFetcher(address, chainId, etherscanApiKey, options.signal)
+    : await fetchExplorerHistorySources(address, chainId, etherscanApiKey, {
+      cacheReadEnabled,
+      cacheWriteEnabled,
+      signal: options.signal,
+    });
 
   // This is the core quota invariant: successful indexed explorers end the
   // provider pipeline without touching Moralis.
-  return applyWalletHistoryFallback(address, chainId, explorer, options);
+  return applyWalletHistoryFallback(address, chainId, explorer, {
+    ...options,
+    cacheReadEnabled,
+    cacheWriteEnabled,
+  });
 }
 
 export async function applyWalletHistoryFallback(
@@ -148,6 +307,7 @@ export async function applyWalletHistoryFallback(
   explorer: WalletHistorySources,
   options: Omit<WalletHistoryServiceOptions, 'explorerFetcher'> = {},
 ): Promise<WalletHistorySources> {
+  throwIfAborted(options.signal);
   // This is the core quota invariant: successful indexed explorers end the
   // provider pipeline without touching Moralis.
   if (isWalletHistoryComplete(explorer)) return explorer;
@@ -157,6 +317,8 @@ export async function applyWalletHistoryFallback(
   const tokenTransfersFetcher = options.moralisTokenTransfersFetcher ?? defaultMoralisTokenTransfersFetcher;
   const internalTransactionsFetcher = options.moralisInternalTransactionsFetcher
     ?? defaultMoralisInternalTransactionsFetcher;
+  const cacheReadEnabled = options.cacheReadEnabled ?? true;
+  const cacheWriteEnabled = options.cacheWriteEnabled ?? true;
   const fallbackDeadlineAt = Date.now() + MORALIS_FALLBACK_BUDGET_MS;
   const remainingFallbackBudgetMs = (): number => Math.max(0, fallbackDeadlineAt - Date.now());
 
@@ -165,29 +327,52 @@ export async function applyWalletHistoryFallback(
   // can starve normal wallet history while spending the same total allowance.
   const transactionsFallback = explorer.transactions.status === 'complete'
     ? null
-    : await transactionsFetcher(address, chainId, quotaBudget, remainingFallbackBudgetMs());
+    : await fetchDatasetWithCache(
+        historyCacheKey('moralis', address, chainId, 'transactions'),
+        () => transactionsFetcher(address, chainId, quotaBudget, remainingFallbackBudgetMs(), options.signal),
+        cacheReadEnabled,
+        cacheWriteEnabled,
+        options.signal,
+      );
   const tokenTransfersFallback = explorer.tokenTransfers.status === 'complete'
     ? null
-    : await tokenTransfersFetcher(address, chainId, quotaBudget, remainingFallbackBudgetMs());
+    : await fetchDatasetWithCache(
+        historyCacheKey('moralis', address, chainId, 'tokenTransfers'),
+        () => tokenTransfersFetcher(address, chainId, quotaBudget, remainingFallbackBudgetMs(), options.signal),
+        cacheReadEnabled,
+        cacheWriteEnabled,
+        options.signal,
+      );
   const internalTransactionsFallback = explorer.internalTransactions.status === 'complete'
     ? null
-    : await internalTransactionsFetcher(address, chainId, quotaBudget, remainingFallbackBudgetMs());
+    : await fetchDatasetWithCache(
+        historyCacheKey('moralis', address, chainId, 'internalTransactions'),
+        () => internalTransactionsFetcher(address, chainId, quotaBudget, remainingFallbackBudgetMs(), options.signal),
+        cacheReadEnabled,
+        cacheWriteEnabled,
+        options.signal,
+      );
 
   return {
     transactions: mergeIncompleteResults(
       explorer.transactions,
-      transactionsFallback,
+      transactionsFallback?.result ?? null,
       transaction => transaction.hash,
     ),
     tokenTransfers: mergeIncompleteResults(
       explorer.tokenTransfers,
-      tokenTransfersFallback,
+      tokenTransfersFallback?.result ?? null,
       transfer => `${transfer.hash}:${transfer.logIndex ?? ''}:${transfer.contractAddress}:${transfer.from}:${transfer.to}:${transfer.value}`,
     ),
     internalTransactions: mergeIncompleteResults(
       explorer.internalTransactions,
-      internalTransactionsFallback,
+      internalTransactionsFallback?.result ?? null,
       transaction => `${transaction.hash}:${transaction.traceId}:${transaction.from}:${transaction.to}:${transaction.value}`,
     ),
+    cacheMetadata: mergeHistoryMetadata(explorer.cacheMetadata, [
+      ['transactions', transactionsFallback?.metadata],
+      ['tokenTransfers', tokenTransfersFallback?.metadata],
+      ['internalTransactions', internalTransactionsFallback?.metadata],
+    ]),
   };
 }

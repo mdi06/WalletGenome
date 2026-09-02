@@ -1,0 +1,329 @@
+- generic [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e3]:
+      - button "Open WalletGenome guide" [ref=e240] [cursor=pointer]:
+        - generic [ref=e241]: WALLET.GENOME
+      - generic [ref=e7]:
+        - 'status "Indexing status: Saved snapshot" [ref=e242]':
+          - generic [ref=e10]: Saved snapshot
+        - generic [ref=e11]:
+          - button "HOW IT WORKS" [ref=e244] [cursor=pointer]
+          - navigation "Primary navigation" [ref=e12]:
+            - link "Scanner" [ref=e13] [cursor=pointer]:
+              - /url: /
+            - link "Docs / methodology" [ref=e18] [cursor=pointer]:
+              - /url: /docs
+    - region "Wallet Forensics Console" [ref=e29]:
+      - tablist "Forensics Scan Mode" [ref=e30]:
+        - tab "Single wallet" [selected] [ref=e31] [cursor=pointer]
+        - tab "Cluster scan New" [ref=e36] [cursor=pointer]:
+          - generic [ref=e41]: Cluster scan
+          - generic [ref=e42]: New
+      - tabpanel "Single wallet" [ref=e43]:
+        - region "Loaded scan summary" [ref=e249]:
+          - generic [ref=e250]:
+            - generic [ref=e251]:
+              - generic [ref=e252]: Loaded wallet scan
+              - generic [ref=e253]: Saved snapshot
+            - generic [ref=e254]:
+              - heading "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045" [level=2] [ref=e255]
+              - status [ref=e256]
+            - generic [ref=e258]:
+              - term [ref=e259]: "Networks:"
+              - definition [ref=e260]: Ethereum, Base, Arbitrum, Optimism
+          - button "Edit scan" [ref=e262] [cursor=pointer]
+    - region "Evidence status" [ref=e263]:
+      - generic [ref=e264]:
+        - generic [ref=e265]:
+          - paragraph [ref=e267]: Saved snapshot · Non-live
+          - paragraph [ref=e268]: Saved public data for Vitalik Buterin. Updated Aug 26, 2026. This view does not spend provider API quota.
+          - paragraph [ref=e269]: "History evidence: partial. Review data quality details below."
+        - button "Run fresh scan" [ref=e270] [cursor=pointer]
+      - group [ref=e271]:
+        - generic "Review data quality partial" [ref=e272] [cursor=pointer]:
+          - generic [ref=e273]: Review data quality
+          - generic [ref=e274]: partial
+    - generic [ref=e275]:
+      - generic "Dashboard sections; scroll horizontally for more tabs" [ref=e276]:
+        - tablist "Wallet dashboard sections" [ref=e277]:
+          - tab "BEHAVIORAL DNA" [ref=e278] [cursor=pointer]
+          - tab "FLOW GRAPH" [active] [selected] [ref=e280] [cursor=pointer]
+          - tab "PROTOCOLS 12" [ref=e282] [cursor=pointer]:
+            - generic [ref=e283]: PROTOCOLS
+            - generic [ref=e284]: "12"
+          - tab "GAS FEES" [ref=e285] [cursor=pointer]
+          - tab "TOP TOKEN TRANSFERS" [ref=e287] [cursor=pointer]
+          - tab "APPROVALS 2233" [ref=e289] [cursor=pointer]:
+            - generic [ref=e290]: APPROVALS
+            - generic [ref=e291]: "2233"
+      - tabpanel "FLOW GRAPH" [ref=e854]:
+        - generic [ref=e855]:
+          - region [ref=e856]:
+            - generic [ref=e857]:
+              - generic [ref=e858]:
+                - heading "Observed Priced Flow Summary" [level=3] [ref=e859]
+                - paragraph [ref=e860]: Historically priced native and token transfer legs returned by this incomplete scan.
+              - generic [ref=e861]: Incomplete lower bound
+            - generic [ref=e862]:
+              - generic [ref=e863]:
+                - generic [ref=e864]: Observed Priced Inflow
+                - generic [ref=e865]: $4.59B
+              - generic [ref=e866]:
+                - generic [ref=e867]: Observed Priced Outflow
+                - generic [ref=e868]: $96.29M
+              - generic [ref=e869]:
+                - generic [ref=e870]: Net Observed Priced Flow
+                - generic [ref=e871]: $4.50B
+            - generic [ref=e872]: Incomplete-history lower bound from 59,502 returned historically priced or stablecoin transfer values. 232 current-price estimates and 34,193 returned unpriced values are excluded. Missing history is unknown. These are transfer-volume lower bounds, not wallet balance, profit, or complete lifetime totals.
+          - region "MOST INTERACTED RECIPIENT WALLET" [ref=e873]:
+            - generic [ref=e882]:
+              - generic [ref=e883]:
+                - generic [ref=e884]: MOST INTERACTED RECIPIENT WALLET
+                - generic [ref=e885]: EOA WALLET
+              - generic [ref=e886]:
+                - generic [ref=e887]: "0xf2073f99968849f0a77ca76984cac76b6280d5a3"
+                - button "View 0xf2073f99968849f0a77ca76984cac76b6280d5a3 on block explorer" [ref=e888] [cursor=pointer]
+            - generic [ref=e893]:
+              - generic [ref=e894]:
+                - generic [ref=e895]: TRANSACTIONS SENT
+                - generic [ref=e896]: 6 TXS
+              - generic [ref=e897]:
+                - generic [ref=e898]: TOTAL CAPITAL SENT
+                - generic [ref=e899]: Unavailable
+                - generic [ref=e900]: USD value unavailable
+          - generic [ref=e901]:
+            - group "Minimum capital-flow volume filter" [ref=e902]:
+              - generic [ref=e903]: "Min Volume:"
+              - button "Show all capital flows" [pressed] [ref=e904] [cursor=pointer]: All
+              - button "Show capital flows of at least $100" [ref=e905] [cursor=pointer]: $100+
+              - button "Show capital flows of at least $500" [ref=e906] [cursor=pointer]: $500+
+              - button "Show capital flows of at least $2K" [ref=e907] [cursor=pointer]: $2K+
+              - button "Show capital flows of at least $10K" [ref=e908] [cursor=pointer]: $10K+
+            - group "Capital flow network filter" [ref=e909]:
+              - generic [ref=e910]: "Network:"
+              - button "Show capital flow data for All" [pressed] [ref=e911] [cursor=pointer]: All
+              - button "Show capital flow data for Ethereum" [ref=e912] [cursor=pointer]: Ethereum
+              - button "Show capital flow data for Arbitrum" [ref=e913] [cursor=pointer]: Arbitrum
+              - button "Show capital flow data for Base" [ref=e914] [cursor=pointer]: Base
+              - button "Show capital flow data for Optimism" [ref=e915] [cursor=pointer]: Optimism
+          - region [ref=e916]:
+            - generic [ref=e917]:
+              - generic [ref=e918]:
+                - heading "Capital Flow Graph" [level=3] [ref=e919]
+                - paragraph [ref=e920]: Primary flow view · scroll horizontally on narrow screens
+              - generic [ref=e921]: 23 nodes · 22 connections
+            - region "Capital flow graph visualization with 23 nodes and 22 connections; scroll horizontally for the full visual. Use the Accessible capital flow data section below to inspect nodes." [ref=e923]:
+              - generic [ref=e924]:
+                - generic [ref=e925]:
+                  - heading "Capital flow graph summary" [level=3] [ref=e926]
+                  - paragraph [ref=e927]: 23 nodes and 22 connections are shown for the selected filters.
+                  - list [ref=e928]:
+                    - listitem [ref=e929]: "inflow: Uniswap: V2 Router, 1872 transactions, $453.71K."
+                    - listitem [ref=e930]: "inflow: 0xff37...cedd, 3410 transactions, $6.03K."
+                    - listitem [ref=e931]: "inflow: 0x0000...45c4, 421 transactions, Unavailable."
+                    - listitem [ref=e932]: "inflow: 0x250f...65c2, 365 transactions, $617.40."
+                    - listitem [ref=e933]: "inflow: 0x7bec...195e, 358 transactions, $15.22K."
+                    - listitem [ref=e934]: "inflow: 0x2e38...9b8b, 268 transactions, $453.32."
+                    - listitem [ref=e935]: "inflow: 0x31a0...c93a, 254 transactions, Unavailable."
+                    - listitem [ref=e936]: "protocol: Other on Ethereum, 2997 transactions, $16.42M."
+                    - listitem [ref=e937]: "protocol: Uniswap on Ethereum, 2127 transactions, $4.90M."
+                    - listitem [ref=e938]: "protocol: ENS on Ethereum, 140 transactions, $77.99."
+                    - listitem [ref=e939]: "protocol: KyberSwap on Ethereum, 50 transactions, Unavailable."
+                    - listitem [ref=e940]: "protocol: 0x on Ethereum, 9 transactions, Unavailable."
+                    - listitem [ref=e941]: "protocol: 1inch on Ethereum, 3 transactions, Unavailable."
+                    - listitem [ref=e942]: "protocol: Other on Optimism, 28 transactions, $1.57M."
+                    - listitem [ref=e943]: "protocol: Uniswap on Optimism, 2 transactions, $20.56."
+                    - listitem [ref=e944]: "outflow: Uniswap: V2 Router, 2030 transactions, Unavailable."
+                    - listitem [ref=e945]: "outflow: 0xff37...cedd, 1 transactions, Unavailable."
+                    - listitem [ref=e946]: "outflow: 0x0000...45c4, 0 transactions, $0."
+                    - listitem [ref=e947]: "outflow: 0x250f...65c2, 0 transactions, $0."
+                    - listitem [ref=e948]: "outflow: 0x7bec...195e, 0 transactions, $0."
+                    - listitem [ref=e949]: "outflow: 0x2e38...9b8b, 0 transactions, $0."
+                    - listitem [ref=e950]: "outflow: 0x31a0...c93a, 0 transactions, $0."
+                - img [ref=e951]:
+                  - generic [ref=e953]: INFLOW SOURCES (CEX / WALLETS)
+                  - generic [ref=e954]: DEFI PROTOCOLS & CORE WALLET
+                  - generic [ref=e955]: OUTFLOW DESTINATIONS
+                  - generic [ref=e1022]:
+                    - generic [ref=e1024]: Your Wallet
+                    - generic [ref=e1025]: 0xd8da...6045
+                  - generic [ref=e1026]:
+                    - generic [ref=e1028]: "Uniswap: V2 …"
+                    - generic [ref=e1029]: $453.71K · 1872 txs
+                  - generic [ref=e1030]:
+                    - generic [ref=e1032]: 0xff37...cedd
+                    - generic [ref=e1033]: $6.03K · 3410 txs
+                  - generic [ref=e1034]:
+                    - generic [ref=e1036]: 0x0000...45c4
+                    - generic [ref=e1037]: Unavailable · 421 txs
+                  - generic [ref=e1038]:
+                    - generic [ref=e1040]: 0x250f...65c2
+                    - generic [ref=e1041]: $617.40 · 365 txs
+                  - generic [ref=e1042]:
+                    - generic [ref=e1044]: 0x7bec...195e
+                    - generic [ref=e1045]: $15.22K · 358 txs
+                  - generic [ref=e1046]:
+                    - generic [ref=e1048]: 0x2e38...9b8b
+                    - generic [ref=e1049]: $453.32 · 268 txs
+                  - generic [ref=e1050]:
+                    - generic [ref=e1052]: 0x31a0...c93a
+                    - generic [ref=e1053]: Unavailable · 254 txs
+                  - generic [ref=e1054]:
+                    - generic [ref=e1056]: Other
+                    - generic [ref=e1057]: Ethereum
+                    - generic [ref=e1058]: $16.42M · 2997 txs
+                  - generic [ref=e1059]:
+                    - generic [ref=e1061]: Uniswap
+                    - generic [ref=e1062]: Ethereum
+                    - generic [ref=e1063]: $4.90M · 2127 txs
+                  - generic [ref=e1064]:
+                    - generic [ref=e1066]: ENS
+                    - generic [ref=e1067]: Ethereum
+                    - generic [ref=e1068]: $77.99 · 140 txs
+                  - generic [ref=e1069]:
+                    - generic [ref=e1071]: KyberSwap
+                    - generic [ref=e1072]: Ethereum
+                    - generic [ref=e1073]: Unavailable · 50 txs
+                  - generic [ref=e1074]:
+                    - generic [ref=e1076]: 0x
+                    - generic [ref=e1077]: Ethereum
+                    - generic [ref=e1078]: Unavailable · 9 txs
+                  - generic [ref=e1079]:
+                    - generic [ref=e1081]: 1inch
+                    - generic [ref=e1082]: Ethereum
+                    - generic [ref=e1083]: Unavailable · 3 txs
+                  - generic [ref=e1084]:
+                    - generic [ref=e1086]: Other
+                    - generic [ref=e1087]: Optimism
+                    - generic [ref=e1088]: $1.57M · 28 txs
+                  - generic [ref=e1089]:
+                    - generic [ref=e1091]: Uniswap
+                    - generic [ref=e1092]: Optimism
+                    - generic [ref=e1093]: $20.56 · 2 txs
+                  - generic [ref=e1094]:
+                    - generic [ref=e1096]: "Uniswap: V2 …"
+                    - generic [ref=e1097]: Unavailable · 2030 txs
+                  - generic [ref=e1098]:
+                    - generic [ref=e1100]: 0xff37...cedd
+                    - generic [ref=e1101]: Unavailable · 1 txs
+                  - generic [ref=e1102]:
+                    - generic [ref=e1104]: 0x0000...45c4
+                    - generic [ref=e1105]: $0 · 0 txs
+                  - generic [ref=e1106]:
+                    - generic [ref=e1108]: 0x250f...65c2
+                    - generic [ref=e1109]: $0 · 0 txs
+                  - generic [ref=e1110]:
+                    - generic [ref=e1112]: 0x7bec...195e
+                    - generic [ref=e1113]: $0 · 0 txs
+                  - generic [ref=e1114]:
+                    - generic [ref=e1116]: 0x2e38...9b8b
+                    - generic [ref=e1117]: $0 · 0 txs
+                  - generic [ref=e1118]:
+                    - generic [ref=e1120]: 0x31a0...c93a
+                    - generic [ref=e1121]: $0 · 0 txs
+          - group [ref=e1122]:
+            - generic "Accessible capital flow data" [ref=e1123] [cursor=pointer]
+          - generic [ref=e1124]:
+            - generic [ref=e1125]:
+              - generic [ref=e1126]:
+                - generic [ref=e1127]: TOP RECIPIENT WALLETS (MOST SENT TO)
+                - generic [ref=e1131]: 1 EOA Wallets
+              - region "Capital inflows table; scroll horizontally for all columns" [ref=e1132]:
+                - table [ref=e1133]:
+                  - rowgroup [ref=e1134]:
+                    - row [ref=e1135]:
+                      - columnheader "#" [ref=e1136]
+                      - columnheader "RECIPIENT WALLET" [ref=e1137]
+                      - columnheader "TXS SENT" [ref=e1138]
+                      - columnheader "VOLUME" [ref=e1139]
+                      - columnheader "ACTION" [ref=e1140]
+                  - rowgroup [ref=e1141]:
+                    - row [ref=e1142]:
+                      - cell "1" [ref=e1143]
+                      - cell "0xf207...d5a3" [ref=e1144]
+                      - cell "6 txs" [ref=e1146]
+                      - cell "Unavailable" [ref=e1147]
+                      - cell [ref=e1148]:
+                        - button "View on Explorer" [ref=e1149] [cursor=pointer]
+            - generic [ref=e1154]:
+              - generic [ref=e1155]:
+                - generic [ref=e1156]: TOP FUNDING WALLETS (MOST RECEIVED FROM)
+                - generic [ref=e1160]: 144 Senders
+              - region "Capital outflows table; scroll horizontally for all columns" [ref=e1161]:
+                - table [ref=e1162]:
+                  - rowgroup [ref=e1163]:
+                    - row [ref=e1164]:
+                      - columnheader "#" [ref=e1165]
+                      - columnheader "SENDER WALLET" [ref=e1166]
+                      - columnheader "TXS RECEIVED" [ref=e1167]
+                      - columnheader "VOLUME" [ref=e1168]
+                      - columnheader "ACTION" [ref=e1169]
+                  - rowgroup [ref=e1170]:
+                    - row [ref=e1171]:
+                      - cell "1" [ref=e1172]
+                      - cell "0xdff4...3ec0" [ref=e1173]
+                      - cell "6707 txs" [ref=e1175]
+                      - cell "Unavailable" [ref=e1176]
+                      - cell [ref=e1177]:
+                        - button "View on Explorer" [ref=e1178] [cursor=pointer]
+                    - row [ref=e1183]:
+                      - cell "2" [ref=e1184]
+                      - cell "0xb52f...70ed" [ref=e1185]
+                      - cell "2424 txs" [ref=e1187]
+                      - cell "Unavailable" [ref=e1188]
+                      - cell [ref=e1189]:
+                        - button "View on Explorer" [ref=e1190] [cursor=pointer]
+                    - row [ref=e1195]:
+                      - cell "3" [ref=e1196]
+                      - cell "0xbb42...3ecd" [ref=e1197]
+                      - cell "1938 txs" [ref=e1199]
+                      - cell "Unavailable" [ref=e1200]
+                      - cell [ref=e1201]:
+                        - button "View on Explorer" [ref=e1202] [cursor=pointer]
+                    - row [ref=e1207]:
+                      - cell "4" [ref=e1208]
+                      - cell "0xdbc4...d6bb" [ref=e1209]
+                      - cell "1087 txs" [ref=e1211]
+                      - cell "Unavailable" [ref=e1212]
+                      - cell [ref=e1213]:
+                        - button "View on Explorer" [ref=e1214] [cursor=pointer]
+                    - row [ref=e1219]:
+                      - cell "5" [ref=e1220]
+                      - cell "0x1e08...afaa" [ref=e1221]
+                      - cell "643 txs" [ref=e1223]
+                      - cell "Unavailable" [ref=e1224]
+                      - cell [ref=e1225]:
+                        - button "View on Explorer" [ref=e1226] [cursor=pointer]
+                    - row [ref=e1231]:
+                      - cell "6" [ref=e1232]
+                      - cell "0x21e9...14ba" [ref=e1233]
+                      - cell "591 txs" [ref=e1235]
+                      - cell "$0.000" [ref=e1236]
+                      - cell [ref=e1237]:
+                        - button "View on Explorer" [ref=e1238] [cursor=pointer]
+                    - row [ref=e1243]:
+                      - cell "7" [ref=e1244]
+                      - cell "0xd29d...23f4" [ref=e1245]
+                      - cell "486 txs" [ref=e1247]
+                      - cell "Unavailable" [ref=e1248]
+                      - cell [ref=e1249]:
+                        - button "View on Explorer" [ref=e1250] [cursor=pointer]
+  - contentinfo [ref=e227]:
+    - generic [ref=e228]:
+      - generic [ref=e229]:
+        - paragraph [ref=e230]: WalletGenome
+        - paragraph [ref=e231]: Read-only, evidence-aware EVM wallet analytics. No wallet connection or signature required.
+      - navigation "Wallet analytics topics" [ref=e232]:
+        - link "Methodology" [ref=e233] [cursor=pointer]:
+          - /url: /docs
+        - link "EVM Wallet Analytics" [ref=e234] [cursor=pointer]:
+          - /url: /evm-wallet-analytics
+        - link "Crypto Wallet Risk Checker" [ref=e235] [cursor=pointer]:
+          - /url: /crypto-wallet-risk-checker
+        - link "Token Approval Checker" [ref=e236] [cursor=pointer]:
+          - /url: /token-approval-checker
+        - link "Sybil Wallet Analysis" [ref=e237] [cursor=pointer]:
+          - /url: /sybil-wallet-analysis
+        - link "Multi-Chain Wallet Forensics" [ref=e238] [cursor=pointer]:
+          - /url: /multi-chain-wallet-forensics
+  - alert [ref=e239]

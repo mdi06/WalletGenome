@@ -1,0 +1,61 @@
+- generic [active] [ref=f5e1]:
+  - main [ref=f5e2]:
+    - generic [ref=f5e3]:
+      - generic [ref=f5e4]:
+        - button "Open WalletGenome guide" [ref=f5e5] [cursor=pointer]:
+          - generic [ref=f5e6]: WALLET.GENOME
+        - button "Open navigation" [ref=f5e7] [cursor=pointer]
+      - 'status "Indexing status: Saved snapshot" [ref=f5e10]':
+        - generic [ref=f5e12]: Saved snapshot
+    - region "Wallet Forensics Console" [ref=f5e13]:
+      - tablist "Forensics Scan Mode" [ref=f5e14]:
+        - tab "Single wallet" [selected] [ref=f5e15] [cursor=pointer]
+        - tab "Cluster scan" [ref=f5e20] [cursor=pointer]
+      - tabpanel "Single wallet" [ref=f5e26]:
+        - region "Loaded scan summary" [ref=f5e27]:
+          - generic [ref=f5e28]:
+            - generic [ref=f5e29]:
+              - generic [ref=f5e30]: Loaded wallet scan
+              - generic [ref=f5e31]: Saved snapshot
+            - generic [ref=f5e32]:
+              - heading "0xd8dA6B…A96045" [level=2] [ref=f5e33]
+              - generic [ref=f5e34]:
+                - button "View full wallet address" [ref=f5e35] [cursor=pointer]:
+                  - generic [ref=f5e39]: Full address
+                - button "Copy wallet address" [ref=f5e40] [cursor=pointer]
+              - status [ref=f5e44]
+            - generic [ref=f5e46]:
+              - term [ref=f5e47]: "Networks:"
+              - definition [ref=f5e48]: Ethereum, Base, Arbitrum, Optimism
+          - button "Edit scan" [ref=f5e50] [cursor=pointer]
+    - region "Evidence status" [ref=f5e51]:
+      - generic [ref=f5e52]:
+        - generic [ref=f5e53]:
+          - paragraph [ref=f5e55]: Saved snapshot · Non-live
+          - paragraph [ref=f5e56]: Saved public data for Vitalik Buterin. Updated Aug 26, 2026. This view does not spend provider API quota.
+          - paragraph [ref=f5e57]: "History evidence: partial. Review data quality details below."
+        - button "Run fresh scan" [ref=f5e58] [cursor=pointer]
+      - group [ref=f5e59]:
+        - generic "Review data quality partial" [ref=f5e60] [cursor=pointer]:
+          - generic [ref=f5e61]: Review data quality
+          - generic [ref=f5e62]: partial
+    - generic [ref=f5e63]: Rendering Multi-Chain Forensic Dashboard...
+  - contentinfo [ref=f5e64]:
+    - generic [ref=f5e65]:
+      - generic [ref=f5e66]:
+        - paragraph [ref=f5e67]: WalletGenome
+        - paragraph [ref=f5e68]: Read-only, evidence-aware EVM wallet analytics. No wallet connection or signature required.
+      - navigation "Wallet analytics topics" [ref=f5e69]:
+        - link "Methodology" [ref=f5e70] [cursor=pointer]:
+          - /url: /docs
+        - link "EVM Wallet Analytics" [ref=f5e71] [cursor=pointer]:
+          - /url: /evm-wallet-analytics
+        - link "Crypto Wallet Risk Checker" [ref=f5e72] [cursor=pointer]:
+          - /url: /crypto-wallet-risk-checker
+        - link "Token Approval Checker" [ref=f5e73] [cursor=pointer]:
+          - /url: /token-approval-checker
+        - link "Sybil Wallet Analysis" [ref=f5e74] [cursor=pointer]:
+          - /url: /sybil-wallet-analysis
+        - link "Multi-Chain Wallet Forensics" [ref=f5e75] [cursor=pointer]:
+          - /url: /multi-chain-wallet-forensics
+  - alert [ref=f5e76]

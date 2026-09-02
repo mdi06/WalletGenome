@@ -1,22 +1,13 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
+// Both app-wide font choices live in ./fonts.ts.
+import { mainFont, monoFont } from "./fonts";
 import JsonLd, { type JsonLdObject } from "@/components/JsonLd";
 import SiteFooter from "@/components/SiteFooter";
 import { absoluteUrl, getSiteUrl, SITE_DESCRIPTION, SITE_NAME } from "@/lib/seo";
 import { WebVitals } from "@/components/WebVitals";
+import BackgroundNodes from "@/components/BackgroundNodes";
+import CursorGlow from "@/components/CursorGlow";
 import "./globals.css";
-
-const inter = Inter({
-  subsets: ["latin"],
-  display: "swap",
-  variable: "--font-sans",
-});
-
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ["latin"],
-  display: "swap",
-  variable: "--font-mono",
-});
 
 export const metadata: Metadata = {
   metadataBase: getSiteUrl(),
@@ -94,10 +85,12 @@ const applicationJsonLd: JsonLdObject = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`}>
+    <html lang="en" className={`${mainFont.variable} ${monoFont.variable}`}>
       <body className="bg-[#ebebeb] text-[#0a0a0a] antialiased font-sans selection:bg-[#ff5500] selection:text-[#0a0a0a]">
         <WebVitals />
         <JsonLd data={applicationJsonLd} />
+        <BackgroundNodes />
+        <CursorGlow />
         {children}
         <SiteFooter />
       </body>

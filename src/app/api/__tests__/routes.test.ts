@@ -254,4 +254,44 @@ describe('ENS Resolution & API Route Integration Tests', () => {
     }
   });
 
+  it('returns a disconnect status without leaving in-flight scan rejection unhandled', async () => {
+    resetRequestPolicyForTests();
+    const fetchMock = mock.method(globalThis, 'fetch', async (_input: string | URL | Request, init?: RequestInit) => (
+      new Promise<Response>((resolve, reject) => {
+        const timer = setTimeout(() => resolve(new Response(JSON.stringify({
+          status: '0',
+          message: 'No transactions found',
+          result: [],
+        }), { status: 200, headers: { 'Content-Type': 'application/json' } })), 1_000);
+        const onAbort = () => {
+          clearTimeout(timer);
+          const error = new Error('aborted');
+          error.name = 'AbortError';
+          reject(error);
+        };
+        if (init?.signal?.aborted) onAbort();
+        else init?.signal?.addEventListener('abort', onAbort, { once: true });
+      })
+    ));
+    const requestController = new AbortController();
+
+    try {
+      const pending = scanPOST(new NextRequest('http://localhost/api/scan', {
+        method: 'POST',
+        signal: requestController.signal,
+        body: JSON.stringify({
+          address: '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+          chainIds: [1],
+        }),
+      }));
+      await new Promise(resolve => setTimeout(resolve, 10));
+      requestController.abort();
+      const response = await pending;
+      assert.strictEqual(response.status, 499);
+    } finally {
+      fetchMock.mock.restore();
+      resetRequestPolicyForTests();
+    }
+  });
+
 });

@@ -1,4 +1,5 @@
 import { getDomainLimiter } from './cache';
+import { abortableDelay, linkAbortSignal, throwIfAborted } from './cancellation';
 import {
   DataSourceResult,
   EtherscanInternalTransaction,
@@ -22,6 +23,7 @@ type MoralisFetcher = (
   url: string,
   apiKey: string,
   timeoutMs: number,
+  signal?: AbortSignal,
 ) => Promise<Response>;
 
 export interface MoralisFetchOptions {
@@ -33,6 +35,7 @@ export interface MoralisFetchOptions {
   maxPages?: number;
   maxDurationMs?: number;
   backoffBaseMs?: number;
+  signal?: AbortSignal;
 }
 
 interface MoralisPage {
@@ -257,20 +260,29 @@ function dedupeBy<T>(records: T[], keyFor: (record: T) => string): T[] {
   return [...unique.values()];
 }
 
-async function defaultFetcher(url: string, apiKey: string, timeoutMs: number): Promise<Response> {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+async function defaultFetcher(
+  url: string,
+  apiKey: string,
+  timeoutMs: number,
+  parentSignal?: AbortSignal,
+): Promise<Response> {
+  throwIfAborted(parentSignal);
+  const linked = linkAbortSignal(parentSignal);
+  const timeoutId = setTimeout(() => linked.controller.abort(), timeoutMs);
   try {
-    return await fetch(url, {
+    const response = await fetch(url, {
       headers: {
         Accept: 'application/json',
         'User-Agent': 'WalletGenome/2.0',
         'X-API-Key': apiKey,
       },
-      signal: controller.signal,
+      signal: linked.signal,
     });
+    throwIfAborted(parentSignal);
+    return response;
   } finally {
     clearTimeout(timeoutId);
+    linked.dispose();
   }
 }
 
@@ -278,8 +290,8 @@ function providerErrorCode(error: unknown): ProviderErrorCode {
   return error instanceof Error && error.name === 'AbortError' ? 'timeout' : 'provider_error';
 }
 
-function sleep(ms: number): Promise<void> {
-  return ms > 0 ? new Promise(resolve => setTimeout(resolve, ms)) : Promise.resolve();
+function sleep(ms: number, signal?: AbortSignal): Promise<void> {
+  return abortableDelay(ms, signal);
 }
 
 async function responseBody(response: Response): Promise<string> {
@@ -292,11 +304,13 @@ async function fetchMoralisPage(
   computeUnits: number,
   quotaBudget: MoralisQuotaBudget,
   options: Required<Pick<MoralisFetchOptions,
-    'fetcher' | 'requestTimeoutMs' | 'maxAttempts' | 'backoffBaseMs'>>,
+    'fetcher' | 'requestTimeoutMs' | 'maxAttempts' | 'backoffBaseMs'>>
+    & Pick<MoralisFetchOptions, 'signal'>,
 ): Promise<{ page: MoralisPage | null; code?: ProviderErrorCode; message?: string }> {
   const limiter = getDomainLimiter(MORALIS_HOSTNAME, 4);
 
   for (let attempt = 1; attempt <= options.maxAttempts; attempt += 1) {
+    throwIfAborted(options.signal);
     if (quotaBudget.blocked) {
       return {
         page: null,
@@ -313,7 +327,7 @@ async function fetchMoralisPage(
     }
 
     try {
-      const acquired = await limiter.acquire(5_000);
+      const acquired = await limiter.acquire(5_000, options.signal);
       if (!acquired) {
         return {
           page: null,
@@ -322,7 +336,8 @@ async function fetchMoralisPage(
         };
       }
 
-      const response = await options.fetcher(url, apiKey, options.requestTimeoutMs);
+      const response = await options.fetcher(url, apiKey, options.requestTimeoutMs, options.signal);
+      throwIfAborted(options.signal);
       if (!response.ok) {
         const body = (await responseBody(response)).toLowerCase();
         const quotaExhausted = body.includes('quota')
@@ -338,7 +353,7 @@ async function fetchMoralisPage(
           const retryAfterSeconds = Number(response.headers.get('retry-after'));
           await sleep(Number.isFinite(retryAfterSeconds)
             ? Math.max(0, retryAfterSeconds * 1000)
-            : attempt * options.backoffBaseMs);
+            : attempt * options.backoffBaseMs, options.signal);
           continue;
         }
         return {
@@ -351,6 +366,7 @@ async function fetchMoralisPage(
       }
 
       const payload: unknown = await response.json().catch(() => null);
+      throwIfAborted(options.signal);
       const record = asRecord(payload);
       if (!record || !Array.isArray(record.result)) {
         return {
@@ -367,8 +383,9 @@ async function fetchMoralisPage(
       const cursor = typeof rawCursor === 'string' && rawCursor.length > 0 ? rawCursor : null;
       return { page: { records, cursor } };
     } catch (error) {
+      throwIfAborted(options.signal);
       if (attempt < options.maxAttempts) {
-        await sleep(attempt * options.backoffBaseMs);
+        await sleep(attempt * options.backoffBaseMs, options.signal);
         continue;
       }
       return {
@@ -393,6 +410,7 @@ async function fetchMoralisDataset<T>(
   keyFor: (record: T) => string,
   options: MoralisFetchOptions = {},
 ): Promise<DataSourceResult<T> | null> {
+  throwIfAborted(options.signal);
   const apiKey = getMoralisApiKey(options.apiKey);
   if (!apiKey) return null;
 
@@ -415,6 +433,7 @@ async function fetchMoralisDataset<T>(
   let failure: { code: ProviderErrorCode; message: string } | null = null;
 
   for (let page = 1; page <= maxPages; page += 1) {
+    throwIfAborted(options.signal);
     if (Date.now() >= deadlineAt) {
       failure = {
         code: 'result_truncated',
@@ -435,7 +454,7 @@ async function fetchMoralisDataset<T>(
       apiKey,
       spec.computeUnits,
       quotaBudget,
-      { fetcher, requestTimeoutMs, maxAttempts, backoffBaseMs },
+      { fetcher, requestTimeoutMs, maxAttempts, backoffBaseMs, signal: options.signal },
     );
     if (!result.page) {
       failure = {

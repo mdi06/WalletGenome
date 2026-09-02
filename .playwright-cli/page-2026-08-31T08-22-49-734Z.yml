@@ -1,0 +1,1046 @@
+- generic [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e3]:
+      - button "Open WalletGenome guide" [ref=e239] [cursor=pointer]:
+        - generic [ref=e240]: WALLET.GENOME
+      - generic [ref=e7]:
+        - 'status "Indexing status: Saved snapshot" [ref=e241]':
+          - generic [ref=e10]: Saved snapshot
+        - generic [ref=e11]:
+          - button "HOW IT WORKS" [ref=e243] [cursor=pointer]
+          - navigation "Primary navigation" [ref=e12]:
+            - link "Scanner" [ref=e13] [cursor=pointer]:
+              - /url: /
+            - link "Docs / methodology" [ref=e18] [cursor=pointer]:
+              - /url: /docs
+    - region "Wallet Forensics Console" [ref=e29]:
+      - tablist "Forensics Scan Mode" [ref=e30]:
+        - tab "Single wallet" [selected] [ref=e31] [cursor=pointer]
+        - tab "Cluster scan New" [ref=e36] [cursor=pointer]:
+          - generic [ref=e41]: Cluster scan
+          - generic [ref=e42]: New
+      - region "Loaded scan summary" [ref=e248]:
+        - generic [ref=e249]:
+          - generic [ref=e250]:
+            - generic [ref=e251]: Loaded wallet scan
+            - generic [ref=e252]: Saved snapshot
+          - generic [ref=e253]:
+            - heading "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045" [level=2] [ref=e254]
+            - status [ref=e255]
+          - generic [ref=e257]:
+            - term [ref=e258]: "Networks:"
+            - definition [ref=e259]: Ethereum, Base, Arbitrum, Optimism
+        - button "Edit scan" [ref=e261] [cursor=pointer]
+    - region "Evidence status" [ref=e262]:
+      - generic [ref=e263]:
+        - generic [ref=e264]:
+          - paragraph [ref=e266]: Saved snapshot · Non-live
+          - paragraph [ref=e267]: Saved public data for Vitalik Buterin. Updated Aug 26, 2026. This view does not spend provider API quota.
+          - paragraph [ref=e268]: "History evidence: partial. Review data quality details below."
+        - button "Run fresh scan" [ref=e269] [cursor=pointer]
+      - group [ref=e270]:
+        - generic "Review data quality partial" [ref=e271] [cursor=pointer]:
+          - generic [ref=e272]: Review data quality
+          - generic [ref=e273]: partial
+    - generic [ref=e274]:
+      - generic "Dashboard sections; scroll horizontally for more tabs" [ref=e275]:
+        - tablist "Wallet dashboard sections" [ref=e276]:
+          - tab "BEHAVIORAL DNA" [ref=e277] [cursor=pointer]
+          - tab "FLOW GRAPH" [ref=e279] [cursor=pointer]
+          - tab "PROTOCOLS 12" [ref=e281] [cursor=pointer]:
+            - generic [ref=e282]: PROTOCOLS
+            - generic [ref=e283]: "12"
+          - tab "GAS FEES" [ref=e284] [cursor=pointer]
+          - tab "TOP TOKEN TRANSFERS" [ref=e286] [cursor=pointer]
+          - tab "APPROVALS 2233" [active] [selected] [ref=e288] [cursor=pointer]:
+            - generic [ref=e289]: APPROVALS
+            - generic [ref=e290]: "2233"
+      - tabpanel "APPROVALS 2233" [ref=e853]:
+        - generic [ref=e854]:
+          - generic [ref=e855]:
+            - generic [ref=e856]:
+              - generic [ref=e857]: EST. APPROVAL EXPOSURE
+              - generic [ref=e858]: Unavailable
+              - generic [ref=e859]: Balance-capped; see per-row provenance.
+            - generic [ref=e860]:
+              - generic [ref=e861]: TOTAL ACTIVE PERMISSIONS
+              - generic [ref=e862]: "2233"
+            - generic [ref=e863]:
+              - generic [ref=e864]: HIGH-RISK SPENDERS
+              - generic [ref=e865]: "18"
+              - generic [ref=e866]: Count, not USD exposure.
+            - generic [ref=e867]:
+              - generic [ref=e868]: UNLIMITED ALLOWANCES
+              - generic [ref=e869]: "2167"
+          - region "Approval table controls" [ref=e870]:
+            - generic [ref=e871]:
+              - generic [ref=e872]:
+                - generic [ref=e873]: Search approvals
+                - searchbox "Search approvals" [ref=e878]
+              - generic [ref=e879]:
+                - generic [ref=e880]: Risk
+                - combobox "Risk" [ref=e881] [cursor=pointer]:
+                  - generic [ref=e882]: All risk levels
+              - generic [ref=e885]:
+                - generic [ref=e886]: Chain
+                - combobox "Chain" [ref=e887] [cursor=pointer]:
+                  - generic [ref=e888]: All chains
+            - generic [ref=e891]:
+              - paragraph [ref=e892]: Showing 1–50 of 2233 matching approvals
+              - generic [ref=e893]:
+                - button "Previous approvals page" [disabled] [ref=e894]
+                - generic "Approvals page 1 of 45" [ref=e897]: Page 1 of 45
+                - button "Next approvals page" [ref=e898] [cursor=pointer]
+          - status [ref=e901]
+          - region "Token approvals table; showing 1 to 50 of 2233 matching approvals; scroll horizontally for all columns" [ref=e902]:
+            - table [ref=e903]:
+              - rowgroup [ref=e904]:
+                - row [ref=e905]:
+                  - columnheader "TOKEN" [ref=e906]
+                  - columnheader "CHAIN" [ref=e907]
+                  - columnheader "SPENDER DAPP" [ref=e908]
+                  - columnheader "ALLOWANCE" [ref=e909]
+                  - columnheader "EST. EXPOSURE" [ref=e910]
+                  - columnheader "RISK LEVEL" [ref=e911]
+                  - columnheader "LAST UPDATED" [ref=e912]
+                  - columnheader "SPENDER ACTION" [ref=e913]
+              - rowgroup [ref=e914]:
+                - row [ref=e915]:
+                  - cell "??? Token contract 0xa1b014878d47c0836ed79163ddec55985adb7023 View token contract 0xa1b014878d47c0836ed79163ddec55985adb7023 on block explorer Copy token contract 0xa1b014878d47c0836ed79163ddec55985adb7023" [ref=e916]:
+                    - generic [ref=e917]: "???"
+                    - generic [ref=e918]:
+                      - generic "Token contract 0xa1b014878d47c0836ed79163ddec55985adb7023" [ref=e919]: 0xa1b0...7023
+                      - link "View token contract 0xa1b014878d47c0836ed79163ddec55985adb7023 on block explorer" [ref=e921] [cursor=pointer]:
+                        - /url: https://etherscan.io/address/0xa1b014878d47c0836ed79163ddec55985adb7023
+                      - button "Copy token contract 0xa1b014878d47c0836ed79163ddec55985adb7023" [ref=e926] [cursor=pointer]
+                  - cell "Ethereum" [ref=e930]
+                  - cell "0xc92e...0110" [ref=e931]
+                  - cell "UNLIMITED (∞)" [ref=e933]
+                  - cell "Unavailable (balance or price unknown)" [ref=e934]
+                  - cell "high" [ref=e935]
+                  - cell "29/08/2025" [ref=e936]
+                  - cell [ref=e937]:
+                    - link "View spender contract 0xc92e8bdf79f0507f65a392b0ab4667716bfe0110 on block explorer" [ref=e938] [cursor=pointer]:
+                      - /url: https://etherscan.io/address/0xc92e8bdf79f0507f65a392b0ab4667716bfe0110
+                - row [ref=e943]:
+                  - cell "??? Token contract 0x11a001dc777f5bf8a5d63f246664d3bb67be496c View token contract 0x11a001dc777f5bf8a5d63f246664d3bb67be496c on block explorer Copy token contract 0x11a001dc777f5bf8a5d63f246664d3bb67be496c" [ref=e944]:
+                    - generic [ref=e945]: "???"
+                    - generic [ref=e946]:
+                      - generic "Token contract 0x11a001dc777f5bf8a5d63f246664d3bb67be496c" [ref=e947]: 0x11a0...496c
+                      - link "View token contract 0x11a001dc777f5bf8a5d63f246664d3bb67be496c on block explorer" [ref=e949] [cursor=pointer]:
+                        - /url: https://etherscan.io/address/0x11a001dc777f5bf8a5d63f246664d3bb67be496c
+                      - button "Copy token contract 0x11a001dc777f5bf8a5d63f246664d3bb67be496c" [ref=e954] [cursor=pointer]
+                  - cell "Ethereum" [ref=e958]
+                  - cell "0xc92e...0110" [ref=e959]
+                  - cell "UNLIMITED (∞)" [ref=e961]
+                  - cell "Unavailable (balance or price unknown)" [ref=e962]
+                  - cell "high" [ref=e963]
+                  - cell "29/08/2025" [ref=e964]
+                  - cell [ref=e965]:
+                    - link "View spender contract 0xc92e8bdf79f0507f65a392b0ab4667716bfe0110 on block explorer" [ref=e966] [cursor=pointer]:
+                      - /url: https://etherscan.io/address/0xc92e8bdf79f0507f65a392b0ab4667716bfe0110
+                - row [ref=e971]:
+                  - cell "??? Token contract 0x71297312753ea7a2570a5a3278ed70d9a75f4f44 View token contract 0x71297312753ea7a2570a5a3278ed70d9a75f4f44 on block explorer Copy token contract 0x71297312753ea7a2570a5a3278ed70d9a75f4f44" [ref=e972]:
+                    - generic [ref=e973]: "???"
+                    - generic [ref=e974]:
+                      - generic "Token contract 0x71297312753ea7a2570a5a3278ed70d9a75f4f44" [ref=e975]: 0x7129...4f44
+                      - link "View token contract 0x71297312753ea7a2570a5a3278ed70d9a75f4f44 on block explorer" [ref=e977] [cursor=pointer]:
+                        - /url: https://etherscan.io/address/0x71297312753ea7a2570a5a3278ed70d9a75f4f44
+                      - button "Copy token contract 0x71297312753ea7a2570a5a3278ed70d9a75f4f44" [ref=e982] [cursor=pointer]
+                  - cell "Ethereum" [ref=e986]
+                  - cell "0xc92e...0110" [ref=e987]
+                  - cell "UNLIMITED (∞)" [ref=e989]
+                  - cell "Unavailable (balance or price unknown)" [ref=e990]
+                  - cell "high" [ref=e991]
+                  - cell "29/08/2025" [ref=e992]
+                  - cell [ref=e993]:
+                    - link "View spender contract 0xc92e8bdf79f0507f65a392b0ab4667716bfe0110 on block explorer" [ref=e994] [cursor=pointer]:
+                      - /url: https://etherscan.io/address/0xc92e8bdf79f0507f65a392b0ab4667716bfe0110
+                - row [ref=e999]:
+                  - cell "??? Token contract 0xa93d86af16fe83f064e3c0e2f3d129f7b7b002b0 View token contract 0xa93d86af16fe83f064e3c0e2f3d129f7b7b002b0 on block explorer Copy token contract 0xa93d86af16fe83f064e3c0e2f3d129f7b7b002b0" [ref=e1000]:
+                    - generic [ref=e1001]: "???"
+                    - generic [ref=e1002]:
+                      - generic "Token contract 0xa93d86af16fe83f064e3c0e2f3d129f7b7b002b0" [ref=e1003]: 0xa93d...02b0
+                      - link "View token contract 0xa93d86af16fe83f064e3c0e2f3d129f7b7b002b0 on block explorer" [ref=e1005] [cursor=pointer]:
+                        - /url: https://etherscan.io/address/0xa93d86af16fe83f064e3c0e2f3d129f7b7b002b0
+                      - button "Copy token contract 0xa93d86af16fe83f064e3c0e2f3d129f7b7b002b0" [ref=e1010] [cursor=pointer]
+                  - cell "Ethereum" [ref=e1014]
+                  - cell "0xc92e...0110" [ref=e1015]
+                  - cell "UNLIMITED (∞)" [ref=e1017]
+                  - cell "Unavailable (balance or price unknown)" [ref=e1018]
+                  - cell "high" [ref=e1019]
+                  - cell "29/08/2025" [ref=e1020]
+                  - cell [ref=e1021]:
+                    - link "View spender contract 0xc92e8bdf79f0507f65a392b0ab4667716bfe0110 on block explorer" [ref=e1022] [cursor=pointer]:
+                      - /url: https://etherscan.io/address/0xc92e8bdf79f0507f65a392b0ab4667716bfe0110
+                - row [ref=e1027]:
+                  - cell "??? Token contract 0x95af4af910c28e8ece4512bfe46f1f33687424ce View token contract 0x95af4af910c28e8ece4512bfe46f1f33687424ce on block explorer Copy token contract 0x95af4af910c28e8ece4512bfe46f1f33687424ce" [ref=e1028]:
+                    - generic [ref=e1029]: "???"
+                    - generic [ref=e1030]:
+                      - generic "Token contract 0x95af4af910c28e8ece4512bfe46f1f33687424ce" [ref=e1031]: 0x95af...24ce
+                      - link "View token contract 0x95af4af910c28e8ece4512bfe46f1f33687424ce on block explorer" [ref=e1033] [cursor=pointer]:
+                        - /url: https://etherscan.io/address/0x95af4af910c28e8ece4512bfe46f1f33687424ce
+                      - button "Copy token contract 0x95af4af910c28e8ece4512bfe46f1f33687424ce" [ref=e1038] [cursor=pointer]
+                  - cell "Ethereum" [ref=e1042]
+                  - cell "0xc92e...0110" [ref=e1043]
+                  - cell "UNLIMITED (∞)" [ref=e1045]
+                  - cell "Unavailable (balance or price unknown)" [ref=e1046]
+                  - cell "high" [ref=e1047]
+                  - cell "29/08/2025" [ref=e1048]
+                  - cell [ref=e1049]:
+                    - link "View spender contract 0xc92e8bdf79f0507f65a392b0ab4667716bfe0110 on block explorer" [ref=e1050] [cursor=pointer]:
+                      - /url: https://etherscan.io/address/0xc92e8bdf79f0507f65a392b0ab4667716bfe0110
+                - row [ref=e1055]:
+                  - cell "??? Token contract 0x6900d2cc7e5d56edafb136f7c3fe2dcbc26f2bfb View token contract 0x6900d2cc7e5d56edafb136f7c3fe2dcbc26f2bfb on block explorer Copy token contract 0x6900d2cc7e5d56edafb136f7c3fe2dcbc26f2bfb" [ref=e1056]:
+                    - generic [ref=e1057]: "???"
+                    - generic [ref=e1058]:
+                      - generic "Token contract 0x6900d2cc7e5d56edafb136f7c3fe2dcbc26f2bfb" [ref=e1059]: 0x6900...2bfb
+                      - link "View token contract 0x6900d2cc7e5d56edafb136f7c3fe2dcbc26f2bfb on block explorer" [ref=e1061] [cursor=pointer]:
+                        - /url: https://etherscan.io/address/0x6900d2cc7e5d56edafb136f7c3fe2dcbc26f2bfb
+                      - button "Copy token contract 0x6900d2cc7e5d56edafb136f7c3fe2dcbc26f2bfb" [ref=e1066] [cursor=pointer]
+                  - cell "Ethereum" [ref=e1070]
+                  - cell "0xc92e...0110" [ref=e1071]
+                  - cell "UNLIMITED (∞)" [ref=e1073]
+                  - cell "Unavailable (balance or price unknown)" [ref=e1074]
+                  - cell "high" [ref=e1075]
+                  - cell "13/10/2024" [ref=e1076]
+                  - cell [ref=e1077]:
+                    - link "View spender contract 0xc92e8bdf79f0507f65a392b0ab4667716bfe0110 on block explorer" [ref=e1078] [cursor=pointer]:
+                      - /url: https://etherscan.io/address/0xc92e8bdf79f0507f65a392b0ab4667716bfe0110
+                - row [ref=e1083]:
+                  - cell "??? Token contract 0x5950a5fb85eebf62d86a332854d201db719942ce View token contract 0x5950a5fb85eebf62d86a332854d201db719942ce on block explorer Copy token contract 0x5950a5fb85eebf62d86a332854d201db719942ce" [ref=e1084]:
+                    - generic [ref=e1085]: "???"
+                    - generic [ref=e1086]:
+                      - generic "Token contract 0x5950a5fb85eebf62d86a332854d201db719942ce" [ref=e1087]: 0x5950...42ce
+                      - link "View token contract 0x5950a5fb85eebf62d86a332854d201db719942ce on block explorer" [ref=e1089] [cursor=pointer]:
+                        - /url: https://etherscan.io/address/0x5950a5fb85eebf62d86a332854d201db719942ce
+                      - button "Copy token contract 0x5950a5fb85eebf62d86a332854d201db719942ce" [ref=e1094] [cursor=pointer]
+                  - cell "Ethereum" [ref=e1098]
+                  - cell "0xc92e...0110" [ref=e1099]
+                  - cell "UNLIMITED (∞)" [ref=e1101]
+                  - cell "Unavailable (balance or price unknown)" [ref=e1102]
+                  - cell "high" [ref=e1103]
+                  - cell "12/10/2024" [ref=e1104]
+                  - cell [ref=e1105]:
+                    - link "View spender contract 0xc92e8bdf79f0507f65a392b0ab4667716bfe0110 on block explorer" [ref=e1106] [cursor=pointer]:
+                      - /url: https://etherscan.io/address/0xc92e8bdf79f0507f65a392b0ab4667716bfe0110
+                - row [ref=e1111]:
+                  - cell "??? Token contract 0x28561b8a2360f463011c16b6cc0b0cbef8dbbcad View token contract 0x28561b8a2360f463011c16b6cc0b0cbef8dbbcad on block explorer Copy token contract 0x28561b8a2360f463011c16b6cc0b0cbef8dbbcad" [ref=e1112]:
+                    - generic [ref=e1113]: "???"
+                    - generic [ref=e1114]:
+                      - generic "Token contract 0x28561b8a2360f463011c16b6cc0b0cbef8dbbcad" [ref=e1115]: 0x2856...bcad
+                      - link "View token contract 0x28561b8a2360f463011c16b6cc0b0cbef8dbbcad on block explorer" [ref=e1117] [cursor=pointer]:
+                        - /url: https://etherscan.io/address/0x28561b8a2360f463011c16b6cc0b0cbef8dbbcad
+                      - button "Copy token contract 0x28561b8a2360f463011c16b6cc0b0cbef8dbbcad" [ref=e1122] [cursor=pointer]
+                  - cell "Ethereum" [ref=e1126]
+                  - cell "0xc92e...0110" [ref=e1127]
+                  - cell "UNLIMITED (∞)" [ref=e1129]
+                  - cell "Unavailable (balance or price unknown)" [ref=e1130]
+                  - cell "high" [ref=e1131]
+                  - cell "07/10/2024" [ref=e1132]
+                  - cell [ref=e1133]:
+                    - link "View spender contract 0xc92e8bdf79f0507f65a392b0ab4667716bfe0110 on block explorer" [ref=e1134] [cursor=pointer]:
+                      - /url: https://etherscan.io/address/0xc92e8bdf79f0507f65a392b0ab4667716bfe0110
+                - row [ref=e1139]:
+                  - cell "USDT Token contract 0xdac17f958d2ee523a2206206994597c13d831ec7 View token contract 0xdac17f958d2ee523a2206206994597c13d831ec7 on block explorer Copy token contract 0xdac17f958d2ee523a2206206994597c13d831ec7" [ref=e1140]:
+                    - generic [ref=e1141]: USDT
+                    - generic [ref=e1142]:
+                      - generic "Token contract 0xdac17f958d2ee523a2206206994597c13d831ec7" [ref=e1143]: 0xdac1...1ec7
+                      - link "View token contract 0xdac17f958d2ee523a2206206994597c13d831ec7 on block explorer" [ref=e1145] [cursor=pointer]:
+                        - /url: https://etherscan.io/address/0xdac17f958d2ee523a2206206994597c13d831ec7
+                      - button "Copy token contract 0xdac17f958d2ee523a2206206994597c13d831ec7" [ref=e1150] [cursor=pointer]
+                  - cell "Ethereum" [ref=e1154]
+                  - cell "0xc92e...0110" [ref=e1155]
+                  - cell "UNLIMITED (∞)" [ref=e1157]
+                  - cell "$0.200 stablecoin assumption" [ref=e1158]:
+                    - generic [ref=e1159]:
+                      - generic [ref=e1160]: $0.200
+                      - generic [ref=e1161]: stablecoin assumption
+                  - cell "high" [ref=e1162]
+                  - cell "05/10/2024" [ref=e1163]
+                  - cell [ref=e1164]:
+                    - link "View spender contract 0xc92e8bdf79f0507f65a392b0ab4667716bfe0110 on block explorer" [ref=e1165] [cursor=pointer]:
+                      - /url: https://etherscan.io/address/0xc92e8bdf79f0507f65a392b0ab4667716bfe0110
+                - row [ref=e1170]:
+                  - cell "WETH Token contract 0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2 View token contract 0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2 on block explorer Copy token contract 0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2" [ref=e1171]:
+                    - generic [ref=e1172]: WETH
+                    - generic [ref=e1173]:
+                      - generic "Token contract 0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2" [ref=e1174]: 0xc02a...6cc2
+                      - link "View token contract 0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2 on block explorer" [ref=e1176] [cursor=pointer]:
+                        - /url: https://etherscan.io/address/0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2
+                      - button "Copy token contract 0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2" [ref=e1181] [cursor=pointer]
+                  - cell "Ethereum" [ref=e1185]
+                  - cell "0x5c7b...35c5" [ref=e1186]
+                  - cell "UNLIMITED (∞)" [ref=e1188]
+                  - cell "$0 (zero reconstructed balance)" [ref=e1189]
+                  - cell "high" [ref=e1190]
+                  - cell "13/08/2024" [ref=e1191]
+                  - cell [ref=e1192]:
+                    - link "View spender contract 0x5c7bcd6e7de5423a257d81b442095a1a6ced35c5 on block explorer" [ref=e1193] [cursor=pointer]:
+                      - /url: https://etherscan.io/address/0x5c7bcd6e7de5423a257d81b442095a1a6ced35c5
+                - row [ref=e1198]:
+                  - cell "??? Token contract 0xeaa63125dd63f10874f99cdbbb18410e7fc79dd3 View token contract 0xeaa63125dd63f10874f99cdbbb18410e7fc79dd3 on block explorer Copy token contract 0xeaa63125dd63f10874f99cdbbb18410e7fc79dd3" [ref=e1199]:
+                    - generic [ref=e1200]: "???"
+                    - generic [ref=e1201]:
+                      - generic "Token contract 0xeaa63125dd63f10874f99cdbbb18410e7fc79dd3" [ref=e1202]: 0xeaa6...9dd3
+                      - link "View token contract 0xeaa63125dd63f10874f99cdbbb18410e7fc79dd3 on block explorer" [ref=e1204] [cursor=pointer]:
+                        - /url: https://etherscan.io/address/0xeaa63125dd63f10874f99cdbbb18410e7fc79dd3
+                      - button "Copy token contract 0xeaa63125dd63f10874f99cdbbb18410e7fc79dd3" [ref=e1209] [cursor=pointer]
+                  - cell "Ethereum" [ref=e1213]
+                  - cell "0x216b...fcae" [ref=e1214]
+                  - cell "UNLIMITED (∞)" [ref=e1216]
+                  - cell "Unavailable (balance or price unknown)" [ref=e1217]
+                  - cell "high" [ref=e1218]
+                  - cell "20/12/2023" [ref=e1219]
+                  - cell [ref=e1220]:
+                    - link "View spender contract 0x216b4b4ba9f3e719726886d34a177484278bfcae on block explorer" [ref=e1221] [cursor=pointer]:
+                      - /url: https://etherscan.io/address/0x216b4b4ba9f3e719726886d34a177484278bfcae
+                - row [ref=e1226]:
+                  - cell "??? Token contract 0x34103e1190b824a44c6a638438d425cba21143ba View token contract 0x34103e1190b824a44c6a638438d425cba21143ba on block explorer Copy token contract 0x34103e1190b824a44c6a638438d425cba21143ba" [ref=e1227]:
+                    - generic [ref=e1228]: "???"
+                    - generic [ref=e1229]:
+                      - generic "Token contract 0x34103e1190b824a44c6a638438d425cba21143ba" [ref=e1230]: 0x3410...43ba
+                      - link "View token contract 0x34103e1190b824a44c6a638438d425cba21143ba on block explorer" [ref=e1232] [cursor=pointer]:
+                        - /url: https://etherscan.io/address/0x34103e1190b824a44c6a638438d425cba21143ba
+                      - button "Copy token contract 0x34103e1190b824a44c6a638438d425cba21143ba" [ref=e1237] [cursor=pointer]
+                  - cell "Ethereum" [ref=e1241]
+                  - cell "0x216b...fcae" [ref=e1242]
+                  - cell "UNLIMITED (∞)" [ref=e1244]
+                  - cell "Unavailable (balance or price unknown)" [ref=e1245]
+                  - cell "high" [ref=e1246]
+                  - cell "18/03/2023" [ref=e1247]
+                  - cell [ref=e1248]:
+                    - link "View spender contract 0x216b4b4ba9f3e719726886d34a177484278bfcae on block explorer" [ref=e1249] [cursor=pointer]:
+                      - /url: https://etherscan.io/address/0x216b4b4ba9f3e719726886d34a177484278bfcae
+                - row [ref=e1254]:
+                  - cell "DAI Token contract 0x6b175474e89094c44da98b954eedeac495271d0f View token contract 0x6b175474e89094c44da98b954eedeac495271d0f on block explorer Copy token contract 0x6b175474e89094c44da98b954eedeac495271d0f" [ref=e1255]:
+                    - generic [ref=e1256]: DAI
+                    - generic [ref=e1257]:
+                      - generic "Token contract 0x6b175474e89094c44da98b954eedeac495271d0f" [ref=e1258]: 0x6b17...1d0f
+                      - link "View token contract 0x6b175474e89094c44da98b954eedeac495271d0f on block explorer" [ref=e1260] [cursor=pointer]:
+                        - /url: https://etherscan.io/address/0x6b175474e89094c44da98b954eedeac495271d0f
+                      - button "Copy token contract 0x6b175474e89094c44da98b954eedeac495271d0f" [ref=e1265] [cursor=pointer]
+                  - cell "Ethereum" [ref=e1269]
+                  - cell "0x6248...24a6" [ref=e1270]
+                  - cell "UNLIMITED (∞)" [ref=e1272]
+                  - cell "$558.01K stablecoin assumption" [ref=e1273]:
+                    - generic [ref=e1274]:
+                      - generic [ref=e1275]: $558.01K
+                      - generic [ref=e1276]: stablecoin assumption
+                  - cell "high" [ref=e1277]
+                  - cell "24/01/2023" [ref=e1278]
+                  - cell [ref=e1279]:
+                    - link "View spender contract 0x6248230fba26a2161a71b01486884db41d6524a6 on block explorer" [ref=e1280] [cursor=pointer]:
+                      - /url: https://etherscan.io/address/0x6248230fba26a2161a71b01486884db41d6524a6
+                - row [ref=e1285]:
+                  - cell "RAI Token contract 0x03ab458634910aad20ef5f1c8ee96f1d6ac54919 View token contract 0x03ab458634910aad20ef5f1c8ee96f1d6ac54919 on block explorer Copy token contract 0x03ab458634910aad20ef5f1c8ee96f1d6ac54919" [ref=e1286]:
+                    - generic [ref=e1287]: RAI
+                    - generic [ref=e1288]:
+                      - generic "Token contract 0x03ab458634910aad20ef5f1c8ee96f1d6ac54919" [ref=e1289]: 0x03ab...4919
+                      - link "View token contract 0x03ab458634910aad20ef5f1c8ee96f1d6ac54919 on block explorer" [ref=e1291] [cursor=pointer]:
+                        - /url: https://etherscan.io/address/0x03ab458634910aad20ef5f1c8ee96f1d6ac54919
+                      - button "Copy token contract 0x03ab458634910aad20ef5f1c8ee96f1d6ac54919" [ref=e1296] [cursor=pointer]
+                  - cell "Ethereum" [ref=e1300]
+                  - cell "0xc92e...0110" [ref=e1301]
+                  - cell "UNLIMITED (∞)" [ref=e1303]
+                  - cell "$0 (zero reconstructed balance)" [ref=e1304]
+                  - cell "high" [ref=e1305]
+                  - cell "24/01/2023" [ref=e1306]
+                  - cell [ref=e1307]:
+                    - link "View spender contract 0xc92e8bdf79f0507f65a392b0ab4667716bfe0110 on block explorer" [ref=e1308] [cursor=pointer]:
+                      - /url: https://etherscan.io/address/0xc92e8bdf79f0507f65a392b0ab4667716bfe0110
+                - row [ref=e1313]:
+                  - cell "RAI Token contract 0x03ab458634910aad20ef5f1c8ee96f1d6ac54919 View token contract 0x03ab458634910aad20ef5f1c8ee96f1d6ac54919 on block explorer Copy token contract 0x03ab458634910aad20ef5f1c8ee96f1d6ac54919" [ref=e1314]:
+                    - generic [ref=e1315]: RAI
+                    - generic [ref=e1316]:
+                      - generic "Token contract 0x03ab458634910aad20ef5f1c8ee96f1d6ac54919" [ref=e1317]: 0x03ab...4919
+                      - link "View token contract 0x03ab458634910aad20ef5f1c8ee96f1d6ac54919 on block explorer" [ref=e1319] [cursor=pointer]:
+                        - /url: https://etherscan.io/address/0x03ab458634910aad20ef5f1c8ee96f1d6ac54919
+                      - button "Copy token contract 0x03ab458634910aad20ef5f1c8ee96f1d6ac54919" [ref=e1324] [cursor=pointer]
+                  - cell "Ethereum" [ref=e1328]
+                  - cell "0x6248...24a6" [ref=e1329]
+                  - cell "UNLIMITED (∞)" [ref=e1331]
+                  - cell "$0 (zero reconstructed balance)" [ref=e1332]
+                  - cell "high" [ref=e1333]
+                  - cell "22/01/2023" [ref=e1334]
+                  - cell [ref=e1335]:
+                    - link "View spender contract 0x6248230fba26a2161a71b01486884db41d6524a6 on block explorer" [ref=e1336] [cursor=pointer]:
+                      - /url: https://etherscan.io/address/0x6248230fba26a2161a71b01486884db41d6524a6
+                - row [ref=e1341]:
+                  - cell "DAI Token contract 0x6b175474e89094c44da98b954eedeac495271d0f View token contract 0x6b175474e89094c44da98b954eedeac495271d0f on block explorer Copy token contract 0x6b175474e89094c44da98b954eedeac495271d0f" [ref=e1342]:
+                    - generic [ref=e1343]: DAI
+                    - generic [ref=e1344]:
+                      - generic "Token contract 0x6b175474e89094c44da98b954eedeac495271d0f" [ref=e1345]: 0x6b17...1d0f
+                      - link "View token contract 0x6b175474e89094c44da98b954eedeac495271d0f on block explorer" [ref=e1347] [cursor=pointer]:
+                        - /url: https://etherscan.io/address/0x6b175474e89094c44da98b954eedeac495271d0f
+                      - button "Copy token contract 0x6b175474e89094c44da98b954eedeac495271d0f" [ref=e1352] [cursor=pointer]
+                  - cell "Ethereum" [ref=e1356]
+                  - cell "0xc92e...0110" [ref=e1357]
+                  - cell "UNLIMITED (∞)" [ref=e1359]
+                  - cell "$558.01K stablecoin assumption" [ref=e1360]:
+                    - generic [ref=e1361]:
+                      - generic [ref=e1362]: $558.01K
+                      - generic [ref=e1363]: stablecoin assumption
+                  - cell "high" [ref=e1364]
+                  - cell "25/12/2022" [ref=e1365]
+                  - cell [ref=e1366]:
+                    - link "View spender contract 0xc92e8bdf79f0507f65a392b0ab4667716bfe0110 on block explorer" [ref=e1367] [cursor=pointer]:
+                      - /url: https://etherscan.io/address/0xc92e8bdf79f0507f65a392b0ab4667716bfe0110
+                - row [ref=e1372]:
+                  - cell "WETH Token contract 0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2 View token contract 0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2 on block explorer Copy token contract 0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2" [ref=e1373]:
+                    - generic [ref=e1374]: WETH
+                    - generic [ref=e1375]:
+                      - generic "Token contract 0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2" [ref=e1376]: 0xc02a...6cc2
+                      - link "View token contract 0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2 on block explorer" [ref=e1378] [cursor=pointer]:
+                        - /url: https://etherscan.io/address/0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2
+                      - button "Copy token contract 0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2" [ref=e1383] [cursor=pointer]
+                  - cell "Ethereum" [ref=e1387]
+                  - cell "0xc92e...0110" [ref=e1388]
+                  - cell "UNLIMITED (∞)" [ref=e1390]
+                  - cell "$0 (zero reconstructed balance)" [ref=e1391]
+                  - cell "high" [ref=e1392]
+                  - cell "01/12/2022" [ref=e1393]
+                  - cell [ref=e1394]:
+                    - link "View spender contract 0xc92e8bdf79f0507f65a392b0ab4667716bfe0110 on block explorer" [ref=e1395] [cursor=pointer]:
+                      - /url: https://etherscan.io/address/0xc92e8bdf79f0507f65a392b0ab4667716bfe0110
+                - row [ref=e1400]:
+                  - cell "DAI Token contract 0x6b175474e89094c44da98b954eedeac495271d0f View token contract 0x6b175474e89094c44da98b954eedeac495271d0f on block explorer Copy token contract 0x6b175474e89094c44da98b954eedeac495271d0f" [ref=e1401]:
+                    - generic [ref=e1402]: DAI
+                    - generic [ref=e1403]:
+                      - generic "Token contract 0x6b175474e89094c44da98b954eedeac495271d0f" [ref=e1404]: 0x6b17...1d0f
+                      - link "View token contract 0x6b175474e89094c44da98b954eedeac495271d0f on block explorer" [ref=e1406] [cursor=pointer]:
+                        - /url: https://etherscan.io/address/0x6b175474e89094c44da98b954eedeac495271d0f
+                      - button "Copy token contract 0x6b175474e89094c44da98b954eedeac495271d0f" [ref=e1411] [cursor=pointer]
+                  - cell "Ethereum" [ref=e1415]
+                  - cell "0xe5bf...aac1" [ref=e1416]
+                  - cell "UNLIMITED (∞)" [ref=e1418]
+                  - cell "$558.01K stablecoin assumption" [ref=e1419]:
+                    - generic [ref=e1420]:
+                      - generic [ref=e1421]: $558.01K
+                      - generic [ref=e1422]: stablecoin assumption
+                  - cell "high" [ref=e1423]
+                  - cell "14/02/2021" [ref=e1424]
+                  - cell [ref=e1425]:
+                    - link "View spender contract 0xe5bfab544eca83849c53464f85b7164375bdaac1 on block explorer" [ref=e1426] [cursor=pointer]:
+                      - /url: https://etherscan.io/address/0xe5bfab544eca83849c53464f85b7164375bdaac1
+                - row [ref=e1431]:
+                  - cell "??? Token contract 0xa27ec0006e59f245217ff08cd52a7e8b169e62d2 View token contract 0xa27ec0006e59f245217ff08cd52a7e8b169e62d2 on block explorer Copy token contract 0xa27ec0006e59f245217ff08cd52a7e8b169e62d2" [ref=e1432]:
+                    - generic [ref=e1433]: "???"
+                    - generic [ref=e1434]:
+                      - generic "Token contract 0xa27ec0006e59f245217ff08cd52a7e8b169e62d2" [ref=e1435]: 0xa27e...62d2
+                      - link "View token contract 0xa27ec0006e59f245217ff08cd52a7e8b169e62d2 on block explorer" [ref=e1437] [cursor=pointer]:
+                        - /url: https://etherscan.io/address/0xa27ec0006e59f245217ff08cd52a7e8b169e62d2
+                      - button "Copy token contract 0xa27ec0006e59f245217ff08cd52a7e8b169e62d2" [ref=e1442] [cursor=pointer]
+                  - cell "Ethereum" [ref=e1446]
+                  - cell "0xaf73...691c" [ref=e1447]
+                  - cell "256 ???" [ref=e1449]
+                  - cell "Unavailable (balance or price unknown)" [ref=e1450]
+                  - cell "medium" [ref=e1451]
+                  - cell "19/07/2026" [ref=e1452]
+                  - cell [ref=e1453]:
+                    - link "View spender contract 0xaf73dd51d1eb8a079bb097f39c832cdd00ac691c on block explorer" [ref=e1454] [cursor=pointer]:
+                      - /url: https://etherscan.io/address/0xaf73dd51d1eb8a079bb097f39c832cdd00ac691c
+                - row [ref=e1459]:
+                  - cell "??? Token contract 0xa27ec0006e59f245217ff08cd52a7e8b169e62d2 View token contract 0xa27ec0006e59f245217ff08cd52a7e8b169e62d2 on block explorer Copy token contract 0xa27ec0006e59f245217ff08cd52a7e8b169e62d2" [ref=e1460]:
+                    - generic [ref=e1461]: "???"
+                    - generic [ref=e1462]:
+                      - generic "Token contract 0xa27ec0006e59f245217ff08cd52a7e8b169e62d2" [ref=e1463]: 0xa27e...62d2
+                      - link "View token contract 0xa27ec0006e59f245217ff08cd52a7e8b169e62d2 on block explorer" [ref=e1465] [cursor=pointer]:
+                        - /url: https://etherscan.io/address/0xa27ec0006e59f245217ff08cd52a7e8b169e62d2
+                      - button "Copy token contract 0xa27ec0006e59f245217ff08cd52a7e8b169e62d2" [ref=e1470] [cursor=pointer]
+                  - cell "Ethereum" [ref=e1474]
+                  - cell "0x2891...3617" [ref=e1475]
+                  - cell "16 ???" [ref=e1477]
+                  - cell "Unavailable (balance or price unknown)" [ref=e1478]
+                  - cell "medium" [ref=e1479]
+                  - cell "14/07/2026" [ref=e1480]
+                  - cell [ref=e1481]:
+                    - link "View spender contract 0x2891f8b941067f8b5a3f34545a30cf71e3e23617 on block explorer" [ref=e1482] [cursor=pointer]:
+                      - /url: https://etherscan.io/address/0x2891f8b941067f8b5a3f34545a30cf71e3e23617
+                - row [ref=e1487]:
+                  - cell "??? Token contract 0xa62755a7460590f78fa7038027cf17f73f4dc1cd View token contract 0xa62755a7460590f78fa7038027cf17f73f4dc1cd on block explorer Copy token contract 0xa62755a7460590f78fa7038027cf17f73f4dc1cd" [ref=e1488]:
+                    - generic [ref=e1489]: "???"
+                    - generic [ref=e1490]:
+                      - generic "Token contract 0xa62755a7460590f78fa7038027cf17f73f4dc1cd" [ref=e1491]: 0xa627...c1cd
+                      - link "View token contract 0xa62755a7460590f78fa7038027cf17f73f4dc1cd on block explorer" [ref=e1493] [cursor=pointer]:
+                        - /url: https://etherscan.io/address/0xa62755a7460590f78fa7038027cf17f73f4dc1cd
+                      - button "Copy token contract 0xa62755a7460590f78fa7038027cf17f73f4dc1cd" [ref=e1498] [cursor=pointer]
+                  - cell "Ethereum" [ref=e1502]
+                  - cell "0x0000...2734" [ref=e1503]
+                  - cell "51,515,000 ???" [ref=e1505]
+                  - cell "Unavailable (balance or price unknown)" [ref=e1506]
+                  - cell "medium" [ref=e1507]
+                  - cell "02/05/2026" [ref=e1508]
+                  - cell [ref=e1509]:
+                    - link "View spender contract 0x0000000000001ff3684f28c67538d4d072c22734 on block explorer" [ref=e1510] [cursor=pointer]:
+                      - /url: https://etherscan.io/address/0x0000000000001ff3684f28c67538d4d072c22734
+                - row [ref=e1515]:
+                  - cell "??? Token contract 0xfea57023f9a1a08a2bfdae77137c4504452bd9dd View token contract 0xfea57023f9a1a08a2bfdae77137c4504452bd9dd on block explorer Copy token contract 0xfea57023f9a1a08a2bfdae77137c4504452bd9dd" [ref=e1516]:
+                    - generic [ref=e1517]: "???"
+                    - generic [ref=e1518]:
+                      - generic "Token contract 0xfea57023f9a1a08a2bfdae77137c4504452bd9dd" [ref=e1519]: 0xfea5...d9dd
+                      - link "View token contract 0xfea57023f9a1a08a2bfdae77137c4504452bd9dd on block explorer" [ref=e1521] [cursor=pointer]:
+                        - /url: https://etherscan.io/address/0xfea57023f9a1a08a2bfdae77137c4504452bd9dd
+                      - button "Copy token contract 0xfea57023f9a1a08a2bfdae77137c4504452bd9dd" [ref=e1526] [cursor=pointer]
+                  - cell "Ethereum" [ref=e1530]
+                  - 'cell "Uniswap: V2 Router 0x7a250d5630b4cf539739df2c5dacb4c659f2488d" [ref=e1531]':
+                    - generic [ref=e1532]: "Uniswap: V2 Router"
+                    - generic [ref=e1533]: "0x7a250d5630b4cf539739df2c5dacb4c659f2488d"
+                  - cell "UNLIMITED (∞)" [ref=e1534]
+                  - cell "Unavailable (balance or price unknown)" [ref=e1535]
+                  - cell "medium" [ref=e1536]
+                  - cell "02/05/2026" [ref=e1537]
+                  - cell [ref=e1538]:
+                    - link "View spender contract 0x7a250d5630b4cf539739df2c5dacb4c659f2488d on block explorer" [ref=e1539] [cursor=pointer]:
+                      - /url: https://etherscan.io/address/0x7a250d5630b4cf539739df2c5dacb4c659f2488d
+                - row [ref=e1544]:
+                  - cell "??? Token contract 0xfe625bb2d2a0f24ace72adc3365f203771495e39 View token contract 0xfe625bb2d2a0f24ace72adc3365f203771495e39 on block explorer Copy token contract 0xfe625bb2d2a0f24ace72adc3365f203771495e39" [ref=e1545]:
+                    - generic [ref=e1546]: "???"
+                    - generic [ref=e1547]:
+                      - generic "Token contract 0xfe625bb2d2a0f24ace72adc3365f203771495e39" [ref=e1548]: 0xfe62...5e39
+                      - link "View token contract 0xfe625bb2d2a0f24ace72adc3365f203771495e39 on block explorer" [ref=e1550] [cursor=pointer]:
+                        - /url: https://etherscan.io/address/0xfe625bb2d2a0f24ace72adc3365f203771495e39
+                      - button "Copy token contract 0xfe625bb2d2a0f24ace72adc3365f203771495e39" [ref=e1555] [cursor=pointer]
+                  - cell "Ethereum" [ref=e1559]
+                  - 'cell "Uniswap: V2 Router 0x7a250d5630b4cf539739df2c5dacb4c659f2488d" [ref=e1560]':
+                    - generic [ref=e1561]: "Uniswap: V2 Router"
+                    - generic [ref=e1562]: "0x7a250d5630b4cf539739df2c5dacb4c659f2488d"
+                  - cell "UNLIMITED (∞)" [ref=e1563]
+                  - cell "Unavailable (balance or price unknown)" [ref=e1564]
+                  - cell "medium" [ref=e1565]
+                  - cell "02/05/2026" [ref=e1566]
+                  - cell [ref=e1567]:
+                    - link "View spender contract 0x7a250d5630b4cf539739df2c5dacb4c659f2488d on block explorer" [ref=e1568] [cursor=pointer]:
+                      - /url: https://etherscan.io/address/0x7a250d5630b4cf539739df2c5dacb4c659f2488d
+                - row [ref=e1573]:
+                  - cell "??? Token contract 0xfb511db0108bb8e1c9792a758a4f5e67d75739e4 View token contract 0xfb511db0108bb8e1c9792a758a4f5e67d75739e4 on block explorer Copy token contract 0xfb511db0108bb8e1c9792a758a4f5e67d75739e4" [ref=e1574]:
+                    - generic [ref=e1575]: "???"
+                    - generic [ref=e1576]:
+                      - generic "Token contract 0xfb511db0108bb8e1c9792a758a4f5e67d75739e4" [ref=e1577]: 0xfb51...39e4
+                      - link "View token contract 0xfb511db0108bb8e1c9792a758a4f5e67d75739e4 on block explorer" [ref=e1579] [cursor=pointer]:
+                        - /url: https://etherscan.io/address/0xfb511db0108bb8e1c9792a758a4f5e67d75739e4
+                      - button "Copy token contract 0xfb511db0108bb8e1c9792a758a4f5e67d75739e4" [ref=e1584] [cursor=pointer]
+                  - cell "Ethereum" [ref=e1588]
+                  - 'cell "Uniswap: V2 Router 0x7a250d5630b4cf539739df2c5dacb4c659f2488d" [ref=e1589]':
+                    - generic [ref=e1590]: "Uniswap: V2 Router"
+                    - generic [ref=e1591]: "0x7a250d5630b4cf539739df2c5dacb4c659f2488d"
+                  - cell "UNLIMITED (∞)" [ref=e1592]
+                  - cell "Unavailable (balance or price unknown)" [ref=e1593]
+                  - cell "medium" [ref=e1594]
+                  - cell "02/05/2026" [ref=e1595]
+                  - cell [ref=e1596]:
+                    - link "View spender contract 0x7a250d5630b4cf539739df2c5dacb4c659f2488d on block explorer" [ref=e1597] [cursor=pointer]:
+                      - /url: https://etherscan.io/address/0x7a250d5630b4cf539739df2c5dacb4c659f2488d
+                - row [ref=e1602]:
+                  - cell "??? Token contract 0xfaa473790aef9dd7704c05757875e13474aa6aae View token contract 0xfaa473790aef9dd7704c05757875e13474aa6aae on block explorer Copy token contract 0xfaa473790aef9dd7704c05757875e13474aa6aae" [ref=e1603]:
+                    - generic [ref=e1604]: "???"
+                    - generic [ref=e1605]:
+                      - generic "Token contract 0xfaa473790aef9dd7704c05757875e13474aa6aae" [ref=e1606]: 0xfaa4...6aae
+                      - link "View token contract 0xfaa473790aef9dd7704c05757875e13474aa6aae on block explorer" [ref=e1608] [cursor=pointer]:
+                        - /url: https://etherscan.io/address/0xfaa473790aef9dd7704c05757875e13474aa6aae
+                      - button "Copy token contract 0xfaa473790aef9dd7704c05757875e13474aa6aae" [ref=e1613] [cursor=pointer]
+                  - cell "Ethereum" [ref=e1617]
+                  - 'cell "Uniswap: V2 Router 0x7a250d5630b4cf539739df2c5dacb4c659f2488d" [ref=e1618]':
+                    - generic [ref=e1619]: "Uniswap: V2 Router"
+                    - generic [ref=e1620]: "0x7a250d5630b4cf539739df2c5dacb4c659f2488d"
+                  - cell "UNLIMITED (∞)" [ref=e1621]
+                  - cell "Unavailable (balance or price unknown)" [ref=e1622]
+                  - cell "medium" [ref=e1623]
+                  - cell "02/05/2026" [ref=e1624]
+                  - cell [ref=e1625]:
+                    - link "View spender contract 0x7a250d5630b4cf539739df2c5dacb4c659f2488d on block explorer" [ref=e1626] [cursor=pointer]:
+                      - /url: https://etherscan.io/address/0x7a250d5630b4cf539739df2c5dacb4c659f2488d
+                - row [ref=e1631]:
+                  - cell "??? Token contract 0xfa76a41496879a4ed723bd0637c235cc4680f7f1 View token contract 0xfa76a41496879a4ed723bd0637c235cc4680f7f1 on block explorer Copy token contract 0xfa76a41496879a4ed723bd0637c235cc4680f7f1" [ref=e1632]:
+                    - generic [ref=e1633]: "???"
+                    - generic [ref=e1634]:
+                      - generic "Token contract 0xfa76a41496879a4ed723bd0637c235cc4680f7f1" [ref=e1635]: 0xfa76...f7f1
+                      - link "View token contract 0xfa76a41496879a4ed723bd0637c235cc4680f7f1 on block explorer" [ref=e1637] [cursor=pointer]:
+                        - /url: https://etherscan.io/address/0xfa76a41496879a4ed723bd0637c235cc4680f7f1
+                      - button "Copy token contract 0xfa76a41496879a4ed723bd0637c235cc4680f7f1" [ref=e1642] [cursor=pointer]
+                  - cell "Ethereum" [ref=e1646]
+                  - 'cell "Uniswap: V2 Router 0x7a250d5630b4cf539739df2c5dacb4c659f2488d" [ref=e1647]':
+                    - generic [ref=e1648]: "Uniswap: V2 Router"
+                    - generic [ref=e1649]: "0x7a250d5630b4cf539739df2c5dacb4c659f2488d"
+                  - cell "UNLIMITED (∞)" [ref=e1650]
+                  - cell "Unavailable (balance or price unknown)" [ref=e1651]
+                  - cell "medium" [ref=e1652]
+                  - cell "02/05/2026" [ref=e1653]
+                  - cell [ref=e1654]:
+                    - link "View spender contract 0x7a250d5630b4cf539739df2c5dacb4c659f2488d on block explorer" [ref=e1655] [cursor=pointer]:
+                      - /url: https://etherscan.io/address/0x7a250d5630b4cf539739df2c5dacb4c659f2488d
+                - row [ref=e1660]:
+                  - cell "??? Token contract 0xfa55d23ca1b58e8113b1e84b3844bf64581bc387 View token contract 0xfa55d23ca1b58e8113b1e84b3844bf64581bc387 on block explorer Copy token contract 0xfa55d23ca1b58e8113b1e84b3844bf64581bc387" [ref=e1661]:
+                    - generic [ref=e1662]: "???"
+                    - generic [ref=e1663]:
+                      - generic "Token contract 0xfa55d23ca1b58e8113b1e84b3844bf64581bc387" [ref=e1664]: 0xfa55...c387
+                      - link "View token contract 0xfa55d23ca1b58e8113b1e84b3844bf64581bc387 on block explorer" [ref=e1666] [cursor=pointer]:
+                        - /url: https://etherscan.io/address/0xfa55d23ca1b58e8113b1e84b3844bf64581bc387
+                      - button "Copy token contract 0xfa55d23ca1b58e8113b1e84b3844bf64581bc387" [ref=e1671] [cursor=pointer]
+                  - cell "Ethereum" [ref=e1675]
+                  - 'cell "Uniswap: V2 Router 0x7a250d5630b4cf539739df2c5dacb4c659f2488d" [ref=e1676]':
+                    - generic [ref=e1677]: "Uniswap: V2 Router"
+                    - generic [ref=e1678]: "0x7a250d5630b4cf539739df2c5dacb4c659f2488d"
+                  - cell "UNLIMITED (∞)" [ref=e1679]
+                  - cell "Unavailable (balance or price unknown)" [ref=e1680]
+                  - cell "medium" [ref=e1681]
+                  - cell "02/05/2026" [ref=e1682]
+                  - cell [ref=e1683]:
+                    - link "View spender contract 0x7a250d5630b4cf539739df2c5dacb4c659f2488d on block explorer" [ref=e1684] [cursor=pointer]:
+                      - /url: https://etherscan.io/address/0x7a250d5630b4cf539739df2c5dacb4c659f2488d
+                - row [ref=e1689]:
+                  - cell "??? Token contract 0xfef4c6b56e011a684dc2054afd576d83817c2620 View token contract 0xfef4c6b56e011a684dc2054afd576d83817c2620 on block explorer Copy token contract 0xfef4c6b56e011a684dc2054afd576d83817c2620" [ref=e1690]:
+                    - generic [ref=e1691]: "???"
+                    - generic [ref=e1692]:
+                      - generic "Token contract 0xfef4c6b56e011a684dc2054afd576d83817c2620" [ref=e1693]: 0xfef4...2620
+                      - link "View token contract 0xfef4c6b56e011a684dc2054afd576d83817c2620 on block explorer" [ref=e1695] [cursor=pointer]:
+                        - /url: https://etherscan.io/address/0xfef4c6b56e011a684dc2054afd576d83817c2620
+                      - button "Copy token contract 0xfef4c6b56e011a684dc2054afd576d83817c2620" [ref=e1700] [cursor=pointer]
+                  - cell "Ethereum" [ref=e1704]
+                  - 'cell "Uniswap: V2 Router 0x7a250d5630b4cf539739df2c5dacb4c659f2488d" [ref=e1705]':
+                    - generic [ref=e1706]: "Uniswap: V2 Router"
+                    - generic [ref=e1707]: "0x7a250d5630b4cf539739df2c5dacb4c659f2488d"
+                  - cell "UNLIMITED (∞)" [ref=e1708]
+                  - cell "Unavailable (balance or price unknown)" [ref=e1709]
+                  - cell "medium" [ref=e1710]
+                  - cell "01/05/2026" [ref=e1711]
+                  - cell [ref=e1712]:
+                    - link "View spender contract 0x7a250d5630b4cf539739df2c5dacb4c659f2488d on block explorer" [ref=e1713] [cursor=pointer]:
+                      - /url: https://etherscan.io/address/0x7a250d5630b4cf539739df2c5dacb4c659f2488d
+                - row [ref=e1718]:
+                  - cell "??? Token contract 0xfaaab42b52c77f2a1abf078d7d994e69f1454964 View token contract 0xfaaab42b52c77f2a1abf078d7d994e69f1454964 on block explorer Copy token contract 0xfaaab42b52c77f2a1abf078d7d994e69f1454964" [ref=e1719]:
+                    - generic [ref=e1720]: "???"
+                    - generic [ref=e1721]:
+                      - generic "Token contract 0xfaaab42b52c77f2a1abf078d7d994e69f1454964" [ref=e1722]: 0xfaaa...4964
+                      - link "View token contract 0xfaaab42b52c77f2a1abf078d7d994e69f1454964 on block explorer" [ref=e1724] [cursor=pointer]:
+                        - /url: https://etherscan.io/address/0xfaaab42b52c77f2a1abf078d7d994e69f1454964
+                      - button "Copy token contract 0xfaaab42b52c77f2a1abf078d7d994e69f1454964" [ref=e1729] [cursor=pointer]
+                  - cell "Ethereum" [ref=e1733]
+                  - 'cell "Uniswap: V2 Router 0x7a250d5630b4cf539739df2c5dacb4c659f2488d" [ref=e1734]':
+                    - generic [ref=e1735]: "Uniswap: V2 Router"
+                    - generic [ref=e1736]: "0x7a250d5630b4cf539739df2c5dacb4c659f2488d"
+                  - cell "UNLIMITED (∞)" [ref=e1737]
+                  - cell "Unavailable (balance or price unknown)" [ref=e1738]
+                  - cell "medium" [ref=e1739]
+                  - cell "01/05/2026" [ref=e1740]
+                  - cell [ref=e1741]:
+                    - link "View spender contract 0x7a250d5630b4cf539739df2c5dacb4c659f2488d on block explorer" [ref=e1742] [cursor=pointer]:
+                      - /url: https://etherscan.io/address/0x7a250d5630b4cf539739df2c5dacb4c659f2488d
+                - row [ref=e1747]:
+                  - cell "??? Token contract 0xf96813c36e38e7bb26993f124a65a9fcf88de878 View token contract 0xf96813c36e38e7bb26993f124a65a9fcf88de878 on block explorer Copy token contract 0xf96813c36e38e7bb26993f124a65a9fcf88de878" [ref=e1748]:
+                    - generic [ref=e1749]: "???"
+                    - generic [ref=e1750]:
+                      - generic "Token contract 0xf96813c36e38e7bb26993f124a65a9fcf88de878" [ref=e1751]: 0xf968...e878
+                      - link "View token contract 0xf96813c36e38e7bb26993f124a65a9fcf88de878 on block explorer" [ref=e1753] [cursor=pointer]:
+                        - /url: https://etherscan.io/address/0xf96813c36e38e7bb26993f124a65a9fcf88de878
+                      - button "Copy token contract 0xf96813c36e38e7bb26993f124a65a9fcf88de878" [ref=e1758] [cursor=pointer]
+                  - cell "Ethereum" [ref=e1762]
+                  - 'cell "Uniswap: V2 Router 0x7a250d5630b4cf539739df2c5dacb4c659f2488d" [ref=e1763]':
+                    - generic [ref=e1764]: "Uniswap: V2 Router"
+                    - generic [ref=e1765]: "0x7a250d5630b4cf539739df2c5dacb4c659f2488d"
+                  - cell "UNLIMITED (∞)" [ref=e1766]
+                  - cell "Unavailable (balance or price unknown)" [ref=e1767]
+                  - cell "medium" [ref=e1768]
+                  - cell "01/05/2026" [ref=e1769]
+                  - cell [ref=e1770]:
+                    - link "View spender contract 0x7a250d5630b4cf539739df2c5dacb4c659f2488d on block explorer" [ref=e1771] [cursor=pointer]:
+                      - /url: https://etherscan.io/address/0x7a250d5630b4cf539739df2c5dacb4c659f2488d
+                - row [ref=e1776]:
+                  - cell "??? Token contract 0xf672ab5be8c1cce26c39b5bca9911fdc80d6c466 View token contract 0xf672ab5be8c1cce26c39b5bca9911fdc80d6c466 on block explorer Copy token contract 0xf672ab5be8c1cce26c39b5bca9911fdc80d6c466" [ref=e1777]:
+                    - generic [ref=e1778]: "???"
+                    - generic [ref=e1779]:
+                      - generic "Token contract 0xf672ab5be8c1cce26c39b5bca9911fdc80d6c466" [ref=e1780]: 0xf672...c466
+                      - link "View token contract 0xf672ab5be8c1cce26c39b5bca9911fdc80d6c466 on block explorer" [ref=e1782] [cursor=pointer]:
+                        - /url: https://etherscan.io/address/0xf672ab5be8c1cce26c39b5bca9911fdc80d6c466
+                      - button "Copy token contract 0xf672ab5be8c1cce26c39b5bca9911fdc80d6c466" [ref=e1787] [cursor=pointer]
+                  - cell "Ethereum" [ref=e1791]
+                  - 'cell "Uniswap: V2 Router 0x7a250d5630b4cf539739df2c5dacb4c659f2488d" [ref=e1792]':
+                    - generic [ref=e1793]: "Uniswap: V2 Router"
+                    - generic [ref=e1794]: "0x7a250d5630b4cf539739df2c5dacb4c659f2488d"
+                  - cell "UNLIMITED (∞)" [ref=e1795]
+                  - cell "Unavailable (balance or price unknown)" [ref=e1796]
+                  - cell "medium" [ref=e1797]
+                  - cell "01/05/2026" [ref=e1798]
+                  - cell [ref=e1799]:
+                    - link "View spender contract 0x7a250d5630b4cf539739df2c5dacb4c659f2488d on block explorer" [ref=e1800] [cursor=pointer]:
+                      - /url: https://etherscan.io/address/0x7a250d5630b4cf539739df2c5dacb4c659f2488d
+                - row [ref=e1805]:
+                  - cell "??? Token contract 0xf5809f3348ff40906bb509f936aba43e6d1961ab View token contract 0xf5809f3348ff40906bb509f936aba43e6d1961ab on block explorer Copy token contract 0xf5809f3348ff40906bb509f936aba43e6d1961ab" [ref=e1806]:
+                    - generic [ref=e1807]: "???"
+                    - generic [ref=e1808]:
+                      - generic "Token contract 0xf5809f3348ff40906bb509f936aba43e6d1961ab" [ref=e1809]: 0xf580...61ab
+                      - link "View token contract 0xf5809f3348ff40906bb509f936aba43e6d1961ab on block explorer" [ref=e1811] [cursor=pointer]:
+                        - /url: https://etherscan.io/address/0xf5809f3348ff40906bb509f936aba43e6d1961ab
+                      - button "Copy token contract 0xf5809f3348ff40906bb509f936aba43e6d1961ab" [ref=e1816] [cursor=pointer]
+                  - cell "Ethereum" [ref=e1820]
+                  - 'cell "Uniswap: V2 Router 0x7a250d5630b4cf539739df2c5dacb4c659f2488d" [ref=e1821]':
+                    - generic [ref=e1822]: "Uniswap: V2 Router"
+                    - generic [ref=e1823]: "0x7a250d5630b4cf539739df2c5dacb4c659f2488d"
+                  - cell "UNLIMITED (∞)" [ref=e1824]
+                  - cell "Unavailable (balance or price unknown)" [ref=e1825]
+                  - cell "medium" [ref=e1826]
+                  - cell "01/05/2026" [ref=e1827]
+                  - cell [ref=e1828]:
+                    - link "View spender contract 0x7a250d5630b4cf539739df2c5dacb4c659f2488d on block explorer" [ref=e1829] [cursor=pointer]:
+                      - /url: https://etherscan.io/address/0x7a250d5630b4cf539739df2c5dacb4c659f2488d
+                - row [ref=e1834]:
+                  - cell "??? Token contract 0xf475e5dccd918108ec7c1f843c7245904b453318 View token contract 0xf475e5dccd918108ec7c1f843c7245904b453318 on block explorer Copy token contract 0xf475e5dccd918108ec7c1f843c7245904b453318" [ref=e1835]:
+                    - generic [ref=e1836]: "???"
+                    - generic [ref=e1837]:
+                      - generic "Token contract 0xf475e5dccd918108ec7c1f843c7245904b453318" [ref=e1838]: 0xf475...3318
+                      - link "View token contract 0xf475e5dccd918108ec7c1f843c7245904b453318 on block explorer" [ref=e1840] [cursor=pointer]:
+                        - /url: https://etherscan.io/address/0xf475e5dccd918108ec7c1f843c7245904b453318
+                      - button "Copy token contract 0xf475e5dccd918108ec7c1f843c7245904b453318" [ref=e1845] [cursor=pointer]
+                  - cell "Ethereum" [ref=e1849]
+                  - 'cell "Uniswap: V2 Router 0x7a250d5630b4cf539739df2c5dacb4c659f2488d" [ref=e1850]':
+                    - generic [ref=e1851]: "Uniswap: V2 Router"
+                    - generic [ref=e1852]: "0x7a250d5630b4cf539739df2c5dacb4c659f2488d"
+                  - cell "UNLIMITED (∞)" [ref=e1853]
+                  - cell "Unavailable (balance or price unknown)" [ref=e1854]
+                  - cell "medium" [ref=e1855]
+                  - cell "01/05/2026" [ref=e1856]
+                  - cell [ref=e1857]:
+                    - link "View spender contract 0x7a250d5630b4cf539739df2c5dacb4c659f2488d on block explorer" [ref=e1858] [cursor=pointer]:
+                      - /url: https://etherscan.io/address/0x7a250d5630b4cf539739df2c5dacb4c659f2488d
+                - row [ref=e1863]:
+                  - cell "??? Token contract 0xf46ccb9e08fb7e32eed560c87d5e583a59a43420 View token contract 0xf46ccb9e08fb7e32eed560c87d5e583a59a43420 on block explorer Copy token contract 0xf46ccb9e08fb7e32eed560c87d5e583a59a43420" [ref=e1864]:
+                    - generic [ref=e1865]: "???"
+                    - generic [ref=e1866]:
+                      - generic "Token contract 0xf46ccb9e08fb7e32eed560c87d5e583a59a43420" [ref=e1867]: 0xf46c...3420
+                      - link "View token contract 0xf46ccb9e08fb7e32eed560c87d5e583a59a43420 on block explorer" [ref=e1869] [cursor=pointer]:
+                        - /url: https://etherscan.io/address/0xf46ccb9e08fb7e32eed560c87d5e583a59a43420
+                      - button "Copy token contract 0xf46ccb9e08fb7e32eed560c87d5e583a59a43420" [ref=e1874] [cursor=pointer]
+                  - cell "Ethereum" [ref=e1878]
+                  - 'cell "Uniswap: V2 Router 0x7a250d5630b4cf539739df2c5dacb4c659f2488d" [ref=e1879]':
+                    - generic [ref=e1880]: "Uniswap: V2 Router"
+                    - generic [ref=e1881]: "0x7a250d5630b4cf539739df2c5dacb4c659f2488d"
+                  - cell "UNLIMITED (∞)" [ref=e1882]
+                  - cell "Unavailable (balance or price unknown)" [ref=e1883]
+                  - cell "medium" [ref=e1884]
+                  - cell "01/05/2026" [ref=e1885]
+                  - cell [ref=e1886]:
+                    - link "View spender contract 0x7a250d5630b4cf539739df2c5dacb4c659f2488d on block explorer" [ref=e1887] [cursor=pointer]:
+                      - /url: https://etherscan.io/address/0x7a250d5630b4cf539739df2c5dacb4c659f2488d
+                - row [ref=e1892]:
+                  - cell "??? Token contract 0xf3207f738d549e54cd09a599999a3f4b3e54da40 View token contract 0xf3207f738d549e54cd09a599999a3f4b3e54da40 on block explorer Copy token contract 0xf3207f738d549e54cd09a599999a3f4b3e54da40" [ref=e1893]:
+                    - generic [ref=e1894]: "???"
+                    - generic [ref=e1895]:
+                      - generic "Token contract 0xf3207f738d549e54cd09a599999a3f4b3e54da40" [ref=e1896]: 0xf320...da40
+                      - link "View token contract 0xf3207f738d549e54cd09a599999a3f4b3e54da40 on block explorer" [ref=e1898] [cursor=pointer]:
+                        - /url: https://etherscan.io/address/0xf3207f738d549e54cd09a599999a3f4b3e54da40
+                      - button "Copy token contract 0xf3207f738d549e54cd09a599999a3f4b3e54da40" [ref=e1903] [cursor=pointer]
+                  - cell "Ethereum" [ref=e1907]
+                  - 'cell "Uniswap: V2 Router 0x7a250d5630b4cf539739df2c5dacb4c659f2488d" [ref=e1908]':
+                    - generic [ref=e1909]: "Uniswap: V2 Router"
+                    - generic [ref=e1910]: "0x7a250d5630b4cf539739df2c5dacb4c659f2488d"
+                  - cell "UNLIMITED (∞)" [ref=e1911]
+                  - cell "Unavailable (balance or price unknown)" [ref=e1912]
+                  - cell "medium" [ref=e1913]
+                  - cell "01/05/2026" [ref=e1914]
+                  - cell [ref=e1915]:
+                    - link "View spender contract 0x7a250d5630b4cf539739df2c5dacb4c659f2488d on block explorer" [ref=e1916] [cursor=pointer]:
+                      - /url: https://etherscan.io/address/0x7a250d5630b4cf539739df2c5dacb4c659f2488d
+                - row [ref=e1921]:
+                  - cell "??? Token contract 0xf310c5c60c1fcc05bbe982032b90c80449bd0b38 View token contract 0xf310c5c60c1fcc05bbe982032b90c80449bd0b38 on block explorer Copy token contract 0xf310c5c60c1fcc05bbe982032b90c80449bd0b38" [ref=e1922]:
+                    - generic [ref=e1923]: "???"
+                    - generic [ref=e1924]:
+                      - generic "Token contract 0xf310c5c60c1fcc05bbe982032b90c80449bd0b38" [ref=e1925]: 0xf310...0b38
+                      - link "View token contract 0xf310c5c60c1fcc05bbe982032b90c80449bd0b38 on block explorer" [ref=e1927] [cursor=pointer]:
+                        - /url: https://etherscan.io/address/0xf310c5c60c1fcc05bbe982032b90c80449bd0b38
+                      - button "Copy token contract 0xf310c5c60c1fcc05bbe982032b90c80449bd0b38" [ref=e1932] [cursor=pointer]
+                  - cell "Ethereum" [ref=e1936]
+                  - 'cell "Uniswap: V2 Router 0x7a250d5630b4cf539739df2c5dacb4c659f2488d" [ref=e1937]':
+                    - generic [ref=e1938]: "Uniswap: V2 Router"
+                    - generic [ref=e1939]: "0x7a250d5630b4cf539739df2c5dacb4c659f2488d"
+                  - cell "UNLIMITED (∞)" [ref=e1940]
+                  - cell "Unavailable (balance or price unknown)" [ref=e1941]
+                  - cell "medium" [ref=e1942]
+                  - cell "01/05/2026" [ref=e1943]
+                  - cell [ref=e1944]:
+                    - link "View spender contract 0x7a250d5630b4cf539739df2c5dacb4c659f2488d on block explorer" [ref=e1945] [cursor=pointer]:
+                      - /url: https://etherscan.io/address/0x7a250d5630b4cf539739df2c5dacb4c659f2488d
+                - row [ref=e1950]:
+                  - cell "??? Token contract 0xf2f3ec1138ac2dd7d39f4b46a8f5a95458474126 View token contract 0xf2f3ec1138ac2dd7d39f4b46a8f5a95458474126 on block explorer Copy token contract 0xf2f3ec1138ac2dd7d39f4b46a8f5a95458474126" [ref=e1951]:
+                    - generic [ref=e1952]: "???"
+                    - generic [ref=e1953]:
+                      - generic "Token contract 0xf2f3ec1138ac2dd7d39f4b46a8f5a95458474126" [ref=e1954]: 0xf2f3...4126
+                      - link "View token contract 0xf2f3ec1138ac2dd7d39f4b46a8f5a95458474126 on block explorer" [ref=e1956] [cursor=pointer]:
+                        - /url: https://etherscan.io/address/0xf2f3ec1138ac2dd7d39f4b46a8f5a95458474126
+                      - button "Copy token contract 0xf2f3ec1138ac2dd7d39f4b46a8f5a95458474126" [ref=e1961] [cursor=pointer]
+                  - cell "Ethereum" [ref=e1965]
+                  - 'cell "Uniswap: V2 Router 0x7a250d5630b4cf539739df2c5dacb4c659f2488d" [ref=e1966]':
+                    - generic [ref=e1967]: "Uniswap: V2 Router"
+                    - generic [ref=e1968]: "0x7a250d5630b4cf539739df2c5dacb4c659f2488d"
+                  - cell "UNLIMITED (∞)" [ref=e1969]
+                  - cell "Unavailable (balance or price unknown)" [ref=e1970]
+                  - cell "medium" [ref=e1971]
+                  - cell "01/05/2026" [ref=e1972]
+                  - cell [ref=e1973]:
+                    - link "View spender contract 0x7a250d5630b4cf539739df2c5dacb4c659f2488d on block explorer" [ref=e1974] [cursor=pointer]:
+                      - /url: https://etherscan.io/address/0x7a250d5630b4cf539739df2c5dacb4c659f2488d
+                - row [ref=e1979]:
+                  - cell "??? Token contract 0xf280b16ef293d8e534e370794ef26bf312694126 View token contract 0xf280b16ef293d8e534e370794ef26bf312694126 on block explorer Copy token contract 0xf280b16ef293d8e534e370794ef26bf312694126" [ref=e1980]:
+                    - generic [ref=e1981]: "???"
+                    - generic [ref=e1982]:
+                      - generic "Token contract 0xf280b16ef293d8e534e370794ef26bf312694126" [ref=e1983]: 0xf280...4126
+                      - link "View token contract 0xf280b16ef293d8e534e370794ef26bf312694126 on block explorer" [ref=e1985] [cursor=pointer]:
+                        - /url: https://etherscan.io/address/0xf280b16ef293d8e534e370794ef26bf312694126
+                      - button "Copy token contract 0xf280b16ef293d8e534e370794ef26bf312694126" [ref=e1990] [cursor=pointer]
+                  - cell "Ethereum" [ref=e1994]
+                  - 'cell "Uniswap: V3 SwapRouter 0xe592427a0aece92de3edee1f18e0157c05861564" [ref=e1995]':
+                    - generic [ref=e1996]: "Uniswap: V3 SwapRouter"
+                    - generic [ref=e1997]: "0xe592427a0aece92de3edee1f18e0157c05861564"
+                  - cell "UNLIMITED (∞)" [ref=e1998]
+                  - cell "Unavailable (balance or price unknown)" [ref=e1999]
+                  - cell "medium" [ref=e2000]
+                  - cell "01/05/2026" [ref=e2001]
+                  - cell [ref=e2002]:
+                    - link "View spender contract 0xe592427a0aece92de3edee1f18e0157c05861564 on block explorer" [ref=e2003] [cursor=pointer]:
+                      - /url: https://etherscan.io/address/0xe592427a0aece92de3edee1f18e0157c05861564
+                - row [ref=e2008]:
+                  - cell "??? Token contract 0xf1a850a3b65b75bfb9e5a4dd4e568250ea7319df View token contract 0xf1a850a3b65b75bfb9e5a4dd4e568250ea7319df on block explorer Copy token contract 0xf1a850a3b65b75bfb9e5a4dd4e568250ea7319df" [ref=e2009]:
+                    - generic [ref=e2010]: "???"
+                    - generic [ref=e2011]:
+                      - generic "Token contract 0xf1a850a3b65b75bfb9e5a4dd4e568250ea7319df" [ref=e2012]: 0xf1a8...19df
+                      - link "View token contract 0xf1a850a3b65b75bfb9e5a4dd4e568250ea7319df on block explorer" [ref=e2014] [cursor=pointer]:
+                        - /url: https://etherscan.io/address/0xf1a850a3b65b75bfb9e5a4dd4e568250ea7319df
+                      - button "Copy token contract 0xf1a850a3b65b75bfb9e5a4dd4e568250ea7319df" [ref=e2019] [cursor=pointer]
+                  - cell "Ethereum" [ref=e2023]
+                  - 'cell "Uniswap: V2 Router 0x7a250d5630b4cf539739df2c5dacb4c659f2488d" [ref=e2024]':
+                    - generic [ref=e2025]: "Uniswap: V2 Router"
+                    - generic [ref=e2026]: "0x7a250d5630b4cf539739df2c5dacb4c659f2488d"
+                  - cell "UNLIMITED (∞)" [ref=e2027]
+                  - cell "Unavailable (balance or price unknown)" [ref=e2028]
+                  - cell "medium" [ref=e2029]
+                  - cell "01/05/2026" [ref=e2030]
+                  - cell [ref=e2031]:
+                    - link "View spender contract 0x7a250d5630b4cf539739df2c5dacb4c659f2488d on block explorer" [ref=e2032] [cursor=pointer]:
+                      - /url: https://etherscan.io/address/0x7a250d5630b4cf539739df2c5dacb4c659f2488d
+                - row [ref=e2037]:
+                  - cell "??? Token contract 0xf1680975c2d680177e13d464edc87e87bfdfbde5 View token contract 0xf1680975c2d680177e13d464edc87e87bfdfbde5 on block explorer Copy token contract 0xf1680975c2d680177e13d464edc87e87bfdfbde5" [ref=e2038]:
+                    - generic [ref=e2039]: "???"
+                    - generic [ref=e2040]:
+                      - generic "Token contract 0xf1680975c2d680177e13d464edc87e87bfdfbde5" [ref=e2041]: 0xf168...bde5
+                      - link "View token contract 0xf1680975c2d680177e13d464edc87e87bfdfbde5 on block explorer" [ref=e2043] [cursor=pointer]:
+                        - /url: https://etherscan.io/address/0xf1680975c2d680177e13d464edc87e87bfdfbde5
+                      - button "Copy token contract 0xf1680975c2d680177e13d464edc87e87bfdfbde5" [ref=e2048] [cursor=pointer]
+                  - cell "Ethereum" [ref=e2052]
+                  - 'cell "Uniswap: V2 Router 0x7a250d5630b4cf539739df2c5dacb4c659f2488d" [ref=e2053]':
+                    - generic [ref=e2054]: "Uniswap: V2 Router"
+                    - generic [ref=e2055]: "0x7a250d5630b4cf539739df2c5dacb4c659f2488d"
+                  - cell "UNLIMITED (∞)" [ref=e2056]
+                  - cell "Unavailable (balance or price unknown)" [ref=e2057]
+                  - cell "medium" [ref=e2058]
+                  - cell "01/05/2026" [ref=e2059]
+                  - cell [ref=e2060]:
+                    - link "View spender contract 0x7a250d5630b4cf539739df2c5dacb4c659f2488d on block explorer" [ref=e2061] [cursor=pointer]:
+                      - /url: https://etherscan.io/address/0x7a250d5630b4cf539739df2c5dacb4c659f2488d
+                - row [ref=e2066]:
+                  - cell "??? Token contract 0xef954937dddc1e0512d429e0bfacaff3477db119 View token contract 0xef954937dddc1e0512d429e0bfacaff3477db119 on block explorer Copy token contract 0xef954937dddc1e0512d429e0bfacaff3477db119" [ref=e2067]:
+                    - generic [ref=e2068]: "???"
+                    - generic [ref=e2069]:
+                      - generic "Token contract 0xef954937dddc1e0512d429e0bfacaff3477db119" [ref=e2070]: 0xef95...b119
+                      - link "View token contract 0xef954937dddc1e0512d429e0bfacaff3477db119 on block explorer" [ref=e2072] [cursor=pointer]:
+                        - /url: https://etherscan.io/address/0xef954937dddc1e0512d429e0bfacaff3477db119
+                      - button "Copy token contract 0xef954937dddc1e0512d429e0bfacaff3477db119" [ref=e2077] [cursor=pointer]
+                  - cell "Ethereum" [ref=e2081]
+                  - 'cell "Uniswap: V2 Router 0x7a250d5630b4cf539739df2c5dacb4c659f2488d" [ref=e2082]':
+                    - generic [ref=e2083]: "Uniswap: V2 Router"
+                    - generic [ref=e2084]: "0x7a250d5630b4cf539739df2c5dacb4c659f2488d"
+                  - cell "UNLIMITED (∞)" [ref=e2085]
+                  - cell "Unavailable (balance or price unknown)" [ref=e2086]
+                  - cell "medium" [ref=e2087]
+                  - cell "01/05/2026" [ref=e2088]
+                  - cell [ref=e2089]:
+                    - link "View spender contract 0x7a250d5630b4cf539739df2c5dacb4c659f2488d on block explorer" [ref=e2090] [cursor=pointer]:
+                      - /url: https://etherscan.io/address/0x7a250d5630b4cf539739df2c5dacb4c659f2488d
+                - row [ref=e2095]:
+                  - cell "??? Token contract 0xee56f191001f1ef885f67e86413f86a39976c20b View token contract 0xee56f191001f1ef885f67e86413f86a39976c20b on block explorer Copy token contract 0xee56f191001f1ef885f67e86413f86a39976c20b" [ref=e2096]:
+                    - generic [ref=e2097]: "???"
+                    - generic [ref=e2098]:
+                      - generic "Token contract 0xee56f191001f1ef885f67e86413f86a39976c20b" [ref=e2099]: 0xee56...c20b
+                      - link "View token contract 0xee56f191001f1ef885f67e86413f86a39976c20b on block explorer" [ref=e2101] [cursor=pointer]:
+                        - /url: https://etherscan.io/address/0xee56f191001f1ef885f67e86413f86a39976c20b
+                      - button "Copy token contract 0xee56f191001f1ef885f67e86413f86a39976c20b" [ref=e2106] [cursor=pointer]
+                  - cell "Ethereum" [ref=e2110]
+                  - 'cell "Uniswap: V2 Router 0x7a250d5630b4cf539739df2c5dacb4c659f2488d" [ref=e2111]':
+                    - generic [ref=e2112]: "Uniswap: V2 Router"
+                    - generic [ref=e2113]: "0x7a250d5630b4cf539739df2c5dacb4c659f2488d"
+                  - cell "UNLIMITED (∞)" [ref=e2114]
+                  - cell "Unavailable (balance or price unknown)" [ref=e2115]
+                  - cell "medium" [ref=e2116]
+                  - cell "01/05/2026" [ref=e2117]
+                  - cell [ref=e2118]:
+                    - link "View spender contract 0x7a250d5630b4cf539739df2c5dacb4c659f2488d on block explorer" [ref=e2119] [cursor=pointer]:
+                      - /url: https://etherscan.io/address/0x7a250d5630b4cf539739df2c5dacb4c659f2488d
+                - row [ref=e2124]:
+                  - cell "??? Token contract 0xece64c2e40bec73c522b23229d58e41acb39cbfb View token contract 0xece64c2e40bec73c522b23229d58e41acb39cbfb on block explorer Copy token contract 0xece64c2e40bec73c522b23229d58e41acb39cbfb" [ref=e2125]:
+                    - generic [ref=e2126]: "???"
+                    - generic [ref=e2127]:
+                      - generic "Token contract 0xece64c2e40bec73c522b23229d58e41acb39cbfb" [ref=e2128]: 0xece6...cbfb
+                      - link "View token contract 0xece64c2e40bec73c522b23229d58e41acb39cbfb on block explorer" [ref=e2130] [cursor=pointer]:
+                        - /url: https://etherscan.io/address/0xece64c2e40bec73c522b23229d58e41acb39cbfb
+                      - button "Copy token contract 0xece64c2e40bec73c522b23229d58e41acb39cbfb" [ref=e2135] [cursor=pointer]
+                  - cell "Ethereum" [ref=e2139]
+                  - 'cell "Uniswap: V2 Router 0x7a250d5630b4cf539739df2c5dacb4c659f2488d" [ref=e2140]':
+                    - generic [ref=e2141]: "Uniswap: V2 Router"
+                    - generic [ref=e2142]: "0x7a250d5630b4cf539739df2c5dacb4c659f2488d"
+                  - cell "UNLIMITED (∞)" [ref=e2143]
+                  - cell "Unavailable (balance or price unknown)" [ref=e2144]
+                  - cell "medium" [ref=e2145]
+                  - cell "01/05/2026" [ref=e2146]
+                  - cell [ref=e2147]:
+                    - link "View spender contract 0x7a250d5630b4cf539739df2c5dacb4c659f2488d on block explorer" [ref=e2148] [cursor=pointer]:
+                      - /url: https://etherscan.io/address/0x7a250d5630b4cf539739df2c5dacb4c659f2488d
+                - row [ref=e2153]:
+                  - cell "??? Token contract 0xee8a704f12f7efba69c094c77d5707542c04cfe5 View token contract 0xee8a704f12f7efba69c094c77d5707542c04cfe5 on block explorer Copy token contract 0xee8a704f12f7efba69c094c77d5707542c04cfe5" [ref=e2154]:
+                    - generic [ref=e2155]: "???"
+                    - generic [ref=e2156]:
+                      - generic "Token contract 0xee8a704f12f7efba69c094c77d5707542c04cfe5" [ref=e2157]: 0xee8a...cfe5
+                      - link "View token contract 0xee8a704f12f7efba69c094c77d5707542c04cfe5 on block explorer" [ref=e2159] [cursor=pointer]:
+                        - /url: https://etherscan.io/address/0xee8a704f12f7efba69c094c77d5707542c04cfe5
+                      - button "Copy token contract 0xee8a704f12f7efba69c094c77d5707542c04cfe5" [ref=e2164] [cursor=pointer]
+                  - cell "Ethereum" [ref=e2168]
+                  - 'cell "Uniswap: V2 Router 0x7a250d5630b4cf539739df2c5dacb4c659f2488d" [ref=e2169]':
+                    - generic [ref=e2170]: "Uniswap: V2 Router"
+                    - generic [ref=e2171]: "0x7a250d5630b4cf539739df2c5dacb4c659f2488d"
+                  - cell "UNLIMITED (∞)" [ref=e2172]
+                  - cell "Unavailable (balance or price unknown)" [ref=e2173]
+                  - cell "medium" [ref=e2174]
+                  - cell "01/05/2026" [ref=e2175]
+                  - cell [ref=e2176]:
+                    - link "View spender contract 0x7a250d5630b4cf539739df2c5dacb4c659f2488d on block explorer" [ref=e2177] [cursor=pointer]:
+                      - /url: https://etherscan.io/address/0x7a250d5630b4cf539739df2c5dacb4c659f2488d
+                - row [ref=e2182]:
+                  - cell "??? Token contract 0xec65e87d408e2dce22b93ba8fcc53a193a88055b View token contract 0xec65e87d408e2dce22b93ba8fcc53a193a88055b on block explorer Copy token contract 0xec65e87d408e2dce22b93ba8fcc53a193a88055b" [ref=e2183]:
+                    - generic [ref=e2184]: "???"
+                    - generic [ref=e2185]:
+                      - generic "Token contract 0xec65e87d408e2dce22b93ba8fcc53a193a88055b" [ref=e2186]: 0xec65...055b
+                      - link "View token contract 0xec65e87d408e2dce22b93ba8fcc53a193a88055b on block explorer" [ref=e2188] [cursor=pointer]:
+                        - /url: https://etherscan.io/address/0xec65e87d408e2dce22b93ba8fcc53a193a88055b
+                      - button "Copy token contract 0xec65e87d408e2dce22b93ba8fcc53a193a88055b" [ref=e2193] [cursor=pointer]
+                  - cell "Ethereum" [ref=e2197]
+                  - 'cell "Uniswap: V2 Router 0x7a250d5630b4cf539739df2c5dacb4c659f2488d" [ref=e2198]':
+                    - generic [ref=e2199]: "Uniswap: V2 Router"
+                    - generic [ref=e2200]: "0x7a250d5630b4cf539739df2c5dacb4c659f2488d"
+                  - cell "UNLIMITED (∞)" [ref=e2201]
+                  - cell "Unavailable (balance or price unknown)" [ref=e2202]
+                  - cell "medium" [ref=e2203]
+                  - cell "01/05/2026" [ref=e2204]
+                  - cell [ref=e2205]:
+                    - link "View spender contract 0x7a250d5630b4cf539739df2c5dacb4c659f2488d on block explorer" [ref=e2206] [cursor=pointer]:
+                      - /url: https://etherscan.io/address/0x7a250d5630b4cf539739df2c5dacb4c659f2488d
+                - row [ref=e2211]:
+                  - cell "??? Token contract 0xec3dc9ba0226dd571786767bfc8df91e045cdc82 View token contract 0xec3dc9ba0226dd571786767bfc8df91e045cdc82 on block explorer Copy token contract 0xec3dc9ba0226dd571786767bfc8df91e045cdc82" [ref=e2212]:
+                    - generic [ref=e2213]: "???"
+                    - generic [ref=e2214]:
+                      - generic "Token contract 0xec3dc9ba0226dd571786767bfc8df91e045cdc82" [ref=e2215]: 0xec3d...dc82
+                      - link "View token contract 0xec3dc9ba0226dd571786767bfc8df91e045cdc82 on block explorer" [ref=e2217] [cursor=pointer]:
+                        - /url: https://etherscan.io/address/0xec3dc9ba0226dd571786767bfc8df91e045cdc82
+                      - button "Copy token contract 0xec3dc9ba0226dd571786767bfc8df91e045cdc82" [ref=e2222] [cursor=pointer]
+                  - cell "Ethereum" [ref=e2226]
+                  - 'cell "Uniswap: V2 Router 0x7a250d5630b4cf539739df2c5dacb4c659f2488d" [ref=e2227]':
+                    - generic [ref=e2228]: "Uniswap: V2 Router"
+                    - generic [ref=e2229]: "0x7a250d5630b4cf539739df2c5dacb4c659f2488d"
+                  - cell "UNLIMITED (∞)" [ref=e2230]
+                  - cell "Unavailable (balance or price unknown)" [ref=e2231]
+                  - cell "medium" [ref=e2232]
+                  - cell "01/05/2026" [ref=e2233]
+                  - cell [ref=e2234]:
+                    - link "View spender contract 0x7a250d5630b4cf539739df2c5dacb4c659f2488d on block explorer" [ref=e2235] [cursor=pointer]:
+                      - /url: https://etherscan.io/address/0x7a250d5630b4cf539739df2c5dacb4c659f2488d
+                - row [ref=e2240]:
+                  - cell "??? Token contract 0xec21890967a8ceb3e55a3f79dac4e90673ba3c2e View token contract 0xec21890967a8ceb3e55a3f79dac4e90673ba3c2e on block explorer Copy token contract 0xec21890967a8ceb3e55a3f79dac4e90673ba3c2e" [ref=e2241]:
+                    - generic [ref=e2242]: "???"
+                    - generic [ref=e2243]:
+                      - generic "Token contract 0xec21890967a8ceb3e55a3f79dac4e90673ba3c2e" [ref=e2244]: 0xec21...3c2e
+                      - link "View token contract 0xec21890967a8ceb3e55a3f79dac4e90673ba3c2e on block explorer" [ref=e2246] [cursor=pointer]:
+                        - /url: https://etherscan.io/address/0xec21890967a8ceb3e55a3f79dac4e90673ba3c2e
+                      - button "Copy token contract 0xec21890967a8ceb3e55a3f79dac4e90673ba3c2e" [ref=e2251] [cursor=pointer]
+                  - cell "Ethereum" [ref=e2255]
+                  - 'cell "Uniswap: V2 Router 0x7a250d5630b4cf539739df2c5dacb4c659f2488d" [ref=e2256]':
+                    - generic [ref=e2257]: "Uniswap: V2 Router"
+                    - generic [ref=e2258]: "0x7a250d5630b4cf539739df2c5dacb4c659f2488d"
+                  - cell "UNLIMITED (∞)" [ref=e2259]
+                  - cell "Unavailable (balance or price unknown)" [ref=e2260]
+                  - cell "medium" [ref=e2261]
+                  - cell "01/05/2026" [ref=e2262]
+                  - cell [ref=e2263]:
+                    - link "View spender contract 0x7a250d5630b4cf539739df2c5dacb4c659f2488d on block explorer" [ref=e2264] [cursor=pointer]:
+                      - /url: https://etherscan.io/address/0x7a250d5630b4cf539739df2c5dacb4c659f2488d
+                - row [ref=e2269]:
+                  - cell "??? Token contract 0xebb66a88cedd12bfe3a289df6dfee377f2963f12 View token contract 0xebb66a88cedd12bfe3a289df6dfee377f2963f12 on block explorer Copy token contract 0xebb66a88cedd12bfe3a289df6dfee377f2963f12" [ref=e2270]:
+                    - generic [ref=e2271]: "???"
+                    - generic [ref=e2272]:
+                      - generic "Token contract 0xebb66a88cedd12bfe3a289df6dfee377f2963f12" [ref=e2273]: 0xebb6...3f12
+                      - link "View token contract 0xebb66a88cedd12bfe3a289df6dfee377f2963f12 on block explorer" [ref=e2275] [cursor=pointer]:
+                        - /url: https://etherscan.io/address/0xebb66a88cedd12bfe3a289df6dfee377f2963f12
+                      - button "Copy token contract 0xebb66a88cedd12bfe3a289df6dfee377f2963f12" [ref=e2280] [cursor=pointer]
+                  - cell "Ethereum" [ref=e2284]
+                  - 'cell "Uniswap: V2 Router 0x7a250d5630b4cf539739df2c5dacb4c659f2488d" [ref=e2285]':
+                    - generic [ref=e2286]: "Uniswap: V2 Router"
+                    - generic [ref=e2287]: "0x7a250d5630b4cf539739df2c5dacb4c659f2488d"
+                  - cell "UNLIMITED (∞)" [ref=e2288]
+                  - cell "Unavailable (balance or price unknown)" [ref=e2289]
+                  - cell "medium" [ref=e2290]
+                  - cell "01/05/2026" [ref=e2291]
+                  - cell [ref=e2292]:
+                    - link "View spender contract 0x7a250d5630b4cf539739df2c5dacb4c659f2488d on block explorer" [ref=e2293] [cursor=pointer]:
+                      - /url: https://etherscan.io/address/0x7a250d5630b4cf539739df2c5dacb4c659f2488d
+                - row [ref=e2298]:
+                  - cell "??? Token contract 0xe8335b4ac83aba4ff1a4205ad0ec722be16fa8c2 View token contract 0xe8335b4ac83aba4ff1a4205ad0ec722be16fa8c2 on block explorer Copy token contract 0xe8335b4ac83aba4ff1a4205ad0ec722be16fa8c2" [ref=e2299]:
+                    - generic [ref=e2300]: "???"
+                    - generic [ref=e2301]:
+                      - generic "Token contract 0xe8335b4ac83aba4ff1a4205ad0ec722be16fa8c2" [ref=e2302]: 0xe833...a8c2
+                      - link "View token contract 0xe8335b4ac83aba4ff1a4205ad0ec722be16fa8c2 on block explorer" [ref=e2304] [cursor=pointer]:
+                        - /url: https://etherscan.io/address/0xe8335b4ac83aba4ff1a4205ad0ec722be16fa8c2
+                      - button "Copy token contract 0xe8335b4ac83aba4ff1a4205ad0ec722be16fa8c2" [ref=e2309] [cursor=pointer]
+                  - cell "Ethereum" [ref=e2313]
+                  - 'cell "Uniswap: V2 Router 0x7a250d5630b4cf539739df2c5dacb4c659f2488d" [ref=e2314]':
+                    - generic [ref=e2315]: "Uniswap: V2 Router"
+                    - generic [ref=e2316]: "0x7a250d5630b4cf539739df2c5dacb4c659f2488d"
+                  - cell "UNLIMITED (∞)" [ref=e2317]
+                  - cell "Unavailable (balance or price unknown)" [ref=e2318]
+                  - cell "medium" [ref=e2319]
+                  - cell "01/05/2026" [ref=e2320]
+                  - cell [ref=e2321]:
+                    - link "View spender contract 0x7a250d5630b4cf539739df2c5dacb4c659f2488d on block explorer" [ref=e2322] [cursor=pointer]:
+                      - /url: https://etherscan.io/address/0x7a250d5630b4cf539739df2c5dacb4c659f2488d
+                - row [ref=e2327]:
+                  - cell "??? Token contract 0xe69ccaaaea33ebfe5b76e0dd373cd9a1a31fd410 View token contract 0xe69ccaaaea33ebfe5b76e0dd373cd9a1a31fd410 on block explorer Copy token contract 0xe69ccaaaea33ebfe5b76e0dd373cd9a1a31fd410" [ref=e2328]:
+                    - generic [ref=e2329]: "???"
+                    - generic [ref=e2330]:
+                      - generic "Token contract 0xe69ccaaaea33ebfe5b76e0dd373cd9a1a31fd410" [ref=e2331]: 0xe69c...d410
+                      - link "View token contract 0xe69ccaaaea33ebfe5b76e0dd373cd9a1a31fd410 on block explorer" [ref=e2333] [cursor=pointer]:
+                        - /url: https://etherscan.io/address/0xe69ccaaaea33ebfe5b76e0dd373cd9a1a31fd410
+                      - button "Copy token contract 0xe69ccaaaea33ebfe5b76e0dd373cd9a1a31fd410" [ref=e2338] [cursor=pointer]
+                  - cell "Ethereum" [ref=e2342]
+                  - 'cell "Uniswap: V2 Router 0x7a250d5630b4cf539739df2c5dacb4c659f2488d" [ref=e2343]':
+                    - generic [ref=e2344]: "Uniswap: V2 Router"
+                    - generic [ref=e2345]: "0x7a250d5630b4cf539739df2c5dacb4c659f2488d"
+                  - cell "UNLIMITED (∞)" [ref=e2346]
+                  - cell "Unavailable (balance or price unknown)" [ref=e2347]
+                  - cell "medium" [ref=e2348]
+                  - cell "01/05/2026" [ref=e2349]
+                  - cell [ref=e2350]:
+                    - link "View spender contract 0x7a250d5630b4cf539739df2c5dacb4c659f2488d on block explorer" [ref=e2351] [cursor=pointer]:
+                      - /url: https://etherscan.io/address/0x7a250d5630b4cf539739df2c5dacb4c659f2488d
+  - contentinfo [ref=e226]:
+    - generic [ref=e227]:
+      - generic [ref=e228]:
+        - paragraph [ref=e229]: WalletGenome
+        - paragraph [ref=e230]: Read-only, evidence-aware EVM wallet analytics. No wallet connection or signature required.
+      - navigation "Wallet analytics topics" [ref=e231]:
+        - link "Methodology" [ref=e232] [cursor=pointer]:
+          - /url: /docs
+        - link "EVM Wallet Analytics" [ref=e233] [cursor=pointer]:
+          - /url: /evm-wallet-analytics
+        - link "Crypto Wallet Risk Checker" [ref=e234] [cursor=pointer]:
+          - /url: /crypto-wallet-risk-checker
+        - link "Token Approval Checker" [ref=e235] [cursor=pointer]:
+          - /url: /token-approval-checker
+        - link "Sybil Wallet Analysis" [ref=e236] [cursor=pointer]:
+          - /url: /sybil-wallet-analysis
+        - link "Multi-Chain Wallet Forensics" [ref=e237] [cursor=pointer]:
+          - /url: /multi-chain-wallet-forensics
+  - alert [ref=e238]

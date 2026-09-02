@@ -1,7 +1,8 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
 import { moralisBudgetPerFallbackChain, processWalletScan, summarizeAvailability } from './scanService';
-import { ChainDataAvailability } from '@/lib/types';
+import { scanResultCache, sharedCache } from '@/lib/cache';
+import { ChainDataAvailability, EtherscanTransaction } from '@/lib/types';
 
 function availability(overrides: Partial<ChainDataAvailability> = {}): ChainDataAvailability {
   return {
@@ -13,6 +14,31 @@ function availability(overrides: Partial<ChainDataAvailability> = {}): ChainData
     prices: 'complete',
     errors: [],
     ...overrides,
+  };
+}
+
+function scanTransaction(wallet: string, hash: string): EtherscanTransaction {
+  return {
+    blockNumber: '10',
+    timeStamp: '1700000000',
+    hash,
+    nonce: '0',
+    blockHash: '0xscan-block',
+    transactionIndex: '0',
+    from: wallet,
+    to: '0x0000000000000000000000000000000000000001',
+    value: '0',
+    gas: '21000',
+    gasPrice: '1',
+    isError: '0',
+    txreceipt_status: '1',
+    input: '0x',
+    contractAddress: '',
+    cumulativeGasUsed: '21000',
+    gasUsed: '21000',
+    confirmations: '1',
+    methodId: '',
+    functionName: '',
   };
 }
 
@@ -225,6 +251,213 @@ describe('Scan availability aggregation', () => {
       assert.strictEqual(result.availability.find(item => item.chainId === 8453)?.prices, 'complete');
     } finally {
       fetchMock.mock.restore();
+    }
+  });
+
+  it('coalesces simultaneous identical scans into one provider operation', async () => {
+    const wallet = '0x8888888888888888888888888888888888888888';
+    let explorerCalls = 0;
+    const fetchMock = mock.method(globalThis, 'fetch', async (input: string | URL | Request) => {
+      const url = String(input);
+      if (url.includes('api.etherscan.io') || url.includes('blockscout.com')) {
+        explorerCalls += 1;
+        await new Promise<void>(resolve => setImmediate(resolve));
+        return new Response(JSON.stringify({ status: '0', message: 'No transactions found', result: [] }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+      if (url.includes('api.web3.bio')) return new Response('[]', { status: 200 });
+      return new Response('', { status: 503 });
+    });
+
+    try {
+      const [first, second] = await Promise.all([
+        processWalletScan(wallet, [1], 'coalescing-test-key'),
+        processWalletScan(wallet, [1], 'coalescing-test-key'),
+      ]);
+      assert.equal(explorerCalls, 3);
+      assert.equal(first.status, 'complete');
+      assert.equal(second.status, 'complete');
+      assert.equal(first.cached, undefined);
+      assert.equal(second.cached, undefined);
+    } finally {
+      fetchMock.mock.restore();
+    }
+  });
+
+  it('marks a reused report with its original fetch time', async () => {
+    const wallet = '0x9999999999999999999999999999999999999998';
+    const fetchMock = mock.method(globalThis, 'fetch', async (input: string | URL | Request) => {
+      const url = String(input);
+      if (url.includes('api.etherscan.io') || url.includes('blockscout.com')) {
+        return new Response(JSON.stringify({ status: '0', message: 'No transactions found', result: [] }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+      if (url.includes('api.web3.bio')) return new Response('[]', { status: 200 });
+      return new Response('', { status: 503 });
+    });
+
+    try {
+      const first = await processWalletScan(wallet, [1]);
+      const second = await processWalletScan(wallet, [1]);
+      assert.equal(first.cached, undefined);
+      assert.equal(second.cached, true);
+      assert.equal(second.cacheMetadata?.source, 'memory');
+      assert.equal(second.cacheMetadata?.fetchedAt, first.cacheMetadata?.fetchedAt);
+      assert.equal(second.cacheMetadata?.historyDatasets?.length, 3);
+    } finally {
+      fetchMock.mock.restore();
+    }
+  });
+
+  it('bypasses cached history datasets during a forced refresh', async () => {
+    const wallet = '0x9999999999999999999999999999999999999997';
+    let explorerCalls = 0;
+    const fetchMock = mock.method(globalThis, 'fetch', async (input: string | URL | Request) => {
+      const url = String(input);
+      if (url.includes('api.etherscan.io') || url.includes('blockscout.com')) {
+        explorerCalls += 1;
+        return new Response(JSON.stringify({ status: '0', message: 'No transactions found', result: [] }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+      if (url.includes('api.web3.bio')) return new Response('[]', { status: 200 });
+      return new Response('', { status: 503 });
+    });
+
+    try {
+      await processWalletScan(wallet, [1]);
+      assert.equal(explorerCalls, 3);
+
+      await processWalletScan(wallet, [1], '', false, { forceRefresh: true });
+      assert.equal(explorerCalls, 6);
+    } finally {
+      fetchMock.mock.restore();
+    }
+  });
+
+  it('uses refreshed explorer history after the report cache expires', async () => {
+    const wallet = '0x9999999999999999999999999999999999999996';
+    const realDateNow = Date.now.bind(Date);
+    const initialTime = realDateNow();
+    let timeOffset = 0;
+    let stage: 'empty' | 'fresh' | 'failed' = 'empty';
+    let explorerCalls = 0;
+    const dateNowMock = mock.method(Date, 'now', () => realDateNow() + timeOffset);
+    const fetchMock = mock.method(globalThis, 'fetch', async (input: string | URL | Request) => {
+      const url = String(input);
+      if (url.includes('api.web3.bio')) return new Response('[]', { status: 200 });
+      if (url.includes('api.etherscan.io') || url.includes('blockscout.com') || url.includes('routescan.io')) {
+        explorerCalls += 1;
+        if (stage === 'failed') return new Response('', { status: 503 });
+        const action = new URL(url).searchParams.get('action');
+        const result = stage === 'fresh' && action === 'txlist'
+          ? [scanTransaction(wallet, '0xscan-refresh')]
+          : [];
+        return new Response(JSON.stringify({
+          status: result.length > 0 ? '1' : '0',
+          message: result.length > 0 ? 'OK' : 'No transactions found',
+          result,
+        }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+      }
+      return new Response('', { status: 503 });
+    });
+
+    try {
+      const initial = await processWalletScan(wallet, [1]);
+      assert.equal(initial.aggregated.totalTransactions, 0);
+      const initialCalls = explorerCalls;
+
+      timeOffset = (initial.cacheMetadata?.fetchedAt ?? initialTime) + 1_000 - realDateNow();
+      stage = 'fresh';
+      const refreshed = await processWalletScan(wallet, [1], '', false, { forceRefresh: true });
+      assert.equal(refreshed.aggregated.totalTransactions, 1);
+      assert.equal(explorerCalls, initialCalls + 3);
+
+      timeOffset = (refreshed.cacheMetadata?.fetchedAt ?? initialTime) + 301_001 - realDateNow();
+      stage = 'failed';
+      const later = await processWalletScan(wallet, [1]);
+      assert.equal(later.aggregated.totalTransactions, 1);
+      assert.equal(explorerCalls, initialCalls + 3);
+      assert.equal(later.cached, undefined);
+    } finally {
+      fetchMock.mock.restore();
+      dateNowMock.mock.restore();
+    }
+  });
+
+  it('does not extend a report when it is copied from shared cache locally', async () => {
+    const wallet = '0x9999999999999999999999999999999999999995';
+    const previousUrl = process.env.UPSTASH_REDIS_REST_URL;
+    const previousToken = process.env.UPSTASH_REDIS_REST_TOKEN;
+    const remoteStore = new Map<string, string>();
+    const realDateNow = Date.now.bind(Date);
+    const initialTime = realDateNow();
+    let timeOffset = 0;
+    let providerCalls = 0;
+    process.env.UPSTASH_REDIS_REST_URL = 'https://redis.example.test';
+    process.env.UPSTASH_REDIS_REST_TOKEN = 'test-token';
+    const dateNowMock = mock.method(Date, 'now', () => realDateNow() + timeOffset);
+    const fetchMock = mock.method(globalThis, 'fetch', async (input: string | URL | Request, init?: RequestInit) => {
+      const url = String(input);
+      if (url === 'https://redis.example.test') {
+        const command = JSON.parse(String(init?.body)) as string[];
+        if (command[0] === 'SET') {
+          remoteStore.set(command[1], command[2]);
+          return Response.json({ result: 'OK' });
+        }
+        if (command[0] === 'GET') return Response.json({ result: remoteStore.get(command[1]) ?? null });
+        if (command[0] === 'INCRBY') return Response.json({ result: 1 });
+        return Response.json({ result: 1 });
+      }
+      if (url.includes('api.web3.bio')) return new Response('[]', { status: 200 });
+      if (url.includes('api.etherscan.io') || url.includes('blockscout.com') || url.includes('routescan.io')) {
+        providerCalls += 1;
+        const result: never[] = [];
+        return new Response(JSON.stringify({ status: '0', message: 'No transactions found', result }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+      return new Response('', { status: 503 });
+    });
+
+    try {
+      const first = await processWalletScan(wallet, [1]);
+      assert.equal(first.cached, undefined);
+      const reportKey = `wallet-analytics:report:v2:${wallet}:1`;
+      scanResultCache.delete(reportKey);
+      sharedCache.clearLocal();
+
+      const fetchedAt = first.cacheMetadata?.fetchedAt ?? initialTime;
+      timeOffset = fetchedAt + 299_000 - realDateNow();
+      const firstSharedRead = await processWalletScan(wallet, [1]);
+      assert.equal(firstSharedRead.cached, true);
+      assert.equal(firstSharedRead.cacheMetadata?.source, 'shared');
+      const callsAfterSharedRead = providerCalls;
+
+      timeOffset = fetchedAt + 299_500 - realDateNow();
+      const secondSharedRead = await processWalletScan(wallet, [1]);
+      assert.equal(secondSharedRead.cached, true);
+      assert.equal(providerCalls, callsAfterSharedRead);
+
+      timeOffset = fetchedAt + 300_000 - realDateNow();
+      const atExactExpiry = await processWalletScan(wallet, [1]);
+      assert.equal(atExactExpiry.cached, undefined);
+      assert.ok((atExactExpiry.cacheMetadata?.fetchedAt ?? 0) >= fetchedAt + 300_000);
+      assert.equal(providerCalls, callsAfterSharedRead);
+    } finally {
+      fetchMock.mock.restore();
+      dateNowMock.mock.restore();
+      sharedCache.clearLocal();
+      if (previousUrl === undefined) delete process.env.UPSTASH_REDIS_REST_URL;
+      else process.env.UPSTASH_REDIS_REST_URL = previousUrl;
+      if (previousToken === undefined) delete process.env.UPSTASH_REDIS_REST_TOKEN;
+      else process.env.UPSTASH_REDIS_REST_TOKEN = previousToken;
     }
   });
 });

@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { processWalletScan } from '@/lib/services/scanService';
 import { formatScanProgress } from '@/lib/scanProgress';
+import { RequestCancellationError, throwIfAborted } from '@/lib/cancellation';
 import {
   SCAN_REQUEST_TIMEOUT_MS,
   RequestPolicyError,
   acquireRequestSlot,
   enforceRequestRateLimit,
+  enforceRefreshRateLimit,
   parseJsonBody,
   runWithTimeout,
   validateScanRequest,
@@ -31,15 +33,21 @@ function scanErrorMessage(error: unknown): string {
 function createScanProgressStream(
   address: string,
   chainIds: number[],
+  forceRefresh: boolean,
   releaseSlot: () => void,
   telemetry: ScanRequestTelemetry,
+  requestSignal: AbortSignal,
 ): ReadableStream<Uint8Array> {
   const encoder = new TextEncoder();
   const startedAt = Date.now();
 
   return new ReadableStream<Uint8Array>({
     start(controller) {
-      let streamOpen = true;
+      let streamOpen = !requestSignal.aborted;
+      const onDisconnect = () => {
+        streamOpen = false;
+      };
+      requestSignal.addEventListener('abort', onDisconnect, { once: true });
       const send = (event: unknown) => {
         if (!streamOpen) return;
         try {
@@ -49,16 +57,28 @@ function createScanProgressStream(
         }
       };
 
-      const scanWork = processWalletScan(address, chainIds, '', false, {
-        onProgress: progress => send({
-          type: 'progress',
-          progress: formatScanProgress(progress, 'running'),
-          startedAt,
-          updatedAt: Date.now(),
-        }),
-      });
+      let workStarted = false;
+      const timedScan = runWithTimeout(
+        signal => {
+          workStarted = true;
+          const scanWork = processWalletScan(address, chainIds, '', false, {
+            forceRefresh,
+            signal,
+            onProgress: progress => send({
+              type: 'progress',
+              progress: formatScanProgress(progress, 'running'),
+              startedAt,
+              updatedAt: Date.now(),
+            }),
+          });
+          void scanWork.then(releaseSlot, releaseSlot);
+          return scanWork;
+        },
+        SCAN_REQUEST_TIMEOUT_MS,
+        { signal: requestSignal },
+      );
 
-      void runWithTimeout(scanWork, SCAN_REQUEST_TIMEOUT_MS)
+      void timedScan
         .then(result => {
           send({ type: 'result', result });
           logScanRequest(telemetry, {
@@ -77,10 +97,21 @@ function createScanProgressStream(
           });
         })
         .catch((error: unknown) => {
+          if (error instanceof RequestCancellationError) {
+            logScanRequest(telemetry, {
+              outcome: 'cancelled',
+              statusCode: 499,
+              targetCount: 1,
+              chainCount: chainIds.length,
+              resultStatus: 'unavailable',
+              failureCodes: [error.reason === 'deadline' ? 'request_timeout' : 'client_disconnect'],
+            });
+            return;
+          }
           send({ type: 'error', error: scanErrorMessage(error) });
           logScanRequest(telemetry, {
             outcome: 'failed',
-            statusCode: 200,
+            statusCode: error instanceof RequestPolicyError ? error.status : 200,
             targetCount: 1,
             chainCount: chainIds.length,
             resultStatus: 'unavailable',
@@ -88,7 +119,8 @@ function createScanProgressStream(
           });
         })
         .finally(() => {
-          releaseSlot();
+          if (!workStarted) releaseSlot();
+          requestSignal.removeEventListener('abort', onDisconnect);
           if (!streamOpen) return;
           streamOpen = false;
           try {
@@ -103,15 +135,21 @@ function createScanProgressStream(
 
 export async function POST(request: NextRequest) {
   const telemetry = createScanRequestTelemetry(request, 'scan');
+  let releaseSlot: (() => void) | undefined;
+  let workStarted = false;
 
   try {
     const body = await parseJsonBody(request, 'scan');
-    const { address, chainIds } = validateScanRequest(body);
+    const { address, chainIds, refresh = false } = validateScanRequest(body);
     enforceRequestRateLimit(request, 'scan');
-    const releaseSlot = acquireRequestSlot('scan');
+    if (refresh) await enforceRefreshRateLimit(request, 'scan', request.signal);
+    const routeReleaseSlot = acquireRequestSlot('scan');
+    releaseSlot = routeReleaseSlot;
 
     if (request.headers.get('accept')?.includes('application/x-ndjson')) {
-      return new Response(createScanProgressStream(address, chainIds, releaseSlot, telemetry), {
+      const stream = createScanProgressStream(address, chainIds, refresh, routeReleaseSlot, telemetry, request.signal);
+      releaseSlot = undefined;
+      return new Response(stream, {
         status: 200,
         headers: {
           'Content-Type': 'application/x-ndjson; charset=utf-8',
@@ -122,13 +160,20 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    const scanWork = processWalletScan(address, chainIds);
-    void scanWork.then(releaseSlot, releaseSlot);
-
     const responseData = await runWithTimeout(
-      scanWork,
+      signal => {
+        workStarted = true;
+        const scanWork = processWalletScan(address, chainIds, '', false, {
+          forceRefresh: refresh,
+          signal,
+        });
+        void scanWork.then(routeReleaseSlot, routeReleaseSlot);
+        return scanWork;
+      },
       SCAN_REQUEST_TIMEOUT_MS,
+      { signal: request.signal },
     );
+    throwIfAborted(request.signal);
 
     logScanRequest(telemetry, {
       outcome: 'completed',
@@ -146,12 +191,26 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json(responseData, {
-      headers: { 'X-Request-ID': telemetry.requestId },
+      headers: { 'Cache-Control': 'no-store', 'X-Request-ID': telemetry.requestId },
     });
   } catch (error: unknown) {
+    if (releaseSlot && !workStarted) releaseSlot();
+
+    if (error instanceof RequestCancellationError) {
+      logScanRequest(telemetry, {
+        outcome: 'cancelled',
+        statusCode: 499,
+        failureCodes: [error.reason === 'deadline' ? 'request_timeout' : 'client_disconnect'],
+      });
+      return new Response(null, {
+        status: 499,
+        headers: { 'Cache-Control': 'no-store', 'X-Request-ID': telemetry.requestId },
+      });
+    }
+
     if (error instanceof RequestPolicyError) {
       logScanRequest(telemetry, {
-        outcome: 'rejected',
+        outcome: error.code === 'request_timeout' ? 'failed' : 'rejected',
         statusCode: error.status,
         failureCodes: [error.code],
       });
@@ -160,7 +219,8 @@ export async function POST(request: NextRequest) {
         {
           status: error.status,
           headers: {
-            ...(error.status === 429 ? { 'Retry-After': '60' } : {}),
+            ...(error.status === 429 ? { 'Retry-After': error.code === 'refresh_rate_limited' ? '300' : '60' } : {}),
+            'Cache-Control': 'no-store',
             'X-Request-ID': telemetry.requestId,
           },
         },
@@ -175,7 +235,7 @@ export async function POST(request: NextRequest) {
       });
       return NextResponse.json(
         { error: error.message },
-        { status: 400, headers: { 'X-Request-ID': telemetry.requestId } },
+        { status: 400, headers: { 'Cache-Control': 'no-store', 'X-Request-ID': telemetry.requestId } },
       );
     }
 
@@ -187,7 +247,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(
       { error: 'An unexpected error occurred while analyzing the wallet.' },
-      { status: 500, headers: { 'X-Request-ID': telemetry.requestId } }
+      { status: 500, headers: { 'Cache-Control': 'no-store', 'X-Request-ID': telemetry.requestId } }
     );
   }
 }

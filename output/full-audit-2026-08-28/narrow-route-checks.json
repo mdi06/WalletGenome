@@ -1,0 +1,32 @@
+[
+  {
+    "client": 309,
+    "scroll": 309,
+    "url": "http://localhost:3000/docs"
+  },
+  {
+    "client": 309,
+    "scroll": 309,
+    "url": "http://localhost:3000/evm-wallet-analytics"
+  },
+  {
+    "client": 309,
+    "scroll": 309,
+    "url": "http://localhost:3000/crypto-wallet-risk-checker"
+  },
+  {
+    "client": 309,
+    "scroll": 309,
+    "url": "http://localhost:3000/token-approval-checker"
+  },
+  {
+    "client": 309,
+    "scroll": 309,
+    "url": "http://localhost:3000/sybil-wallet-analysis"
+  },
+  {
+    "client": 309,
+    "scroll": 309,
+    "url": "http://localhost:3000/multi-chain-wallet-forensics"
+  }
+]

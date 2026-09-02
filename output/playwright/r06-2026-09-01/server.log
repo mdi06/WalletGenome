@@ -1,0 +1,15 @@
+
+> wallet-analytics@0.1.0 start
+> next start
+
+▲ Next.js 16.3.1
+- Local:         http://localhost:3013
+- Network:       http://192.168.101.177:3013
+✓ Ready in 168ms
+✓ Running next.config.ts took 29ms
+Error: Internal: NoFallbackError
+    at p (.next/server/chunks/430.js:141:1229)
+    at responseGenerator (.next/server/chunks/430.js:141:4580)
+Error: Internal: NoFallbackError
+    at p (.next/server/chunks/430.js:141:1229)
+    at responseGenerator (.next/server/chunks/430.js:141:4580)

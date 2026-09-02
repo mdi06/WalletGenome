@@ -91,6 +91,21 @@ describe('single-wallet scan stream client', () => {
     );
   });
 
+  it('sends an explicit refresh request when asked', async () => {
+    const fetchImpl: typeof fetch = async (_input, init) => {
+      const body = JSON.parse(String(init?.body)) as { refresh?: boolean };
+      assert.equal(body.refresh, true);
+      return ndjsonResponse([{ type: 'result', result: completedResult }]);
+    };
+
+    await runSingleWalletScanStream({
+      address: completedResult.address,
+      chainIds: [1],
+      forceRefresh: true,
+      fetchImpl,
+    });
+  });
+
   it('rejects a truncated stream without a final report', async () => {
     const fetchImpl: typeof fetch = async () => ndjsonResponse([{
       type: 'progress',

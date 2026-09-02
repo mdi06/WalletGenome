@@ -4,6 +4,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import test from 'node:test';
 import LoadedScanSummary from './LoadedScanSummary';
 import type { IndexingStatus } from '@/lib/indexingStatus';
+import type { MultiChainScanResult } from '@/lib/types';
 
 test('renders the loaded wallet target, selected networks, evidence mode, and edit action', () => {
   const markup = renderToStaticMarkup(createElement(LoadedScanSummary, {
@@ -25,4 +26,33 @@ test('renders the loaded wallet target, selected networks, evidence mode, and ed
   assert.doesNotMatch(markup, /Evidence:/);
   assert.match(markup, /Edit scan/);
   assert.match(markup, /min-h-11/);
+});
+
+test('shows cached fetch time, history reuse, and refresh action', () => {
+  const markup = renderToStaticMarkup(createElement(LoadedScanSummary, {
+    address: '0x1111111111111111111111111111111111111111',
+    chainIds: [1],
+    evidenceMode: 'completed' as IndexingStatus,
+    data: {
+      cached: true,
+      cacheMetadata: {
+        fetchedAt: Date.UTC(2026, 7, 28, 4, 30),
+        source: 'shared',
+        expiresAt: Date.UTC(2026, 7, 28, 4, 35),
+        refreshAvailableAt: Date.UTC(2026, 7, 28, 9, 30),
+        historyDatasets: [
+          { chainId: 1, dataset: 'transactions', fetchedAt: 100, source: 'shared' },
+          { chainId: 1, dataset: 'tokenTransfers', fetchedAt: 100, source: 'shared' },
+        ],
+      },
+    } as MultiChainScanResult,
+    onRefresh: () => {},
+    onEdit: () => {},
+  }));
+
+  assert.match(markup, /Cached result/);
+  assert.match(markup, /Fetched:/);
+  assert.match(markup, /2 cached datasets/);
+  assert.match(markup, /Refresh data/);
+  assert.match(markup, /once every five minutes/);
 });

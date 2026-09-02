@@ -69,7 +69,7 @@ export default function TransferTable({ results }: Props) {
         <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
           <div className="min-w-0 flex-1">
             <label htmlFor="transfer-search" className="mb-1.5 block text-[10px] font-extrabold uppercase tracking-wider text-[#4b5563]">Search top token transfers</label>
-            <span className="flex min-h-11 items-center gap-2 border border-[#b8bbc3] bg-white px-3 focus-within:border-[#963300] focus-within:ring-2 focus-within:ring-[#963300]/30 focus-within:ring-offset-1 md:min-h-9">
+            <span className="flex min-h-11 items-center gap-2 border border-[#b8bbc3] bg-white px-3 focus-within:border-[#0a0a0a] focus-within:ring-2 focus-within:ring-[#0a0a0a]/20 focus-within:ring-offset-1 md:min-h-9">
               <Search size={14} aria-hidden="true" className="shrink-0 text-[#6b7280]" />
               <input
                 ref={searchInputRef}
@@ -99,11 +99,12 @@ export default function TransferTable({ results }: Props) {
             </span>
           </div>
 
-          <div className="grid grid-cols-3 gap-2 md:flex md:flex-wrap md:items-center">
+          <div className="grid grid-cols-3 gap-2 md:flex md:flex-wrap md:items-center" role="group" aria-label="Transfer direction filters">
             {(['all', 'in', 'out'] as const).map(f => (
               <button
                 key={f}
                 type="button"
+                aria-pressed={filter === f}
                 onClick={() => updateFilter(f)}
                 className={`min-h-11 w-full justify-center px-2 py-1.5 text-center text-xs font-bold cursor-pointer md:min-h-9 md:w-auto md:justify-start md:px-3 md:py-1 ${
                   filter === f
@@ -135,6 +136,7 @@ export default function TransferTable({ results }: Props) {
               <button
                 key={c.id}
                 type="button"
+                aria-pressed={selectedChain === c.id}
                 onClick={() => updateSelectedChain(c.id === 'all' ? 'all' : Number(c.id))}
                 className={`min-h-11 px-3 py-1 md:min-h-9 text-xs font-bold cursor-pointer ${
                   selectedChain === c.id

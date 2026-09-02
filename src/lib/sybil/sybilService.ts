@@ -1,4 +1,5 @@
 import { SybilReport, SybilMatch, MediaScoreBreakdown } from '../types';
+import { linkAbortSignal, throwIfAborted } from '../cancellation';
 
 interface SybilCache {
   layerZero: Set<string>;
@@ -88,33 +89,42 @@ const SOURCES = {
 /**
  * Fetch raw text/csv from URL with a fast timeout
  */
-async function fetchAddressList(url: string, timeoutMs: number = 3000): Promise<string[]> {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+async function fetchAddressList(
+  url: string,
+  timeoutMs = 3000,
+  parentSignal?: AbortSignal,
+): Promise<string[]> {
+  throwIfAborted(parentSignal);
+  const linked = linkAbortSignal(parentSignal);
+  const timeoutId = setTimeout(() => linked.controller.abort(), timeoutMs);
 
   try {
     const res = await fetch(url, {
-      signal: controller.signal,
+      signal: linked.signal,
       headers: { 'User-Agent': 'Wallet-Analytics-Sybil-Radar/1.0' },
       cache: 'no-store',
     });
 
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const text = await res.text();
+    throwIfAborted(parentSignal);
 
     const matches = text.match(/0x[a-fA-F0-9]{40}/g) || [];
     return matches.map(a => a.toLowerCase());
   } catch {
+    throwIfAborted(parentSignal);
     return [];
   } finally {
     clearTimeout(timeoutId);
+    linked.dispose();
   }
 }
 
 /**
  * Asynchronously synchronizes all upstream GitHub databases in the background
  */
-export async function syncSybilDatabases(): Promise<void> {
+export async function syncSybilDatabases(signal?: AbortSignal): Promise<void> {
+  throwIfAborted(signal);
   const now = Date.now();
   if (cache.isSyncing || (cache.lastSyncedAt > 0 && now - cache.lastSyncedAt < SYNC_INTERVAL_MS)) {
     return;
@@ -124,11 +134,13 @@ export async function syncSybilDatabases(): Promise<void> {
 
   try {
     const [ofacAddrs, hopAddrs, lzAddrs, umbraAddrs] = await Promise.allSettled([
-      fetchAddressList(SOURCES.ofac.url),
-      fetchAddressList(SOURCES.hop.url),
-      fetchAddressList(SOURCES.layerZero.url),
-      fetchAddressList(SOURCES.umbra.url),
+      fetchAddressList(SOURCES.ofac.url, 3000, signal),
+      fetchAddressList(SOURCES.hop.url, 3000, signal),
+      fetchAddressList(SOURCES.layerZero.url, 3000, signal),
+      fetchAddressList(SOURCES.umbra.url, 3000, signal),
     ]);
+
+    throwIfAborted(signal);
 
     if (ofacAddrs.status === 'fulfilled' && ofacAddrs.value.length > 0) {
       cache.ofac = new Set([...BASELINE_OFAC, ...ofacAddrs.value]);
@@ -145,6 +157,7 @@ export async function syncSybilDatabases(): Promise<void> {
 
     cache.lastSyncedAt = Date.now();
   } catch (err) {
+    throwIfAborted(signal);
     console.error('Sybil database sync error:', err);
   } finally {
     cache.isSyncing = false;
@@ -156,17 +169,22 @@ export async function syncSybilDatabases(): Promise<void> {
  */
 export async function checkSybilStatus(
   address: string,
-  mediaScore?: MediaScoreBreakdown
+  mediaScore?: MediaScoreBreakdown,
+  signal?: AbortSignal,
 ): Promise<SybilReport> {
+  throwIfAborted(signal);
   const lower = (address || '').toLowerCase();
 
   if (cache.lastSyncedAt === 0) {
     // Cold start: await the first sync to guarantee baseline security coverage
-    await syncSybilDatabases();
+    await syncSybilDatabases(signal);
+    throwIfAborted(signal);
   } else if (Date.now() - cache.lastSyncedAt > SYNC_INTERVAL_MS) {
     // TTL expired: trigger background sync without blocking the current pipeline
     syncSybilDatabases().catch(() => {});
   }
+
+  throwIfAborted(signal);
 
   const isOfac = cache.ofac.has(lower);
   const isHop = cache.hop.has(lower);

@@ -72,7 +72,7 @@ export default function IdentityCard({ identity, address, persona }: Props) {
               </span>
             )}
             <p className="text-xs text-[#4b5563] line-clamp-2">
-              {identity?.description ? identity.description : 'Universal Web3 & Web2 Social Identity Graph'}
+              {identity?.description ? identity.description : 'Available public Web3 & Web2 identity links'}
             </p>
           </div>
           </div>

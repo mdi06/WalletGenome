@@ -11,7 +11,10 @@ import {
 } from '@/lib/seo';
 import SiteHeader from '@/components/SiteHeader';
 
-export const dynamicParams = false;
+// Keep the known SEO pages statically generated, but let unknown slugs reach
+// the explicit notFound() branch below. With dynamicParams=false, Next.js
+// 16.3.1 bubbles its internal NoFallbackError for an ordinary unknown URL.
+export const dynamicParams = true;
 
 interface LandingPageProps {
   params: Promise<{ slug: string }>;

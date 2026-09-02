@@ -118,4 +118,22 @@ describe('Capital Flow Graph verified summary', () => {
     assert.match(markup, /59,502 returned historically priced or stablecoin transfer values/i);
     assert.doesNotMatch(markup, /Verified Flow Summary/i);
   });
+
+  it('keeps the SVG decorative while exposing named keyboard inspection actions', () => {
+    const data = getMockScanResult();
+    const markup = renderToStaticMarkup(createElement(CapitalFlowGraph, {
+      results: data.chains,
+      metrics: data.metrics,
+    }));
+    const svgContent = markup.match(/<svg[^>]*aria-hidden="true"[^>]*>([\s\S]*?)<\/svg>/)?.[1];
+
+    assert.ok(svgContent);
+    assert.doesNotMatch(svgContent, /tabindex|<button|<a\s/i);
+    assert.match(markup, /aria-label="Minimum capital-flow volume filter"/);
+    assert.match(markup, /aria-label="Capital flow network filter"/);
+    assert.match(markup, /aria-label="Inspect center Your Wallet"/);
+    assert.match(markup, /Address: 0xd8da6bf26964af9d7eed9e03e53415d37aa96045/);
+    assert.match(markup, /Inspect node/);
+    assert.match(markup, /Open Your Wallet on explorer/);
+  });
 });

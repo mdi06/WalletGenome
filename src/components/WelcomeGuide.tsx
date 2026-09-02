@@ -30,30 +30,30 @@ export default function WelcomeGuide({ onSelectDemo }: Props) {
               type="button"
               aria-label={`Load saved demo snapshot for ${demo.name}`}
               onClick={() => onSelectDemo(demo)}
-              className="card-3d-interactive p-5 text-left text-[#0a0a0a] space-y-3 flex flex-col justify-between group min-h-64 flex-shrink-0 w-[85vw] snap-start sm:w-auto sm:flex-shrink-1"
+              className="card-3d-interactive p-5 text-left font-sans text-[#0a0a0a] space-y-3 flex flex-col justify-between group min-h-64 flex-shrink-0 w-[85vw] snap-start sm:w-auto sm:flex-shrink-1"
             >
               <span className="space-y-3 block">
                 <span className="flex items-center justify-between gap-2">
-                  <span className="text-[9px] font-mono font-extrabold text-[#4b5563] uppercase tracking-wider truncate">
+                  <span className="text-[9px] font-extrabold text-[#4b5563] uppercase tracking-wider truncate">
                     {demo.role}
                   </span>
-                  <span className="badge-3d flex-shrink-0 border border-[#059669]/30 bg-[#059669]/10 px-1.5 py-0.2 font-mono text-[9px] font-black text-[#047857]">
+                  <span className="badge-3d flex-shrink-0 border border-[#059669]/30 bg-[#059669]/10 px-1.5 py-0.2 text-[9px] font-black text-[#047857]">
                     Saved · non-live
                   </span>
                 </span>
 
-                <span className="block text-xl font-black text-[#0a0a0a] font-mono group-hover:text-orange-ink transition-colors">
+                <span className="block text-xl font-black text-[#0a0a0a] group-hover:text-orange-ink transition-colors">
                   {demo.ens}
                 </span>
 
                 <span className="block text-xs text-[#4b5563] leading-relaxed text-pretty">
-                  Public multi-chain demo data for {demo.name}. The dashboard keeps the original provider and pricing completeness warnings.
+                  Saved public EVM data for {demo.name} across four supported networks. The dashboard keeps the original provider and pricing completeness warnings.
                 </span>
               </span>
 
               <span className="mt-6 pt-3 border-t border-[#c8c8c8] flex items-center justify-between gap-2">
-                <span className="min-w-0 truncate text-[10px] font-mono font-bold text-[#6b7280]">
-                  Four chains · Updated {formatDemoSnapshotDate(demo.generatedAt)}
+                <span className="min-w-0 truncate text-[10px] font-bold text-[#6b7280]">
+                  Four supported EVM networks · Updated {formatDemoSnapshotDate(demo.generatedAt)}
                 </span>
                 <span aria-hidden="true" className="flex flex-shrink-0 items-center gap-1 text-xs font-black uppercase tracking-wider text-[#0a0a0a] transition-colors group-hover:text-orange-ink">
                   <span className="sr-only sm:not-sr-only">Open</span>
@@ -83,7 +83,7 @@ export default function WelcomeGuide({ onSelectDemo }: Props) {
               Multi-Chain Scan
             </h3>
             <p className="text-xs text-[#4b5563] leading-relaxed text-pretty">
-              Enter any 0x address or ENS domain. We query Ethereum, Arbitrum, Base, and Optimism simultaneously—without requiring you to connect a wallet or install extensions.
+              Enter an EVM 0x address or ENS domain. We query Ethereum, Base, Arbitrum, and Optimism simultaneously—without requiring you to connect a wallet or install extensions.
             </p>
           </div>
 
@@ -109,7 +109,7 @@ export default function WelcomeGuide({ onSelectDemo }: Props) {
               Actionable Intelligence
             </h3>
             <p className="text-xs text-[#4b5563] leading-relaxed text-pretty">
-              Synthesizes a 6-axis Behavioral Radar, assigns a quantified Persona archetype, renders an interactive money flow graph, and flags open unlimited approval exposures.
+              Synthesizes a 6-axis Behavioral Radar, assigns a quantified Persona archetype, renders an interactive money flow graph, and flags observed unlimited approval states.
             </p>
           </div>
 
@@ -120,7 +120,7 @@ export default function WelcomeGuide({ onSelectDemo }: Props) {
       <section aria-labelledby="core-capabilities-heading" className="space-y-4 border-b border-[#c8c8c8] pb-6">
         <h2 id="core-capabilities-heading" className="text-xs font-extrabold text-[#4b5563] uppercase tracking-wider flex items-center gap-1.5">
           <Layers size={14} className="text-orange-ink" />
-          <span>WHAT YOU CAN UNCOVER ON ANY WALLET</span>
+          <span>WHAT THE SCANNER CAN INVESTIGATE</span>
         </h2>
 
         <div className="grid grid-cols-1 divide-y divide-[#c8c8c8] md:grid-cols-2 md:divide-x md:divide-y-0">
@@ -165,7 +165,7 @@ export default function WelcomeGuide({ onSelectDemo }: Props) {
             </p>
           </div>
 
-          {/* Bento Card 3: Universal Social Identities */}
+          {/* Bento Card 3: Available Social Identity Links */}
           <div className="space-y-3 py-5 text-[#0a0a0a] md:pr-6 md:odd:pl-0 md:even:pl-6">
             <div className="flex items-center gap-2.5">
               <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center border border-[#0a0a0a] bg-[#0a0a0a] text-[#3b82f6]">
@@ -173,15 +173,15 @@ export default function WelcomeGuide({ onSelectDemo }: Props) {
               </div>
               <div>
                 <h3 className="text-sm font-black uppercase text-[#0a0a0a]">
-                  Universal Social Identities
+                  Available Social Identity Links
                 </h3>
                 <span className="text-[10px] font-bold text-[#4b5563]">
-                  Bridge hex addresses to real-world accounts
+                  Available public profile context
                 </span>
               </div>
             </div>
             <p className="text-xs text-[#374151] leading-relaxed text-pretty">
-              Connects addresses to public Web2 and Web3 profiles across ENS domains, Farcaster Warpcast, Lens Protocol, Twitter/X, and GitHub with direct verified external links.
+              Shows available public Web2 and Web3 profile links from ENS, Farcaster Warpcast, Lens Protocol, Twitter/X, and GitHub.
             </p>
           </div>
 
@@ -201,7 +201,7 @@ export default function WelcomeGuide({ onSelectDemo }: Props) {
               </div>
             </div>
             <p className="text-xs text-[#374151] leading-relaxed text-pretty">
-              Protects assets by highlighting active unlimited token allowances to unverified contracts, calculating dead zero-liquidity tokens, and checking against LayerZero, Hop, and OFAC sanctions lists.
+              Protects assets by highlighting observed unlimited approval transactions to unverified contracts, calculating dead zero-liquidity tokens, and checking against LayerZero, Hop, and OFAC sanctions lists.
             </p>
           </div>
 

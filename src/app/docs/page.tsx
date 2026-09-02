@@ -91,7 +91,7 @@ const SECTIONS: DocSection[] = [
     category: '5. Sybil & Blacklist Defense',
     title: 'Sybil Radar & Trusta AI / MEDIA Algorithmic Model',
     badge: 'GRAPH & BOUNTY RADAR',
-    summary: '24-hour in-memory cache auto-syncing 800k+ blacklist entries with Trusta MEDIA composite probability scoring.',
+    summary: '24-hour in-memory cache with an illustrative ~800K-entry scale, plus Trusta MEDIA composite probability scoring.',
     icon: ShieldCheck,
     filePath: 'src/lib/sybil/sybilService.ts · src/lib/sybil/mediaScoring.ts',
   },
@@ -151,6 +151,7 @@ export default function DocsPage() {
   const docsSearchInputRef = useRef<HTMLInputElement>(null);
   const mobileDocsIndexRef = useRef<HTMLDetailsElement>(null);
   const mobileDocsIndexSummaryRef = useRef<HTMLElement>(null);
+  const topicJumpFrameRef = useRef<number | null>(null);
 
   const filteredSections = useMemo(() => {
     return filterDocumentationTopics(SECTIONS, searchQuery);
@@ -184,6 +185,12 @@ export default function DocsPage() {
     return () => window.removeEventListener('hashchange', syncActiveSectionFromHash);
   }, []);
 
+  useEffect(() => () => {
+    if (topicJumpFrameRef.current !== null) {
+      window.cancelAnimationFrame(topicJumpFrameRef.current);
+    }
+  }, []);
+
   useEffect(() => {
     if (typeof IntersectionObserver === 'undefined') return;
 
@@ -204,6 +211,24 @@ export default function DocsPage() {
     return () => observer.disconnect();
   }, []);
 
+  const scrollToDocumentationTopic = (sectionId: string) => {
+    if (topicJumpFrameRef.current !== null) {
+      window.cancelAnimationFrame(topicJumpFrameRef.current);
+    }
+
+    topicJumpFrameRef.current = window.requestAnimationFrame(() => {
+      topicJumpFrameRef.current = null;
+      const section = document.getElementById(sectionId);
+      if (!section) return;
+
+      const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      section.scrollIntoView({
+        behavior: prefersReducedMotion ? 'auto' : 'smooth',
+        block: 'start',
+      });
+    });
+  };
+
   const updateTopicFilter = (value: string) => {
     setSearchQuery(value);
 
@@ -211,6 +236,7 @@ export default function DocsPage() {
     if (!nextSectionId) return;
 
     setActiveSection(nextSectionId);
+    scrollToDocumentationTopic(nextSectionId);
   };
 
   const clearTopicFilter = () => {
@@ -248,37 +274,46 @@ export default function DocsPage() {
   };
 
   return (
-    <main className="max-w-[1400px] mx-auto p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-8">
+    <main className="max-w-[1400px] mx-auto p-4 sm:p-6 lg:p-8 pb-32 lg:pb-6 space-y-4 sm:space-y-8">
       <SiteHeader activePage="docs" indexingStatus="ready" showIndexingStatus={false} />
       <div aria-live="polite" className="sr-only" role="status">{copyStatus}</div>
 
       {/* ── Hero Header ── */}
-      <div className="pt-2 sm:pt-4 pb-4 border-b border-[#c8c8c8] flex flex-col items-center text-center sm:items-start sm:text-left gap-4">
-        <div className="badge-3d inline-flex flex-col sm:flex-row items-center justify-center gap-1.5 sm:gap-2 px-3 py-2 sm:py-1 text-xs font-mono font-bold text-[#0a0a0a]">
-          <BookOpen size={13} className="text-orange-ink shrink-0" />
-          <span>ENGINEERING DOCUMENTATION & ALGORITHMIC METHODOLOGY</span>
+      <div className="pt-4 pb-6 border-b border-[#c8c8c8] flex flex-col items-center text-center gap-4">
+
+        {/* Subtle Kicker */}
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-1.5 text-[10px] font-mono font-bold text-orange-ink uppercase tracking-wider">
+          <BookOpen size={14} className="shrink-0" />
+          <span>Engineering Documentation & Algorithmic Methodology</span>
         </div>
+
         <h1 className="text-3xl sm:text-5xl font-black uppercase tracking-tight text-[#0a0a0a] leading-tight text-balance">
           How WalletGenome Computes On-Chain Intelligence
         </h1>
+
         <p className="text-sm sm:text-base text-[#4b5563] font-medium max-w-4xl leading-relaxed text-pretty">
           A clear breakdown of the core algorithms, data pipelines, and security checks powering WalletGenome&apos;s on-chain analysis.
         </p>
+        <p className="max-w-4xl text-xs sm:text-sm leading-relaxed text-[#4b5563] text-pretty">
+          The scanner currently examines observable public activity on four supported EVM networks: Ethereum, Base, Arbitrum, and Optimism. Provider gaps remain explicitly partial or unavailable in the report.
+        </p>
+
         <Link
           href="/"
-          className="inline-flex min-h-11 items-center justify-center sm:justify-start gap-1.5 text-xs font-black uppercase tracking-wider text-orange-ink underline decoration-1 underline-offset-4 hover:text-[#0a0a0a]"
+          aria-label="Live scanner available — Open Live Scanner"
+          className="btn-3d-orange min-h-11 px-5 py-2 inline-flex items-center justify-center gap-2 text-xs font-black uppercase tracking-wider text-white mt-2"
         >
-          <Search size={13} aria-hidden="true" />
-          <span>Live scanner available</span>
+          <Search size={14} aria-hidden="true" />
+          <span>Open Live Scanner</span>
         </Link>
 
         {/* Live Search & Filter */}
-        <div className="pt-2 max-w-xl w-full text-left">
-          <label htmlFor="docs-topic-filter" className="mb-1.5 block text-[10px] font-extrabold uppercase tracking-wider text-[#4b5563] text-center sm:text-left">
+        <div className="pt-4 max-w-xl w-full text-center">
+          <label htmlFor="docs-topic-filter" className="mb-1.5 block text-[11px] font-bold text-[#4b5563]">
             Filter documentation topics
           </label>
-          <div className="relative flex items-center well-recessed-light focus-within:border-[#963300] focus-within:ring-2 focus-within:ring-[#963300]/30 focus-within:ring-offset-1">
-            <Search className="absolute left-3.5 text-[#4b5563]" size={16} aria-hidden="true" />
+          <div className="flex w-full items-center gap-3 px-3 py-2 well-recessed-light focus-within:border-[#963300] focus-within:ring-2 focus-within:ring-[#963300]/30 focus-within:ring-offset-1">
+            <Search size={18} aria-hidden="true" className="flex-shrink-0 text-gray-500" />
             <input
               ref={docsSearchInputRef}
               id="docs-topic-filter"
@@ -287,7 +322,7 @@ export default function DocsPage() {
               value={searchQuery}
               onChange={e => updateTopicFilter(e.target.value)}
               aria-describedby="docs-topic-filter-status"
-              className="w-full bg-transparent text-xs font-mono font-bold pl-10 pr-12 py-2.5 text-[#0a0a0a] placeholder:text-[#4b5563] focus:outline-none"
+              className="w-full bg-transparent border-none text-[#0a0a0a] font-mono text-sm sm:text-base font-bold focus:outline-none placeholder:text-gray-400 placeholder:font-sans"
             />
             {searchQuery && (
               <button
@@ -295,7 +330,7 @@ export default function DocsPage() {
                 onClick={clearTopicFilter}
                 aria-label="Clear documentation topic filter"
                 title="Clear documentation topic filter"
-                className="btn-3d-neutral absolute right-1 inline-flex min-h-11 min-w-11 items-center justify-center p-2 text-[#4b5563] hover:text-black"
+                className="btn-3d-neutral inline-flex min-h-9 min-w-9 items-center justify-center p-1.5 text-[#4b5563] hover:text-black flex-shrink-0"
               >
                 <X size={14} aria-hidden="true" />
               </button>
@@ -439,15 +474,15 @@ export default function DocsPage() {
             <div className="grid grid-cols-2 gap-2.5 text-[11px] pt-1">
               <div className="well-recessed-light p-2.5 space-y-0.5">
                 <div className="text-[#6b7280]">CHAINS</div>
-                <div className="font-bold text-sm text-[#0a0a0a]">4 EVM Networks</div>
+                <div className="font-bold text-sm text-[#0a0a0a]">4 supported EVM networks</div>
               </div>
               <div className="well-recessed-light p-2.5 space-y-0.5">
                 <div className="text-[#6b7280]">SYBIL CACHE</div>
-                <div className="font-bold text-sm text-[#0a0a0a]">800K+ In-Memory</div>
+                <div className="font-bold text-sm text-[#0a0a0a]">~800K entries (illustrative)</div>
               </div>
               <div className="well-recessed-light p-2.5 space-y-0.5">
                 <div className="text-[#6b7280]">LOOKUP TIME</div>
-                <div className="font-bold text-sm text-[#047857]">~0.01 ms (Set)</div>
+                <div className="font-bold text-sm text-[#047857]">~0.01 ms (illustrative)</div>
               </div>
               <div className="well-recessed-light p-2.5 space-y-0.5">
                 <div className="text-[#6b7280]">SCORING AXES</div>
@@ -459,53 +494,6 @@ export default function DocsPage() {
 
         {/* ── Right Detailed Content ── */}
         <div className="lg:col-span-8 lg:pl-8 flex flex-col gap-12 divide-y divide-[#c8c8c8]">
-          <section id="reporting-contract" className="space-y-5 text-[#0a0a0a]">
-            <div className="space-y-1 border-b border-[#c8c8c8] pb-3">
-              <span className="badge-3d text-[10px] font-mono font-black text-orange-ink uppercase tracking-wider py-0.5">
-                CANONICAL API CONTRACT
-              </span>
-              <h2 className="text-xl sm:text-2xl font-black uppercase pt-1">Reporting metric definitions</h2>
-            </div>
-            <p className="text-xs sm:text-sm text-[#374151] leading-relaxed">
-              These definitions are imported from the same contract used by API responses and dashboard labels. USD metrics are withheld when their required provider or price inputs are incomplete.
-            </p>
-            <div className="overflow-x-auto">
-              <table className="min-w-[900px] w-full text-left text-xs">
-                <thead>
-                  <tr className="border-b-2 border-black">
-                    <th className="p-3">Field</th>
-                    <th className="p-3">Unit / window</th>
-                    <th className="p-3">Sources and rules</th>
-                    <th className="p-3">Completeness / pricing</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {REPORTING_METRIC_DEFINITIONS.map(metric => (
-                    <tr key={metric.field} className="border-b border-[#c8c8c8] align-top">
-                      <td className="p-3">
-                        <code className="font-bold">{metric.field}</code>
-                        <div className="mt-1 text-[#4b5563]">{metric.label}</div>
-                      </td>
-                      <td className="p-3">
-                        <div className="font-bold">{metric.unit}</div>
-                        <div className="mt-1 text-[#4b5563]">{metric.timeWindow}</div>
-                      </td>
-                      <td className="p-3 text-[#374151]">
-                        <div>{metric.dataSources}</div>
-                        <div className="mt-1">{metric.inclusionExclusion}</div>
-                        <div className="mt-1 font-bold">{metric.aggregation}</div>
-                      </td>
-                      <td className="p-3 text-[#374151]">
-                        <div>{metric.completeness}</div>
-                        <div className="mt-1">{metric.priceProvenance}</div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </section>
-
           {/* ========================================================================= */}
           {/* 1. PIPELINE ARCHITECTURE */}
           {/* ========================================================================= */}
@@ -904,7 +892,7 @@ export default function DocsPage() {
             </div>
 
             <p className="text-xs sm:text-sm text-[#374151] leading-relaxed text-pretty">
-              Sybil defense checks an 800K+ blacklist cache and uses the Trusta AI MEDIA model to identify bot-like behavior.
+              Sybil defense checks an illustrative 800K+ blacklist-cache scale and uses the Trusta AI MEDIA model to identify bot-like behavior.
               A positive non-behavioral blacklist match overrides the overall clean/organic headline; the MEDIA probability remains a separate secondary heuristic.
             </p>
 
@@ -913,7 +901,7 @@ export default function DocsPage() {
               <div className="card-3d p-4 space-y-1.5">
                 <div className="font-black text-[#0a0a0a] flex items-center justify-between flex-wrap gap-2">
                   <span>1. LayerZero Sybil Database</span>
-                  <span className="badge-3d text-[9px] bg-black text-white px-2 py-0.5 whitespace-nowrap">800K+ ADDR</span>
+                  <span className="badge-3d text-[9px] bg-black text-white px-2 py-0.5 whitespace-nowrap">~800K+ ADDR · illustrative</span>
                 </div>
                 <p className="text-[11px] text-[#4b5563] text-pretty">
                   Official community bounty hunter reports and algorithmic script execution loops.
@@ -1001,7 +989,7 @@ export default function DocsPage() {
             </div>
 
             <p className="text-xs sm:text-sm text-[#374151] leading-relaxed text-pretty">
-              WalletGenome estimates current approval exposure from decoded allowances, reconstructed token balances, and priced assets. It does not treat an unknown balance or price as zero exposure.
+              WalletGenome estimates approval exposure from the latest observed non-revoked approval states reconstructed from returned ERC-20 approval transactions, reconstructed token balances, and current token prices. This is not a live allowance query: a later on-chain change may not appear in returned history. It does not treat an unknown balance or price as zero exposure.
             </p>
 
             <div className="well-recessed-light p-5 space-y-3 font-mono text-xs">
@@ -1199,6 +1187,59 @@ export default function DocsPage() {
           </section>
 
           {/* ========================================================================= */}
+          {/* 10. CANONICAL REPORTING CONTRACT */}
+          {/* ========================================================================= */}
+          <section id="reporting-contract" className="pt-10 space-y-5 text-[#0a0a0a]">
+            <div className="space-y-1 border-b border-[#c8c8c8] pb-3">
+              <span className="badge-3d text-[10px] font-mono font-black text-orange-ink uppercase tracking-wider py-0.5">
+                CANONICAL API CONTRACT
+              </span>
+              <h2 className="text-xl sm:text-2xl font-black uppercase pt-1">Reporting metric definitions</h2>
+            </div>
+            <p id="reporting-contract-overview" className="text-xs sm:text-sm text-[#374151] leading-relaxed text-pretty">
+              In plain language: <a href="#metric-inflowUSD" className="font-bold text-orange-ink underline underline-offset-2">flow fields</a> describe value that entered or left, <a href="#metric-riskScore" className="font-bold text-orange-ink underline underline-offset-2">risk fields</a> describe a heuristic rather than a loss probability, and <a href="#metric-approvalExposureUSD" className="font-bold text-orange-ink underline underline-offset-2">approval exposure</a> estimates value covered by the latest observed approvals rather than a live allowance. Missing history or price inputs stay partial or unavailable instead of being guessed.
+            </p>
+            <p className="text-xs sm:text-sm text-[#374151] leading-relaxed text-pretty">
+              These definitions are imported from the same contract used by API responses and dashboard labels. Use the stable field anchors in the table when linking to an exact definition; USD metrics are withheld when their required provider or price inputs are incomplete.
+            </p>
+            <div role="region" aria-label="Canonical reporting metric definitions table" tabIndex={0} className="overflow-x-auto focus-within:ring-2 focus-within:ring-[#963300]/30 focus-within:ring-offset-1">
+              <table aria-describedby="reporting-contract-overview" className="min-w-[900px] w-full text-left text-xs">
+                <thead>
+                  <tr className="border-b-2 border-black">
+                    <th className="p-3">Field</th>
+                    <th className="p-3">Unit / window</th>
+                    <th className="p-3">Sources and rules</th>
+                    <th className="p-3">Completeness / pricing</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {REPORTING_METRIC_DEFINITIONS.map(metric => (
+                    <tr id={`metric-${metric.field}`} key={metric.field} className="border-b border-[#c8c8c8] align-top scroll-mt-6">
+                      <td className="p-3">
+                        <code className="font-bold">{metric.field}</code>
+                        <div className="mt-1 text-[#4b5563]">{metric.label}</div>
+                      </td>
+                      <td className="p-3">
+                        <div className="font-bold">{metric.unit}</div>
+                        <div className="mt-1 text-[#4b5563]">{metric.timeWindow}</div>
+                      </td>
+                      <td className="p-3 text-[#374151]">
+                        <div>{metric.dataSources}</div>
+                        <div className="mt-1">{metric.inclusionExclusion}</div>
+                        <div className="mt-1 font-bold">{metric.aggregation}</div>
+                      </td>
+                      <td className="p-3 text-[#374151]">
+                        <div>{metric.completeness}</div>
+                        <div className="mt-1">{metric.priceProvenance}</div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+          {/* ========================================================================= */}
           {/* 11. TECHNICAL COMPLEXITY SPECIFICATIONS */}
           {/* ========================================================================= */}
           <section id="complexity-matrix" className="pt-10 space-y-5 text-[#0a0a0a]">
@@ -1221,7 +1262,7 @@ export default function DocsPage() {
             </div>
 
             <p className="text-xs sm:text-sm text-[#374151] leading-relaxed text-pretty">
-              Performance summary of our algorithms and caching policies.
+              Algorithmic complexity and cache policies. The cache-size and timing figures are illustrative, not reproducible benchmark results or production capacity guarantees.
             </p>
 
             <div className="well-recessed-light overflow-hidden overflow-x-auto">
@@ -1239,7 +1280,7 @@ export default function DocsPage() {
                   <tr className="hover:bg-white/60 transition-colors">
                     <td className="p-3 font-bold">Sybil Blacklist Check</td>
                     <td className="p-3 text-green-700 font-bold">O(1) lookup</td>
-                    <td className="p-3">O(M) 800k in-memory set</td>
+                    <td className="p-3">O(M) in-memory set (~800K entries, illustrative)</td>
                     <td className="p-3">Server Memory</td>
                     <td className="p-3">24h Global TTL</td>
                   </tr>

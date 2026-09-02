@@ -76,3 +76,17 @@ test('builds evidence-based cluster summary and deterministic sorting', () => {
   assert.deepEqual(sortClusterWallets(wallets, 'risk', false).map(item => item.address), ['0x2', '0x1']);
   assert.deepEqual(sortClusterWallets(wallets, 'gas', true).map(item => item.address), ['0x2', '0x1']);
 });
+
+test('does not turn a saved no-link example into an independence claim', () => {
+  const data: ClusterScanResult = {
+    source: 'saved',
+    status: 'complete', totalWallets: 1, requestedWallets: 1, totalTransactions: 0,
+    totalGasUSD: 0, totalInflowUSD: 0, avgSybilProbability: 0, flaggedCount: 0,
+    totalHighRiskApprovals: 0, wallets: [wallet('0x1', 0, 0)], failedWallets: [], scannedAt: 1,
+    linkages: [], sharedCounterparties: [],
+  };
+  const summary = buildClusterSummary(data);
+  assert.match(summary.narrative, /saved cluster example/i);
+  assert.match(summary.narrative, /non-live fixture/i);
+  assert.doesNotMatch(summary.narrative, /complete returned transfer datasets/i);
+});

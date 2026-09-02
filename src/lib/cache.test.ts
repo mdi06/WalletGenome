@@ -1,6 +1,7 @@
-import test from 'node:test';
+import test, { mock } from 'node:test';
 import assert from 'node:assert/strict';
-import { MemoryCache, DomainRateLimiter } from './cache';
+import { MemoryCache, DomainRateLimiter, SharedCache } from './cache';
+import { RequestCancellationError } from './cancellation';
 
 test('MemoryCache & RateLimiter Core Tests', async (t) => {
   await t.test('should store and retrieve cached items within TTL', () => {
@@ -51,6 +52,100 @@ test('MemoryCache & RateLimiter Core Tests', async (t) => {
     assert.equal(acquired6, true);
     const elapsed = Date.now() - start;
     assert.ok(elapsed >= 150, `Expected rate limiter to throttle, elapsed: ${elapsed}ms`);
+  });
+
+  await t.test('uses the configured shared Redis REST cache across cache instances', async () => {
+    const previousUrl = process.env.UPSTASH_REDIS_REST_URL;
+    const previousToken = process.env.UPSTASH_REDIS_REST_TOKEN;
+    const remoteStore = new Map<string, string>();
+    process.env.UPSTASH_REDIS_REST_URL = 'https://redis.example.test';
+    process.env.UPSTASH_REDIS_REST_TOKEN = 'test-token';
+    const fetchMock = mock.method(globalThis, 'fetch', async (_input: string | URL | Request, init?: RequestInit) => {
+      const command = JSON.parse(String(init?.body)) as string[];
+      if (command[0] === 'SET') {
+        remoteStore.set(command[1], command[2]);
+        return Response.json({ result: 'OK' });
+      }
+      if (command[0] === 'GET') {
+        return Response.json({ result: remoteStore.get(command[1]) ?? null });
+      }
+      return Response.json({ result: 1 });
+    });
+
+    try {
+      const writer = new SharedCache();
+      const reader = new SharedCache();
+      const fetchedAt = Date.now();
+      await writer.set('cache-test-shared', { status: 'complete' }, 60, fetchedAt);
+      const hit = await reader.get<{ status: string }>('cache-test-shared', 60);
+      assert.deepEqual(hit?.value, { status: 'complete' });
+      assert.equal(hit?.fetchedAt, fetchedAt);
+      assert.equal(hit?.source, 'shared');
+    } finally {
+      fetchMock.mock.restore();
+      if (previousUrl === undefined) delete process.env.UPSTASH_REDIS_REST_URL;
+      else process.env.UPSTASH_REDIS_REST_URL = previousUrl;
+      if (previousToken === undefined) delete process.env.UPSTASH_REDIS_REST_TOKEN;
+      else process.env.UPSTASH_REDIS_REST_TOKEN = previousToken;
+    }
+  });
+
+  await t.test('preserves the remaining TTL when a Redis hit is copied locally', async () => {
+    const previousUrl = process.env.UPSTASH_REDIS_REST_URL;
+    const previousToken = process.env.UPSTASH_REDIS_REST_TOKEN;
+    const remoteStore = new Map<string, string>();
+    let currentTime = 0;
+    process.env.UPSTASH_REDIS_REST_URL = 'https://redis.example.test';
+    process.env.UPSTASH_REDIS_REST_TOKEN = 'test-token';
+    const dateNowMock = mock.method(Date, 'now', () => currentTime);
+    const fetchMock = mock.method(globalThis, 'fetch', async (_input: string | URL | Request, init?: RequestInit) => {
+      const command = JSON.parse(String(init?.body)) as string[];
+      if (command[0] === 'SET') {
+        remoteStore.set(command[1], command[2]);
+        return Response.json({ result: 'OK' });
+      }
+      if (command[0] === 'GET') {
+        return Response.json({ result: remoteStore.get(command[1]) ?? null });
+      }
+      return Response.json({ result: 1 });
+    });
+
+    try {
+      const writer = new SharedCache();
+      const reader = new SharedCache();
+      await writer.set('cache-test-remaining-ttl', 'value', 3_600, 0);
+
+      currentTime = 3_540_000;
+      assert.equal((await reader.get('cache-test-remaining-ttl', 3_600))?.value, 'value');
+
+      currentTime = 3_600_001;
+      assert.equal(await reader.get('cache-test-remaining-ttl', 3_600), null);
+    } finally {
+      fetchMock.mock.restore();
+      dateNowMock.mock.restore();
+      if (previousUrl === undefined) delete process.env.UPSTASH_REDIS_REST_URL;
+      else process.env.UPSTASH_REDIS_REST_URL = previousUrl;
+      if (previousToken === undefined) delete process.env.UPSTASH_REDIS_REST_TOKEN;
+      else process.env.UPSTASH_REDIS_REST_TOKEN = previousToken;
+    }
+  });
+
+  await t.test('does not overwrite a complete local cache entry after cancellation', async () => {
+    const cache = new SharedCache();
+    cache.clearLocal();
+    const key = 'cache-test-cancellation';
+    await cache.set(key, { status: 'complete', version: 1 }, 60);
+
+    const requestController = new AbortController();
+    requestController.abort();
+    await assert.rejects(
+      cache.set(key, { status: 'complete', version: 2 }, 60, Date.now(), requestController.signal),
+      (error: unknown) => error instanceof RequestCancellationError,
+    );
+    assert.deepEqual((await cache.get<{ status: string; version: number }>(key, 60))?.value, {
+      status: 'complete',
+      version: 1,
+    });
   });
 
 });

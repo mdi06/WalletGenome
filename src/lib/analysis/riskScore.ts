@@ -29,7 +29,7 @@ export function computeRiskScore(
     factors.push({
       label: `${highRiskApprovals} High-Risk Approval${highRiskApprovals > 1 ? 's' : ''}`,
       impact: approvalImpact,
-      description: `${highRiskApprovals} unlimited token approval${highRiskApprovals > 1 ? 's' : ''} granted to unverified contracts. Allowance authority is scored separately from the balance-and-price exposure estimate.`,
+      description: `${highRiskApprovals} observed unlimited token approval${highRiskApprovals > 1 ? 's' : ''} granted to unverified contracts. Allowance authority is scored separately from the balance-and-price exposure estimate.`,
       severity: 'critical',
     });
   } else if (unlimitedApprovals > RISK_MODEL.knownUnlimitedApprovals.minimumCountExclusive) {
@@ -41,7 +41,7 @@ export function computeRiskScore(
     factors.push({
       label: `${unlimitedApprovals} Unlimited Approvals`,
       impact: approvalImpact,
-      description: `${unlimitedApprovals} active unlimited approvals. While approved to known contracts, consider revoking stale ones.`,
+      description: `${unlimitedApprovals} unlimited approvals in the latest observed state. They were observed on known contracts; consider revoking stale ones.`,
       severity: 'warning',
     });
   }
@@ -77,7 +77,7 @@ export function computeRiskScore(
     factors.push({
       label: `${staleApprovals.length} Stale Approval${staleApprovals.length > 1 ? 's' : ''}`,
       impact: staleImpact,
-      description: `${staleApprovals.length} token approvals older than 6 months still active. Old approvals to abandoned contracts pose a security risk.`,
+      description: `${staleApprovals.length} token approvals older than 6 months remain in the latest observed non-revoked state. Old approvals to abandoned contracts pose a security risk.`,
       severity: 'warning',
     });
   }

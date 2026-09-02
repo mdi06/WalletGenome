@@ -1,0 +1,277 @@
+- generic [ref=f4e1]:
+  - main [ref=f4e2]:
+    - generic [ref=f4e3]:
+      - generic [ref=f4e4]:
+        - button "Open WalletGenome guide" [ref=f4e5] [cursor=pointer]:
+          - generic [ref=f4e6]: WALLET.GENOME
+        - button "Open navigation" [ref=f4e7] [cursor=pointer]
+      - 'status "Indexing status: Saved snapshot" [ref=f4e119]':
+        - generic [ref=f4e12]: Saved snapshot
+    - region "Wallet Forensics Console" [ref=f4e13]:
+      - tablist "Forensics Scan Mode" [ref=f4e14]:
+        - tab "Single wallet" [selected] [ref=f4e15] [cursor=pointer]
+        - tab "Cluster scan" [ref=f4e20] [cursor=pointer]
+      - region "Loaded scan summary" [ref=f4e120]:
+        - generic [ref=f4e121]:
+          - generic [ref=f4e122]:
+            - generic [ref=f4e123]: Loaded wallet scan
+            - generic [ref=f4e124]: Saved snapshot
+          - generic [ref=f4e125]:
+            - heading "0xd8dA6B…A96045" [level=2] [ref=f4e126]
+            - generic [ref=f4e127]:
+              - button "View full wallet address" [ref=f4e128] [cursor=pointer]:
+                - generic [ref=f4e132]: Full address
+              - button "Copy wallet address" [ref=f4e133] [cursor=pointer]
+            - status [ref=f4e137]
+          - generic [ref=f4e139]:
+            - term [ref=f4e140]: "Networks:"
+            - definition [ref=f4e141]: Ethereum, Base, Arbitrum, Optimism
+        - button "Edit scan" [ref=f4e143] [cursor=pointer]
+    - region "Evidence status" [ref=f4e144]:
+      - generic [ref=f4e145]:
+        - generic [ref=f4e146]:
+          - paragraph [ref=f4e148]: Saved snapshot · Non-live
+          - paragraph [ref=f4e149]: Saved public data for Vitalik Buterin. Updated Aug 26, 2026. This view does not spend provider API quota.
+          - paragraph [ref=f4e150]: "History evidence: partial. Review data quality details below."
+        - button "Run fresh scan" [ref=f4e151] [cursor=pointer]
+      - group [ref=f4e152]:
+        - generic "Review data quality partial" [ref=f4e153] [cursor=pointer]:
+          - generic [ref=f4e154]: Review data quality
+          - generic [ref=f4e155]: partial
+    - generic [ref=f4e156]:
+      - generic "Dashboard sections; scroll horizontally for more tabs" [ref=f4e157]:
+        - tablist "Wallet dashboard sections" [ref=f4e158]:
+          - tab "BEHAVIORAL DNA" [ref=f4e159] [cursor=pointer]
+          - tab "FLOW GRAPH" [ref=f4e161] [cursor=pointer]
+          - tab "PROTOCOLS 12" [active] [selected] [ref=f4e163] [cursor=pointer]:
+            - generic [ref=f4e164]: PROTOCOLS
+            - generic [ref=f4e165]: "12"
+          - tab "GAS FEES" [ref=f4e166] [cursor=pointer]
+          - tab "TOP TOKEN TRANSFERS" [ref=f4e168] [cursor=pointer]
+          - tab "APPROVALS 2233" [ref=f4e170] [cursor=pointer]:
+            - generic [ref=f4e171]: APPROVALS
+            - generic [ref=f4e172]: "2233"
+      - tabpanel "PROTOCOLS 12" [ref=f4e659]:
+        - generic [ref=f4e660]:
+          - generic [ref=f4e661]:
+            - generic [ref=f4e662]: USD gas and volume values use timestamp-matched historical prices or explicit stablecoin assumptions. Estimated or unpriced scans are withheld before this view renders.
+            - generic [ref=f4e663]:
+              - generic [ref=f4e664]:
+                - generic [ref=f4e665]: TOTAL PROTOCOL FAMILIES
+                - generic [ref=f4e666]: "12"
+              - generic [ref=f4e667]:
+                - generic [ref=f4e668]: COUNTERPARTY ADDRESSES
+                - generic [ref=f4e669]: "160"
+              - generic [ref=f4e670]:
+                - generic [ref=f4e671]: MOST INTERACTED PROTOCOL
+                - generic [ref=f4e672]: Unclassified contracts
+                - generic [ref=f4e673]: 2997 calls across 2312 unclassified contracts
+          - region [ref=f4e674]:
+            - generic [ref=f4e675]:
+              - heading "UNCLASSIFIED ACTIVITY BREAKDOWN" [level=3] [ref=f4e676]
+              - generic [ref=f4e677]: "Largest category: Contract calls"
+            - paragraph [ref=f4e678]: These calls reached contracts that are not mapped to a named protocol. Category signals remain visible so the activity can be reviewed without presenting an unsupported protocol identity.
+            - list "Unclassified activity categories" [ref=f4e679]:
+              - listitem [ref=f4e680]:
+                - generic [ref=f4e681]: Contract calls
+                - generic [ref=f4e682]: 3044 calls · 2312 contracts
+          - generic [ref=f4e683]:
+            - generic [ref=f4e684]:
+              - button "Protocols & DApps (12)" [pressed] [ref=f4e685] [cursor=pointer]
+              - button "Counterparty Addresses (160)" [ref=f4e686] [cursor=pointer]
+            - textbox "Search protocols and counterparties" [ref=f4e691]:
+              - /placeholder: Search Uniswap, Aave...
+          - generic [ref=f4e692]:
+            - generic [ref=f4e693]: "Filter Category:"
+            - button "All" [pressed] [ref=f4e694] [cursor=pointer]
+            - button "Swaps" [ref=f4e695] [cursor=pointer]
+            - button "Bridges" [ref=f4e696] [cursor=pointer]
+            - button "Lending" [ref=f4e697] [cursor=pointer]
+            - button "Perpetuals" [ref=f4e698] [cursor=pointer]
+            - button "Staking" [ref=f4e699] [cursor=pointer]
+            - button "NFT activity" [ref=f4e700] [cursor=pointer]
+            - button "Approvals" [ref=f4e701] [cursor=pointer]
+            - button "Contract calls" [ref=f4e702] [cursor=pointer]
+            - button "Unknown calls" [ref=f4e703] [cursor=pointer]
+          - region "Protocol and counterparty interactions; scroll horizontally for all columns" [ref=f4e704]:
+            - table [ref=f4e705]:
+              - rowgroup [ref=f4e706]:
+                - row [ref=f4e707]:
+                  - columnheader "#" [ref=f4e708]
+                  - columnheader "PROTOCOL FAMILY" [ref=f4e709]
+                  - columnheader "CATEGORY" [ref=f4e710]
+                  - columnheader "TOTAL CALLS" [ref=f4e711]
+                  - columnheader "GAS SPENT" [ref=f4e712]
+                  - columnheader "EST. VOLUME" [ref=f4e713]
+                  - columnheader "NETWORKS" [ref=f4e714]
+                  - columnheader "CONTRACTS" [ref=f4e715]
+              - rowgroup [ref=f4e716]:
+                - row [ref=f4e717]:
+                  - cell "1" [ref=f4e718]
+                  - cell "Unclassified contracts" [ref=f4e719]
+                  - cell "Contract calls" [ref=f4e720]
+                  - cell "2997" [ref=f4e721]
+                  - cell "4.4099 ETH ≈ $9,902.51" [ref=f4e722]:
+                    - generic [ref=f4e723]: 4.4099 ETH
+                    - generic [ref=f4e724]: ≈ $9,902.51
+                  - cell "$16,421,416" [ref=f4e725]
+                  - cell "Ethereum" [ref=f4e726]
+                  - cell [ref=f4e727]:
+                    - button "2284 contracts" [ref=f4e728] [cursor=pointer]
+                - row [ref=f4e732]:
+                  - cell "2" [ref=f4e733]
+                  - cell "Uniswap" [ref=f4e734]
+                  - cell "Swaps" [ref=f4e735]
+                  - cell "2127" [ref=f4e736]
+                  - cell "0.6571 ETH ≈ $1,385.95" [ref=f4e737]:
+                    - generic [ref=f4e738]: 0.6571 ETH
+                    - generic [ref=f4e739]: ≈ $1,385.95
+                  - cell "$4,896,319" [ref=f4e740]
+                  - cell "Ethereum" [ref=f4e741]
+                  - cell [ref=f4e742]:
+                    - button "5 contracts" [ref=f4e743] [cursor=pointer]
+                - row [ref=f4e747]:
+                  - cell "3" [ref=f4e748]
+                  - cell "ENS" [ref=f4e749]
+                  - cell "Other" [ref=f4e750]
+                  - cell "140" [ref=f4e751]
+                  - cell "0.2378 ETH ≈ $667.26" [ref=f4e752]:
+                    - generic [ref=f4e753]: 0.2378 ETH
+                    - generic [ref=f4e754]: ≈ $667.26
+                  - cell "$78" [ref=f4e755]
+                  - cell "Ethereum" [ref=f4e756]
+                  - cell [ref=f4e757]:
+                    - button "5 contracts" [ref=f4e758] [cursor=pointer]
+                - row [ref=f4e762]:
+                  - cell "4" [ref=f4e763]
+                  - cell "KyberSwap" [ref=f4e764]
+                  - cell "Swaps" [ref=f4e765]
+                  - cell "50" [ref=f4e766]
+                  - cell "0.8136 ETH ≈ $1,919.27" [ref=f4e767]:
+                    - generic [ref=f4e768]: 0.8136 ETH
+                    - generic [ref=f4e769]: ≈ $1,919.27
+                  - cell "—" [ref=f4e770]
+                  - cell "Ethereum" [ref=f4e771]
+                  - cell [ref=f4e772]:
+                    - link "View KyberSwap contract on block explorer" [ref=f4e773] [cursor=pointer]:
+                      - /url: https://etherscan.io/address/0x6131b5fae19ea4f9d964eac0408e4408b66337b5
+                - row [ref=f4e778]:
+                  - cell "5" [ref=f4e779]
+                  - cell "Unclassified contracts" [ref=f4e780]
+                  - cell "Contract calls" [ref=f4e781]
+                  - cell "28" [ref=f4e782]
+                  - cell "0.0022 ETH ≈ $3.98" [ref=f4e783]:
+                    - generic [ref=f4e784]: 0.0022 ETH
+                    - generic [ref=f4e785]: ≈ $3.98
+                  - cell "$1,574,611" [ref=f4e786]
+                  - cell "Optimism" [ref=f4e787]
+                  - cell [ref=f4e788]:
+                    - button "16 contracts" [ref=f4e789] [cursor=pointer]
+                - row [ref=f4e793]:
+                  - cell "6" [ref=f4e794]
+                  - cell "Unclassified contracts" [ref=f4e795]
+                  - cell "Contract calls" [ref=f4e796]
+                  - cell "11" [ref=f4e797]
+                  - cell "<0.0001 ETH ≈ $0.05" [ref=f4e798]:
+                    - generic [ref=f4e799]: <0.0001 ETH
+                    - generic [ref=f4e800]: ≈ $0.05
+                  - cell "$87,112" [ref=f4e801]
+                  - cell "Arbitrum" [ref=f4e802]
+                  - cell [ref=f4e803]:
+                    - button "5 contracts" [ref=f4e804] [cursor=pointer]
+                - row [ref=f4e808]:
+                  - cell "7" [ref=f4e809]
+                  - cell "0x" [ref=f4e810]
+                  - cell "Swaps" [ref=f4e811]
+                  - cell "9" [ref=f4e812]
+                  - cell "0.0645 ETH ≈ $145.06" [ref=f4e813]:
+                    - generic [ref=f4e814]: 0.0645 ETH
+                    - generic [ref=f4e815]: ≈ $145.06
+                  - cell "—" [ref=f4e816]
+                  - cell "Ethereum" [ref=f4e817]
+                  - cell [ref=f4e818]:
+                    - link "View 0x contract on block explorer" [ref=f4e819] [cursor=pointer]:
+                      - /url: https://etherscan.io/address/0xdef1c0ded9bec7f1a1670819833240f027b25eff
+                - row [ref=f4e824]:
+                  - cell "8" [ref=f4e825]
+                  - cell "Unclassified contracts" [ref=f4e826]
+                  - cell "Contract calls" [ref=f4e827]
+                  - cell "8" [ref=f4e828]
+                  - cell "<0.0001 ETH ≈ $0.06" [ref=f4e829]:
+                    - generic [ref=f4e830]: <0.0001 ETH
+                    - generic [ref=f4e831]: ≈ $0.06
+                  - cell "$100,339" [ref=f4e832]
+                  - cell "Base" [ref=f4e833]
+                  - cell [ref=f4e834]:
+                    - button "7 contracts" [ref=f4e835] [cursor=pointer]
+                - row [ref=f4e839]:
+                  - cell "9" [ref=f4e840]
+                  - cell "1inch" [ref=f4e841]
+                  - cell "Swaps" [ref=f4e842]
+                  - cell "3" [ref=f4e843]
+                  - cell "0.0006 ETH ≈ $1.08" [ref=f4e844]:
+                    - generic [ref=f4e845]: 0.0006 ETH
+                    - generic [ref=f4e846]: ≈ $1.08
+                  - cell "—" [ref=f4e847]
+                  - cell "Ethereum" [ref=f4e848]
+                  - cell [ref=f4e849]:
+                    - link "View 1inch contract on block explorer" [ref=f4e850] [cursor=pointer]:
+                      - /url: https://etherscan.io/address/0x111111125421ca6dc452d289314280a0f8842a65
+                - row [ref=f4e855]:
+                  - cell "10" [ref=f4e856]
+                  - cell "Uniswap" [ref=f4e857]
+                  - cell "Swaps" [ref=f4e858]
+                  - cell "2" [ref=f4e859]
+                  - cell "<0.0001 ETH ≈ <$0.01" [ref=f4e860]:
+                    - generic [ref=f4e861]: <0.0001 ETH
+                    - generic [ref=f4e862]: ≈ <$0.01
+                  - cell "$21" [ref=f4e863]
+                  - cell "Optimism" [ref=f4e864]
+                  - cell [ref=f4e865]:
+                    - link "View Uniswap contract on block explorer" [ref=f4e866] [cursor=pointer]:
+                      - /url: https://optimistic.etherscan.io/address/0x68b3465833fb72a70ecdf485e0e4c7bd8665fc45
+                - row [ref=f4e871]:
+                  - cell "11" [ref=f4e872]
+                  - cell "Li.Fi" [ref=f4e873]
+                  - cell "Bridges" [ref=f4e874]
+                  - cell "1" [ref=f4e875]
+                  - cell "<0.0001 ETH ≈ <$0.01" [ref=f4e876]:
+                    - generic [ref=f4e877]: <0.0001 ETH
+                    - generic [ref=f4e878]: ≈ <$0.01
+                  - cell "$9" [ref=f4e879]
+                  - cell "Optimism" [ref=f4e880]
+                  - cell [ref=f4e881]:
+                    - link "View Li.Fi contract on block explorer" [ref=f4e882] [cursor=pointer]:
+                      - /url: https://optimistic.etherscan.io/address/0x1231deb6f5749ef6ce6943a275a1d3e7486f4eae
+                - row [ref=f4e887]:
+                  - cell "12" [ref=f4e888]
+                  - cell "KyberSwap" [ref=f4e889]
+                  - cell "Swaps" [ref=f4e890]
+                  - cell "1" [ref=f4e891]
+                  - cell "<0.0001 ETH ≈ <$0.01" [ref=f4e892]:
+                    - generic [ref=f4e893]: <0.0001 ETH
+                    - generic [ref=f4e894]: ≈ <$0.01
+                  - cell "—" [ref=f4e895]
+                  - cell "Base" [ref=f4e896]
+                  - cell [ref=f4e897]:
+                    - link "View KyberSwap contract on block explorer" [ref=f4e898] [cursor=pointer]:
+                      - /url: https://basescan.org/address/0x6131b5fae19ea4f9d964eac0408e4408b66337b5
+  - contentinfo [ref=f4e106]:
+    - generic [ref=f4e107]:
+      - generic [ref=f4e108]:
+        - paragraph [ref=f4e109]: WalletGenome
+        - paragraph [ref=f4e110]: Read-only, evidence-aware EVM wallet analytics. No wallet connection or signature required.
+      - navigation "Wallet analytics topics" [ref=f4e111]:
+        - link "Methodology" [ref=f4e112] [cursor=pointer]:
+          - /url: /docs
+        - link "EVM Wallet Analytics" [ref=f4e113] [cursor=pointer]:
+          - /url: /evm-wallet-analytics
+        - link "Crypto Wallet Risk Checker" [ref=f4e114] [cursor=pointer]:
+          - /url: /crypto-wallet-risk-checker
+        - link "Token Approval Checker" [ref=f4e115] [cursor=pointer]:
+          - /url: /token-approval-checker
+        - link "Sybil Wallet Analysis" [ref=f4e116] [cursor=pointer]:
+          - /url: /sybil-wallet-analysis
+        - link "Multi-Chain Wallet Forensics" [ref=f4e117] [cursor=pointer]:
+          - /url: /multi-chain-wallet-forensics
+  - alert [ref=f4e118]

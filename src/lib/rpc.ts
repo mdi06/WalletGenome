@@ -1,4 +1,5 @@
 import { getDomainLimiter } from './cache';
+import { linkAbortSignal, throwIfAborted } from './cancellation';
 
 const DEFAULT_RPC_ENDPOINTS: Record<number, readonly string[]> = {
   1: [
@@ -20,6 +21,7 @@ interface RpcHeadOptions {
   fetcher?: typeof fetch;
   timeoutMs?: number;
   endpoints?: readonly string[];
+  signal?: AbortSignal;
 }
 
 interface JsonRpcResponse {
@@ -44,24 +46,28 @@ async function postRpc(
   method: 'eth_chainId' | 'eth_blockNumber',
   fetcher: typeof fetch,
   timeoutMs: number,
+  parentSignal?: AbortSignal,
 ): Promise<string> {
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  throwIfAborted(parentSignal);
+  const linked = linkAbortSignal(parentSignal);
+  const timeout = setTimeout(() => linked.controller.abort(), timeoutMs);
   try {
     const response = await fetcher(endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params: [] }),
-      signal: controller.signal,
+      signal: linked.signal,
     });
     if (!response.ok) throw new Error(`RPC returned HTTP ${response.status}`);
     const payload = await response.json() as JsonRpcResponse;
+    throwIfAborted(parentSignal);
     if (payload.error || typeof payload.result !== 'string') {
       throw new Error(payload.error?.message || 'RPC returned an invalid response');
     }
     return payload.result;
   } finally {
     clearTimeout(timeout);
+    linked.dispose();
   }
 }
 
@@ -83,16 +89,18 @@ export async function getLatestBlockNumber(
   if (!options.endpoints) {
     const cached = cachedHeads.get(chainId);
     if (cached && cached.expiresAt > Date.now()) return cached.blockNumber;
-    const inFlight = inFlightHeads.get(chainId);
-    if (inFlight) return inFlight;
+    if (!options.signal) {
+      const inFlight = inFlightHeads.get(chainId);
+      if (inFlight) return inFlight;
+    }
   }
 
   const request = resolveLatestBlockNumber(chainId, options);
-  if (!options.endpoints) inFlightHeads.set(chainId, request);
+  if (!options.endpoints && !options.signal) inFlightHeads.set(chainId, request);
   try {
     return await request;
   } finally {
-    if (!options.endpoints) inFlightHeads.delete(chainId);
+    if (!options.endpoints && !options.signal) inFlightHeads.delete(chainId);
   }
 }
 
@@ -100,6 +108,7 @@ async function resolveLatestBlockNumber(
   chainId: number,
   options: RpcHeadOptions,
 ): Promise<number | null> {
+  throwIfAborted(options.signal);
 
   const endpoints = options.endpoints ? [...options.endpoints] : configuredRpcEndpoints(chainId);
   if (endpoints.length === 0) return null;
@@ -111,18 +120,31 @@ async function resolveLatestBlockNumber(
     try {
       const hostname = new URL(endpoint).hostname;
       const limiter = getDomainLimiter(hostname, 4);
-      if (!await limiter.acquire(3_000)) continue;
+      if (!await limiter.acquire(3_000, options.signal)) continue;
 
-      const returnedChainId = parseHexQuantity(await postRpc(endpoint, 'eth_chainId', fetcher, timeoutMs));
+      const returnedChainId = parseHexQuantity(await postRpc(
+        endpoint,
+        'eth_chainId',
+        fetcher,
+        timeoutMs,
+        options.signal,
+      ));
       if (returnedChainId !== chainId) continue;
 
-      if (!await limiter.acquire(3_000)) continue;
-      const blockNumber = parseHexQuantity(await postRpc(endpoint, 'eth_blockNumber', fetcher, timeoutMs));
+      if (!await limiter.acquire(3_000, options.signal)) continue;
+      const blockNumber = parseHexQuantity(await postRpc(
+        endpoint,
+        'eth_blockNumber',
+        fetcher,
+        timeoutMs,
+        options.signal,
+      ));
       if (!options.endpoints) {
         cachedHeads.set(chainId, { blockNumber, expiresAt: Date.now() + HEAD_CACHE_TTL_MS });
       }
       return blockNumber;
     } catch {
+      throwIfAborted(options.signal);
       // Try the next official or configured mirror.
     }
   }

@@ -12,16 +12,19 @@ import {
 } from '@/lib/viewModels/dashboardViewModels';
 import ClusterStatusPanel, { getClusterAvailabilityMessage } from './status/ClusterStatusPanel';
 import { getNextTabIndex } from '@/lib/accessibility/tabs';
+import { formatClusterSnapshotDate } from '@/lib/clusterDemoSnapshot';
 
 interface Props {
   data: ClusterScanResult;
   onInspectWallet: (address: string) => void;
+  snapshotGeneratedAt?: string;
+  onRunFreshScan?: () => void;
 }
 
 type BulkTabId = 'leaderboard' | 'flow';
 const BULK_TABS = ['leaderboard', 'flow'] as const;
 
-export default function BulkDashboard({ data, onInspectWallet }: Props) {
+export default function BulkDashboard({ data, onInspectWallet, snapshotGeneratedAt, onRunFreshScan }: Props) {
   const [activeTab, setActiveTab] = useState<BulkTabId>('leaderboard');
   const [sortField, setSortField] = useState<ClusterSortField>('gas');
   const [sortAsc, setSortAsc] = useState<boolean>(false);
@@ -86,6 +89,31 @@ export default function BulkDashboard({ data, onInspectWallet }: Props) {
 
   return (
     <div className="min-w-0 space-y-6 md:space-y-5 animate-fade-in-up">
+
+      {data.source === 'saved' && snapshotGeneratedAt && (
+        <section
+          aria-label="Cluster snapshot status"
+          className="overflow-hidden border border-[#d6b48f] border-l-4 border-l-[#b33c00] bg-[#fff7ed] shadow-none"
+        >
+          <div className="flex flex-col gap-2 p-3 md:gap-1 md:p-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-xs font-black uppercase tracking-wider text-[#0a0a0a]">Saved cluster example · Non-live</p>
+              <p className="mt-0.5 text-xs font-medium text-[#4b5563]">
+                Fixed provider-free example updated {formatClusterSnapshotDate(snapshotGeneratedAt)}. It contains no modeled activity or connection evidence and does not spend provider API quota.
+              </p>
+            </div>
+            {onRunFreshScan && (
+              <button
+                type="button"
+                onClick={onRunFreshScan}
+                className="btn-3d-black min-h-11 shrink-0 px-4 py-2 text-xs font-black uppercase tracking-wider text-white md:min-h-9"
+              >
+                Run fresh cluster scan
+              </button>
+            )}
+          </div>
+        </section>
+      )}
       
       {/* ── 1. Top Cluster Metric KPI Strip ── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
@@ -99,7 +127,7 @@ export default function BulkDashboard({ data, onInspectWallet }: Props) {
             {data.totalWallets} Wallets
           </div>
           <div className="text-[11px] font-bold text-[#4b5563] font-mono">
-            {data.totalTransactions.toLocaleString()} Total Txs
+            {data.source === 'saved' ? 'Not modeled in example' : `${data.totalTransactions.toLocaleString()} Total Txs`}
           </div>
         </div>
 
@@ -109,10 +137,10 @@ export default function BulkDashboard({ data, onInspectWallet }: Props) {
             COMBINED LIFETIME GAS
           </div>
           <div className="text-2xl font-black font-mono text-orange-ink">
-            {formatCompactUSD(data.totalGasUSD)}
+            {data.source === 'saved' ? 'N/A' : formatCompactUSD(data.totalGasUSD)}
           </div>
           <div className="text-[11px] font-bold text-[#4b5563] font-mono">
-            Across active chains
+            {data.source === 'saved' ? 'No live values in example' : 'Across active chains'}
           </div>
         </div>
 
@@ -122,10 +150,10 @@ export default function BulkDashboard({ data, onInspectWallet }: Props) {
             COMBINED INFLOWS
           </div>
           <div className="text-2xl font-black font-mono text-[#0a0a0a]">
-            {formatCompactUSD(data.totalInflowUSD)}
+            {data.source === 'saved' ? 'N/A' : formatCompactUSD(data.totalInflowUSD)}
           </div>
           <div className="text-[11px] font-bold text-[#4b5563] font-mono">
-            Aggregate capital depth
+            {data.source === 'saved' ? 'No live values in example' : 'Aggregate capital depth'}
           </div>
         </div>
 
@@ -134,11 +162,11 @@ export default function BulkDashboard({ data, onInspectWallet }: Props) {
           <div className="text-[10px] font-extrabold text-[#4b5563] uppercase tracking-wider">
             AVG SYBIL PROBABILITY
           </div>
-          <div className={`text-2xl font-black font-mono ${data.flaggedCount > 0 ? 'text-[#dc2626]' : 'text-[#059669]'}`}>
-            {typeof data.avgSybilProbability === 'number' ? data.avgSybilProbability.toFixed(2) : Number(data.avgSybilProbability || 0).toFixed(2)}%
+          <div className={`text-2xl font-black font-mono ${data.source === 'saved' ? 'text-[#4b5563]' : data.flaggedCount > 0 ? 'text-[#dc2626]' : 'text-[#059669]'}`}>
+            {data.source === 'saved' ? 'N/A' : `${typeof data.avgSybilProbability === 'number' ? data.avgSybilProbability.toFixed(2) : Number(data.avgSybilProbability || 0).toFixed(2)}%`}
           </div>
           <div className="text-[11px] font-bold text-[#4b5563] font-mono">
-            {data.flaggedCount > 0 ? `${data.flaggedCount} Flagged Wallets` : 'All Wallets Clean'}
+            {data.source === 'saved' ? 'No live scoring in example' : data.flaggedCount > 0 ? `${data.flaggedCount} Flagged Wallets` : 'All Wallets Clean'}
           </div>
         </div>
 
@@ -148,10 +176,10 @@ export default function BulkDashboard({ data, onInspectWallet }: Props) {
             HIGH-RISK APPROVALS
           </div>
           <div className="text-2xl font-black font-mono text-[#dc2626]">
-            {data.totalHighRiskApprovals}
+            {data.source === 'saved' ? 'N/A' : data.totalHighRiskApprovals}
           </div>
           <div className="text-[11px] font-bold text-[#4b5563] font-mono">
-            Require revocation audit
+            {data.source === 'saved' ? 'No live approval data in example' : 'Require revocation audit'}
           </div>
         </div>
 
@@ -197,10 +225,10 @@ export default function BulkDashboard({ data, onInspectWallet }: Props) {
               INTER-WALLET LINKAGE
             </div>
             <div className="text-sm font-black font-mono text-[#0a0a0a]">
-              {summary.directTransfers > 0 ? `${summary.directTransfers} Direct Transactions` : 'Zero Direct Transactions'}
+              {data.source === 'saved' ? 'No Modeled Connections' : summary.directTransfers > 0 ? `${summary.directTransfers} Direct Transactions` : 'Zero Direct Transactions'}
             </div>
             <div className="text-[11px] text-[#4b5563]">
-              {summary.directTransfers > 0 ? `${summary.directLinks} directional chain linkages` : 'No cross-wallet transfers in returned data'}
+              {data.source === 'saved' ? 'No connection evidence included in saved example' : summary.directTransfers > 0 ? `${summary.directLinks} directional chain linkages` : 'No cross-wallet transfers in returned data'}
             </div>
           </div>
 
@@ -210,10 +238,10 @@ export default function BulkDashboard({ data, onInspectWallet }: Props) {
               CENTRAL HUB OVERLAP
             </div>
             <div className="text-sm font-black font-mono text-[#0a0a0a]">
-              {summary.topHubOverlapPct}% Common Overlap
+              {data.source === 'saved' ? 'N/A' : `${summary.topHubOverlapPct}% Common Overlap`}
             </div>
             <div className="text-[11px] text-[#4b5563] truncate">
-              {summary.topHub ? `${summary.topHub.sharedCount} wallets used ${summary.topHub.label || summary.topHub.address.slice(0, 6) + '...'}` : 'No dominant hub'}
+              {data.source === 'saved' ? 'No shared hubs modeled' : summary.topHub ? `${summary.topHub.sharedCount} wallets used ${summary.topHub.label || summary.topHub.address.slice(0, 6) + '...'}` : 'No dominant hub'}
             </div>
           </div>
 
@@ -223,10 +251,10 @@ export default function BulkDashboard({ data, onInspectWallet }: Props) {
               DOMINANT ARCHETYPE
             </div>
             <div className="text-sm font-black font-mono text-[#0a0a0a]">
-              {summary.dominantPersona} ({summary.dominantPersonaPct}%)
+              {data.source === 'saved' ? 'N/A' : `${summary.dominantPersona} (${summary.dominantPersonaPct}%)`}
             </div>
             <div className="text-[11px] text-[#4b5563]">
-              Primary behavior pattern in cluster
+              {data.source === 'saved' ? 'No live behavior data in example' : 'Primary behavior pattern in cluster'}
             </div>
           </div>
 
@@ -333,7 +361,9 @@ export default function BulkDashboard({ data, onInspectWallet }: Props) {
                 </div>
               ) : (
                 <p className="text-xs text-[#4b5563] py-2">
-                  No direct token or ETH transfers detected between the wallets in this batch.
+                  {data.source === 'saved'
+                    ? 'No connection evidence is included in this saved example.'
+                    : 'No direct token or ETH transfers detected between the wallets in this batch.'}
                 </p>
               )}
             </div>
@@ -465,30 +495,34 @@ export default function BulkDashboard({ data, onInspectWallet }: Props) {
                       <td className="py-3.5 px-4 font-mono font-black">
                         <span
                           className={`text-sm ${
-                            w.riskGrade === 'A'
+                            data.source === 'saved'
+                              ? 'text-[#4b5563]'
+                              : w.riskGrade === 'A'
                               ? 'text-[#047857]'
                               : w.riskGrade === 'B'
                               ? 'text-[#0a0a0a]'
                               : 'text-[#dc2626]'
                           }`}
                         >
-                          {w.riskGrade}
+                          {data.source === 'saved' ? 'N/A' : w.riskGrade}
                         </span>
-                        <span className="text-[10px] text-[#4b5563] font-normal ml-1">({w.riskScore})</span>
+                        {data.source !== 'saved' && <span className="text-[10px] text-[#4b5563] font-normal ml-1">({w.riskScore})</span>}
                       </td>
 
                       {/* Sybil Probability */}
                       <td className="py-3.5 px-4 font-mono">
                         <span
                           className={`font-bold ${
-                            w.sybilProbability <= 30
+                            data.source === 'saved'
+                              ? 'text-[#4b5563]'
+                              : w.sybilProbability <= 30
                               ? 'text-[#047857]'
                               : w.sybilProbability <= 60
                               ? 'text-[#b45309]'
                               : 'text-[#dc2626]'
                           }`}
                         >
-                          {w.sybilProbability}%
+                          {data.source === 'saved' ? 'N/A' : `${w.sybilProbability}%`}
                         </span>
                         {w.isFlagged && (
                           <span className="badge-3d ml-1 text-[9px] font-black uppercase text-[#b91c1c] bg-[#dc2626]/15 px-1.5 py-0.5 border border-[#dc2626]/40">
@@ -499,17 +533,17 @@ export default function BulkDashboard({ data, onInspectWallet }: Props) {
 
                       {/* Lifetime Gas */}
                       <td className="py-3.5 px-4 text-right font-mono font-black text-orange-ink">
-                        {formatCompactUSD(w.totalGasUSD)}
+                        {data.source === 'saved' ? 'N/A' : formatCompactUSD(w.totalGasUSD)}
                       </td>
 
                       {/* Inflow */}
                       <td className="py-3.5 px-4 text-right font-mono font-bold text-[#0a0a0a]">
-                        {formatCompactUSD(w.totalInflowUSD)}
+                        {data.source === 'saved' ? 'N/A' : formatCompactUSD(w.totalInflowUSD)}
                       </td>
 
                       {/* Transactions */}
                       <td className="py-3.5 px-4 text-right font-mono text-[#0a0a0a]">
-                        {w.transactionCount.toLocaleString()} txs
+                        {data.source === 'saved' ? 'Not modeled' : `${w.transactionCount.toLocaleString()} txs`}
                       </td>
 
                       {/* Action: Deep Dive */}
@@ -544,6 +578,7 @@ export default function BulkDashboard({ data, onInspectWallet }: Props) {
             linkages={data.linkages}
             sharedCounterparties={data.sharedCounterparties}
             onInspectWallet={onInspectWallet}
+            isSavedSnapshot={data.source === 'saved'}
           />
         </div>
       )}

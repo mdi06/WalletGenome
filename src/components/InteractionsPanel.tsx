@@ -112,42 +112,44 @@ export default function InteractionsPanel({ results }: Props) {
   return (
     <div className="space-y-6 md:space-y-5">
       {/* ── Top Summary Header Metrics ── */}
-      <div className="border border-[#c8c8c8] bg-[#f3f4f6] p-3 text-xs font-bold text-[#4b5563]">
-        USD gas and volume values use timestamp-matched historical prices or explicit stablecoin assumptions. Estimated or unpriced scans are withheld before this view renders.
-      </div>
-      <div className="grid grid-cols-1 border-y border-[#c8c8c8] sm:grid-cols-3 sm:divide-x sm:divide-[#c8c8c8]">
-        <div className="space-y-1 border-b border-[#c8c8c8] px-0 py-4 text-[#0a0a0a] sm:border-b-0 sm:px-5">
-          <div className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider">
-            TOTAL PROTOCOL FAMILIES
-          </div>
-          <div className="text-3xl font-black text-[#0a0a0a] font-mono">
-            {protocols.length}
-          </div>
+      <section className="card-3d space-y-4 p-4 text-[#0a0a0a] sm:p-5">
+        <div className="text-xs font-bold text-[#4b5563]">
+          USD gas and volume values use timestamp-matched historical prices or explicit stablecoin assumptions. Estimated or unpriced scans are withheld before this view renders.
         </div>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div className="well-recessed-light p-4 space-y-1 text-[#0a0a0a]">
+            <div className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider">
+              TOTAL PROTOCOL FAMILIES
+            </div>
+            <div className="text-3xl font-black text-[#0a0a0a] font-mono">
+              {protocols.length}
+            </div>
+          </div>
 
-        <div className="space-y-1 border-b border-[#c8c8c8] px-0 py-4 text-[#0a0a0a] sm:border-b-0 sm:px-5">
-          <div className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider">
-            COUNTERPARTY ADDRESSES
+          <div className="well-recessed-light p-4 space-y-1 text-[#0a0a0a]">
+            <div className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider">
+              COUNTERPARTY ADDRESSES
+            </div>
+            <div className="text-3xl font-black text-[#0a0a0a] font-mono">
+              {counterparties.length}
+            </div>
           </div>
-          <div className="text-3xl font-black text-[#0a0a0a] font-mono">
-            {counterparties.length}
-          </div>
-        </div>
 
-        <div className="space-y-1 px-0 py-4 text-[#0a0a0a] sm:px-5">
-          <div className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider">
-            MOST INTERACTED PROTOCOL
-          </div>
-          <div className="text-xl font-black text-orange-ink truncate">
-            {topProtocolIsUnclassified ? 'Unclassified contracts' : topProtocol?.name || 'N/A'}
-          </div>
-          <div className="text-xs font-bold text-[#4b5563] font-mono">
-            {topProtocolIsUnclassified
-              ? `${topProtocol?.txCount || 0} calls across ${unclassifiedContractCount} unclassified contracts`
-              : `${topProtocol?.txCount || 0} calls across ${topProtocol?.contracts?.length || 1} contracts`}
+          <div className="well-recessed-light p-4 space-y-1 text-[#0a0a0a]">
+            <div className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider">
+              MOST INTERACTED PROTOCOL
+            </div>
+            <div className="text-xl font-black text-orange-ink truncate">
+              {topProtocolIsUnclassified ? 'Unclassified contracts' : topProtocol?.name || 'N/A'}
+            </div>
+            <div className="text-xs font-bold text-[#4b5563] font-mono">
+              {topProtocolIsUnclassified
+                ? `${topProtocol?.txCount || 0} calls across ${unclassifiedContractCount} unclassified contracts`
+                : `${topProtocol?.txCount || 0} calls across ${topProtocol?.contracts?.length || 1} contracts`}
+            </div>
           </div>
         </div>
-      </div>
+      </section>
 
       {unclassifiedBreakdown.length > 0 && (
         <section aria-labelledby="unclassified-activity-heading" className="card-3d space-y-3 p-4 text-[#0a0a0a] sm:p-5 md:p-4">
@@ -164,7 +166,7 @@ export default function InteractionsPanel({ results }: Props) {
           </p>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2" role="list" aria-label="Unclassified activity categories">
             {unclassifiedBreakdown.map(entry => (
-              <div key={entry.category} role="listitem" className="flex items-center justify-between gap-3 border border-[#c8c8c8] bg-[#f3f4f6] px-3 py-2 text-xs font-bold">
+              <div key={entry.category} role="listitem" className="flex items-center justify-between gap-3 well-recessed-light px-3 py-2 text-xs font-bold">
                 <span>{entry.label}</span>
                 <span className="shrink-0 font-mono text-[#4b5563]">
                   {entry.callCount} calls · {entry.contractCount} contract{entry.contractCount === 1 ? '' : 's'}

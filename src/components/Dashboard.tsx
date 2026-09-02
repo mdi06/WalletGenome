@@ -347,7 +347,7 @@ export default function Dashboard({ data, showStatusPanel = true }: DashboardPro
                 <section aria-labelledby="lifetime-gas-heading" className="card-3d p-6 lg:p-5 space-y-2 text-[#0a0a0a]">
                   <h2 id="lifetime-gas-heading" className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider block flex items-center justify-between m-0">
                     <span>LIFETIME GAS</span>
-                    <span className="text-[9px] text-[#f59e0b] font-mono normal-case">Observed history</span>
+                    <span className="text-xs font-sans font-bold text-[#4b5563] normal-case">Observed history</span>
                   </h2>
                   <div className="text-3xl font-black text-orange-ink font-mono truncate">
                     {formatNativeTokenValue(totalGasETH, 'ETH')}
@@ -493,22 +493,22 @@ export default function Dashboard({ data, showStatusPanel = true }: DashboardPro
         </div>
       )}
       {activeTab === 'protocols' && (
-        <div id="dashboard-protocols-panel" role="tabpanel" aria-labelledby="dashboard-protocols-tab" className="border-t border-[#c8c8c8] pt-6 lg:pt-5">
+        <div id="dashboard-protocols-panel" role="tabpanel" aria-labelledby="dashboard-protocols-tab" className="pt-6 lg:pt-5">
           <InteractionsPanel results={data.chains} />
         </div>
       )}
       {activeTab === 'gas' && (
-        <div id="dashboard-gas-panel" role="tabpanel" aria-labelledby="dashboard-gas-tab" className="border-t border-[#c8c8c8] pt-6 lg:pt-5">
+        <div id="dashboard-gas-panel" role="tabpanel" aria-labelledby="dashboard-gas-tab" className="pt-6 lg:pt-5">
           <GasSummaryPanel results={data.chains} />
         </div>
       )}
       {activeTab === 'transfers' && (
-        <div id="dashboard-transfers-panel" role="tabpanel" aria-labelledby="dashboard-transfers-tab" className="border-t border-[#c8c8c8] pt-6 lg:pt-5">
+        <div id="dashboard-transfers-panel" role="tabpanel" aria-labelledby="dashboard-transfers-tab" className="pt-6 lg:pt-5">
           <TransferTable results={data.chains} />
         </div>
       )}
       {activeTab === 'approvals' && (
-        <div id="dashboard-approvals-panel" role="tabpanel" aria-labelledby="dashboard-approvals-tab" className="border-t border-[#c8c8c8] pt-6 lg:pt-5">
+        <div id="dashboard-approvals-panel" role="tabpanel" aria-labelledby="dashboard-approvals-tab" className="pt-6 lg:pt-5">
           <ApprovalAudit results={data.chains} />
         </div>
       )}

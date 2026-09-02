@@ -7,6 +7,7 @@ import { runClusterScanRequest } from './clusterScanClient';
 import type { LiveScanProgress } from '@/lib/scanProgress';
 import { loadDemoSnapshot } from './demoSnapshotClient';
 import { getDemoWalletFromSearch, type DemoWallet } from '@/lib/demoWallets';
+import { CLUSTER_SAMPLE_SNAPSHOT, isClusterSampleSearch } from '@/lib/clusterDemoSnapshot';
 
 export function useWalletScanner() {
   const autoScanStarted = useRef(false);
@@ -22,6 +23,7 @@ export function useWalletScanner() {
   
   // Cluster scan state
   const [clusterResult, setClusterResult] = useState<ClusterScanResult | null>(null);
+  const [activeClusterSnapshot, setActiveClusterSnapshot] = useState<{ generatedAt: string } | null>(null);
   
   // Global scan state
   const [isLoading, setIsLoading] = useState(false);
@@ -38,19 +40,26 @@ export function useWalletScanner() {
       setActiveDemoSnapshot(null);
     } else {
       setClusterResult(null);
+      setActiveClusterSnapshot(null);
     }
   }, []);
 
 
-  const handleSingleScan = useCallback(async (address: string, chainIds: number[]) => {
+  const handleSingleScan = useCallback(async (
+    address: string,
+    chainIds: number[],
+    options: { forceRefresh?: boolean } = {},
+  ) => {
     const scanId = ++activeSingleScanId.current;
     activeSingleScanController.current?.abort();
     const controller = new AbortController();
     activeSingleScanController.current = controller;
+    const isRefresh = options.forceRefresh === true;
     setIsLoading(true);
     setError(null);
-    setSingleResult(null);
+    if (!isRefresh) setSingleResult(null);
     setActiveDemoSnapshot(null);
+    setActiveClusterSnapshot(null);
     setSingleChainIds([...chainIds]);
     setShowGuide(false);
     setScanMode('single');
@@ -86,6 +95,7 @@ export function useWalletScanner() {
       const result = await runSingleWalletScanStream({
         address,
         chainIds,
+        forceRefresh: options.forceRefresh,
         signal: controller.signal,
         onUpdate: update => {
           if (activeSingleScanId.current !== scanId) return;
@@ -128,6 +138,7 @@ export function useWalletScanner() {
     setError(null);
     setSingleResult(null);
     setActiveDemoSnapshot(null);
+    setActiveClusterSnapshot(null);
     setSingleChainIds([...SUPPORTED_CHAIN_IDS]);
     setShowGuide(false);
     setScanMode('single');
@@ -170,8 +181,10 @@ export function useWalletScanner() {
     setScanMode('cluster');
     setIsLoading(true);
     setError(null);
+    setClusterResult(null);
     setSingleResult(null);
     setActiveDemoSnapshot(null);
+    setActiveClusterSnapshot(null);
     setShowGuide(false);
     setProgress(`Scanning cluster of ${addresses.length} wallets across ${chainIds.length} chains...`);
     const startedAt = Date.now();
@@ -189,9 +202,15 @@ export function useWalletScanner() {
     // Preload bulk dashboard bundle during scan to eliminate render delay
     import('@/components/BulkDashboard').catch(() => {});
 
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('cluster');
+      window.history.pushState({}, '', url.toString());
+    }
+
     try {
       const data = await runClusterScanRequest({ addresses, chainIds });
-      setClusterResult(data);
+      setClusterResult({ ...data, source: 'live' });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Cluster scan execution failed.');
     } finally {
@@ -200,6 +219,44 @@ export function useWalletScanner() {
       setProgressPercent(undefined);
     }
   };
+
+  const handleClusterDemoSnapshot = useCallback(() => {
+    activeSingleScanId.current += 1;
+    activeSingleScanController.current?.abort();
+    activeSingleScanController.current = null;
+    setScanMode('cluster');
+    setIsLoading(false);
+    setError(null);
+    setSingleResult(null);
+    setActiveDemoSnapshot(null);
+    setClusterResult(CLUSTER_SAMPLE_SNAPSHOT.result);
+    setActiveClusterSnapshot({ generatedAt: CLUSTER_SAMPLE_SNAPSHOT.generatedAt });
+    setShowGuide(false);
+    setProgress('');
+    setProgressPercent(undefined);
+    setScanProgressDetail(undefined);
+
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('address');
+      url.searchParams.delete('demo');
+      url.searchParams.set('cluster', 'sample');
+      window.history.pushState({}, '', url.toString());
+    }
+  }, [setScanMode]);
+
+  const handleClusterInputChange = useCallback(() => {
+    setClusterResult(null);
+    setActiveClusterSnapshot(null);
+    setError(null);
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      if (url.searchParams.get('cluster') === 'sample') {
+        url.searchParams.delete('cluster');
+        window.history.pushState({}, '', url.toString());
+      }
+    }
+  }, []);
 
   // Auto-scan if address is present in URL
   useEffect(() => {
@@ -212,6 +269,12 @@ export function useWalletScanner() {
       return () => window.clearTimeout(timeoutId);
     }
 
+    if (isClusterSampleSearch(window.location.search) && !autoScanStarted.current) {
+      autoScanStarted.current = true;
+      const timeoutId = window.setTimeout(handleClusterDemoSnapshot, 0);
+      return () => window.clearTimeout(timeoutId);
+    }
+
     const urlTarget = getUrlScanTarget(window.location.search);
     if (!urlTarget || autoScanStarted.current) return;
     autoScanStarted.current = true;
@@ -219,7 +282,7 @@ export function useWalletScanner() {
       void handleSingleScan(urlTarget, [...SUPPORTED_CHAIN_IDS]);
     }, 0);
     return () => window.clearTimeout(timeoutId);
-  }, [handleDemoSnapshot, handleSingleScan]);
+  }, [handleClusterDemoSnapshot, handleDemoSnapshot, handleSingleScan]);
 
   useEffect(() => () => {
     activeSingleScanId.current += 1;
@@ -236,6 +299,7 @@ export function useWalletScanner() {
     singleChainIds,
     activeDemoSnapshot,
     clusterResult,
+    activeClusterSnapshot,
     isLoading,
     progress,
     progressPercent,
@@ -245,6 +309,8 @@ export function useWalletScanner() {
     setShowGuide,
     handleSingleScan,
     handleDemoSnapshot,
-    handleClusterScan
+    handleClusterScan,
+    handleClusterDemoSnapshot,
+    handleClusterInputChange,
   };
 }

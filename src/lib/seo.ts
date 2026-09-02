@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 
 export const SITE_NAME = 'WalletGenome';
 export const SITE_DESCRIPTION =
-  'Analyze EVM wallet behavior, security risk, token approvals, capital flows, and Sybil signals across Ethereum, Base, Arbitrum, and Optimism.';
+  'Analyze observable EVM wallet activity, security signals, approvals, capital flows, and Sybil patterns across Ethereum, Base, Arbitrum, and Optimism.';
 
 const LOCAL_SITE_URL = 'http://localhost:3000';
 
@@ -59,9 +59,9 @@ export const SEO_LANDING_PAGES = [
     slug: 'evm-wallet-analytics',
     title: 'EVM Wallet Analytics',
     metaDescription:
-      'Analyze EVM wallet activity, counterparties, gas usage, protocol interactions, identities, and behavioral patterns across four major networks.',
+      'Analyze observable EVM wallet activity, counterparties, gas usage, protocol interactions, identities, and behavioral patterns across Ethereum, Base, Arbitrum, and Optimism.',
     eyebrow: 'MULTI-CHAIN WALLET INTELLIGENCE',
-    heading: 'EVM Wallet Analytics Across Four Major Networks',
+    heading: 'EVM Wallet Analytics Across Four Supported Networks',
     intro:
       'WalletGenome converts public transaction history into an evidence-backed view of how an address operates across Ethereum, Base, Arbitrum, and Optimism.',
     capabilities: [

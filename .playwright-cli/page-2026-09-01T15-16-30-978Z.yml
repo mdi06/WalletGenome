@@ -1,0 +1,68 @@
+- generic [active] [ref=f2e1]:
+  - main [ref=f2e2]:
+    - generic [ref=f2e3]:
+      - button "Open WalletGenome guide" [ref=f2e5] [cursor=pointer]:
+        - generic [ref=f2e6]: WALLET.GENOME
+      - generic [ref=f2e7]:
+        - 'status "Indexing status: Saved snapshot" [ref=f2e8]':
+          - generic [ref=f2e10]: Saved snapshot
+        - generic [ref=f2e11]:
+          - button "HOW IT WORKS" [ref=f2e13] [cursor=pointer]
+          - navigation "Primary navigation" [ref=f2e18]:
+            - link "Scanner" [ref=f2e19] [cursor=pointer]:
+              - /url: /
+            - link "Docs / methodology" [ref=f2e24] [cursor=pointer]:
+              - /url: /docs
+    - region "Wallet Forensics Console" [ref=f2e28]:
+      - tablist "Forensics Scan Mode" [ref=f2e29]:
+        - tab "Single wallet" [ref=f2e30] [cursor=pointer]
+        - tab "Cluster scan New" [selected] [ref=f2e35] [cursor=pointer]:
+          - generic [ref=f2e40]: Cluster scan
+          - generic [ref=f2e41]: New
+      - tabpanel "Cluster scan New" [ref=f2e42]:
+        - generic [ref=f2e43]:
+          - generic [ref=f2e44]:
+            - generic [ref=f2e45]:
+              - generic [ref=f2e46]: MULTI-WALLET CLUSTER MATRIX SCANNER
+              - generic [ref=f2e52]: BATCH MODE
+            - generic [ref=f2e53]:
+              - button "Fill Sample Addresses (4)" [ref=f2e54] [cursor=pointer]
+              - button "Load Saved Cluster Example" [ref=f2e59] [cursor=pointer]
+          - generic [ref=f2e65]:
+            - generic [ref=f2e66]: Paste EVM addresses separated by new lines, commas, or spaces
+            - textbox "Paste EVM addresses to scan" [ref=f2e67]:
+              - /placeholder: "Paste EVM addresses separated by new lines, commas, or spaces:\n0x2e21f5d34208a3d5483f9829f2709e9005bf15f2\n0x163473950fbcfcfc31ac7ad0eec26f5fe549046c"
+          - generic [ref=f2e68]: 0 addresses
+          - generic [ref=f2e70]:
+            - group "Select target EVM networks for cluster" [ref=f2e71]:
+              - generic [ref=f2e72]: "Networks:"
+              - generic [ref=f2e73]:
+                - button "Toggle Ethereum network" [pressed] [ref=f2e74] [cursor=pointer]:
+                  - generic [ref=f2e76]: ETH
+                - button "Toggle Base network" [pressed] [ref=f2e77] [cursor=pointer]:
+                  - generic [ref=f2e79]: BASE
+                - button "Toggle Arbitrum network" [pressed] [ref=f2e80] [cursor=pointer]:
+                  - generic [ref=f2e82]: ARB
+                - button "Toggle Optimism network" [ref=f2e83] [cursor=pointer]:
+                  - generic [ref=f2e85]: OP
+            - button "SCAN CLUSTER (0)" [disabled] [ref=f2e86] [cursor=pointer]
+    - generic [ref=f2e90]: Rendering Cluster Intelligence Matrix...
+  - contentinfo [ref=f2e91]:
+    - generic [ref=f2e92]:
+      - generic [ref=f2e93]:
+        - paragraph [ref=f2e94]: WalletGenome
+        - paragraph [ref=f2e95]: Read-only, evidence-aware EVM wallet analytics. No wallet connection or signature required.
+      - navigation "Wallet analytics topics" [ref=f2e96]:
+        - link "Methodology" [ref=f2e97] [cursor=pointer]:
+          - /url: /docs
+        - link "EVM Wallet Analytics" [ref=f2e98] [cursor=pointer]:
+          - /url: /evm-wallet-analytics
+        - link "Crypto Wallet Risk Checker" [ref=f2e99] [cursor=pointer]:
+          - /url: /crypto-wallet-risk-checker
+        - link "Token Approval Checker" [ref=f2e100] [cursor=pointer]:
+          - /url: /token-approval-checker
+        - link "Sybil Wallet Analysis" [ref=f2e101] [cursor=pointer]:
+          - /url: /sybil-wallet-analysis
+        - link "Multi-Chain Wallet Forensics" [ref=f2e102] [cursor=pointer]:
+          - /url: /multi-chain-wallet-forensics
+  - alert [ref=f2e103]

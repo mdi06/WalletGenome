@@ -1,0 +1,82 @@
+- generic [active] [ref=f2e1]:
+  - main [ref=f2e2]:
+    - generic [ref=f2e3]:
+      - button "Open WalletGenome guide" [ref=f2e5] [cursor=pointer]:
+        - generic [ref=f2e6]: WALLET.GENOME
+      - generic [ref=f2e7]:
+        - 'status "Indexing status: Scanning" [ref=f2e8]':
+          - generic [ref=f2e10]: Scanning
+        - navigation "Primary navigation" [ref=f2e12]:
+          - link "Scanner" [ref=f2e13] [cursor=pointer]:
+            - /url: /
+          - link "Docs / methodology" [ref=f2e18] [cursor=pointer]:
+            - /url: /docs
+    - region "Wallet Forensics Console" [ref=f2e22]:
+      - tablist "Forensics Scan Mode" [ref=f2e23]:
+        - tab "Single wallet" [selected] [ref=f2e24] [cursor=pointer]
+        - tab "Cluster scan New" [ref=f2e29] [cursor=pointer]:
+          - generic [ref=f2e34]: Cluster scan
+          - generic [ref=f2e35]: New
+      - tabpanel "Single wallet" [ref=f2e36]:
+        - generic [ref=f2e38]:
+          - generic [ref=f2e39]:
+            - generic [ref=f2e40]: Wallet address or ENS domain
+            - textbox "EVM address or ENS domain" [disabled] [ref=f2e45]:
+              - /placeholder: Enter EVM address (0x...) or ENS name (vitalik.eth)
+              - text: "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045"
+          - group "Select target EVM networks" [ref=f2e46]:
+            - button "Toggle Ethereum network" [disabled] [pressed] [ref=f2e47] [cursor=pointer]:
+              - generic [ref=f2e49]: ETH
+            - button "Toggle Base network" [disabled] [pressed] [ref=f2e50] [cursor=pointer]:
+              - generic [ref=f2e52]: BASE
+            - button "Toggle Arbitrum network" [disabled] [pressed] [ref=f2e53] [cursor=pointer]:
+              - generic [ref=f2e55]: ARB
+            - button "Toggle Optimism network" [disabled] [pressed] [ref=f2e56] [cursor=pointer]:
+              - generic [ref=f2e58]: OP
+            - button "Scan wallet address" [disabled] [ref=f2e59] [cursor=pointer]:
+              - generic [ref=f2e62]: SCANNING...
+    - generic [ref=f2e63]:
+      - generic [ref=f2e64]:
+        - generic [ref=f2e81]:
+          - generic [ref=f2e82]: ACTIVE MULTI-CHAIN PIPELINE
+          - status [ref=f2e85]: Loading saved demo snapshot for Vitalik Buterin...
+        - generic [ref=f2e86]: PROVIDER SYNC ACTIVE
+      - generic [ref=f2e92]:
+        - progressbar "Wallet scan progress" [ref=f2e93]
+        - generic [ref=f2e95]:
+          - generic [ref=f2e96]: INDEXING WALLET HISTORY
+          - generic [ref=f2e97]: Live updates active
+      - generic [ref=f2e98]:
+        - generic [ref=f2e99]: "TARGET NETWORKS:"
+        - generic [ref=f2e100]:
+          - generic [ref=f2e101]:
+            - generic [ref=f2e103]: Ethereum
+            - generic [ref=f2e104]: scanning
+          - generic [ref=f2e105]:
+            - generic [ref=f2e107]: Base
+            - generic [ref=f2e108]: scanning
+          - generic [ref=f2e109]:
+            - generic [ref=f2e111]: Arbitrum
+            - generic [ref=f2e112]: scanning
+          - generic [ref=f2e113]:
+            - generic [ref=f2e115]: Optimism
+            - generic [ref=f2e116]: scanning
+  - contentinfo [ref=f2e117]:
+    - generic [ref=f2e118]:
+      - generic [ref=f2e119]:
+        - paragraph [ref=f2e120]: WalletGenome
+        - paragraph [ref=f2e121]: Read-only, evidence-aware EVM wallet analytics. No wallet connection or signature required.
+      - navigation "Wallet analytics topics" [ref=f2e122]:
+        - link "Methodology" [ref=f2e123] [cursor=pointer]:
+          - /url: /docs
+        - link "EVM Wallet Analytics" [ref=f2e124] [cursor=pointer]:
+          - /url: /evm-wallet-analytics
+        - link "Crypto Wallet Risk Checker" [ref=f2e125] [cursor=pointer]:
+          - /url: /crypto-wallet-risk-checker
+        - link "Token Approval Checker" [ref=f2e126] [cursor=pointer]:
+          - /url: /token-approval-checker
+        - link "Sybil Wallet Analysis" [ref=f2e127] [cursor=pointer]:
+          - /url: /sybil-wallet-analysis
+        - link "Multi-Chain Wallet Forensics" [ref=f2e128] [cursor=pointer]:
+          - /url: /multi-chain-wallet-forensics
+  - alert [ref=f2e129]

@@ -97,7 +97,8 @@ describe('P3 accessibility contracts', () => {
 
   it('documents the four supported EVM networks', () => {
     const docsSource = readSource('../app/docs/page.tsx');
-    assert.match(docsSource, /4 EVM Networks/);
+    assert.match(docsSource, /4 supported EVM networks/);
+    assert.match(docsSource, /Ethereum, Base, Arbitrum, and Optimism/);
     assert.doesNotMatch(docsSource, /5 EVM Networks/);
   });
 
@@ -156,7 +157,7 @@ describe('P3 accessibility contracts', () => {
     assert.match(flowSource, /id="capital-flow-graph-heading"/);
     assert.match(flowSource, /min-w-\[720px\]/);
     assert.match(flowSource, /flow-graph-scroll/);
-    assert.match(flowSource, /Interactive capital flow graph with/);
+    assert.match(flowSource, /Capital flow graph visualization with/);
     assert.match(flowSource, /formatGraphVolume/);
     assert.match(flowSource, /USD value unavailable/);
     assert.match(flowSource, /Cannot derive from unavailable values/);

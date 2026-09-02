@@ -22,15 +22,25 @@ describe('P1 design-audit contracts', () => {
     assert.match(readSource('./TransferTable.tsx'), /id="transfer-network"[\s\S]*focus:ring-2/);
   });
 
-  it('filters documentation in place and restores focus when cleared', () => {
+  it('jumps to the first matching documentation topic and restores focus when cleared', () => {
     const source = readSource('../app/docs/page.tsx');
     const updateStart = source.indexOf('const updateTopicFilter');
     const clearStart = source.indexOf('const clearTopicFilter');
     const updateSource = source.slice(updateStart, clearStart);
 
-    assert.doesNotMatch(updateSource, /scrollIntoView/);
+    assert.match(updateSource, /scrollToDocumentationTopic\(nextSectionId\)/);
+    assert.match(source, /section\.scrollIntoView\(\{[\s\S]*prefersReducedMotion/);
     assert.match(source, /ref=\{docsSearchInputRef\}/);
     assert.match(source, /const clearTopicFilter[\s\S]*docsSearchInputRef\.current\?\.focus\(\)/);
     assert.match(source, /href=\{`#\$\{s\.id\}`\}/);
+  });
+
+  it('keeps the canonical contract linkable and qualifies unbenchmarked figures', () => {
+    const source = readSource('../app/docs/page.tsx');
+
+    assert.match(source, /id="reporting-contract"/);
+    assert.match(source, /In plain language:/);
+    assert.match(source, /id=\{`metric-\$\{metric\.field\}`\}/);
+    assert.match(source, /illustrative/);
   });
 });

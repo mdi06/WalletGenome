@@ -150,20 +150,22 @@ export function analyzeApprovals(
     });
   }
 
-  const activeApprovals = Array.from(approvalMap.values())
+  // This is the latest non-revoked state observed in returned approval history,
+  // not a live on-chain allowance query.
+  const observedApprovals = Array.from(approvalMap.values())
     .filter(a => a.allowance !== '0')
     .sort((a, b) => {
       const riskOrder = { high: 3, medium: 2, low: 1 };
       return riskOrder[b.riskLevel] - riskOrder[a.riskLevel];
     });
 
-  const highRiskCount = activeApprovals.filter(a => a.riskLevel === 'high').length;
-  const unlimitedCount = activeApprovals.filter(a => a.isUnlimited).length;
-  const hasUnavailableExposure = activeApprovals.some(approval => approval.exposureStatus === 'unavailable');
+  const highRiskCount = observedApprovals.filter(a => a.riskLevel === 'high').length;
+  const unlimitedCount = observedApprovals.filter(a => a.isUnlimited).length;
+  const hasUnavailableExposure = observedApprovals.some(approval => approval.exposureStatus === 'unavailable');
   const totalExposureUSD = hasUnavailableExposure
     ? null
-    : activeApprovals.reduce((sum, approval) => sum + (approval.estimatedExposureUSD ?? 0), 0);
-  const totalExposureUSDProvenance = activeApprovals.reduce<PriceProvenanceSummary>((summary, approval) => {
+    : observedApprovals.reduce((sum, approval) => sum + (approval.estimatedExposureUSD ?? 0), 0);
+  const totalExposureUSDProvenance = observedApprovals.reduce<PriceProvenanceSummary>((summary, approval) => {
     if (approval.exposureStatus !== 'estimated') return summary;
     const provenance = approval.estimatedExposureUSDProvenance;
     if (provenance === 'historical') summary.historical++;
@@ -172,17 +174,19 @@ export function analyzeApprovals(
     if (provenance === 'unpriced') summary.unpriced++;
     return summary;
   }, { historical: 0, spotEstimate: 0, stablecoinAssumption: 0, unpriced: 0, status: 'complete' });
-  // A current spot quote is the correct time basis for current approval
-  // exposure. Only absent current prices make this metric incomplete.
+  // A current spot quote is the correct price basis for exposure at scan time;
+  // it does not verify the allowance on-chain.
   if (hasUnavailableExposure || totalExposureUSDProvenance.unpriced > 0) {
     totalExposureUSDProvenance.status = 'partial';
   }
 
   return {
-    activeApprovals,
+    // Preserve the existing field name for the API shape; its values are the
+    // latest non-revoked states observed in returned approval history.
+    activeApprovals: observedApprovals,
     highRiskCount,
     unlimitedCount,
-    totalApprovals: activeApprovals.length,
+    totalApprovals: observedApprovals.length,
     totalExposureUSD,
     totalExposureUSDProvenance,
     exposureStatus: hasUnavailableExposure ? 'partial' : 'complete',

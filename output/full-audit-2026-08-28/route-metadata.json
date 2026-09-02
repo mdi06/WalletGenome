@@ -1,0 +1,57 @@
+[
+  {
+    "route": "/evm-wallet-analytics",
+    "canonical": "http://localhost:3000/evm-wallet-analytics",
+    "description": "Analyze EVM wallet activity, counterparties, gas usage, protocol interactions, identities, and behavioral patterns across four major networks.",
+    "h1": [
+      "EVM Wallet Analytics Across Four Major Networks"
+    ],
+    "overflow": false,
+    "title": "EVM Wallet Analytics | WalletGenome",
+    "unnamedControls": 0
+  },
+  {
+    "route": "/crypto-wallet-risk-checker",
+    "canonical": "http://localhost:3000/crypto-wallet-risk-checker",
+    "description": "Review explainable wallet risk factors, blacklist availability, failed transactions, approvals, and unknown-contract interactions across supported EVM chains.",
+    "h1": [
+      "Check an EVM Wallet for Observable Risk Signals"
+    ],
+    "overflow": false,
+    "title": "Crypto Wallet Risk Checker | WalletGenome",
+    "unnamedControls": 0
+  },
+  {
+    "route": "/token-approval-checker",
+    "canonical": "http://localhost:3000/token-approval-checker",
+    "description": "Inspect observable ERC-20 approval activity, unlimited allowances, spender addresses, stale approvals, and available exposure estimates for an EVM wallet.",
+    "h1": [
+      "Inspect Token Approvals and Unlimited Allowance Signals"
+    ],
+    "overflow": false,
+    "title": "Token Approval Checker | WalletGenome",
+    "unnamedControls": 0
+  },
+  {
+    "route": "/sybil-wallet-analysis",
+    "canonical": "http://localhost:3000/sybil-wallet-analysis",
+    "description": "Review behavioral Sybil signals and available public blacklist matches while keeping heuristics, source coverage, and confirmed matches clearly separated.",
+    "h1": [
+      "Analyze Observable Sybil Signals Without Hiding Uncertainty"
+    ],
+    "overflow": false,
+    "title": "Sybil Wallet Analysis | WalletGenome",
+    "unnamedControls": 0
+  },
+  {
+    "route": "/multi-chain-wallet-forensics",
+    "canonical": "http://localhost:3000/multi-chain-wallet-forensics",
+    "description": "Investigate wallet activity, capital-flow evidence, counterparties, gas usage, approvals, and data completeness across supported EVM networks.",
+    "h1": [
+      "Multi-Chain Wallet Forensics With Explicit Data Coverage"
+    ],
+    "overflow": false,
+    "title": "Multi-Chain Wallet Forensics | WalletGenome",
+    "unnamedControls": 0
+  }
+]

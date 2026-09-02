@@ -1,0 +1,33 @@
+- generic [active] [ref=e1]:
+  - main [ref=e2]:
+    - region [ref=e3]:
+      - generic [ref=e4]:
+        - generic [ref=e5]: WALLET.GENOME
+        - generic [ref=e6]: 404 / NOT FOUND
+      - generic [ref=e7]:
+        - heading "This page could not be found." [level=1] [ref=e8]
+        - paragraph [ref=e9]: The requested route is not part of the WalletGenome evidence workspace. Return to the scanner or review the methodology to continue.
+      - generic [ref=e10]:
+        - link "Return to scanner" [ref=e11] [cursor=pointer]:
+          - /url: /
+        - link "Read methodology" [ref=e15] [cursor=pointer]:
+          - /url: /docs
+  - contentinfo [ref=e18]:
+    - generic [ref=e19]:
+      - generic [ref=e20]:
+        - paragraph [ref=e21]: WalletGenome
+        - paragraph [ref=e22]: Read-only, evidence-aware EVM wallet analytics. No wallet connection or signature required.
+      - navigation "Wallet analytics topics" [ref=e23]:
+        - link "Methodology" [ref=e24] [cursor=pointer]:
+          - /url: /docs
+        - link "EVM Wallet Analytics" [ref=e25] [cursor=pointer]:
+          - /url: /evm-wallet-analytics
+        - link "Crypto Wallet Risk Checker" [ref=e26] [cursor=pointer]:
+          - /url: /crypto-wallet-risk-checker
+        - link "Token Approval Checker" [ref=e27] [cursor=pointer]:
+          - /url: /token-approval-checker
+        - link "Sybil Wallet Analysis" [ref=e28] [cursor=pointer]:
+          - /url: /sybil-wallet-analysis
+        - link "Multi-Chain Wallet Forensics" [ref=e29] [cursor=pointer]:
+          - /url: /multi-chain-wallet-forensics
+  - alert [ref=e30]

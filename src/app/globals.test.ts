@@ -10,7 +10,8 @@ it('keeps page scrolling native and limits motion to explicit navigation', () =>
   assert.match(css, /@media \(max-width: 767px\) and \(prefers-reduced-motion: no-preference\)\s*\{\s*\.mobile-navigation-disclosure\[data-open='true'\]/);
   const filterUpdateStart = docsSource.indexOf('const updateTopicFilter');
   const filterClearStart = docsSource.indexOf('const clearTopicFilter');
-  assert.doesNotMatch(docsSource.slice(filterUpdateStart, filterClearStart), /scrollIntoView/);
+  assert.match(docsSource.slice(filterUpdateStart, filterClearStart), /scrollToDocumentationTopic\(nextSectionId\)/);
+  assert.match(docsSource, /section\.scrollIntoView\(\{[\s\S]*prefersReducedMotion/);
   assert.match(docsSource, /const clearTopicFilter[\s\S]*docsSearchInputRef\.current\?\.focus\(\)/);
   assert.match(docsSource, /window\.scrollTo\(\{ top: 0, behavior: 'auto' \}\)/);
 });

@@ -1,0 +1,477 @@
+- generic [active] [ref=f4e1]:
+  - main [ref=f4e2]:
+    - generic [ref=f4e3]:
+      - generic [ref=f4e4]:
+        - button "Open WalletGenome guide" [ref=f4e5] [cursor=pointer]:
+          - generic [ref=f4e6]: WALLET.GENOME
+        - button "Open navigation" [ref=f4e83] [cursor=pointer]
+      - 'status "Indexing status: Saved snapshot" [ref=f4e8]':
+        - generic [ref=f4e10]: Saved snapshot
+    - region "Wallet Forensics Console" [ref=f4e28]:
+      - tablist "Forensics Scan Mode" [ref=f4e29]:
+        - tab "Single wallet" [selected] [ref=f4e30] [cursor=pointer]
+        - tab "Cluster scan" [ref=f4e85] [cursor=pointer]
+      - tabpanel "Single wallet" [ref=f4e42]:
+        - generic [ref=f4e677]:
+          - generic [ref=f4e678]:
+            - generic [ref=f4e679]: Wallet address or ENS domain
+            - textbox "EVM address or ENS domain" [ref=f4e684]:
+              - /placeholder: Enter EVM address (0x...) or ENS name (vitalik.eth)
+              - text: "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045"
+          - group "Select target EVM networks" [ref=f4e685]:
+            - button "Toggle Ethereum network" [pressed] [ref=f4e686] [cursor=pointer]:
+              - generic [ref=f4e688]: ETH
+            - button "Toggle Base network" [pressed] [ref=f4e689] [cursor=pointer]:
+              - generic [ref=f4e691]: BASE
+            - button "Toggle Arbitrum network" [pressed] [ref=f4e692] [cursor=pointer]:
+              - generic [ref=f4e694]: ARB
+            - button "Toggle Optimism network" [pressed] [ref=f4e695] [cursor=pointer]:
+              - generic [ref=f4e697]: OP
+            - button "Scan wallet address" [ref=f4e698] [cursor=pointer]:
+              - generic [ref=f4e699]: SCAN
+    - region "Evidence status" [ref=f4e57]:
+      - generic [ref=f4e58]:
+        - generic [ref=f4e59]:
+          - paragraph [ref=f4e61]: Saved snapshot · Non-live
+          - paragraph [ref=f4e62]: Saved public data for Vitalik Buterin. Updated Aug 26, 2026. This view does not spend provider API quota.
+          - paragraph [ref=f4e63]: "History evidence: partial. Review data quality details below."
+        - button "Run fresh scan" [ref=f4e64] [cursor=pointer]
+      - group [ref=f4e65]:
+        - generic "Review data quality partial" [ref=f4e66] [cursor=pointer]:
+          - generic [ref=f4e67]: Review data quality
+          - generic [ref=f4e68]: partial
+    - generic [ref=f4e97]:
+      - generic "Dashboard sections; scroll horizontally for more tabs" [ref=f4e98]:
+        - tablist "Wallet dashboard sections" [ref=f4e99]:
+          - tab "BEHAVIORAL DNA" [selected] [ref=f4e100] [cursor=pointer]
+          - tab "FLOW GRAPH" [ref=f4e102] [cursor=pointer]
+          - tab "PROTOCOLS 12" [ref=f4e104] [cursor=pointer]:
+            - generic [ref=f4e105]: PROTOCOLS
+            - generic [ref=f4e106]: "12"
+          - tab "GAS FEES" [ref=f4e107] [cursor=pointer]
+          - tab "TOP TOKEN TRANSFERS" [ref=f4e109] [cursor=pointer]
+          - tab "APPROVALS 2233" [ref=f4e111] [cursor=pointer]:
+            - generic [ref=f4e112]: APPROVALS
+            - generic [ref=f4e113]: "2233"
+      - tabpanel "BEHAVIORAL DNA" [ref=f4e114]:
+        - generic [ref=f4e115]:
+          - generic [ref=f4e117]:
+            - generic [ref=f4e118]:
+              - img "vitalik.eth" [ref=f4e120]
+              - generic [ref=f4e122]:
+                - heading "vitalik.eth" [level=3] [ref=f4e123]
+                - generic [ref=f4e124]:
+                  - generic [ref=f4e125]: DeFi Power User
+                  - paragraph [ref=f4e126]: mi pinxe lo crino tcati
+              - generic [ref=f4e127]:
+                - generic "0xd8da6bf26964af9d7eed9e03e53415d37aa96045" [ref=f4e128]
+                - button "Copy wallet address 0xd8da6bf26964af9d7eed9e03e53415d37aa96045" [ref=f4e129] [cursor=pointer]
+                - status [ref=f4e133]
+            - group [ref=f4e134]:
+              - generic "Connected accounts 7 services" [ref=f4e135] [cursor=pointer]:
+                - heading "Connected accounts" [level=4] [ref=f4e136]
+                - generic [ref=f4e139]: 7 services
+              - generic [ref=f4e144]:
+                - 'link "ENS: vitalik.eth" [ref=f4e145] [cursor=pointer]':
+                  - /url: https://app.ens.domains/vitalik.eth
+                  - generic [ref=f4e150]: "ENS:"
+                  - generic "vitalik.eth" [ref=f4e151]
+                - 'link "website: vitalik.ca" [ref=f4e156] [cursor=pointer]':
+                  - /url: https://vitalik.ca
+                  - generic [ref=f4e161]: "website:"
+                  - generic "vitalik.ca" [ref=f4e162]
+                - 'link "GitHub: vbuterin" [ref=f4e167] [cursor=pointer]':
+                  - /url: https://github.com/vbuterin
+                  - generic [ref=f4e171]: "GitHub:"
+                  - generic "vbuterin" [ref=f4e172]
+                - 'link "Twitter / X: @vitalikbuterin" [ref=f4e177] [cursor=pointer]':
+                  - /url: https://x.com/vitalikbuterin
+                  - generic [ref=f4e181]: "Twitter / X:"
+                  - generic "@vitalikbuterin" [ref=f4e182]
+                - 'link "Lens: @vitalik.lens" [ref=f4e187] [cursor=pointer]':
+                  - /url: https://hey.xyz/u/vitalik.lens
+                  - generic [ref=f4e192]: "Lens:"
+                  - generic "@vitalik.lens" [ref=f4e193]
+                - 'link "Base: vb62831.base.eth" [ref=f4e198] [cursor=pointer]':
+                  - /url: https://base.org/names?query=vb62831.base.eth
+                  - generic [ref=f4e203]: "Base:"
+                  - generic "vb62831.base.eth" [ref=f4e204]
+                - 'link "Farcaster: @vitalik.eth" [ref=f4e209] [cursor=pointer]':
+                  - /url: https://warpcast.com/vitalik.eth
+                  - generic [ref=f4e214]: "Farcaster:"
+                  - generic "@vitalik.eth" [ref=f4e215]
+          - region "SYBIL PROBABILITY" [ref=f4e221]:
+            - generic [ref=f4e226]:
+              - generic [ref=f4e227]:
+                - generic [ref=f4e228]: SYBIL PROBABILITY
+                - generic [ref=f4e229]: Unavailable
+                - generic [ref=f4e230]: Blacklist Match
+              - paragraph [ref=f4e231]: Positive match in Hop Protocol Sybil Defense. The unavailable behavioral Sybil estimate is a separate secondary heuristic.
+            - generic [ref=f4e232]:
+              - generic [ref=f4e233]:
+                - generic [ref=f4e234]: LayerZero Sybil
+                - generic [ref=f4e237]: CLEAN
+              - generic [ref=f4e238]:
+                - generic [ref=f4e239]: Hop Protocol
+                - generic [ref=f4e242]: FLAGGED
+              - generic [ref=f4e243]:
+                - generic [ref=f4e244]: Umbra Mixer
+                - generic [ref=f4e247]: CLEAN
+              - generic [ref=f4e248]:
+                - generic [ref=f4e249]: OFAC Sanctions
+                - generic [ref=f4e252]: CLEAN
+              - generic [ref=f4e253]:
+                - generic [ref=f4e254]: Trusta MEDIA
+                - generic [ref=f4e257]: UNAVAILABLE
+        - generic [ref=f4e258]:
+          - region [ref=f4e261]:
+            - generic [ref=f4e262]:
+              - heading "SECURITY RATINGS" [level=2] [ref=f4e263]
+              - generic [ref=f4e264]: Grade N/A
+            - generic [ref=f4e265]:
+              - generic [ref=f4e266]: N/A
+              - generic [ref=f4e267]: / 100 RISK
+            - generic [ref=f4e268]:
+              - generic [ref=f4e270]:
+                - generic [ref=f4e271]: Worst-chain risk
+                - generic [ref=f4e272]: Withheld
+              - generic [ref=f4e275]:
+                - generic [ref=f4e276]: High-risk approvals
+                - generic [ref=f4e277]: 18 count
+          - generic [ref=f4e280]:
+            - region [ref=f4e281]:
+              - generic [ref=f4e282]:
+                - heading "TRANSACTION HEATMAP (SEPT 2015 - AUG 2026)" [level=2] [ref=f4e283]
+                - generic [ref=f4e284]: 101071 Total Txs
+              - generic [ref=f4e285]:
+                - generic [ref=f4e286]:
+                  - generic [ref=f4e290]:
+                    - generic [ref=f4e291]: Active Days
+                    - generic [ref=f4e292]: 1501 days
+                  - generic [ref=f4e296]:
+                    - generic [ref=f4e297]: Streak
+                    - generic [ref=f4e298]: 92 days
+                  - generic [ref=f4e303]:
+                    - generic [ref=f4e304]: Peak Hour
+                    - generic [ref=f4e305]: 17:00 UTC
+                  - generic [ref=f4e309]:
+                    - generic [ref=f4e310]: Peak Day
+                    - generic [ref=f4e311]: Saturday
+                - region "Transaction activity heatmap by UTC day and hour; 1501 active days, peak day Saturday, peak hour 17:00 UTC. Scroll horizontally for all hours." [ref=f4e312]:
+                  - generic [ref=f4e313]:
+                    - generic [ref=f4e314]:
+                      - generic [ref=f4e315]: 12a
+                      - generic [ref=f4e316]: 3a
+                      - generic [ref=f4e317]: 6a
+                      - generic [ref=f4e318]: 9a
+                      - generic [ref=f4e319]: 12p
+                      - generic [ref=f4e320]: 3p
+                      - generic [ref=f4e321]: 6p
+                      - generic [ref=f4e322]: 9p
+                    - generic [ref=f4e323]:
+                      - generic [ref=f4e324]: Sun
+                      - generic "Sun 0:00 UTC — 361 txs" [ref=f4e325]
+                      - generic "Sun 1:00 UTC — 251 txs" [ref=f4e326]
+                      - generic "Sun 2:00 UTC — 211 txs" [ref=f4e327]
+                      - generic "Sun 3:00 UTC — 157 txs" [ref=f4e328]
+                      - generic "Sun 4:00 UTC — 148 txs" [ref=f4e329]
+                      - generic "Sun 5:00 UTC — 273 txs" [ref=f4e330]
+                      - generic "Sun 6:00 UTC — 321 txs" [ref=f4e331]
+                      - generic "Sun 7:00 UTC — 344 txs" [ref=f4e332]
+                      - generic "Sun 8:00 UTC — 306 txs" [ref=f4e333]
+                      - generic "Sun 9:00 UTC — 213 txs" [ref=f4e334]
+                      - generic "Sun 10:00 UTC — 321 txs" [ref=f4e335]
+                      - generic "Sun 11:00 UTC — 240 txs" [ref=f4e336]
+                      - generic "Sun 12:00 UTC — 269 txs" [ref=f4e337]
+                      - generic "Sun 13:00 UTC — 292 txs" [ref=f4e338]
+                      - generic "Sun 14:00 UTC — 300 txs" [ref=f4e339]
+                      - generic "Sun 15:00 UTC — 405 txs" [ref=f4e340]
+                      - generic "Sun 16:00 UTC — 220 txs" [ref=f4e341]
+                      - generic "Sun 17:00 UTC — 215 txs" [ref=f4e342]
+                      - generic "Sun 18:00 UTC — 149 txs" [ref=f4e343]
+                      - generic "Sun 19:00 UTC — 180 txs" [ref=f4e344]
+                      - generic "Sun 20:00 UTC — 177 txs" [ref=f4e345]
+                      - generic "Sun 21:00 UTC — 149 txs" [ref=f4e346]
+                      - generic "Sun 22:00 UTC — 121 txs" [ref=f4e347]
+                      - generic "Sun 23:00 UTC — 105 txs" [ref=f4e348]
+                    - generic [ref=f4e349]:
+                      - generic [ref=f4e350]: Mon
+                      - generic "Mon 0:00 UTC — 111 txs" [ref=f4e351]
+                      - generic "Mon 1:00 UTC — 102 txs" [ref=f4e352]
+                      - generic "Mon 2:00 UTC — 192 txs" [ref=f4e353]
+                      - generic "Mon 3:00 UTC — 207 txs" [ref=f4e354]
+                      - generic "Mon 4:00 UTC — 261 txs" [ref=f4e355]
+                      - generic "Mon 5:00 UTC — 499 txs" [ref=f4e356]
+                      - generic "Mon 6:00 UTC — 503 txs" [ref=f4e357]
+                      - generic "Mon 7:00 UTC — 734 txs" [ref=f4e358]
+                      - generic "Mon 8:00 UTC — 531 txs" [ref=f4e359]
+                      - generic "Mon 9:00 UTC — 251 txs" [ref=f4e360]
+                      - generic "Mon 10:00 UTC — 311 txs" [ref=f4e361]
+                      - generic "Mon 11:00 UTC — 376 txs" [ref=f4e362]
+                      - generic "Mon 12:00 UTC — 369 txs" [ref=f4e363]
+                      - generic "Mon 13:00 UTC — 364 txs" [ref=f4e364]
+                      - generic "Mon 14:00 UTC — 216 txs" [ref=f4e365]
+                      - generic "Mon 15:00 UTC — 229 txs" [ref=f4e366]
+                      - generic "Mon 16:00 UTC — 205 txs" [ref=f4e367]
+                      - generic "Mon 17:00 UTC — 180 txs" [ref=f4e368]
+                      - generic "Mon 18:00 UTC — 144 txs" [ref=f4e369]
+                      - generic "Mon 19:00 UTC — 93 txs" [ref=f4e370]
+                      - generic "Mon 20:00 UTC — 124 txs" [ref=f4e371]
+                      - generic "Mon 21:00 UTC — 157 txs" [ref=f4e372]
+                      - generic "Mon 22:00 UTC — 132 txs" [ref=f4e373]
+                      - generic "Mon 23:00 UTC — 152 txs" [ref=f4e374]
+                    - generic [ref=f4e375]:
+                      - generic [ref=f4e376]: Tue
+                      - generic "Tue 0:00 UTC — 147 txs" [ref=f4e377]
+                      - generic "Tue 1:00 UTC — 145 txs" [ref=f4e378]
+                      - generic "Tue 2:00 UTC — 132 txs" [ref=f4e379]
+                      - generic "Tue 3:00 UTC — 142 txs" [ref=f4e380]
+                      - generic "Tue 4:00 UTC — 139 txs" [ref=f4e381]
+                      - generic "Tue 5:00 UTC — 223 txs" [ref=f4e382]
+                      - generic "Tue 6:00 UTC — 231 txs" [ref=f4e383]
+                      - generic "Tue 7:00 UTC — 352 txs" [ref=f4e384]
+                      - generic "Tue 8:00 UTC — 331 txs" [ref=f4e385]
+                      - generic "Tue 9:00 UTC — 232 txs" [ref=f4e386]
+                      - generic "Tue 10:00 UTC — 217 txs" [ref=f4e387]
+                      - generic "Tue 11:00 UTC — 304 txs" [ref=f4e388]
+                      - generic "Tue 12:00 UTC — 315 txs" [ref=f4e389]
+                      - generic "Tue 13:00 UTC — 265 txs" [ref=f4e390]
+                      - generic "Tue 14:00 UTC — 343 txs" [ref=f4e391]
+                      - generic "Tue 15:00 UTC — 368 txs" [ref=f4e392]
+                      - generic "Tue 16:00 UTC — 274 txs" [ref=f4e393]
+                      - generic "Tue 17:00 UTC — 160 txs" [ref=f4e394]
+                      - generic "Tue 18:00 UTC — 137 txs" [ref=f4e395]
+                      - generic "Tue 19:00 UTC — 152 txs" [ref=f4e396]
+                      - generic "Tue 20:00 UTC — 155 txs" [ref=f4e397]
+                      - generic "Tue 21:00 UTC — 141 txs" [ref=f4e398]
+                      - generic "Tue 22:00 UTC — 142 txs" [ref=f4e399]
+                      - generic "Tue 23:00 UTC — 136 txs" [ref=f4e400]
+                    - generic [ref=f4e401]:
+                      - generic [ref=f4e402]: Wed
+                      - generic "Wed 0:00 UTC — 161 txs" [ref=f4e403]
+                      - generic "Wed 1:00 UTC — 232 txs" [ref=f4e404]
+                      - generic "Wed 2:00 UTC — 245 txs" [ref=f4e405]
+                      - generic "Wed 3:00 UTC — 242 txs" [ref=f4e406]
+                      - generic "Wed 4:00 UTC — 223 txs" [ref=f4e407]
+                      - generic "Wed 5:00 UTC — 224 txs" [ref=f4e408]
+                      - generic "Wed 6:00 UTC — 306 txs" [ref=f4e409]
+                      - generic "Wed 7:00 UTC — 326 txs" [ref=f4e410]
+                      - generic "Wed 8:00 UTC — 378 txs" [ref=f4e411]
+                      - generic "Wed 9:00 UTC — 307 txs" [ref=f4e412]
+                      - generic "Wed 10:00 UTC — 352 txs" [ref=f4e413]
+                      - generic "Wed 11:00 UTC — 605 txs" [ref=f4e414]
+                      - generic "Wed 12:00 UTC — 559 txs" [ref=f4e415]
+                      - generic "Wed 13:00 UTC — 760 txs" [ref=f4e416]
+                      - generic "Wed 14:00 UTC — 459 txs" [ref=f4e417]
+                      - generic "Wed 15:00 UTC — 587 txs" [ref=f4e418]
+                      - generic "Wed 16:00 UTC — 546 txs" [ref=f4e419]
+                      - generic "Wed 17:00 UTC — 563 txs" [ref=f4e420]
+                      - generic "Wed 18:00 UTC — 470 txs" [ref=f4e421]
+                      - generic "Wed 19:00 UTC — 354 txs" [ref=f4e422]
+                      - generic "Wed 20:00 UTC — 430 txs" [ref=f4e423]
+                      - generic "Wed 21:00 UTC — 389 txs" [ref=f4e424]
+                      - generic "Wed 22:00 UTC — 371 txs" [ref=f4e425]
+                      - generic "Wed 23:00 UTC — 372 txs" [ref=f4e426]
+                    - generic [ref=f4e427]:
+                      - generic [ref=f4e428]: Thu
+                      - generic "Thu 0:00 UTC — 331 txs" [ref=f4e429]
+                      - generic "Thu 1:00 UTC — 502 txs" [ref=f4e430]
+                      - generic "Thu 2:00 UTC — 422 txs" [ref=f4e431]
+                      - generic "Thu 3:00 UTC — 511 txs" [ref=f4e432]
+                      - generic "Thu 4:00 UTC — 458 txs" [ref=f4e433]
+                      - generic "Thu 5:00 UTC — 546 txs" [ref=f4e434]
+                      - generic "Thu 6:00 UTC — 741 txs" [ref=f4e435]
+                      - generic "Thu 7:00 UTC — 480 txs" [ref=f4e436]
+                      - generic "Thu 8:00 UTC — 672 txs" [ref=f4e437]
+                      - generic "Thu 9:00 UTC — 618 txs" [ref=f4e438]
+                      - generic "Thu 10:00 UTC — 763 txs" [ref=f4e439]
+                      - generic "Thu 11:00 UTC — 576 txs" [ref=f4e440]
+                      - generic "Thu 12:00 UTC — 626 txs" [ref=f4e441]
+                      - generic "Thu 13:00 UTC — 631 txs" [ref=f4e442]
+                      - generic "Thu 14:00 UTC — 565 txs" [ref=f4e443]
+                      - generic "Thu 15:00 UTC — 595 txs" [ref=f4e444]
+                      - generic "Thu 16:00 UTC — 645 txs" [ref=f4e445]
+                      - generic "Thu 17:00 UTC — 589 txs" [ref=f4e446]
+                      - generic "Thu 18:00 UTC — 535 txs" [ref=f4e447]
+                      - generic "Thu 19:00 UTC — 365 txs" [ref=f4e448]
+                      - generic "Thu 20:00 UTC — 322 txs" [ref=f4e449]
+                      - generic "Thu 21:00 UTC — 237 txs" [ref=f4e450]
+                      - generic "Thu 22:00 UTC — 254 txs" [ref=f4e451]
+                      - generic "Thu 23:00 UTC — 231 txs" [ref=f4e452]
+                    - generic [ref=f4e453]:
+                      - generic [ref=f4e454]: Fri
+                      - generic "Fri 0:00 UTC — 261 txs" [ref=f4e455]
+                      - generic "Fri 1:00 UTC — 276 txs" [ref=f4e456]
+                      - generic "Fri 2:00 UTC — 408 txs" [ref=f4e457]
+                      - generic "Fri 3:00 UTC — 417 txs" [ref=f4e458]
+                      - generic "Fri 4:00 UTC — 441 txs" [ref=f4e459]
+                      - generic "Fri 5:00 UTC — 439 txs" [ref=f4e460]
+                      - generic "Fri 6:00 UTC — 583 txs" [ref=f4e461]
+                      - generic "Fri 7:00 UTC — 637 txs" [ref=f4e462]
+                      - generic "Fri 8:00 UTC — 594 txs" [ref=f4e463]
+                      - generic "Fri 9:00 UTC — 717 txs" [ref=f4e464]
+                      - generic "Fri 10:00 UTC — 516 txs" [ref=f4e465]
+                      - generic "Fri 11:00 UTC — 496 txs" [ref=f4e466]
+                      - generic "Fri 12:00 UTC — 666 txs" [ref=f4e467]
+                      - generic "Fri 13:00 UTC — 551 txs" [ref=f4e468]
+                      - generic "Fri 14:00 UTC — 612 txs" [ref=f4e469]
+                      - generic "Fri 15:00 UTC — 612 txs" [ref=f4e470]
+                      - generic "Fri 16:00 UTC — 709 txs" [ref=f4e471]
+                      - generic "Fri 17:00 UTC — 327 txs" [ref=f4e472]
+                      - generic "Fri 18:00 UTC — 362 txs" [ref=f4e473]
+                      - generic "Fri 19:00 UTC — 265 txs" [ref=f4e474]
+                      - generic "Fri 20:00 UTC — 259 txs" [ref=f4e475]
+                      - generic "Fri 21:00 UTC — 213 txs" [ref=f4e476]
+                      - generic "Fri 22:00 UTC — 279 txs" [ref=f4e477]
+                      - generic "Fri 23:00 UTC — 200 txs" [ref=f4e478]
+                    - generic [ref=f4e479]:
+                      - generic [ref=f4e480]: Sat
+                      - generic "Sat 0:00 UTC — 249 txs" [ref=f4e481]
+                      - generic "Sat 1:00 UTC — 182 txs" [ref=f4e482]
+                      - generic "Sat 2:00 UTC — 225 txs" [ref=f4e483]
+                      - generic "Sat 3:00 UTC — 407 txs" [ref=f4e484]
+                      - generic "Sat 4:00 UTC — 372 txs" [ref=f4e485]
+                      - generic "Sat 5:00 UTC — 412 txs" [ref=f4e486]
+                      - generic "Sat 6:00 UTC — 360 txs" [ref=f4e487]
+                      - generic "Sat 7:00 UTC — 474 txs" [ref=f4e488]
+                      - generic "Sat 8:00 UTC — 592 txs" [ref=f4e489]
+                      - generic "Sat 9:00 UTC — 474 txs" [ref=f4e490]
+                      - generic "Sat 10:00 UTC — 486 txs" [ref=f4e491]
+                      - generic "Sat 11:00 UTC — 460 txs" [ref=f4e492]
+                      - generic "Sat 12:00 UTC — 607 txs" [ref=f4e493]
+                      - generic "Sat 13:00 UTC — 446 txs" [ref=f4e494]
+                      - generic "Sat 14:00 UTC — 563 txs" [ref=f4e495]
+                      - generic "Sat 15:00 UTC — 446 txs" [ref=f4e496]
+                      - generic "Sat 16:00 UTC — 1947 txs" [ref=f4e497]
+                      - generic "Sat 17:00 UTC — 31087 txs" [ref=f4e498]
+                      - generic "Sat 18:00 UTC — 9473 txs" [ref=f4e499]
+                      - generic "Sat 19:00 UTC — 335 txs" [ref=f4e500]
+                      - generic "Sat 20:00 UTC — 289 txs" [ref=f4e501]
+                      - generic "Sat 21:00 UTC — 331 txs" [ref=f4e502]
+                      - generic "Sat 22:00 UTC — 386 txs" [ref=f4e503]
+                      - generic "Sat 23:00 UTC — 598 txs" [ref=f4e504]
+                - generic [ref=f4e505]:
+                  - generic [ref=f4e506]: Less
+                  - generic [ref=f4e512]: More
+            - region [ref=f4e513]:
+              - heading "PROTOCOL IDENTITY BADGES" [level=2] [ref=f4e514]
+              - generic [ref=f4e515]:
+                - generic [ref=f4e516]: OTHER_USER
+                - generic [ref=f4e517]: UNISWAP_TRADER
+                - generic [ref=f4e518]: ENS_USER
+                - generic [ref=f4e519]: KYBERSWAP_USER
+                - generic [ref=f4e520]: 0X_USER
+                - generic [ref=f4e521]: 1INCH_SWAPPER
+                - generic [ref=f4e522]: LI_FI_USER
+                - generic [ref=f4e523]: ENS_OWNER
+            - generic [ref=f4e524]:
+              - region [ref=f4e525]:
+                - heading "LIFETIME GAS Observed history" [level=2] [ref=f4e526]:
+                  - generic [ref=f4e527]: LIFETIME GAS
+                  - generic [ref=f4e528]: Observed history
+                - generic [ref=f4e529]: 25.31 ETH
+                - generic [ref=f4e530]: Total Spent (≈ $15.70K)
+              - region [ref=f4e531]:
+                - generic [ref=f4e532]:
+                  - heading "CHAIN ACTIVITY" [level=2] [ref=f4e533]
+                  - generic [ref=f4e534]: PARTIAL DATA
+                - paragraph [ref=f4e535]: NORMAL WALLET TRANSACTIONS BY SELECTED CHAIN
+                - generic [ref=f4e536]:
+                  - generic [ref=f4e538]:
+                    - generic [ref=f4e539]: Ethereum
+                    - generic [ref=f4e542]: 78,344 TXS
+                  - generic [ref=f4e544]:
+                    - generic [ref=f4e545]: Optimism
+                    - generic [ref=f4e548]: 847 TXS
+                  - generic [ref=f4e549]:
+                    - generic [ref=f4e550]:
+                      - generic [ref=f4e551]: Base
+                      - generic [ref=f4e554]: 10,281+ TXS
+                    - generic [ref=f4e555]: At least this many records returned
+                  - generic [ref=f4e557]:
+                    - generic [ref=f4e558]: Arbitrum
+                    - generic [ref=f4e561]: 11,599 TXS
+            - region "6-DIMENSION QUANTITATIVE BREAKDOWN" [ref=f4e562]:
+              - generic [ref=f4e563]:
+                - generic [ref=f4e564]: 6-DIMENSION QUANTITATIVE BREAKDOWN
+                - generic [ref=f4e565]: 3683 Contracts · 119 Months
+              - generic [ref=f4e566]:
+                - generic [ref=f4e567]:
+                  - generic [ref=f4e568]:
+                    - generic [ref=f4e569]: DeFi Diversity
+                    - generic [ref=f4e570]: 67 / 100
+                  - paragraph [ref=f4e573]: "Ethereum: 90/100 · Optimism: 76/100 · Base: 28/100 · Arbitrum: 75/100"
+                - generic [ref=f4e574]:
+                  - generic [ref=f4e575]:
+                    - generic [ref=f4e576]: Activity
+                    - generic [ref=f4e577]: 85 / 100
+                  - paragraph [ref=f4e580]: "Ethereum: 100/100 · Optimism: 40/100 · Base: 100/100 · Arbitrum: 100/100"
+                - generic [ref=f4e581]:
+                  - generic [ref=f4e582]:
+                    - generic [ref=f4e583]: Capital Efficiency
+                    - generic [ref=f4e584]: 100 / 100
+                  - paragraph [ref=f4e587]: "Ethereum: 100/100 · Optimism: 100/100 · Base: 100/100 · Arbitrum: 100/100"
+                - generic [ref=f4e588]:
+                  - generic [ref=f4e589]:
+                    - generic [ref=f4e590]: Risk Appetite
+                    - generic [ref=f4e591]: 19 / 100
+                  - paragraph [ref=f4e594]: "Ethereum: 9/100 · Optimism: 28/100 · Base: 17/100 · Arbitrum: 21/100"
+                - generic [ref=f4e595]:
+                  - generic [ref=f4e596]:
+                    - generic [ref=f4e597]: Maturity
+                    - generic [ref=f4e598]: 92 / 100
+                  - paragraph [ref=f4e601]: "Ethereum: 100/100 · Optimism: 100/100 · Base: 66/100 · Arbitrum: 100/100"
+                - generic [ref=f4e602]:
+                  - generic [ref=f4e603]:
+                    - generic [ref=f4e604]: Network Breadth
+                    - generic [ref=f4e605]: 100 / 100
+                  - paragraph [ref=f4e608]: "Ethereum: 100/100 · Optimism: 100/100 · Base: 100/100 · Arbitrum: 100/100"
+          - generic [ref=f4e609]:
+            - region [ref=f4e610]:
+              - heading "RISK GRADE" [level=2] [ref=f4e611]
+              - generic [ref=f4e612]: N/A
+              - paragraph [ref=f4e613]: Withheld until every selected history dataset is complete. Available records remain visible in the other tabs.
+              - generic [ref=f4e615]:
+                - generic [ref=f4e616]: Worst-chain risk score
+                - generic [ref=f4e617]: Withheld
+            - region [ref=f4e619]:
+              - heading "BEHAVIORAL RADAR" [level=2] [ref=f4e620]
+              - 'img "Wallet behavioral scores. DeFi Diversity: 67 out of 100; Activity: 85 out of 100; Capital Eff.: 100 out of 100; Risk Appetite: 19 out of 100; Maturity: 92 out of 100; Cross-Chain: 100 out of 100" [ref=f4e621]':
+                - generic [ref=f4e622]: "Wallet behavioral radar chart. DeFi Diversity: 67 out of 100; Activity: 85 out of 100; Capital Eff.: 100 out of 100; Risk Appetite: 19 out of 100; Maturity: 92 out of 100; Cross-Chain: 100 out of 100"
+                - application [ref=f4e626]:
+                  - generic [ref=f4e706]:
+                    - generic [ref=f4e707]: DeFi Diversity
+                    - generic [ref=f4e709]: Activity
+                    - generic [ref=f4e712]: Capital Eff.
+                    - generic [ref=f4e715]: Risk Appetite
+                    - generic [ref=f4e717]: Maturity
+                    - generic [ref=f4e720]: Cross-Chain
+              - generic [ref=f4e663]:
+                - generic [ref=f4e666]:
+                  - text: "DeFi Diversity:"
+                  - generic [ref=f4e667]: 67/100
+                - generic [ref=f4e670]:
+                  - text: "Activity:"
+                  - generic [ref=f4e671]: 85/100
+                - generic [ref=f4e674]:
+                  - text: "Capital Eff.:"
+                  - generic [ref=f4e675]: 100/100
+  - contentinfo [ref=f4e70]:
+    - generic [ref=f4e71]:
+      - generic [ref=f4e72]:
+        - paragraph [ref=f4e73]: WalletGenome
+        - paragraph [ref=f4e74]: Read-only, evidence-aware EVM wallet analytics. No wallet connection or signature required.
+      - navigation "Wallet analytics topics" [ref=f4e75]:
+        - link "Methodology" [ref=f4e76] [cursor=pointer]:
+          - /url: /docs
+        - link "EVM Wallet Analytics" [ref=f4e77] [cursor=pointer]:
+          - /url: /evm-wallet-analytics
+        - link "Crypto Wallet Risk Checker" [ref=f4e78] [cursor=pointer]:
+          - /url: /crypto-wallet-risk-checker
+        - link "Token Approval Checker" [ref=f4e79] [cursor=pointer]:
+          - /url: /token-approval-checker
+        - link "Sybil Wallet Analysis" [ref=f4e80] [cursor=pointer]:
+          - /url: /sybil-wallet-analysis
+        - link "Multi-Chain Wallet Forensics" [ref=f4e81] [cursor=pointer]:
+          - /url: /multi-chain-wallet-forensics
+  - alert [ref=f4e82]

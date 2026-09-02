@@ -99,9 +99,12 @@ export function buildClusterSummary(data: ClusterScanResult) {
   const topHub = data.sharedCounterparties[0];
   const topHubOverlapPct = topHub && total > 0 ? Math.round((topHub.sharedCount / total) * 100) : 0;
 
-  let coordinationLevel: 'HIGH COORDINATION CLUSTER' | 'MODERATE OVERLAP' | 'INDEPENDENT PORTFOLIO';
+  let coordinationLevel: 'HIGH COORDINATION CLUSTER' | 'MODERATE OVERLAP' | 'INDEPENDENT PORTFOLIO' | 'SAVED EXAMPLE';
   let coordinationColor = 'bg-[#059669]/10 text-[#047857] border-[#059669]/30';
-  if (directTransfers >= 5 || topHubOverlapPct >= 75) {
+  if (data.source === 'saved') {
+    coordinationLevel = 'SAVED EXAMPLE';
+    coordinationColor = 'bg-[#e5e7eb] text-[#4b5563] border-[#9ca3af]';
+  } else if (directTransfers >= 5 || topHubOverlapPct >= 75) {
     coordinationLevel = 'HIGH COORDINATION CLUSTER';
     coordinationColor = 'bg-[#ff5500]/10 text-orange-ink border-[#ff5500]/30';
   } else if (directLinks > 0 || topHubOverlapPct >= 40) {
@@ -125,7 +128,9 @@ export function buildClusterSummary(data: ClusterScanResult) {
   }
 
   let narrative: string;
-  if (coordinationLevel === 'HIGH COORDINATION CLUSTER') {
+  if (data.source === 'saved') {
+    narrative = 'This saved cluster example contains no modeled connection evidence. It is a non-live fixture, not evidence that the submitted wallets are independent.';
+  } else if (coordinationLevel === 'HIGH COORDINATION CLUSTER') {
     narrative = `Evidence shows ${directTransfers} direct inter-wallet transactions across ${directLinks} directional chain linkages, with ${topHubOverlapPct}% of wallets sharing the leading counterparty (${topHub?.label || topHub?.address.slice(0, 6) + '...' || 'none'}). This is an overlap signal, not proof of common control.`;
   } else if (coordinationLevel === 'MODERATE OVERLAP') {
     narrative = `Moderate overlap detected across ${total} wallets: ${directTransfers} evidence-backed direct transactions and shared counterparties from the complete transfer datasets. Dominant archetype: ${dominantPersona}.`;

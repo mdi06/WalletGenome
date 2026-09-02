@@ -16,6 +16,23 @@ export interface ChainConfig {
 
 export type DataAvailabilityStatus = 'complete' | 'partial' | 'unavailable';
 
+export type CacheSource = 'live' | 'memory' | 'shared';
+
+export interface CachedHistoryDataset {
+  chainId: number;
+  dataset: 'transactions' | 'tokenTransfers' | 'internalTransactions';
+  fetchedAt: number;
+  source: CacheSource;
+}
+
+export interface ScanCacheMetadata {
+  fetchedAt: number;
+  source: CacheSource;
+  expiresAt: number;
+  refreshAvailableAt: number;
+  historyDatasets?: CachedHistoryDataset[];
+}
+
 export type DataSourceName =
   | 'scan'
   | 'transactions'
@@ -330,6 +347,7 @@ export interface TokenApproval {
 }
 
 export interface ApprovalSummary {
+  /** Latest non-revoked approval state reconstructed from returned history; not a live allowance verification. */
   activeApprovals: TokenApproval[];
   highRiskCount: number;
   unlimitedCount: number;
@@ -387,6 +405,8 @@ export interface MultiChainScanResult {
   metrics: ReportingMetrics;
   notice?: string;
   chainWarnings?: Array<{ chainId: number; chainName: string; message: string }>;
+  cached?: boolean;
+  cacheMetadata?: ScanCacheMetadata;
   aggregated: {
     totalGasETH: number;
     totalGasUSD: number;
@@ -402,7 +422,6 @@ export interface MultiChainScanResult {
 export interface WalletScanResponse extends MultiChainScanResult {
   allInboundUSD: number;
   allOutboundUSD: number;
-  cached?: boolean;
   clusterEvidence?: WalletClusterEvidence;
 }
 
@@ -639,6 +658,7 @@ export interface SharedCounterparty {
 }
 
 export interface ClusterScanResult {
+  source?: 'live' | 'saved';
   status: DataAvailabilityStatus;
   totalWallets: number;
   requestedWallets: number;

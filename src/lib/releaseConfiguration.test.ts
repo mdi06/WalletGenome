@@ -24,7 +24,7 @@ describe('release verification configuration', () => {
     assert.equal(manifest.engines?.node, '22.x');
     assert.equal(manifest.scripts?.lint, 'eslint .');
     assert.equal(manifest.scripts?.typecheck, 'next typegen && tsc --noEmit');
-    assert.equal(manifest.scripts?.test, "tsx --test 'src/**/*.test.ts'");
+    assert.equal(manifest.scripts?.test, "node --import tsx --test 'src/**/*.test.ts'");
     assert.equal(
       manifest.scripts?.verify,
       'npm run lint && npm run typecheck && npm test && npm run build',

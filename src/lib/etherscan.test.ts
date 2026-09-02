@@ -1,6 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
 import { fetchExplorerData, fetchNormalTransactions } from './etherscan';
+import { RequestCancellationError } from './cancellation';
 
 const explorerUrl = 'https://example.test/api';
 
@@ -63,6 +64,26 @@ describe('Explorer data availability', () => {
     assert.strictEqual(result.status, 'unavailable');
     assert.deepStrictEqual(result.data, []);
     assert.strictEqual(result.errors[0]?.code, 'timeout');
+  });
+
+  it('does not schedule another provider request after the request is cancelled', async () => {
+    const requestController = new AbortController();
+    let calls = 0;
+
+    await assert.rejects(
+      fetchExplorerData<{ hash: string }>([explorerUrl], 1000, {
+        maxAttempts: 3,
+        signal: requestController.signal,
+        fetcher: async (_url, _timeoutMs, signal) => {
+          calls += 1;
+          requestController.abort();
+          assert.strictEqual(signal?.aborted, true);
+          return jsonResponse({ status: '1', result: [{ hash: '0xlate' }] });
+        },
+      }),
+      (error: unknown) => error instanceof RequestCancellationError && error.reason === 'disconnect',
+    );
+    assert.strictEqual(calls, 1);
   });
 
   it('paginates until exhaustion and deduplicates overlapping records', async () => {

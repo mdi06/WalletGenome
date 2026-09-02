@@ -72,7 +72,7 @@ export default function GasSummaryPanel({ results }: Props) {
         <div className="card-3d space-y-1 p-4 text-[#0a0a0a] sm:p-5 lg:p-4">
           <div className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider flex items-center justify-between">
             <span>TOTAL GAS CONSUMPTION</span>
-            <span className="text-[9px] text-[#f59e0b] font-mono normal-case">Observed history</span>
+            <span className="text-xs font-sans font-bold text-[#4b5563] normal-case">Observed history</span>
           </div>
           <div className="text-3xl font-black text-[#0a0a0a] font-mono">
             {formatNativeTokenValue(totalGasETH, 'ETH')}
@@ -160,6 +160,7 @@ export default function GasSummaryPanel({ results }: Props) {
                   <YAxis tick={{ fill: '#4b5563', fontSize: 10, fontWeight: 700 }} axisLine={{ stroke: '#c8c8c8' }} tickLine={false} tickFormatter={v => `$${v}`} />
                   <Tooltip
                     contentStyle={{ backgroundColor: '#0a0a0a', border: '1px solid #333', borderRadius: 0, color: '#ffffff', fontSize: 12, fontWeight: 700, boxShadow: '0 4px 12px rgba(0,0,0,0.3)' }}
+                    itemStyle={{ color: '#ffffff' }}
                     formatter={(v: unknown) => [`$${Number(v).toLocaleString()} USD`, 'Gas Spent']}
                   />
                   <Bar dataKey="gasUSD" fill="#ff5500" />
@@ -197,6 +198,7 @@ export default function GasSummaryPanel({ results }: Props) {
                   </Pie>
                   <Tooltip
                     contentStyle={{ backgroundColor: '#0a0a0a', border: '1px solid #333', borderRadius: 0, color: '#ffffff', fontSize: 12, fontWeight: 700, boxShadow: '0 4px 12px rgba(0,0,0,0.3)' }}
+                    itemStyle={{ color: '#ffffff' }}
                     formatter={(v: unknown) => [`$${Number(v).toLocaleString()} USD`, '']}
                   />
                 </PieChart>

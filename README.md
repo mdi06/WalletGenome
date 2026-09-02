@@ -1,7 +1,7 @@
 # EVM Wallet Forensics & Behavioral Analytics 🔍⚡
 
 > **An on-chain intelligence and quantitative portfolio analytics suite for EVM wallets.**  
-> Decode wallet personas, audit security risks, and uncover hidden lost funds across 4 EVM networks.
+> Investigate observable wallet activity, behavioral patterns, and security signals across four supported EVM networks.
 
 ---
 
@@ -51,7 +51,7 @@ Read [DESIGN.md](DESIGN.md) before changing the UI. It defines the current light
 - **Hop Protocol Sybil Defense**: Union-find graph analysis identifying co-funded multi-wallet execution paths.
 - **Umbra Mixer Clusters**: Flags stealth address pooling and privacy mixer obfuscation patterns.
 - **US Treasury OFAC Sanctions**: Validates against sanctioned Tornado Cash, hack, and exploit addresses.
-- **Hybrid Auto-Sync**: 24-hour cache TTL auto-refreshing from authoritative GitHub upstream repositories with 0.01ms in-memory Set lookups.
+- **Hybrid Auto-Sync**: 24-hour cache TTL auto-refreshing from authoritative GitHub upstream repositories with illustrative ~0.01 ms in-memory Set lookup timing; this is not a reproducible benchmark or production latency guarantee.
 - **Verdict Precedence**: A positive non-behavioral blacklist match overrides a clean behavioral headline; MEDIA Sybil probability remains a separate secondary heuristic.
 
 ### 5. 🗺️ Arkham-Style Capital Flow Graph
@@ -62,7 +62,7 @@ Read [DESIGN.md](DESIGN.md) before changing the UI. It defines the current light
 
 ### 6. 🔓 Approval & Exposure Audit
 - **Calldata Spender Decoding**: Decodes ERC-20 `approve(address, uint256)` method inputs (`0x095ea7b3`).
-- **Estimated Approval Exposure ($)**: Caps each active allowance by the reconstructed positive token balance and, for finite approvals, by the decoded allowance amount. Unknown balances or prices remain unavailable; high-risk and unlimited approvals are separate count metrics.
+- **Estimated Approval Exposure ($)**: Caps each latest observed non-revoked allowance state by the reconstructed positive token balance and, for finite approvals, by the decoded allowance amount. Approval rows come from returned transaction history, not a live allowance query. Unknown balances or prices remain unavailable; high-risk and unlimited approvals are separate count metrics.
 
 ---
 
@@ -116,7 +116,7 @@ Read [DESIGN.md](DESIGN.md) before changing the UI. It defines the current light
 - If a daily price is missing but a current price exists, the transaction or transfer valuation is labeled `spot_estimate`. It uses the token's price at scan time, is not an exact historical value, and is excluded from definitive historical USD metrics.
 - If neither price is available, the USD value remains `null`/unavailable rather than becoming `$0`.
 - Historical price completeness is tracked independently per chain. A missing historical quote withholds only historical USD and price-backed risk/Sybil metrics; complete transaction history can still produce definitive non-price activity, approval-count, and blacklist metrics.
-- Current approval exposure uses the current spot cache rather than a transfer-time historical quote. An absent current quote leaves exposure unavailable instead of substituting an older price or `$0`.
+- Approval exposure uses the current spot cache rather than a transfer-time historical quote. The approval state is reconstructed from the latest non-revoked states observed in returned approval history, not from a live allowance query. An absent current quote leaves exposure unavailable instead of substituting an older price or `$0`.
 
 ### Canonical reporting contract
 
@@ -128,12 +128,12 @@ Every single-wallet API response exposes a typed `metrics` object. The methodolo
 | `netFlowUSD` | `inflowUSD - outflowUSD`. |
 | `grossVolumeUSD` | `inflowUSD + outflowUSD`; not portfolio value. |
 | `protocolVolumeUSD` | Priced legs attributed to recognized protocol transactions/contracts, preserving chain provenance. |
-| `approvalExposureUSD` | Estimated positive balances covered by active approvals using current prices; unknown balance/price is unavailable, not zero. |
+| `approvalExposureUSD` | Estimated positive balances covered by latest non-revoked observed approvals using current prices; unknown balance/price is unavailable, not zero. |
 | `riskScore` / `riskGrade` | Maximum (worst) chain risk score and its grade; withheld when wallet history is incomplete. |
 | `sybilProbability` | Cross-chain MEDIA behavioral heuristic; separate from blacklist status. If historical pricing is incomplete, the price-dependent monetary dimension is omitted and the remaining behavioral dimensions are reweighted. |
 | `blacklistStatus` | `flagged`, `clear`, or `unavailable` from non-behavioral blacklist checks. |
 | `activeDays` / `longestStreakDays` | Union and longest consecutive run of UTC activity dates across selected chains. |
-| `totalUnlimitedApprovals` | Count of active unlimited approvals across selected chains. |
+| `totalUnlimitedApprovals` | Count of unlimited approvals in the latest observed state across selected chains. |
 
 Capital Flow also publishes `capitalFlowCoverage`: verified transfer legs, total eligible legs, excluded current-price estimates, unpriced legs, coverage percentage, and `complete`/`partial`/`unavailable` status. When wallet history is complete, partial price coverage is presented as a verified lower bound with count coverage. When wallet history itself is incomplete, the canonical metrics remain unavailable, but the Flow Graph may show an observed priced lower bound calculated only from returned historical or stablecoin-priced legs. Missing history, current-price estimates, and unpriced values are excluded and called out explicitly. Other USD metrics continue to follow their own completeness contracts.
 
@@ -144,18 +144,23 @@ Capital Flow also publishes `capitalFlowCoverage`: verified transfer legs, total
 - Single-wallet browser scans request an NDJSON stream from `POST /api/scan`. The same request emits scan phases, provider-response counts, cumulative history records, and the final report, so progress does not depend on process-local job storage or cross-instance polling.
 - Batch scans accept at most 10 unique wallets and process at most 3 wallet scans concurrently.
 - Per-caller sliding-window limits, per-instance concurrency caps, body limits, and a 280-second work budget return deterministic `4xx`, `429`, or `504` errors.
-- The in-process limiter protects each Vercel function instance; production should also mirror these limits at the platform firewall for deployment-wide enforcement.
+- The in-process limiter protects each Vercel function instance. When the optional Upstash REST variables are configured, shared Redis also enforces deployment-wide daily scan quotas (the batch quota counts requested wallets) and refresh cooldowns.
 
 ### Stateless persistence policy
 
 - The application is intentionally stateless: each scan is a point-in-time, provider-dependent report and is not saved as durable history.
 - Scanned wallet addresses and generated reports are retained only for the active request. There are no saved-wallet, saved-report, account, or historical-comparison features.
-- Scan, identity, price, blacklist, rate-limit, and concurrency caches are process-local, best-effort optimizations. Vercel instances do not share them, and a cold or replaced instance must remain correct.
-- A single-wallet scan with complete history and pricing may be reused from one instance's five-minute memory cache and is marked `cached`; incomplete-price, incomplete-history, and cluster-evidence responses are not cached as complete public reports.
-- The four curated public demo wallets load versioned static snapshots instead of entering the live provider pipeline. Each snapshot displays its generation date and offers a separate **Run fresh scan** action; provider and price completeness warnings remain part of the saved result.
+- Identity, price, blacklist, rate-limit, and concurrency caches remain process-local, best-effort optimizations. Report and successful history-dataset caches use the optional shared Upstash Redis adapter, with process memory as a fallback when it is not configured.
+- Complete-history single-wallet reports may be reused for five minutes and are marked `cached`; their original fetch time, history-cache sources, and all missing-data warnings are retained. Complete transaction, token-transfer, and internal-transaction datasets are cached independently for one hour, so a missing historical price does not force another history download.
+- A forced refresh skips reads from the report and history caches, fetches from providers, and replaces each successfully complete transaction, token-transfer, or internal-transaction dataset with a new one-hour entry. Partial or failed refresh responses do not overwrite the previous complete dataset; the fresh report is then cached for five minutes and retains provider failure warnings. Refreshes are limited to once every five minutes per caller.
+- Simultaneous identical scans are coalesced only within one server process. Shared Redis caches and quotas do not coordinate in-flight work across processes; verify those deployment-wide behaviors against real Redis from two processes before claiming them.
+- When a shared report is copied into process memory, its original fetch time and remaining lifetime are preserved; expired reports are rejected instead of receiving a new full five-minute lifetime. Shared daily scan quotas require the Upstash variables; without them, the existing per-instance limits still apply.
+- The four curated public demo wallets load versioned static snapshots covering Ethereum, Base, Arbitrum, and Optimism instead of entering the live provider pipeline. Each snapshot displays its generation date and offers a separate **Run fresh scan** action; provider and price completeness warnings remain part of the saved result.
 - Curated demo snapshots are application assets, not user-saved reports. Updating them is a deliberate maintenance action and does not add accounts, report history, or runtime database writes.
 - Production application code performs no runtime filesystem writes. Known-wallet labels are version-controlled read-only configuration.
 - Adding saved reports or comparable history requires a durable database, migrations, authenticated ownership boundaries, access control, and explicit retention rules first.
+
+The current history cache reuses a complete indexed dataset as a point-in-time snapshot. A later incremental-history phase should persist the last inspected block per wallet/chain, fetch only newer blocks, and recheck a recent block window for chain reorganizations before replacing the cached dataset.
 
 ---
 
@@ -189,6 +194,10 @@ MORALIS_MAX_PAGES_PER_DATASET=100
 ETHERSCAN_ENABLE_PAID_CHAINS=false
 BLOCKSCOUT_API_KEY=your_blockscout_pro_api_key
 COINGECKO_API_KEY=your_coingecko_demo_key
+UPSTASH_REDIS_REST_URL=https://your-upstash-endpoint.upstash.io
+UPSTASH_REDIS_REST_TOKEN=your_upstash_rest_token
+SHARED_SCAN_DAILY_LIMIT=500
+SHARED_BATCH_DAILY_LIMIT=100
 ```
 
 The scanner is explorer-first. It runs all selected chains concurrently and
@@ -240,6 +249,11 @@ Use the [Vercel Preview, promotion, and rollback runbook](docs/deployment_runboo
 for environment variables, deployment-wide rate limits, monitoring, Preview
 smoke tests, production promotion, and restoration of the last known good
 deployment.
+
+Performance measurement and privacy-safe Web Vitals telemetry are defined in
+[docs/performance-budget.md](docs/performance-budget.md). Local asset sizes and
+browser traces are candidate evidence only; Preview Lighthouse runs and
+production field percentiles remain separate release gates.
 
 ---
 

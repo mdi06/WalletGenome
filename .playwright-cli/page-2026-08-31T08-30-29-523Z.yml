@@ -1,0 +1,115 @@
+- generic [ref=f2e1]:
+  - main [ref=f2e2]:
+    - generic [ref=f2e3]:
+      - generic [ref=f2e4]:
+        - button "Open WalletGenome guide" [ref=f2e239] [cursor=pointer]:
+          - generic [ref=f2e240]: WALLET.GENOME
+        - button "Open navigation" [ref=f2e2522] [cursor=pointer]
+      - 'status "Indexing status: Saved snapshot" [ref=f2e241]':
+        - generic [ref=f2e10]: Saved snapshot
+    - region "Wallet Forensics Console" [ref=f2e29]:
+      - tablist "Forensics Scan Mode" [ref=f2e30]:
+        - tab "Single wallet" [selected] [ref=f2e31] [cursor=pointer]
+        - tab "Cluster scan" [ref=f2e2524] [cursor=pointer]
+      - region "Loaded scan summary" [ref=f2e248]:
+        - generic [ref=f2e249]:
+          - generic [ref=f2e250]:
+            - generic [ref=f2e251]: Loaded wallet scan
+            - generic [ref=f2e252]: Saved snapshot
+          - generic [ref=f2e253]:
+            - heading "0xd8dA6B…A96045" [level=2] [ref=f2e2525]
+            - generic [ref=f2e2526]:
+              - button "View full wallet address" [ref=f2e2527] [cursor=pointer]:
+                - generic [ref=f2e2531]: Full address
+              - button "Copy wallet address" [ref=f2e2532] [cursor=pointer]
+            - status [ref=f2e255]
+          - generic [ref=f2e257]:
+            - term [ref=f2e258]: "Networks:"
+            - definition [ref=f2e259]: Ethereum, Base, Arbitrum, Optimism
+        - button "Edit scan" [ref=f2e261] [cursor=pointer]
+    - region "Evidence status" [ref=f2e262]:
+      - generic [ref=f2e263]:
+        - generic [ref=f2e264]:
+          - paragraph [ref=f2e266]: Saved snapshot · Non-live
+          - paragraph [ref=f2e267]: Saved public data for Vitalik Buterin. Updated Aug 26, 2026. This view does not spend provider API quota.
+          - paragraph [ref=f2e268]: "History evidence: partial. Review data quality details below."
+        - button "Run fresh scan" [ref=f2e269] [cursor=pointer]
+      - group [ref=f2e270]:
+        - generic "Review data quality partial" [ref=f2e271] [cursor=pointer]:
+          - generic [ref=f2e272]: Review data quality
+          - generic [ref=f2e273]: partial
+    - generic [ref=f2e274]:
+      - generic "Dashboard sections; scroll horizontally for more tabs" [ref=f2e275]:
+        - tablist "Wallet dashboard sections" [ref=f2e276]:
+          - tab "BEHAVIORAL DNA" [ref=f2e277] [cursor=pointer]
+          - tab "FLOW GRAPH" [ref=f2e279] [cursor=pointer]
+          - tab "PROTOCOLS 12" [ref=f2e281] [cursor=pointer]:
+            - generic [ref=f2e282]: PROTOCOLS
+            - generic [ref=f2e283]: "12"
+          - tab "GAS FEES" [ref=f2e284] [cursor=pointer]
+          - tab "TOP TOKEN TRANSFERS" [selected] [ref=f2e286] [cursor=pointer]
+          - tab "APPROVALS 2233" [ref=f2e288] [cursor=pointer]:
+            - generic [ref=f2e289]: APPROVALS
+            - generic [ref=f2e290]: "2233"
+      - tabpanel "TOP TOKEN TRANSFERS" [ref=f2e1082]:
+        - generic [ref=f2e1083]:
+          - region [ref=f2e1084]:
+            - heading "Top token transfers" [level=3] [ref=f2e1085]
+            - paragraph [ref=f2e1086]: Subset of the highest-value token transfers returned for each chain and direction (up to 20 per group). Search, direction, network, and pagination apply only to this subset. Rows are sorted by USD value descending; native and internal transfers are not shown.
+          - region "Transfer table controls" [ref=f2e1087]:
+            - generic [ref=f2e1088]:
+              - generic [ref=f2e1089]:
+                - generic [ref=f2e1090]: Search top token transfers
+                - textbox "Search top token transfers" [ref=f2e1095]:
+                  - /placeholder: Search this subset by token, contract, hash, or counterparty
+              - generic [ref=f2e1096]:
+                - button "All Top Token Transfers" [ref=f2e1097] [cursor=pointer]
+                - button "Inbound" [active] [ref=f2e1098] [cursor=pointer]
+                - button "Outbound" [ref=f2e1099] [cursor=pointer]
+              - generic [ref=f2e2536]:
+                - generic [ref=f2e2537]: Network
+                - combobox "Network" [ref=f2e2538]:
+                  - option "All Chains"
+                  - option "Ethereum"
+                  - option "Arbitrum"
+                  - option "Base" [selected]
+                  - option "Optimism"
+            - generic [ref=f2e1106]:
+              - paragraph [ref=f2e1107]: No top token transfers match the current filters.
+              - generic [ref=f2e1108]:
+                - button "Previous top token transfers page" [disabled] [ref=f2e1109]
+                - generic "Top token transfers page 1 of 1" [ref=f2e2539]: Page 1 of 1
+                - button "Next top token transfers page" [disabled] [ref=f2e1113]
+          - region "Top token transfers table; native and internal transfers are not shown; scroll horizontally for all columns" [ref=f2e1116]:
+            - table [ref=f2e1117]:
+              - rowgroup [ref=f2e1118]:
+                - row [ref=f2e1119]:
+                  - columnheader "DIRECTION" [ref=f2e1120]
+                  - columnheader "CHAIN" [ref=f2e1121]
+                  - columnheader "TOKEN" [ref=f2e1122]
+                  - columnheader "AMOUNT" [ref=f2e1123]
+                  - columnheader "USD VALUE" [ref=f2e1124]
+                  - columnheader "COUNTERPARTY" [ref=f2e1125]
+                  - columnheader "TIME" [ref=f2e1126]
+                  - columnheader "ACTION" [ref=f2e1127]
+              - rowgroup
+  - contentinfo [ref=f2e226]:
+    - generic [ref=f2e227]:
+      - generic [ref=f2e228]:
+        - paragraph [ref=f2e229]: WalletGenome
+        - paragraph [ref=f2e230]: Read-only, evidence-aware EVM wallet analytics. No wallet connection or signature required.
+      - navigation "Wallet analytics topics" [ref=f2e231]:
+        - link "Methodology" [ref=f2e232] [cursor=pointer]:
+          - /url: /docs
+        - link "EVM Wallet Analytics" [ref=f2e233] [cursor=pointer]:
+          - /url: /evm-wallet-analytics
+        - link "Crypto Wallet Risk Checker" [ref=f2e234] [cursor=pointer]:
+          - /url: /crypto-wallet-risk-checker
+        - link "Token Approval Checker" [ref=f2e235] [cursor=pointer]:
+          - /url: /token-approval-checker
+        - link "Sybil Wallet Analysis" [ref=f2e236] [cursor=pointer]:
+          - /url: /sybil-wallet-analysis
+        - link "Multi-Chain Wallet Forensics" [ref=f2e237] [cursor=pointer]:
+          - /url: /multi-chain-wallet-forensics
+  - alert [ref=f2e238]
+  - generic [ref=f2e1060]: $0

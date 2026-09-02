@@ -133,8 +133,8 @@ Completion evidence (2026-08-23):
 
 Follow-up correction (2026-08-24):
 
-- Current approval exposure now reads only the current spot cache; it no longer adopts a transfer-time historical quote as the current token price.
-- A current spot quote is complete for current exposure but remains explicitly `spot_estimate` when substituted into a historical calculation.
+- Approval exposure now reads only the current spot cache; it no longer adopts a transfer-time historical quote as the price basis for the exposure estimate.
+- A current spot quote is complete for a current-price exposure estimate but remains explicitly `spot_estimate` when substituted into a historical calculation.
 - Historical price failures no longer suppress non-price activity, approval-count, blacklist, or risk metrics. Price-backed volume and behavioral Sybil metrics remain unavailable until their historical inputs are complete.
 - Regression coverage includes current-vs-historical approval pricing, history-vs-price status separation, metric-level withholding, and cross-chain price isolation.
 
@@ -295,8 +295,8 @@ Acceptance criteria:
 Completion evidence (2026-08-23):
 
 - Approval analysis now preserves decoded finite allowance amounts and caps exposure by both the reconstructed positive token balance and the finite allowance; unlimited approvals use the reconstructed balance.
-- Per-approval and aggregate contracts distinguish `estimated`, `zero_balance`, and `unavailable` exposure. Any unknown balance/price makes the aggregate unavailable instead of silently adding `$0`, while revoked approvals remain excluded from active state.
-- The approval UI displays estimated USD exposure and provenance, labels high-risk spenders and unlimited allowances as counts, and uses separate copy for zero balance versus unavailable pricing/balance. README and methodology formulas match the implementation.
+- Per-approval and aggregate contracts distinguish `estimated`, `zero_balance`, and `unavailable` exposure. Any unknown balance/price makes the aggregate unavailable instead of silently adding `$0`, while revoked approvals remain excluded from the observed non-revoked state.
+- The approval UI displays estimated USD exposure and provenance, labels observed approval totals and high-risk approvals as row counts, and uses separate copy for zero balance versus unavailable pricing/balance. README and methodology formulas match the implementation.
 - Focused analyzer/reporting/UI regressions passed 17/17 tests, covering revoked, finite, unlimited, unpriced, and zero-balance approvals. Targeted ESLint, `npx tsc --noEmit`, and `npm run build` passed.
 
 Affected files:
@@ -309,7 +309,7 @@ Required change:
 
 - Display `totalExposureUSD` or rename the card to indicate that it is a count.
 - Show price/completeness status for each exposure estimate.
-- Separate unlimited approvals, high-risk spender classification, and estimated capital exposure.
+- Separate unlimited approvals, high-risk approval-row classification, and estimated capital exposure.
 - Avoid claiming that an allowance can drain a dollar amount when token balance or price is unknown.
 
 Acceptance criteria:
@@ -600,9 +600,9 @@ Required scripts:
 ```json
 {
   "scripts": {
-    "typecheck": "tsc --noEmit",
+    "typecheck": "next typegen && tsc --noEmit",
     "lint": "eslint .",
-    "test": "<runner that works reliably in CI>",
+    "test": "node --import tsx --test 'src/**/*.test.ts'",
     "build": "next build --webpack",
     "verify": "npm run lint && npm run typecheck && npm test && npm run build"
   }
@@ -621,6 +621,23 @@ Acceptance criteria:
 - CI and local verification use the same commands.
 - No `ignoreDuringBuilds` or equivalent production bypass hides lint/type failures.
 
+### 17. [x] Share successful scan data and coalesce repeat work
+
+Completion evidence (2026-08-28):
+
+- Added an optional Upstash Redis REST adapter for report and complete-history dataset caches. The app remains correct without Redis and uses process memory as a local fallback.
+- Complete transactions, token transfers, and internal transactions are cached independently for one hour. Five-minute complete-history reports retain their original fetch time and availability/price warnings, including missing historical prices.
+- Cache permissions are separated: normal scans read and write history datasets; forced refreshes skip history reads, write each successfully complete fresh dataset, and rebuild the report; custom-key and cluster scans do neither. Partial or failed refresh responses do not replace a previous complete dataset.
+- Forced refreshes are limited to once every five minutes per caller. Simultaneous identical scans share one in-flight promise only within one server process; Redis is not used as a distributed in-flight lock.
+- Report copies preserve one absolute expiration from the original fetch. Shared-to-local copies use only the remaining lifetime, and local reads reject expired reports rather than restarting their five-minute lifetime.
+- Optional shared daily quotas protect deployment-wide scan usage; batch quota counts requested wallets. `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`, `SHARED_SCAN_DAILY_LIMIT`, and `SHARED_BATCH_DAILY_LIMIT` are documented in `.env.example` and README.
+- Regression coverage includes explorer and Moralis fallback replacement for all three datasets, failed-refresh preservation, history reuse after report expiry, Redis-to-local remaining-TTL preservation, local report expiry, and exact cache-boundary behavior. `npm run verify` passed on 2026-08-28: lint, generated-type check, 272/272 tests, and production build.
+- Real Upstash Redis cache/quota behavior has not yet been verified from two separate processes in this environment, so deployment-wide cache/quota behavior remains an operational gate. The local tests use a fake Redis transport for deterministic coverage.
+
+Remaining follow-up:
+
+- The cache currently stores point-in-time complete datasets. Incremental block checkpoints and recent-block rechecks for reorganizations remain a separate phase.
+
 ## Vercel Production Configuration Gate
 
 Complete before the first production deployment:
@@ -632,7 +649,8 @@ Complete before the first production deployment:
 - [ ] Configure rate limiting, request budgets, and monitoring for scan endpoints.
 - [ ] Validate function duration and memory requirements using worst-case bounded scans.
 - [ ] Add security headers appropriate to the deployed application, including a tested Content Security Policy.
-- [x] Define cache behavior explicitly; do not cache user-specific or incomplete results as complete public responses. Evidence: the stateless persistence policy and production-source regression passed in the 179-test suite; only complete-history, complete-price single scans are eligible for short process-local reuse.
+- [x] Define cache behavior explicitly; do not cache incomplete history as a complete public response. Evidence: complete-history reports use a five-minute shared-cache TTL (with process fallback), successful history datasets use independent one-hour entries, forced refresh replaces only successfully complete datasets while preserving failure warnings, absolute report expiry survives shared-to-local copies, and the 2026-08-28 verification gate passed 272/272 tests.
+- [ ] Verify shared Redis cache and quota behavior from two separate processes using real Upstash credentials before making a deployment-wide claim; local coverage uses a fake Redis transport and does not prove this gate.
 - [x] Add structured logs for request ID, duration, provider availability, partial-result status, and failure category without logging secrets. Evidence: both scan routes emit aggregate JSON telemetry and return `X-Request-ID`; telemetry privacy regressions and local production log inspection passed on 2026-08-26.
 - [ ] Add health/operational monitoring for provider failures, latency, and error rates.
 - [x] Confirm privacy/retention policy for scanned wallet addresses and any saved reports. Evidence: README and the typed persistence policy state request-only retention, no saved reports, no durable scan history, and no address logging in operational telemetry.

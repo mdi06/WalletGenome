@@ -29,6 +29,13 @@ describe('indexing status presentation', () => {
     );
   });
 
+  it('labels the saved cluster example as a saved snapshot', () => {
+    assert.strictEqual(
+      getIndexingStatus({ ...baseInput, scanMode: 'cluster', activeClusterSnapshot: true, isLoading: false }),
+      'saved',
+    );
+  });
+
   it('hides the single-wallet demo notice after switching to cluster mode', () => {
     assert.strictEqual(
       shouldShowDemoSnapshotNotice({

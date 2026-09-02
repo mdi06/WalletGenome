@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { processBatchScan } from '@/lib/services/batchScanService';
+import { RequestCancellationError, throwIfAborted } from '@/lib/cancellation';
 import {
   BATCH_REQUEST_TIMEOUT_MS,
   RequestPolicyError,
@@ -20,15 +21,26 @@ export const runtime = 'nodejs';
 
 export async function POST(request: NextRequest) {
   const telemetry = createScanRequestTelemetry(request, 'batch-scan');
+  let releaseSlot: (() => void) | undefined;
+  let workStarted = false;
 
   try {
     const body = await parseJsonBody(request, 'batch');
     const { addresses: uniqueTargets, chainIds } = validateBatchRequest(body);
     enforceRequestRateLimit(request, 'batch');
-    const releaseSlot = acquireRequestSlot('batch');
-    const batchWork = processBatchScan(uniqueTargets, chainIds);
-    void batchWork.then(releaseSlot, releaseSlot);
-    const clusterData = await runWithTimeout(batchWork, BATCH_REQUEST_TIMEOUT_MS);
+    const routeReleaseSlot = acquireRequestSlot('batch');
+    releaseSlot = routeReleaseSlot;
+    const clusterData = await runWithTimeout(
+      signal => {
+        workStarted = true;
+        const batchWork = processBatchScan(uniqueTargets, chainIds, { signal });
+        void batchWork.then(routeReleaseSlot, routeReleaseSlot);
+        return batchWork;
+      },
+      BATCH_REQUEST_TIMEOUT_MS,
+      { signal: request.signal },
+    );
+    throwIfAborted(request.signal);
 
     logScanRequest(telemetry, {
       outcome: 'completed',
@@ -44,13 +56,27 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json(clusterData, {
-      headers: { 'X-Request-ID': telemetry.requestId },
+      headers: { 'Cache-Control': 'no-store', 'X-Request-ID': telemetry.requestId },
     });
 
   } catch (error: unknown) {
+    if (releaseSlot && !workStarted) releaseSlot();
+
+    if (error instanceof RequestCancellationError) {
+      logScanRequest(telemetry, {
+        outcome: 'cancelled',
+        statusCode: 499,
+        failureCodes: [error.reason === 'deadline' ? 'request_timeout' : 'client_disconnect'],
+      });
+      return new Response(null, {
+        status: 499,
+        headers: { 'Cache-Control': 'no-store', 'X-Request-ID': telemetry.requestId },
+      });
+    }
+
     if (error instanceof RequestPolicyError) {
       logScanRequest(telemetry, {
-        outcome: 'rejected',
+        outcome: error.code === 'request_timeout' ? 'failed' : 'rejected',
         statusCode: error.status,
         failureCodes: [error.code],
       });
@@ -60,6 +86,7 @@ export async function POST(request: NextRequest) {
           status: error.status,
           headers: {
             ...(error.status === 429 ? { 'Retry-After': '60' } : {}),
+            'Cache-Control': 'no-store',
             'X-Request-ID': telemetry.requestId,
           },
         },
@@ -72,7 +99,7 @@ export async function POST(request: NextRequest) {
     });
     return NextResponse.json(
       { error: 'An unexpected error occurred while analyzing the cluster.' },
-      { status: 500, headers: { 'X-Request-ID': telemetry.requestId } }
+      { status: 500, headers: { 'Cache-Control': 'no-store', 'X-Request-ID': telemetry.requestId } }
     );
   }
 }

@@ -14,9 +14,11 @@ export const PERSISTENCE_POLICY = {
     liveProviderCallsOnLoad: false,
   },
   caches: {
-    scope: 'process-local',
+    scope: 'shared-with-process-fallback',
     requiredForCorrectness: false,
     scanTtlSeconds: 300,
+    historyDatasetTtlSeconds: 3_600,
+    refreshCooldownSeconds: 300,
     identityTtlSeconds: 1_800,
     emptyIdentityTtlSeconds: 600,
   },

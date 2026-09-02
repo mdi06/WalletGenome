@@ -43,35 +43,37 @@ export default function WalletInput({ onScan, isLoading, initialAddress, initial
   return (
     <div className="space-y-2">
       {/* ── 3D Tactile Input Console ── */}
-      <div className={`card-3d max-md:!bg-transparent max-md:!border-transparent max-md:!shadow-none max-md:!p-0 max-md:!min-h-0 min-h-[232px] min-w-0 transition-all px-3 sm:px-6 md:min-h-0 md:px-5 py-3.5 flex flex-col md:flex-row items-center justify-center md:justify-between gap-3 ${isLoading ? 'border-[#ff5500] ring-2 ring-[#ff5500]/30' : 'border-[#c2c2c2]'
+      <div className={`card-3d min-w-0 transition-all px-3 sm:px-6 md:px-5 py-3.5 flex flex-col md:flex-row items-center justify-center md:justify-between gap-3 ${isLoading ? 'border-[#ff5500] ring-2 ring-[#ff5500]/30' : 'border-[#c2c2c2]'
         }`}>
 
         {/* Left: Search Icon & Recessed Address Input Well */}
-        <div className="well-recessed-light flex w-full items-center gap-3 px-3 py-2 focus-within:border-[#963300] focus-within:ring-2 focus-within:ring-[#963300]/30 focus-within:ring-offset-1 md:max-w-none md:flex-1">
-          <Search size={18} aria-hidden="true" className={`flex-shrink-0 transition-colors ${isLoading ? 'text-orange-ink' : 'text-gray-500'}`} />
-          <label htmlFor="wallet-address-input" className="sr-only">
-            Enter EVM address (0x...) or ENS name (vitalik.eth)
+        <div className="w-full max-w-[288px] min-[400px]:max-w-[520px] min-[640px]:max-w-[600px] md:max-w-none md:flex-1">
+          <label htmlFor="wallet-address-input" className="mb-1.5 block text-[10px] font-extrabold uppercase tracking-wider text-[#4b5563]">
+            Wallet address or ENS domain
           </label>
-          <input
-            id="wallet-address-input"
-            type="text"
-            value={inputAddress}
-            disabled={isLoading}
-            aria-label="EVM address or ENS domain"
-            aria-invalid={Boolean(error)}
-            aria-describedby={error ? 'wallet-address-error' : undefined}
-            onChange={e => {
-              setInputAddress(e.target.value);
-              if (error) setError(null);
-            }}
-            onKeyDown={e => e.key === 'Enter' && !isLoading && handleScan()}
-            placeholder="Enter EVM address (0x...) or ENS name (vitalik.eth)"
-            className="w-full bg-transparent border-none text-[#0a0a0a] font-mono text-sm sm:text-base font-bold focus:outline-none placeholder:text-gray-400 placeholder:font-sans disabled:opacity-75"
-          />
+            <div className="well-recessed-light flex w-full max-w-[288px] min-[400px]:max-w-[520px] min-[640px]:max-w-[600px] md:max-w-none md:flex-1 items-center gap-3 px-3 py-2 focus-within:border-[#963300] focus-within:ring-2 focus-within:ring-[#963300]/30 focus-within:ring-offset-1">
+            <Search size={18} aria-hidden="true" className={`flex-shrink-0 transition-colors ${isLoading ? 'text-orange-ink' : 'text-gray-500'}`} />
+            <input
+              id="wallet-address-input"
+              type="text"
+              value={inputAddress}
+              disabled={isLoading}
+              aria-label="EVM address or ENS domain"
+              aria-invalid={Boolean(error)}
+              aria-describedby={error ? 'wallet-address-error' : undefined}
+              onChange={e => {
+                setInputAddress(e.target.value);
+                if (error) setError(null);
+              }}
+              onKeyDown={e => e.key === 'Enter' && !isLoading && handleScan()}
+              placeholder="Enter EVM address (0x...) or ENS name (vitalik.eth)"
+              className="w-full bg-transparent border-none text-[#0a0a0a] font-mono text-sm sm:text-base font-bold focus:outline-none placeholder:text-[#4b5563] placeholder:font-sans"
+            />
+          </div>
         </div>
 
         {/* Right: Network Filter Pills & 3D Scan Action Button */}
-        <div role="group" aria-label="Select target EVM networks" className="flex w-full min-w-0 items-center gap-2 flex-wrap justify-center md:w-auto md:max-w-none md:flex-nowrap md:justify-end">
+        <div role="group" aria-label="Select target EVM networks" className="flex w-full min-w-0 max-w-[288px] min-[400px]:max-w-[520px] min-[640px]:max-w-[600px] items-center gap-2 flex-wrap justify-center md:w-auto md:max-w-none md:flex-nowrap md:justify-end">
           {SUPPORTED_CHAIN_IDS.map(id => {
             const c = CHAINS[id];
             const isSelected = selectedChains.includes(id);
@@ -86,7 +88,7 @@ export default function WalletInput({ onScan, isLoading, initialAddress, initial
                 className={`flex-1 md:flex-none justify-center min-h-11 md:min-h-9 text-xs font-bold px-1.5 sm:px-3 md:px-2.5 py-1.5 md:py-1 cursor-pointer flex items-center gap-1 sm:gap-1.5 ${isSelected
                     ? 'btn-3d-black text-white'
                     : 'btn-3d-neutral text-[#4b5563]'
-                  } ${isLoading ? 'opacity-80' : ''}`}
+                  }`}
               >
                 <span aria-hidden="true" className={isSelected ? 'led-live rounded-full' : 'w-1.5 h-1.5 rounded-full bg-gray-400'} />
                 <span>{c.shortName}</span>
@@ -100,7 +102,7 @@ export default function WalletInput({ onScan, isLoading, initialAddress, initial
             aria-busy={isLoading}
             onClick={() => handleScan()}
             disabled={isLoading}
-            className={`w-full sm:w-auto sm:ml-1.5 min-h-11 justify-center font-mono font-black text-xs px-5 py-2.5 flex items-center gap-2 cursor-pointer select-none ${isLoading
+            className={`w-full md:w-auto md:ml-1.5 min-h-11 justify-center font-mono font-black text-xs px-5 py-2.5 flex items-center gap-2 cursor-pointer select-none ${isLoading
                 ? 'btn-3d-orange animate-pulse-glow'
                 : 'btn-3d-orange'
               }`}
@@ -121,7 +123,7 @@ export default function WalletInput({ onScan, isLoading, initialAddress, initial
       </div>
 
       {error && (
-        <p id="wallet-address-error" role="alert" className="card-3d border-l-4 border-l-[#ef4444] text-xs text-[#ef4444] font-bold p-2.5 animate-fade-in-up">
+        <p id="wallet-address-error" role="alert" className="card-3d border-l-4 border-l-[#ef4444] text-xs !text-[#991b1b] font-bold p-2.5 animate-fade-in-up">
           {error}
         </p>
       )}

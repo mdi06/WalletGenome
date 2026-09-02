@@ -27,6 +27,7 @@ type ScanStreamEvent = ProgressEvent | ResultEvent | ErrorEvent;
 interface RunSingleWalletScanStreamOptions {
   address: string;
   chainIds: number[];
+  forceRefresh?: boolean;
   signal?: AbortSignal;
   onUpdate?: (update: ScanStreamProgressUpdate) => void;
   fetchImpl?: typeof fetch;
@@ -47,6 +48,7 @@ function parseEvent(line: string): ScanStreamEvent {
 export async function runSingleWalletScanStream({
   address,
   chainIds,
+  forceRefresh = false,
   signal,
   onUpdate,
   fetchImpl = fetch,
@@ -57,7 +59,7 @@ export async function runSingleWalletScanStream({
       'Content-Type': 'application/json',
       Accept: 'application/x-ndjson',
     },
-    body: JSON.stringify({ address, chainIds }),
+    body: JSON.stringify({ address, chainIds, ...(forceRefresh ? { refresh: true } : {}) }),
     signal,
   });
 

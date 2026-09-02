@@ -1,10 +1,21 @@
 import { SUPPORTED_CHAIN_IDS } from '@/lib/chains';
 import {
+  acquireSharedLease,
+  incrementSharedCounter,
+  isSharedCacheConfigured,
+  resetSharedProtectionForTests,
+} from '@/lib/cache';
+import {
   BATCH_REQUEST_TIMEOUT_MS,
   BATCH_WALLET_CONCURRENCY,
   MAX_BATCH_WALLETS,
   SCAN_REQUEST_TIMEOUT_MS,
 } from './constants';
+import {
+  RequestCancellationError,
+  cancellationErrorForSignal,
+  throwIfAborted,
+} from '@/lib/cancellation';
 
 export {
   BATCH_REQUEST_TIMEOUT_MS,
@@ -21,6 +32,8 @@ const CONCURRENCY_LIMITS = { scan: 4, batch: 1 } as const;
 const EVM_ADDRESS = /^0x[a-fA-F0-9]{40}$/;
 const ENS_NAME = /^(?=.{1,255}$)[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,62}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,62}[a-zA-Z0-9])?)+$/;
 const supportedChains = new Set<number>(SUPPORTED_CHAIN_IDS);
+const REFRESH_COOLDOWN_SECONDS = 300;
+const SHARED_QUOTA_WINDOW_SECONDS = 86_400;
 
 type RouteKind = keyof typeof RATE_LIMITS;
 
@@ -38,12 +51,15 @@ export class RequestPolicyError extends Error {
 export interface ValidatedScanRequest {
   address: string;
   chainIds: number[];
+  refresh?: boolean;
 }
 
 export interface ValidatedBatchRequest {
   addresses: string[];
   chainIds: number[];
 }
+
+export type SharedQuotaKind = 'scan' | 'batch';
 
 const requestLog = new Map<string, number[]>();
 const activeRequests: Record<RouteKind, number> = { scan: 0, batch: 0 };
@@ -106,10 +122,14 @@ export async function parseJsonBody(request: Request, kind: RouteKind): Promise<
 
 export function validateScanRequest(body: unknown): ValidatedScanRequest {
   if (!isRecord(body)) throw new RequestPolicyError('Request body must be an object.', 400, 'invalid_body');
-  assertAllowedFields(body, ['address', 'chainIds']);
+  assertAllowedFields(body, ['address', 'chainIds', 'refresh']);
+  if ('refresh' in body && typeof body.refresh !== 'boolean') {
+    throw new RequestPolicyError('refresh must be a boolean.', 400, 'invalid_refresh');
+  }
   return {
     address: validateTarget(body.address, 'address'),
     chainIds: validateChainIds(body.chainIds),
+    ...(body.refresh === true ? { refresh: true } : {}),
   };
 }
 
@@ -153,6 +173,76 @@ export function enforceRequestRateLimit(request: Request, kind: RouteKind): { re
   return { retryAfterSeconds: 0 };
 }
 
+function positiveEnvironmentInteger(name: string, fallback: number): number {
+  const value = Number(process.env[name]);
+  return Number.isSafeInteger(value) && value > 0 ? value : fallback;
+}
+
+function utcQuotaKey(kind: SharedQuotaKind): string {
+  return `wallet-analytics:quota:v1:${kind}:${new Date().toISOString().slice(0, 10)}`;
+}
+
+export async function enforceSharedQuota(
+  kind: SharedQuotaKind,
+  weight = 1,
+  signal?: AbortSignal,
+): Promise<void> {
+  throwIfAborted(signal);
+  // Without the external store, the existing per-instance controls remain in
+  // force. A deployment-wide quota is only meaningful when Redis is shared.
+  if (!isSharedCacheConfigured()) return;
+
+  const limit = positiveEnvironmentInteger(
+    kind === 'scan' ? 'SHARED_SCAN_DAILY_LIMIT' : 'SHARED_BATCH_DAILY_LIMIT',
+    kind === 'scan' ? 500 : 100,
+  );
+  const result = await incrementSharedCounter(
+    utcQuotaKey(kind),
+    SHARED_QUOTA_WINDOW_SECONDS,
+    limit,
+    weight,
+    signal,
+  );
+  if (result.unavailable) {
+    throw new RequestPolicyError(
+      'Shared scan quota is temporarily unavailable. Please try again later.',
+      503,
+      'shared_quota_unavailable',
+    );
+  }
+  if (!result.allowed) {
+    throw new RequestPolicyError(
+      `The shared ${kind} scan quota is exhausted for today. Please try again tomorrow.`,
+      429,
+      'shared_quota_exhausted',
+    );
+  }
+}
+
+export async function enforceRefreshRateLimit(
+  request: Request,
+  kind: 'scan' | 'batch' = 'scan',
+  signal?: AbortSignal,
+): Promise<void> {
+  const key = `wallet-analytics:refresh:v1:${kind}:${requestIdentity(request)}`;
+  throwIfAborted(signal);
+  const result = await acquireSharedLease(key, REFRESH_COOLDOWN_SECONDS, signal);
+  if (result.unavailable) {
+    throw new RequestPolicyError(
+      'Refresh protection is temporarily unavailable. Please try again later.',
+      503,
+      'refresh_protection_unavailable',
+    );
+  }
+  if (!result.acquired) {
+    throw new RequestPolicyError(
+      'Refresh is limited to once every five minutes for this caller. Please try again later.',
+      429,
+      'refresh_rate_limited',
+    );
+  }
+}
+
 export function acquireRequestSlot(kind: RouteKind): () => void {
   if (activeRequests[kind] >= CONCURRENCY_LIMITS[kind]) {
     throw new RequestPolicyError('Server scan concurrency is currently exhausted.', 429, 'concurrency_limited');
@@ -167,32 +257,110 @@ export function acquireRequestSlot(kind: RouteKind): () => void {
   };
 }
 
-export async function runWithTimeout<T>(promise: Promise<T>, timeoutMs: number): Promise<T> {
+export interface RunWithTimeoutOptions {
+  signal?: AbortSignal;
+}
+
+export function runWithTimeout<T>(
+  work: (signal: AbortSignal) => Promise<T>,
+  timeoutMs: number,
+  options?: RunWithTimeoutOptions,
+): Promise<T>;
+
+export function runWithTimeout<T>(
+  work: Promise<T>,
+  timeoutMs: number,
+  options?: RunWithTimeoutOptions,
+): Promise<T>;
+
+export function runWithTimeout<T>(
+  work: Promise<T> | ((signal: AbortSignal) => Promise<T>),
+  timeoutMs: number,
+  options: RunWithTimeoutOptions = {},
+): Promise<T> {
+  const controller = new AbortController();
   let timeoutId: ReturnType<typeof setTimeout> | undefined;
-  const timeout = new Promise<never>((_, reject) => {
-    timeoutId = setTimeout(
-      () => reject(new RequestPolicyError('Scan work budget exceeded.', 504, 'request_timeout')),
-      timeoutMs,
+  let finished = false;
+  const promiseWork = typeof work === 'function' ? undefined : work;
+
+  return new Promise<T>((resolve, reject) => {
+    const cleanup = () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      options.signal?.removeEventListener('abort', externalAbortHandler);
+    };
+
+    const finish = (callback: typeof resolve, value: T): void => {
+      if (finished) return;
+      finished = true;
+      cleanup();
+      callback(value);
+    };
+
+    const fail = (error: unknown): void => {
+      if (finished) return;
+      finished = true;
+      cleanup();
+      reject(error);
+    };
+
+    const externalAbortHandler = () => {
+      const error = cancellationErrorForSignal(options.signal)
+        ?? new RequestCancellationError('disconnect');
+      controller.abort(error);
+      fail(error);
+    };
+
+    if (options.signal?.aborted) {
+      externalAbortHandler();
+    } else {
+      options.signal?.addEventListener('abort', externalAbortHandler, { once: true });
+      timeoutId = setTimeout(() => {
+        const error = new RequestPolicyError('Scan work budget exceeded.', 504, 'request_timeout');
+        controller.abort(new RequestCancellationError('deadline'));
+        fail(error);
+      }, timeoutMs);
+    }
+
+    if (finished) {
+      // A promise supplied by a legacy caller may already be running. Observe
+      // it even when the request was already cancelled so it cannot become an
+      // unhandled rejection.
+      void promiseWork?.then(() => undefined, () => undefined);
+      return;
+    }
+
+    let workPromise: Promise<T>;
+    try {
+      workPromise = typeof work === 'function'
+        ? Promise.resolve(work(controller.signal))
+        : work;
+    } catch (error) {
+      fail(error);
+      return;
+    }
+
+    void workPromise.then(
+      value => finish(resolve, value),
+      error => fail(error),
     );
   });
-  try {
-    return await Promise.race([promise, timeout]);
-  } finally {
-    if (timeoutId) clearTimeout(timeoutId);
-  }
 }
 
 export async function mapWithConcurrency<T, R>(
   items: readonly T[],
   concurrency: number,
-  mapper: (item: T, index: number) => Promise<R>,
+  mapper: (item: T, index: number, signal?: AbortSignal) => Promise<R>,
+  options: { signal?: AbortSignal } = {},
 ): Promise<R[]> {
+  throwIfAborted(options.signal);
   const results = new Array<R>(items.length);
   let nextIndex = 0;
   async function worker(): Promise<void> {
-    while (nextIndex < items.length) {
+    while (true) {
+      throwIfAborted(options.signal);
       const index = nextIndex++;
-      results[index] = await mapper(items[index], index);
+      if (index >= items.length) return;
+      results[index] = await mapper(items[index], index, options.signal);
     }
   }
   await Promise.all(Array.from({ length: Math.min(concurrency, items.length) }, () => worker()));
@@ -203,4 +371,5 @@ export function resetRequestPolicyForTests(): void {
   requestLog.clear();
   activeRequests.scan = 0;
   activeRequests.batch = 0;
+  resetSharedProtectionForTests();
 }

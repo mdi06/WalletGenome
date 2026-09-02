@@ -1,4 +1,5 @@
 import { loadKnownWallets } from './knownWalletsServer';
+import { linkAbortSignal, throwIfAborted } from './cancellation';
 
 // Preset fast map for common/demo ENS domains
 export const KNOWN_ENS_MAP: Record<string, string> = {
@@ -19,7 +20,8 @@ export const KNOWN_ENS_MAP: Record<string, string> = {
  * Resolves an ENS domain (e.g. 'vitalik.eth') or validates a 0x hex address.
  * Returns lowercase 0x... EVM address or null if unresolvable.
  */
-export async function resolveEnsOrAddress(input: string): Promise<string | null> {
+export async function resolveEnsOrAddress(input: string, signal?: AbortSignal): Promise<string | null> {
+  throwIfAborted(signal);
   const trimmed = (input || '').trim();
   if (!trimmed) return null;
 
@@ -50,18 +52,18 @@ export async function resolveEnsOrAddress(input: string): Promise<string | null>
   }
 
   // 4. Query Web3.bio Profile API
+  const web3BioLinked = linkAbortSignal(signal);
+  const web3BioTimeoutId = setTimeout(() => web3BioLinked.controller.abort(), 3500);
   try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 3500);
-
     const res = await fetch(`https://api.web3.bio/profile/${domain}`, {
-      signal: controller.signal,
+      signal: web3BioLinked.signal,
       headers: { 'User-Agent': 'Wallet-Analytics-ENS/1.0' },
     });
-    clearTimeout(timeoutId);
+    throwIfAborted(signal);
 
     if (res.ok) {
       const data = await res.json();
+      throwIfAborted(signal);
       if (Array.isArray(data)) {
         for (const item of data) {
           if (item?.address && /^0x[a-fA-F0-9]{40}$/i.test(item.address)) {
@@ -71,27 +73,36 @@ export async function resolveEnsOrAddress(input: string): Promise<string | null>
       }
     }
   } catch {
+    throwIfAborted(signal);
     // Ignore network error and fall through
+  } finally {
+    clearTimeout(web3BioTimeoutId);
+    web3BioLinked.dispose();
   }
 
   // 5. Query public ENS resolver endpoint (ensideas)
+  throwIfAborted(signal);
+  const ensideasLinked = linkAbortSignal(signal);
+  const ensideasTimeoutId = setTimeout(() => ensideasLinked.controller.abort(), 3000);
   try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 3000);
-
     const res = await fetch(`https://api.ensideas.com/ens/resolve/${domain}`, {
-      signal: controller.signal,
+      signal: ensideasLinked.signal,
     });
-    clearTimeout(timeoutId);
+    throwIfAborted(signal);
 
     if (res.ok) {
       const data = await res.json();
+      throwIfAborted(signal);
       if (data?.address && /^0x[a-fA-F0-9]{40}$/i.test(data.address)) {
         return data.address.toLowerCase();
       }
     }
   } catch {
+    throwIfAborted(signal);
     // Fallback
+  } finally {
+    clearTimeout(ensideasTimeoutId);
+    ensideasLinked.dispose();
   }
 
   return null;

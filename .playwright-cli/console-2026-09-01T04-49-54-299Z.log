@@ -1,0 +1,2 @@
+[     246ms] [LOG] {name: FCP, value: 200, rating: good, delta: 200, entries: Array(1)} @ http://localhost:3011/_next/static/chunks/app/layout-5aa3be0a0c7d327c.js:0
+[     247ms] [LOG] {name: TTFB, value: 88.19999998807907, rating: good, delta: 88.19999998807907, entries: Array(1)} @ http://localhost:3011/_next/static/chunks/app/layout-5aa3be0a0c7d327c.js:0

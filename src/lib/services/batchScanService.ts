@@ -1,6 +1,7 @@
 import { detectDirectWalletLinkages, findSharedCounterparties } from '@/lib/clusterAnalysis';
-import { BATCH_WALLET_CONCURRENCY, mapWithConcurrency } from '@/lib/api/requestPolicy';
+import { BATCH_WALLET_CONCURRENCY, enforceSharedQuota, mapWithConcurrency } from '@/lib/api/requestPolicy';
 import { processWalletScan } from '@/lib/services/scanService';
+import { throwIfAborted, RequestCancellationError } from '@/lib/cancellation';
 import type {
   BulkWrappedWallet,
   ClusterScanResult,
@@ -36,13 +37,17 @@ export function getClusterHistoryFailureReasons(
 export async function processBatchScan(
   addresses: string[],
   chainIds: number[],
+  options: { signal?: AbortSignal } = {},
 ): Promise<ClusterScanResult> {
+  throwIfAborted(options.signal);
+  await enforceSharedQuota('batch', addresses.length, options.signal);
   const walletResults = await mapWithConcurrency(
     addresses,
     BATCH_WALLET_CONCURRENCY,
     async (target): Promise<WalletResult> => {
       try {
-        const result = await processWalletScan(target, chainIds, '', true);
+        throwIfAborted(options.signal);
+        const result = await processWalletScan(target, chainIds, '', true, { signal: options.signal });
 
         const historyFailureReasons = getClusterHistoryFailureReasons(result);
         if (historyFailureReasons) {
@@ -130,6 +135,7 @@ export async function processBatchScan(
 
         return { kind: 'success', item, evidence: clusterEvidence };
       } catch (walletError) {
+        if (walletError instanceof RequestCancellationError) throw walletError;
         const reason: DataAvailabilityError = {
           source: 'scan',
           code: 'provider_error',
@@ -141,6 +147,7 @@ export async function processBatchScan(
         };
       }
     },
+    { signal: options.signal },
   );
 
   const successfulWallets = walletResults
@@ -170,6 +177,7 @@ export async function processBatchScan(
   });
 
   return {
+    source: 'live',
     status: failedWallets.length === 0 ? 'complete' : successfulWallets.length === 0 ? 'unavailable' : 'partial',
     totalWallets: successfulWallets.length,
     requestedWallets: addresses.length,

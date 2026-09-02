@@ -1,16 +1,18 @@
 'use client';
 
-import React, { useState, useMemo, useRef, useEffect } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { BulkWrappedWallet, ClusterLinkage, SharedCounterparty } from '@/lib/types';
 import { formatCompactUSD } from '@/lib/utils/dashboardUtils';
 import { ZoomIn, ZoomOut, RotateCcw, ArrowRight, Move, ExternalLink, GitFork } from 'lucide-react';
 import { getExplorerTxUrl } from '@/lib/chains';
+import { useAnimationVisibility } from '@/hooks/useAnimationVisibility';
 
 interface Props {
   wallets: BulkWrappedWallet[];
   linkages: ClusterLinkage[];
   sharedCounterparties: SharedCounterparty[];
   onInspectWallet: (address: string) => void;
+  isSavedSnapshot?: boolean;
 }
 
 interface ClusterNode {
@@ -68,6 +70,7 @@ export default function ClusterFlowGraph({
   linkages,
   sharedCounterparties,
   onInspectWallet,
+  isSavedSnapshot = false,
 }: Props) {
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
@@ -88,28 +91,7 @@ export default function ClusterFlowGraph({
   const dragStartRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
   const rafRef = useRef<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-
-  // ── Native Isolated Wheel Event to Prevent Page Scroll & Stutter ──
-  useEffect(() => {
-    const el = containerRef.current;
-    if (!el) return;
-
-    const onWheelNative = (e: WheelEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-
-      const zoomFactor = -e.deltaY * 0.0018;
-      setScale(prev => {
-        const next = prev + zoomFactor;
-        return Math.min(3.2, Math.max(0.25, next));
-      });
-    };
-
-    el.addEventListener('wheel', onWheelNative, { passive: false });
-    return () => {
-      el.removeEventListener('wheel', onWheelNative);
-    };
-  }, []);
+  const graphVisibility = useAnimationVisibility(containerRef);
 
   const { nodes, links } = useMemo(() => {
     const nodeList: ClusterNode[] = [];
@@ -306,12 +288,13 @@ export default function ClusterFlowGraph({
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerUp}
-        className={`relative bg-[#0d0f17] border border-[#cecece] shadow-inner overflow-hidden select-none touch-none ${
+        className={`relative bg-[#0d0f17] border border-[#cecece] shadow-inner overflow-hidden select-none touch-pan-y ${
+          graphVisibility.isVisible ? '' : 'graph-animations-paused'
+        } ${
           isDragging ? 'cursor-grabbing' : 'cursor-grab'
         }`}
         style={{
           height: '660px',
-          overscrollBehavior: 'contain',
         }}
       >
         <div className="sr-only">
@@ -330,10 +313,27 @@ export default function ClusterFlowGraph({
             ))}
           </ul>
         </div>
+        {nodes.length === 0 ? (
+          <div className="absolute inset-4 z-10 flex items-center justify-center border border-dashed border-[#4b5563] bg-[#11131a]/90 p-5 text-center text-xs font-mono font-bold text-gray-200">
+            No wallet nodes found in returned data.
+          </div>
+        ) : links.length === 0 ? (
+          <div
+            role="status"
+            className="absolute bottom-4 left-4 right-4 z-10 border border-[#4b5563] bg-[#11131a]/95 p-3 text-xs text-gray-200 shadow-2xl"
+          >
+            <p className="font-black uppercase tracking-wider text-white">
+              {isSavedSnapshot ? 'No connection evidence is included in this saved example.' : 'No connections found in returned data.'}
+            </p>
+            <p className="mt-1">Wallet nodes remain mapped. This is not a rendering error.</p>
+          </div>
+        ) : null}
+
         {/* Floating Zoom & Pan Toolbar */}
         <div
           className="absolute top-4 left-4 z-20 flex items-center gap-1 bg-[#11131a]/95 backdrop-blur-md border border-[#333333] p-1.5 shadow-2xl text-white"
           onMouseDown={e => e.stopPropagation()}
+          onPointerDown={e => e.stopPropagation()}
         >
           <button
             type="button"
@@ -354,7 +354,7 @@ export default function ClusterFlowGraph({
             <ZoomOut size={15} />
           </button>
           <div className="w-[1px] h-4 bg-[#333333] mx-1" />
-          <span className="text-[10px] font-mono font-black px-1.5 text-[#ff5500]">
+          <span className="text-[10px] font-mono font-black px-1.5 text-[#ff5500]" aria-live="polite">
             {Math.round(scale * 100)}%
           </span>
           <button
@@ -371,7 +371,7 @@ export default function ClusterFlowGraph({
         {/* Pan / Drag Hint Badge */}
         <div className="absolute top-4 right-4 z-20 hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-[#11131a]/90 backdrop-blur-md border border-[#333333] text-[10px] font-mono font-bold text-gray-300">
           <Move size={11} className="text-[#ff5500]" />
-          <span>Hover Transfers or Wallets to Inspect · Drag to Move</span>
+          <span>Use zoom buttons · Drag to move · Page scrolling stays native</span>
         </div>
 
         {/* Main Transformable SVG Canvas with Hardware Acceleration */}
@@ -488,7 +488,7 @@ export default function ClusterFlowGraph({
                     <text y="-4" textAnchor="middle" fill="#ffffff" style={{ fontSize: 10.5, fontWeight: 800 }}>
                       {node.name.length > 11 ? node.name.slice(0, 10) + '…' : node.name}
                     </text>
-                    <text y="12" textAnchor="middle" fill="#3b82f6" style={{ fontSize: 9.5, fontWeight: 700, fontFamily: 'monospace' }}>
+                    <text y="12" textAnchor="middle" fill="#3b82f6" className="font-mono" style={{ fontSize: 9.5, fontWeight: 700 }}>
                       {node.sharedCount} Wallets
                     </text>
                   </g>
@@ -520,7 +520,7 @@ export default function ClusterFlowGraph({
                   <text x="0" y="-3" textAnchor="middle" fill="#ffffff" style={{ fontSize: 10.5, fontWeight: 800 }}>
                     {node.name.length > 15 ? node.name.slice(0, 14) + '…' : node.name}
                   </text>
-                  <text x="0" y="11" textAnchor="middle" fill="#ff5500" style={{ fontSize: 8.5, fontWeight: 700, fontFamily: 'monospace' }}>
+                  <text x="0" y="11" textAnchor="middle" fill="#ff5500" className="font-mono" style={{ fontSize: 8.5, fontWeight: 700 }}>
                     {node.persona?.toUpperCase()}
                   </text>
                 </g>
@@ -607,15 +607,17 @@ export default function ClusterFlowGraph({
                 <>
                   <div className="flex justify-between text-[#555555]">
                     <span>Risk Grade:</span>
-                    <span className="font-bold text-[#0a0a0a]">{inspectorNode.riskGrade} (Sybil: {inspectorNode.sybilProb}%)</span>
+                    <span className="font-bold text-[#0a0a0a]">
+                      {isSavedSnapshot ? 'N/A' : `${inspectorNode.riskGrade} (Sybil: ${inspectorNode.sybilProb}%)`}
+                    </span>
                   </div>
                   <div className="flex justify-between text-[#555555]">
                     <span>Lifetime Gas:</span>
-                    <span className="font-bold text-orange-ink">{formatCompactUSD(inspectorNode.totalGasUSD || 0)}</span>
+                    <span className="font-bold text-orange-ink">{isSavedSnapshot ? 'N/A' : formatCompactUSD(inspectorNode.totalGasUSD || 0)}</span>
                   </div>
                   <div className="flex justify-between text-[#555555]">
                     <span>Inflow Depth:</span>
-                    <span className="font-bold text-[#0a0a0a]">{formatCompactUSD(inspectorNode.totalInflowUSD || 0)}</span>
+                    <span className="font-bold text-[#0a0a0a]">{isSavedSnapshot ? 'N/A' : formatCompactUSD(inspectorNode.totalInflowUSD || 0)}</span>
                   </div>
                 </>
               ) : (
@@ -698,6 +700,9 @@ export default function ClusterFlowGraph({
         }
         .cluster-flow-line {
           animation: clusterFlow 1.2s linear infinite;
+        }
+        .graph-animations-paused .cluster-flow-line {
+          animation-play-state: paused;
         }
       `}</style>
     </div>

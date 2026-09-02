@@ -1,0 +1,188 @@
+- generic [ref=f2e1]:
+  - main [ref=f2e2]:
+    - generic [ref=f2e3]:
+      - generic [ref=f2e4]:
+        - button "Open WalletGenome guide" [ref=f2e5] [cursor=pointer]:
+          - generic [ref=f2e6]: WALLET.GENOME
+        - button "Open navigation" [ref=f2e7] [cursor=pointer]
+      - 'status "Indexing status: Saved snapshot" [ref=f2e120]':
+        - generic [ref=f2e12]: Saved snapshot
+    - region "Wallet Forensics Console" [ref=f2e13]:
+      - tablist "Forensics Scan Mode" [ref=f2e14]:
+        - tab "Single wallet" [selected] [ref=f2e15] [cursor=pointer]
+        - tab "Cluster scan" [ref=f2e20] [cursor=pointer]
+      - tabpanel "Single wallet" [ref=f2e26]:
+        - region "Loaded scan summary" [ref=f2e121]:
+          - generic [ref=f2e122]:
+            - generic [ref=f2e123]:
+              - generic [ref=f2e124]: Loaded wallet scan
+              - generic [ref=f2e125]: Saved snapshot
+            - generic [ref=f2e126]:
+              - heading "0xd8dA6B…A96045" [level=2] [ref=f2e127]
+              - generic [ref=f2e128]:
+                - button "Hide full wallet address" [expanded] [ref=f2e660] [cursor=pointer]:
+                  - generic [ref=f2e133]: Hide address
+                - button "Copy wallet address" [ref=f2e134] [cursor=pointer]
+              - status [ref=f2e138]
+            - generic [ref=f2e666]: "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045"
+            - generic [ref=f2e140]:
+              - term [ref=f2e141]: "Networks:"
+              - definition [ref=f2e142]: Ethereum, Base, Arbitrum, Optimism
+          - button "Edit scan" [ref=f2e144] [cursor=pointer]
+    - region "Evidence status" [ref=f2e145]:
+      - generic [ref=f2e146]:
+        - generic [ref=f2e147]:
+          - paragraph [ref=f2e149]: Saved snapshot · Non-live
+          - paragraph [ref=f2e150]: Saved public data for Vitalik Buterin. Updated Aug 26, 2026. This view does not spend provider API quota.
+          - paragraph [ref=f2e151]: "History evidence: partial. Review data quality details below."
+        - button "Run fresh scan" [ref=f2e152] [cursor=pointer]
+      - group [ref=f2e153]:
+        - generic "Review data quality partial" [ref=f2e154] [cursor=pointer]:
+          - generic [ref=f2e155]: Review data quality
+          - generic [ref=f2e156]: partial
+    - generic [ref=f2e157]:
+      - generic "Dashboard sections; scroll horizontally for more tabs" [ref=f2e158]:
+        - tablist "Wallet dashboard sections" [ref=f2e159]:
+          - tab "BEHAVIORAL DNA" [ref=f2e160] [cursor=pointer]
+          - tab "FLOW GRAPH" [ref=f2e162] [cursor=pointer]
+          - tab "PROTOCOLS 12" [ref=f2e164] [cursor=pointer]:
+            - generic [ref=f2e165]: PROTOCOLS
+            - generic [ref=f2e166]: "12"
+          - tab "GAS FEES" [active] [selected] [ref=f2e167] [cursor=pointer]
+          - tab "TOP TOKEN TRANSFERS" [ref=f2e169] [cursor=pointer]
+          - tab "APPROVALS 2233" [ref=f2e171] [cursor=pointer]:
+            - generic [ref=f2e172]: APPROVALS
+            - generic [ref=f2e173]: "2233"
+      - tabpanel "GAS FEES" [ref=f2e667]:
+        - generic [ref=f2e668]:
+          - generic [ref=f2e669]:
+            - generic [ref=f2e670]:
+              - generic [ref=f2e671]:
+                - generic [ref=f2e672]: TOTAL GAS CONSUMPTION
+                - generic [ref=f2e673]: Observed history
+              - generic [ref=f2e674]: 25.31 ETH
+              - generic [ref=f2e675]: ≈ $15,705 USD
+              - generic [ref=f2e676]: 159057 historical quotes · 1486 stablecoin assumptions
+            - generic [ref=f2e677]:
+              - generic [ref=f2e678]: FAILED TRANSACTIONS BURN
+              - generic [ref=f2e679]: 1.0679 ETH
+              - generic [ref=f2e680]: 194 failed txs (≈ $2442.93 lost)
+            - generic [ref=f2e681]:
+              - generic [ref=f2e682]: ACTIVE NETWORKS
+              - generic [ref=f2e683]: 4 Chains
+              - generic [ref=f2e684]: Ethereum and L2 rollups
+          - generic [ref=f2e685]:
+            - generic [ref=f2e686]: GAS SPENT BY NETWORK
+            - generic [ref=f2e687]:
+              - generic [ref=f2e688]:
+                - generic [ref=f2e689]:
+                  - generic [ref=f2e690]: Ethereum
+                  - generic [ref=f2e691]: 78344 txs
+                - generic [ref=f2e692]: 25.31 ETH
+                - generic [ref=f2e693]: ≈ $15697.96
+              - generic [ref=f2e694]:
+                - generic [ref=f2e695]:
+                  - generic [ref=f2e696]: Optimism
+                  - generic [ref=f2e697]: 847 txs
+                - generic [ref=f2e698]: 0.0022 ETH
+                - generic [ref=f2e699]: ≈ $4.01
+              - generic [ref=f2e700]:
+                - generic [ref=f2e701]:
+                  - generic [ref=f2e702]: Base
+                  - generic [ref=f2e703]: 10281 txs
+                - generic [ref=f2e704]: <0.0001 ETH
+                - generic [ref=f2e705]: ≈ $0.06
+              - generic [ref=f2e706]:
+                - generic [ref=f2e707]:
+                  - generic [ref=f2e708]: Arbitrum
+                  - generic [ref=f2e709]: 11599 txs
+                - generic [ref=f2e710]: 0.0009 ETH
+                - generic [ref=f2e711]: ≈ $2.67
+          - generic [ref=f2e712]:
+            - generic [ref=f2e713]:
+              - generic [ref=f2e714]: GAS SPENT OVER TIME (USD)
+              - generic [ref=f2e715]:
+                - generic [ref=f2e716]:
+                  - heading "Gas spent over time data" [level=3] [ref=f2e717]
+                  - list [ref=f2e718]:
+                    - listitem [ref=f2e719]: "2025-09: $19.00"
+                    - listitem [ref=f2e720]: "2025-10: $4.00"
+                    - listitem [ref=f2e721]: "2025-11: $0.00"
+                    - listitem [ref=f2e722]: "2025-12: $1.00"
+                    - listitem [ref=f2e723]: "2026-01: $2.00"
+                    - listitem [ref=f2e724]: "2026-02: $0.00"
+                    - listitem [ref=f2e725]: "2026-03: $0.00"
+                    - listitem [ref=f2e726]: "2026-04: $1,349.00"
+                    - listitem [ref=f2e727]: "2026-05: $279.00"
+                    - listitem [ref=f2e728]: "2026-06: $0.00"
+                    - listitem [ref=f2e729]: "2026-07: $6.00"
+                    - listitem [ref=f2e730]: "2026-08: $0.00"
+                - application [ref=f2e733]:
+                  - generic [ref=f2e760]:
+                    - generic [ref=f2e761]:
+                      - generic [ref=f2e762]: 2025-11
+                      - generic [ref=f2e764]: 2026-02
+                      - generic [ref=f2e766]: 2026-05
+                      - generic [ref=f2e768]: 2026-08
+                    - generic [ref=f2e770]:
+                      - generic [ref=f2e771]: $0
+                      - generic [ref=f2e773]: $350
+                      - generic [ref=f2e775]: $700
+                      - generic [ref=f2e777]: $1050
+                      - generic [ref=f2e779]: $1400
+            - generic [ref=f2e781]:
+              - generic [ref=f2e782]: GAS BY CATEGORY
+              - generic [ref=f2e783]:
+                - generic [ref=f2e784]:
+                  - heading "Gas by category data" [level=3] [ref=f2e785]
+                  - list [ref=f2e786]:
+                    - listitem [ref=f2e787]: "Contract calls: $9,819.09"
+                    - listitem [ref=f2e788]: "Failed: $2,442.93"
+                    - listitem [ref=f2e789]: "Swaps: $1,898.20"
+                    - listitem [ref=f2e790]: "Approvals: $630.17"
+                    - listitem [ref=f2e791]: "Contract deployments: $491.70"
+                    - listitem [ref=f2e792]: "Transfers: $392.91"
+                    - listitem [ref=f2e793]: "Bridges: $29.71"
+                - application [ref=f2e797]
+                - generic [ref=f2e822]:
+                  - generic [ref=f2e823]:
+                    - generic [ref=f2e824]: Contract calls
+                    - generic [ref=f2e827]: $9,819.09
+                  - generic [ref=f2e828]:
+                    - generic [ref=f2e829]: Failed
+                    - generic [ref=f2e832]: $2,442.93
+                  - generic [ref=f2e833]:
+                    - generic [ref=f2e834]: Swaps
+                    - generic [ref=f2e837]: $1,898.20
+                  - generic [ref=f2e838]:
+                    - generic [ref=f2e839]: Approvals
+                    - generic [ref=f2e842]: $630.17
+                  - generic [ref=f2e843]:
+                    - generic [ref=f2e844]: Contract deployments
+                    - generic [ref=f2e847]: $491.70
+                  - generic [ref=f2e848]:
+                    - generic [ref=f2e849]: Transfers
+                    - generic [ref=f2e852]: $392.91
+                  - generic [ref=f2e853]:
+                    - generic [ref=f2e854]: Bridges
+                    - generic [ref=f2e857]: $29.71
+  - contentinfo [ref=f2e107]:
+    - generic [ref=f2e108]:
+      - generic [ref=f2e109]:
+        - paragraph [ref=f2e110]: WalletGenome
+        - paragraph [ref=f2e111]: Read-only, evidence-aware EVM wallet analytics. No wallet connection or signature required.
+      - navigation "Wallet analytics topics" [ref=f2e112]:
+        - link "Methodology" [ref=f2e113] [cursor=pointer]:
+          - /url: /docs
+        - link "EVM Wallet Analytics" [ref=f2e114] [cursor=pointer]:
+          - /url: /evm-wallet-analytics
+        - link "Crypto Wallet Risk Checker" [ref=f2e115] [cursor=pointer]:
+          - /url: /crypto-wallet-risk-checker
+        - link "Token Approval Checker" [ref=f2e116] [cursor=pointer]:
+          - /url: /token-approval-checker
+        - link "Sybil Wallet Analysis" [ref=f2e117] [cursor=pointer]:
+          - /url: /sybil-wallet-analysis
+        - link "Multi-Chain Wallet Forensics" [ref=f2e118] [cursor=pointer]:
+          - /url: /multi-chain-wallet-forensics
+  - alert [ref=f2e119]
+  - generic [ref=f2e858]: $0

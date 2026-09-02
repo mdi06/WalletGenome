@@ -20,8 +20,9 @@
   --text-muted: #4b5563;
   --text-subtle: #6b7280;
 
-  --font-sans: var(--font-sans), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  --font-mono: var(--font-mono), 'JetBrains Mono', monospace;
+  /* Font families are selected in fonts.ts; these tokens only connect them. */
+  --font-sans: var(--font-main), -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: var(--font-code), monospace;
 
   /* Smooth Modern 3D Shadows & Bevel Tokens (0px Sharp Geometry) */
   --shadow-3d-card: inset 0 1px 0 rgba(255, 255, 255, 1), inset 0 -1px 0 rgba(0, 0, 0, 0.03), 0 2px 0 #cfd1d6, 0 4px 12px -2px rgba(0, 0, 0, 0.05);
@@ -37,7 +38,7 @@
   --ease-out-quad: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-@keyframes mobileNavigationOpen {
+@keyframes dropdownOpen {
   from {
     opacity: 0;
     transform: translateY(-4px);
@@ -48,9 +49,16 @@
   }
 }
 
+@media (prefers-reduced-motion: no-preference) {
+  /* Animate all native details/summary dropdown contents when they open */
+  details[open] > *:not(summary) {
+    animation: dropdownOpen 180ms ease-out forwards;
+  }
+}
+
 @media (max-width: 767px) and (prefers-reduced-motion: no-preference) {
   .mobile-navigation-disclosure[data-open='true'] {
-    animation: mobileNavigationOpen 180ms ease-out;
+    animation: dropdownOpen 180ms ease-out forwards;
   }
 }
 
@@ -443,5 +451,10 @@ p, .text-pretty {
     animation-duration: 0.001ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
+  }
+
+  .graph-flow-line,
+  .cluster-flow-line {
+    animation: none !important;
   }
 }

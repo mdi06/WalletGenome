@@ -31,4 +31,13 @@ describe('cluster wallet input validation', () => {
     assert.match(source, /Invalid:/);
     assert.match(source, /Duplicates:/);
   });
+
+  it('separates filling sample addresses from loading the saved cluster example', () => {
+    const source = readSource('./BulkScanInput.tsx');
+
+    assert.match(source, /<span>Fill Sample Addresses \(4\)<\/span>/);
+    assert.match(source, /onClusterInputChange\?\.\(\)/);
+    assert.match(source, /onClick=\{onLoadSavedClusterSnapshot\}/);
+    assert.match(source, /<span>Load Saved Cluster Example<\/span>/);
+  });
 });

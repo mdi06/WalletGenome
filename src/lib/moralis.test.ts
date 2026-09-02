@@ -7,6 +7,7 @@ import {
   getMoralisApiKey,
   MoralisQuotaBudget,
 } from './moralis';
+import { RequestCancellationError } from './cancellation';
 
 const WALLET = '0x1234567890abcdef1234567890abcdef12345678';
 const OTHER = '0x0000000000000000000000000000000000000001';
@@ -197,5 +198,27 @@ describe('Moralis dataset fallbacks', () => {
       if (previous === undefined) delete process.env.MORALIS_API_KEY;
       else process.env.MORALIS_API_KEY = previous;
     }
+  });
+
+  it('stops pagination when the request signal is cancelled', async () => {
+    const requestController = new AbortController();
+    let calls = 0;
+
+    await assert.rejects(
+      fetchMoralisTransactions(WALLET, 1, {
+        apiKey: 'moralis-test-key',
+        quotaBudget: new MoralisQuotaBudget(60),
+        maxAttempts: 2,
+        signal: requestController.signal,
+        fetcher: async (_url, _apiKey, _timeoutMs, signal) => {
+          calls += 1;
+          requestController.abort();
+          assert.strictEqual(signal?.aborted, true);
+          return jsonResponse({ result: [transactionRecord('0xlate', '1')], cursor: 'next-page' });
+        },
+      }),
+      (error: unknown) => error instanceof RequestCancellationError && error.reason === 'disconnect',
+    );
+    assert.strictEqual(calls, 1);
   });
 });

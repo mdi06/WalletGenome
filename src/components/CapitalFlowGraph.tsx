@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useRef, useState, useMemo } from 'react';
 import { ReportingMetrics, ScanResult } from '@/lib/types';
 import { getExplorerAddressUrl } from '@/lib/chains';
 import { ExternalLink, ArrowUpRight, ArrowDownLeft, Trophy } from 'lucide-react';
 import { isBurnAddress, isPureTokenContract, PROTOCOL_REGISTRY } from '@/lib/labels';
 import { formatCompactUSD } from '@/lib/utils/dashboardUtils';
+import { useAnimationVisibility } from '@/hooks/useAnimationVisibility';
 
 interface Props {
   results: ScanResult[];
@@ -41,10 +42,31 @@ interface GraphLink {
 export const FLOW_GRAPH_NODE_WIDTH = 130;
 export const FLOW_GRAPH_NODE_GAP = 20;
 const FLOW_GRAPH_CANVAS_WIDTH = 900;
+const FLOW_GRAPH_CANVAS_HEIGHT = 560;
+const FLOW_GRAPH_PROTOCOL_LANE_LEFT = 160;
+const FLOW_GRAPH_PROTOCOL_LANE_WIDTH = 580;
+const FLOW_GRAPH_VERTICAL_START = 40;
+const FLOW_GRAPH_VERTICAL_SPAN = 500;
+export const FLOW_GRAPH_CENTER_X = 450;
+export const FLOW_GRAPH_CENTER_Y = 280;
+export const FLOW_GRAPH_INFLOW_X = 90;
+export const FLOW_GRAPH_OUTFLOW_X = 810;
 
 interface GraphNodePosition {
   x: number;
   y: number;
+}
+
+export interface FlowGraphLayoutNode extends GraphNodePosition {
+  id: string;
+  type: 'inflow' | 'center' | 'protocol' | 'outflow';
+}
+
+export interface GraphNodeBounds {
+  left: number;
+  right: number;
+  top: number;
+  bottom: number;
 }
 
 export function layoutProtocolNodes<T extends GraphNodePosition>(
@@ -61,7 +83,8 @@ export function layoutProtocolNodes<T extends GraphNodePosition>(
   return rows.flatMap(row => {
     const rowWidth = row.nodes.length * FLOW_GRAPH_NODE_WIDTH
       + Math.max(0, row.nodes.length - 1) * FLOW_GRAPH_NODE_GAP;
-    const firstCenterX = (FLOW_GRAPH_CANVAS_WIDTH - rowWidth) / 2
+    const firstCenterX = FLOW_GRAPH_PROTOCOL_LANE_LEFT
+      + (FLOW_GRAPH_PROTOCOL_LANE_WIDTH - rowWidth) / 2
       + FLOW_GRAPH_NODE_WIDTH / 2;
 
     return row.nodes.map((node, index) => ({
@@ -70,6 +93,53 @@ export function layoutProtocolNodes<T extends GraphNodePosition>(
       y: row.y,
     }));
   });
+}
+
+function layoutVerticalLane<T extends GraphNodePosition>(nodes: readonly T[], x: number): T[] {
+  const step = FLOW_GRAPH_VERTICAL_SPAN / (nodes.length + 1);
+  return nodes.map((node, index) => ({
+    ...node,
+    x,
+    y: FLOW_GRAPH_VERTICAL_START + (index + 1) * step,
+  }));
+}
+
+export function layoutCapitalFlowNodes<T extends FlowGraphLayoutNode>(nodes: readonly T[]): T[] {
+  const inflowNodes = nodes.filter(node => node.type === 'inflow');
+  const protocolNodes = nodes.filter(node => node.type === 'protocol');
+  const outflowNodes = nodes.filter(node => node.type === 'outflow');
+  const positions = new Map<string, GraphNodePosition>();
+
+  positions.set('center', { x: FLOW_GRAPH_CENTER_X, y: FLOW_GRAPH_CENTER_Y });
+  for (const node of layoutVerticalLane(inflowNodes, FLOW_GRAPH_INFLOW_X)) {
+    positions.set(node.id, { x: node.x, y: node.y });
+  }
+  for (const node of layoutProtocolNodes(protocolNodes)) {
+    positions.set(node.id, { x: node.x, y: node.y });
+  }
+  for (const node of layoutVerticalLane(outflowNodes, FLOW_GRAPH_OUTFLOW_X)) {
+    positions.set(node.id, { x: node.x, y: node.y });
+  }
+
+  return nodes.map(node => ({
+    ...node,
+    ...(positions.get(node.id) || { x: node.x, y: node.y }),
+  }));
+}
+
+export function getGraphNodeBounds(
+  node: Pick<FlowGraphLayoutNode, 'type' | 'x' | 'y'>,
+): GraphNodeBounds {
+  const isCenter = node.type === 'center';
+  const height = isCenter ? 72 : node.type === 'protocol' ? 48 : 36;
+  const width = isCenter ? 72 : FLOW_GRAPH_NODE_WIDTH;
+
+  return {
+    left: node.x - width / 2,
+    right: node.x + width / 2,
+    top: node.y - height / 2,
+    bottom: node.y + height / 2,
+  };
 }
 
 function truncAddr(addr: string): string {
@@ -102,6 +172,9 @@ export default function CapitalFlowGraph({ results, metrics }: Props) {
   const [minVolume, setMinVolume] = useState<number>(0);
   const [selectedChain, setSelectedChain] = useState<number | 'all'>('all');
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const graphElementRef = useRef<HTMLDivElement>(null);
+  const graphVisibility = useAnimationVisibility(graphElementRef);
 
   const userAddress = results[0]?.address?.toLowerCase() || '';
   const coverage = metrics.capitalFlowCoverage;
@@ -216,8 +289,8 @@ export default function CapitalFlowGraph({ results, metrics }: Props) {
       txCount: 0,
       chainId: 1,
       address: userAddress,
-      x: 450,
-      y: 280,
+      x: FLOW_GRAPH_CENTER_X,
+      y: FLOW_GRAPH_CENTER_Y,
     });
 
     const activeResults = selectedChain === 'all'
@@ -343,26 +416,12 @@ export default function CapitalFlowGraph({ results, metrics }: Props) {
     const protocolNodes = Array.from(nodeMap.values()).filter(n => n.type === 'protocol').slice(0, 8);
     const outflowNodes = Array.from(nodeMap.values()).filter(n => n.type === 'outflow').slice(0, 7);
 
-    inflowNodes.forEach((node, i) => {
-      const step = 500 / (inflowNodes.length + 1);
-      node.x = 110;
-      node.y = 40 + (i + 1) * step;
-    });
-
-    const positionedProtocolNodes = layoutProtocolNodes(protocolNodes);
-
-    outflowNodes.forEach((node, i) => {
-      const step = 500 / (outflowNodes.length + 1);
-      node.x = 790;
-      node.y = 40 + (i + 1) * step;
-    });
-
-    const activeNodes = [
+    const activeNodes = layoutCapitalFlowNodes([
       nodeMap.get('center')!,
       ...inflowNodes,
-      ...positionedProtocolNodes,
+      ...protocolNodes,
       ...outflowNodes,
-    ];
+    ]);
 
     const activeNodeIds = new Set(activeNodes.map(n => n.id));
     const activeLinks = linkList.filter(
@@ -377,6 +436,8 @@ export default function CapitalFlowGraph({ results, metrics }: Props) {
 
   const activeNodeMap = useMemo(() => new Map(nodes.map(n => [n.id, n])), [nodes]);
   const hoveredNode = hoveredNodeId ? activeNodeMap.get(hoveredNodeId) : null;
+  const selectedNode = selectedNodeId ? activeNodeMap.get(selectedNodeId) : null;
+  const inspectedNode = selectedNode || hoveredNode;
 
   return (
     <div className="space-y-7">
@@ -514,12 +575,19 @@ export default function CapitalFlowGraph({ results, metrics }: Props) {
 
       {/* ── Controls Row ── */}
       <div className="card-3d flex flex-col gap-3 p-3 lg:flex-row lg:items-center lg:justify-between">
-        <div className="horizontal-scroll-region flex min-w-0 items-center gap-2 overflow-x-auto pb-1">
+        <div
+          className="horizontal-scroll-region flex min-w-0 items-center gap-2 overflow-x-auto pb-1"
+          role="group"
+          aria-label="Minimum capital-flow volume filter"
+        >
           <span className="shrink-0 text-xs font-bold text-[#4b5563] uppercase">Min Volume:</span>
           {[0, 100, 500, 2000, 10000].map(amt => (
             <button
               key={amt}
+              type="button"
               onClick={() => setMinVolume(amt)}
+              aria-pressed={minVolume === amt}
+              aria-label={amt === 0 ? 'Show all capital flows' : `Show capital flows of at least $${amt >= 1000 ? amt / 1000 + 'K' : amt}`}
               className={`min-h-11 px-3 py-1 md:min-h-9 md:px-2.5 cursor-pointer text-xs font-bold ${
                 minVolume === amt
                   ? 'btn-3d-black text-white'
@@ -531,7 +599,11 @@ export default function CapitalFlowGraph({ results, metrics }: Props) {
           ))}
         </div>
 
-        <div className="horizontal-scroll-region flex min-w-0 items-center gap-2 overflow-x-auto pb-1">
+        <div
+          className="horizontal-scroll-region flex min-w-0 items-center gap-2 overflow-x-auto pb-1"
+          role="group"
+          aria-label="Capital flow network filter"
+        >
           <span className="shrink-0 text-xs font-bold text-[#4b5563] uppercase">Network:</span>
           {([
             { id: 'all', label: 'All' },
@@ -542,7 +614,10 @@ export default function CapitalFlowGraph({ results, metrics }: Props) {
           ] as Array<{ id: number | 'all'; label: string }>).map(c => (
             <button
               key={c.id}
+              type="button"
               onClick={() => setSelectedChain(c.id)}
+              aria-pressed={selectedChain === c.id}
+              aria-label={`Show capital flow data for ${c.label}`}
               className={`min-h-11 px-3 py-1 md:min-h-9 md:px-2.5 cursor-pointer text-xs font-bold ${
                 selectedChain === c.id
                   ? 'btn-3d-black text-white'
@@ -564,12 +639,17 @@ export default function CapitalFlowGraph({ results, metrics }: Props) {
           </div>
           <span className="font-mono text-[10px] font-bold text-[#6b7280]">{nodes.length} nodes · {links.length} connections</span>
         </div>
-        <div className="relative overflow-hidden border border-[#222222] bg-[#0d0f17] shadow-2xl rounded-sm">
+        <div
+          ref={graphElementRef}
+          className={`relative overflow-hidden border border-[#222222] bg-[#0d0f17] shadow-2xl rounded-sm ${
+            graphVisibility.isVisible ? '' : 'graph-animations-paused'
+          }`}
+        >
           <div
             className="horizontal-scroll-region flow-graph-scroll overflow-x-auto"
             tabIndex={0}
             role="region"
-            aria-label={`Interactive capital flow graph with ${nodes.length} nodes and ${links.length} connections; scroll horizontally for the full graph.`}
+            aria-label={`Capital flow graph visualization with ${nodes.length} nodes and ${links.length} connections; scroll horizontally for the full visual. Use the Accessible capital flow data section below to inspect nodes.`}
           >
             <div className="min-w-[720px] p-4">
         <div className="sr-only">
@@ -585,18 +665,18 @@ export default function CapitalFlowGraph({ results, metrics }: Props) {
             ))}
           </ul>
         </div>
-        <svg viewBox="0 0 900 560" className="block h-auto w-full" aria-hidden="true">
+        <svg viewBox={`0 0 ${FLOW_GRAPH_CANVAS_WIDTH} ${FLOW_GRAPH_CANVAS_HEIGHT}`} className="block h-auto w-full" aria-hidden="true">
           <defs>
             <pattern id="flow-grid" width="30" height="30" patternUnits="userSpaceOnUse">
               <circle cx="15" cy="15" r="1" fill="rgba(255, 255, 255, 0.05)" />
             </pattern>
           </defs>
 
-          <rect width="900" height="560" fill="url(#flow-grid)" />
+          <rect width={FLOW_GRAPH_CANVAS_WIDTH} height={FLOW_GRAPH_CANVAS_HEIGHT} fill="url(#flow-grid)" />
 
-          <text x="110" y="24" textAnchor="middle" fill="#8b92a5" style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.08em' }}>INFLOW SOURCES (CEX / WALLETS)</text>
-          <text x="450" y="24" textAnchor="middle" fill="#8b92a5" style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.08em' }}>DEFI PROTOCOLS & CORE WALLET</text>
-          <text x="790" y="24" textAnchor="middle" fill="#8b92a5" style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.08em' }}>OUTFLOW DESTINATIONS</text>
+          <text x={FLOW_GRAPH_INFLOW_X - FLOW_GRAPH_NODE_WIDTH / 2} y="24" textAnchor="start" fill="#8b92a5" style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.08em' }}>INFLOW SOURCES (CEX / WALLETS)</text>
+          <text x={FLOW_GRAPH_CENTER_X} y="24" textAnchor="middle" fill="#8b92a5" style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.08em' }}>DEFI PROTOCOLS & CORE WALLET</text>
+          <text x={FLOW_GRAPH_OUTFLOW_X + FLOW_GRAPH_NODE_WIDTH / 2} y="24" textAnchor="end" fill="#8b92a5" style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.08em' }}>OUTFLOW DESTINATIONS</text>
 
           {/* Links */}
           {links.map((link, i) => {
@@ -645,19 +725,12 @@ export default function CapitalFlowGraph({ results, metrics }: Props) {
                   transform={`translate(${node.x}, ${node.y})`}
                   onMouseEnter={() => setHoveredNodeId(node.id)}
                   onMouseLeave={() => setHoveredNodeId(null)}
-                  onFocus={() => setHoveredNodeId(node.id)}
-                  onBlur={() => setHoveredNodeId(null)}
-                  onClick={() => handleNodeClick(node)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleNodeClick(node)}
-                  tabIndex={0}
-                  className="focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-ink"
-                  style={{ cursor: 'pointer' }}
                 >
                   <circle r="36" fill="#000000" stroke="#ff5500" strokeWidth="3" />
                   <text y="-4" textAnchor="middle" fill="#ffffff" style={{ fontSize: 11, fontWeight: 800 }}>
                     Your Wallet
                   </text>
-                  <text y="12" textAnchor="middle" fill="#ff5500" style={{ fontSize: 10, fontWeight: 700, fontFamily: 'monospace' }}>
+                  <text y="12" textAnchor="middle" fill="#ff5500" className="font-mono" style={{ fontSize: 10, fontWeight: 700 }}>
                     {node.subLabel}
                   </text>
                 </g>
@@ -683,13 +756,6 @@ export default function CapitalFlowGraph({ results, metrics }: Props) {
                 transform={`translate(${node.x}, ${node.y})`}
                 onMouseEnter={() => setHoveredNodeId(node.id)}
                 onMouseLeave={() => setHoveredNodeId(null)}
-                onFocus={() => setHoveredNodeId(node.id)}
-                onBlur={() => setHoveredNodeId(null)}
-                onClick={() => handleNodeClick(node)}
-                onKeyDown={(e) => e.key === 'Enter' && handleNodeClick(node)}
-                tabIndex={0}
-                className="focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-ink"
-                style={{ cursor: 'pointer' }}
               >
                 <rect
                   x={-FLOW_GRAPH_NODE_WIDTH / 2}
@@ -708,7 +774,7 @@ export default function CapitalFlowGraph({ results, metrics }: Props) {
                     {networkLabel}
                   </text>
                 )}
-                <text x="0" y={networkLabel ? 16 : 11} textAnchor="middle" fill={nodeBorder} style={{ fontSize: 9, fontWeight: 700, fontFamily: 'monospace' }}>
+                <text x="0" y={networkLabel ? 16 : 11} textAnchor="middle" fill={nodeBorder} className="font-mono" style={{ fontSize: 9, fontWeight: 700 }}>
                   {node.isTopRecipient ? `★ TOP (${node.txCount} txs)` : `${formatGraphVolume(node.volumeUSD, node.txCount)} · ${node.txCount} txs`}
                 </text>
               </g>
@@ -719,38 +785,39 @@ export default function CapitalFlowGraph({ results, metrics }: Props) {
           </div>
 
         {/* Hover Inspector Card */}
-        {hoveredNode && (
+        {inspectedNode && (
           <div className="absolute bottom-3 left-3 right-3 z-10 min-w-0 space-y-2 border border-[#cecece] bg-[#dedede] p-4 text-[#0a0a0a] shadow-2xl sm:bottom-4 sm:left-auto sm:right-4 sm:min-w-[220px] sm:max-w-[280px]">
             <div className="flex items-center justify-between">
-              <span className="font-extrabold text-sm text-[#0a0a0a]">{hoveredNode.label}</span>
-              <span className="text-[10px] font-bold px-2 py-0.5 bg-[#d0d0d0] uppercase">{hoveredNode.type}</span>
+              <span className="font-extrabold text-sm text-[#0a0a0a]">{inspectedNode.label}</span>
+              <span className="text-[10px] font-bold px-2 py-0.5 bg-[#d0d0d0] uppercase">{inspectedNode.type}</span>
             </div>
             <div className="text-xs space-y-1 font-mono">
-              {hoveredNode.type === 'protocol' && (
+              {inspectedNode.type === 'protocol' && (
                 <div className="flex justify-between text-[#555555]">
                   <span>Network:</span>
-                  <span className="font-bold text-[#0a0a0a]">{formatGraphNetworkLabel(hoveredNode.chainName, hoveredNode.chainId)}</span>
+                  <span className="font-bold text-[#0a0a0a]">{formatGraphNetworkLabel(inspectedNode.chainName, inspectedNode.chainId)}</span>
                 </div>
               )}
               <div className="flex justify-between text-[#555555]">
                 <span>Address:</span>
-                <span className="font-bold text-[#0a0a0a]">{truncAddr(hoveredNode.address)}</span>
+                <span className="break-all text-right font-bold text-[#0a0a0a]">{inspectedNode.address}</span>
               </div>
               <div className="flex justify-between text-[#555555]">
                 <span>Volume:</span>
-                <span className={hoveredNode.volumeUSD > 0 ? 'font-bold text-[#0a0a0a]' : 'font-bold text-[#92400e]'}>
-                  {formatGraphVolume(hoveredNode.volumeUSD, hoveredNode.txCount)}
+                <span className={inspectedNode.volumeUSD > 0 ? 'font-bold text-[#0a0a0a]' : 'font-bold text-[#92400e]'}>
+                  {formatGraphVolume(inspectedNode.volumeUSD, inspectedNode.txCount)}
                 </span>
               </div>
               <div className="flex justify-between text-[#555555]">
                 <span>Transactions:</span>
-                <span className="font-bold text-orange-ink">{hoveredNode.txCount} calls</span>
+                <span className="font-bold text-orange-ink">{inspectedNode.txCount} calls</span>
               </div>
             </div>
-            {hoveredNode.address && (
+            {inspectedNode.address && (
               <button
                 type="button"
-                onClick={() => handleNodeClick(hoveredNode)}
+                onClick={() => handleNodeClick(inspectedNode)}
+                aria-label={`Open ${inspectedNode.label} on block explorer`}
                 className="w-full min-h-11 md:min-h-9 mt-2 bg-black hover:bg-[#b33c00] text-white text-xs font-bold py-1.5 md:py-1 px-3 flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
               >
                 <span>Open Block Explorer</span>
@@ -764,24 +831,43 @@ export default function CapitalFlowGraph({ results, metrics }: Props) {
 
       <details className="border-y border-[#c8c8c8] p-3 text-xs text-[#0a0a0a]">
         <summary className="min-h-11 md:min-h-9 cursor-pointer py-3 md:py-2 font-bold">Accessible capital flow data</summary>
+        <p className="mt-2 border-t border-[#c8c8c8] pt-3 text-[11px] font-bold text-[#4b5563]">
+          Use Inspect node to show the same details as the visual inspector. Explorer links open the full address on the selected network.
+        </p>
         <ul className="mt-2 space-y-2 border-t border-[#c8c8c8] pt-3">
-          {nodes.filter(node => node.type !== 'center').map(node => (
-            <li key={node.id} className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-              <span>
-                {node.type}: {node.label}
-                {node.type === 'protocol' && ` on ${formatGraphNetworkLabel(node.chainName, node.chainId)}`}
-                , {node.txCount} transactions, {formatGraphVolume(node.volumeUSD, node.txCount)}.
-              </span>
-              {node.address && (
-                <a
-                  href={getExplorerAddressUrl(node.chainId, node.address)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="btn-3d-neutral inline-flex min-h-11 md:min-h-9 items-center justify-center px-3 py-2 md:py-1.5 font-bold"
+          {nodes.map(node => (
+            <li key={node.id} className="flex flex-col gap-2 border-b border-[#e1e1e1] pb-2 last:border-b-0 sm:flex-row sm:items-start sm:justify-between">
+              <div className="min-w-0">
+                <div>
+                  {node.type === 'center' ? 'wallet' : node.type}: {node.type === 'center' ? 'Your Wallet' : node.label}
+                  {node.type === 'protocol' && ` on ${formatGraphNetworkLabel(node.chainName, node.chainId)}`}
+                  , {node.txCount} transactions, {formatGraphVolume(node.volumeUSD, node.txCount)}.
+                </div>
+                {node.address && (
+                  <div className="mt-1 break-all font-mono text-[10px] font-bold text-[#4b5563]">Address: {node.address}</div>
+                )}
+              </div>
+              <div className="flex shrink-0 flex-wrap gap-2">
+                <button
+                  type="button"
+                  aria-pressed={selectedNodeId === node.id}
+                  aria-label={`Inspect ${node.type} ${node.label}${node.type === 'protocol' ? ` on ${formatGraphNetworkLabel(node.chainName, node.chainId)}` : ''}`}
+                  onClick={() => setSelectedNodeId(current => current === node.id ? null : node.id)}
+                  className={`btn-3d-neutral inline-flex min-h-11 md:min-h-9 items-center justify-center px-3 py-2 md:py-1.5 font-bold ${selectedNodeId === node.id ? 'ring-2 ring-orange-ink ring-offset-1' : ''}`}
                 >
-                  Open {node.label}{node.type === 'protocol' ? ` on ${formatGraphNetworkLabel(node.chainName, node.chainId)}` : ''} on explorer
-                </a>
-              )}
+                  {selectedNodeId === node.id ? 'Selected' : 'Inspect node'}
+                </button>
+                {node.address && (
+                  <a
+                    href={getExplorerAddressUrl(node.chainId, node.address)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn-3d-neutral inline-flex min-h-11 md:min-h-9 items-center justify-center px-3 py-2 md:py-1.5 font-bold"
+                  >
+                    Open {node.label}{node.type === 'protocol' ? ` on ${formatGraphNetworkLabel(node.chainName, node.chainId)}` : ''} on explorer
+                  </a>
+                )}
+              </div>
             </li>
           ))}
         </ul>
@@ -914,6 +1000,14 @@ export default function CapitalFlowGraph({ results, metrics }: Props) {
         }
         .graph-flow-line {
           animation: flowDash 1.2s linear infinite;
+        }
+        .graph-animations-paused .graph-flow-line {
+          animation-play-state: paused;
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .graph-flow-line {
+            animation: none;
+          }
         }
       `}</style>
     </div>

@@ -1,0 +1,203 @@
+- generic [active] [ref=f4e1]:
+  - main [ref=f4e2]:
+    - generic [ref=f4e3]:
+      - generic [ref=f4e4]:
+        - button "Open WalletGenome guide" [ref=f4e5] [cursor=pointer]:
+          - generic [ref=f4e6]: WALLET.GENOME
+        - button "Open navigation" [ref=f4e7] [cursor=pointer]
+      - 'status "Indexing status: Saved snapshot" [ref=f4e10]':
+        - generic [ref=f4e12]: Saved snapshot
+    - region "Wallet Forensics Console" [ref=f4e13]:
+      - tablist "Forensics Scan Mode" [ref=f4e14]:
+        - tab "Single wallet" [ref=f4e15] [cursor=pointer]
+        - tab "Cluster scan" [selected] [ref=f4e20] [cursor=pointer]
+      - tabpanel "Cluster scan" [ref=f4e26]:
+        - generic [ref=f4e27]:
+          - generic [ref=f4e28]:
+            - generic [ref=f4e29]:
+              - generic [ref=f4e30]: MULTI-WALLET CLUSTER MATRIX SCANNER
+              - generic [ref=f4e36]: BATCH MODE
+            - generic [ref=f4e37]:
+              - button "Fill Sample Addresses (4)" [ref=f4e38] [cursor=pointer]
+              - button "Load Saved Cluster Example" [ref=f4e43] [cursor=pointer]
+          - generic [ref=f4e49]:
+            - generic [ref=f4e50]: Paste EVM addresses separated by new lines, commas, or spaces
+            - textbox "Paste EVM addresses to scan" [ref=f4e51]:
+              - /placeholder: "Paste EVM addresses separated by new lines, commas, or spaces:\n0x2e21f5d34208a3d5483f9829f2709e9005bf15f2\n0x163473950fbcfcfc31ac7ad0eec26f5fe549046c"
+          - generic [ref=f4e52]: 0 addresses
+          - generic [ref=f4e54]:
+            - group "Select target EVM networks for cluster" [ref=f4e55]:
+              - generic [ref=f4e56]: "Networks:"
+              - generic [ref=f4e57]:
+                - button "Toggle Ethereum network" [pressed] [ref=f4e58] [cursor=pointer]:
+                  - generic [ref=f4e60]: ETH
+                - button "Toggle Base network" [pressed] [ref=f4e61] [cursor=pointer]:
+                  - generic [ref=f4e63]: BASE
+                - button "Toggle Arbitrum network" [pressed] [ref=f4e64] [cursor=pointer]:
+                  - generic [ref=f4e66]: ARB
+                - button "Toggle Optimism network" [ref=f4e67] [cursor=pointer]:
+                  - generic [ref=f4e69]: OP
+            - button "SCAN CLUSTER (0)" [disabled] [ref=f4e70] [cursor=pointer]
+    - generic [ref=f4e74]:
+      - region "Cluster snapshot status" [ref=f4e75]:
+        - generic [ref=f4e76]:
+          - generic [ref=f4e77]:
+            - paragraph [ref=f4e78]: Saved cluster example · Non-live
+            - paragraph [ref=f4e79]: Fixed provider-free example updated Sep 1, 2026. It contains no modeled activity or connection evidence and does not spend provider API quota.
+          - button "Run fresh cluster scan" [ref=f4e80] [cursor=pointer]
+      - generic [ref=f4e81]:
+        - generic [ref=f4e82]:
+          - generic [ref=f4e83]: WALLETS SCANNED
+          - generic [ref=f4e84]: 4 Wallets
+          - generic [ref=f4e85]: Not modeled in example
+        - generic [ref=f4e86]:
+          - generic [ref=f4e87]: COMBINED LIFETIME GAS
+          - generic [ref=f4e88]: N/A
+          - generic [ref=f4e89]: No live values in example
+        - generic [ref=f4e90]:
+          - generic [ref=f4e91]: COMBINED INFLOWS
+          - generic [ref=f4e92]: N/A
+          - generic [ref=f4e93]: No live values in example
+        - generic [ref=f4e94]:
+          - generic [ref=f4e95]: AVG SYBIL PROBABILITY
+          - generic [ref=f4e96]: N/A
+          - generic [ref=f4e97]: No live scoring in example
+        - generic [ref=f4e98]:
+          - generic [ref=f4e99]: HIGH-RISK APPROVALS
+          - generic [ref=f4e100]: N/A
+          - generic [ref=f4e101]: No live approval data in example
+      - generic [ref=f4e102]:
+        - generic [ref=f4e103]:
+          - generic [ref=f4e109]:
+            - generic [ref=f4e110]: CLUSTER FORENSIC EXECUTIVE SUMMARY
+            - text: Automated multi-wallet behavioral intelligence & correlation analysis
+          - generic [ref=f4e111]: SAVED EXAMPLE
+        - paragraph [ref=f4e113]: This saved cluster example contains no modeled connection evidence. It is a non-live fixture, not evidence that the submitted wallets are independent.
+        - generic [ref=f4e114]:
+          - generic [ref=f4e115]:
+            - generic [ref=f4e116]: INTER-WALLET LINKAGE
+            - generic [ref=f4e122]: No Modeled Connections
+            - generic [ref=f4e123]: No connection evidence included in saved example
+          - generic [ref=f4e124]:
+            - generic [ref=f4e125]: CENTRAL HUB OVERLAP
+            - generic [ref=f4e130]: N/A
+            - generic [ref=f4e131]: No shared hubs modeled
+          - generic [ref=f4e132]:
+            - generic [ref=f4e133]: DOMINANT ARCHETYPE
+            - generic [ref=f4e146]: N/A
+            - generic [ref=f4e147]: No live behavior data in example
+      - tablist "Cluster dashboard sections; scroll horizontally for more tabs" [ref=f4e148]:
+        - tab "CLUSTER LEADERBOARD 4" [selected] [ref=f4e149] [cursor=pointer]:
+          - generic [ref=f4e152]: CLUSTER LEADERBOARD
+          - generic [ref=f4e153]: "4"
+        - tab "INTER-WALLET FLOW GRAPH ALL WALLETS" [ref=f4e154] [cursor=pointer]:
+          - generic [ref=f4e160]: INTER-WALLET FLOW GRAPH
+          - generic [ref=f4e161]: ALL WALLETS
+      - tabpanel "CLUSTER LEADERBOARD 4" [ref=f4e162]:
+        - generic [ref=f4e163]:
+          - generic [ref=f4e164]:
+            - generic [ref=f4e165]:
+              - generic [ref=f4e166]: DIRECT INTER-WALLET TRANSFERS
+              - generic [ref=f4e172]: 0 TRANSACTIONS
+            - paragraph [ref=f4e173]: No connection evidence is included in this saved example.
+          - generic [ref=f4e174]:
+            - generic [ref=f4e175]:
+              - generic [ref=f4e176]: TOP SHARED COUNTERPARTIES & HUBS
+              - generic [ref=f4e178]: 0 HUBS
+            - paragraph [ref=f4e179]: No significant shared funding sources or overlapping counterparties detected.
+        - generic [ref=f4e180]:
+          - generic [ref=f4e181]:
+            - generic [ref=f4e182]:
+              - generic [ref=f4e183]: CLUSTER WALLET AUDIT LEADERBOARD
+              - text: Click column headers to sort · Click "Inspect" for full single-wallet forensic breakdown
+            - button "EXPORT CSV" [ref=f4e184] [cursor=pointer]
+          - region "Cluster wallet leaderboard; scroll horizontally for all columns" [ref=f4e189]:
+            - table [ref=f4e190]:
+              - rowgroup [ref=f4e191]:
+                - row [ref=f4e192]:
+                  - columnheader "#" [ref=f4e193]
+                  - columnheader "WALLET IDENTITY" [ref=f4e194]
+                  - columnheader "PERSONA" [ref=f4e195]
+                  - columnheader [ref=f4e196]:
+                    - button "RISK GRADE" [ref=f4e197] [cursor=pointer]
+                  - columnheader [ref=f4e198]:
+                    - button "SYBIL PROB." [ref=f4e199] [cursor=pointer]
+                  - columnheader [ref=f4e200]:
+                    - button "LIFETIME GAS ▼" [ref=f4e201] [cursor=pointer]
+                  - columnheader [ref=f4e202]:
+                    - button "NET INFLOW" [ref=f4e203] [cursor=pointer]
+                  - columnheader [ref=f4e204]:
+                    - button "TRANSACTIONS" [ref=f4e205] [cursor=pointer]
+                  - columnheader "ACTION" [ref=f4e206]
+              - rowgroup [ref=f4e207]:
+                - row [ref=f4e208]:
+                  - cell "1" [ref=f4e209]
+                  - cell "stani.eth 0x2e21f5d34208a3d5483f9829f2709e9005bf15f2" [ref=f4e210]:
+                    - generic [ref=f4e211]: stani.eth
+                    - generic [ref=f4e213]: "0x2e21f5d34208a3d5483f9829f2709e9005bf15f2"
+                  - cell "Saved example" [ref=f4e214]
+                  - cell "N/A" [ref=f4e215]
+                  - cell "N/A" [ref=f4e216]
+                  - cell "N/A" [ref=f4e217]
+                  - cell "N/A" [ref=f4e218]
+                  - cell "Not modeled" [ref=f4e219]
+                  - cell [ref=f4e220]:
+                    - button "Inspect →" [ref=f4e221] [cursor=pointer]
+                - row [ref=f4e222]:
+                  - cell "2" [ref=f4e223]
+                  - cell "danno.eth 0x163473950fbcfcfc31ac7ad0eec26f5fe549046c" [ref=f4e224]:
+                    - generic [ref=f4e225]: danno.eth
+                    - generic [ref=f4e227]: "0x163473950fbcfcfc31ac7ad0eec26f5fe549046c"
+                  - cell "Saved example" [ref=f4e228]
+                  - cell "N/A" [ref=f4e229]
+                  - cell "N/A" [ref=f4e230]
+                  - cell "N/A" [ref=f4e231]
+                  - cell "N/A" [ref=f4e232]
+                  - cell "Not modeled" [ref=f4e233]
+                  - cell [ref=f4e234]:
+                    - button "Inspect →" [ref=f4e235] [cursor=pointer]
+                - row [ref=f4e236]:
+                  - cell "3" [ref=f4e237]
+                  - cell "ricburton.eth 0x99e52ddb9e2c65febe07ddbe47432720d297a780" [ref=f4e238]:
+                    - generic [ref=f4e239]: ricburton.eth
+                    - generic [ref=f4e241]: "0x99e52ddb9e2c65febe07ddbe47432720d297a780"
+                  - cell "Saved example" [ref=f4e242]
+                  - cell "N/A" [ref=f4e243]
+                  - cell "N/A" [ref=f4e244]
+                  - cell "N/A" [ref=f4e245]
+                  - cell "N/A" [ref=f4e246]
+                  - cell "Not modeled" [ref=f4e247]
+                  - cell [ref=f4e248]:
+                    - button "Inspect →" [ref=f4e249] [cursor=pointer]
+                - row [ref=f4e250]:
+                  - cell "4" [ref=f4e251]
+                  - cell "nick.eth 0xb8c2c29ee19d8307cb7255e1cd9cbde883a267d5" [ref=f4e252]:
+                    - generic [ref=f4e253]: nick.eth
+                    - generic [ref=f4e255]: "0xb8c2c29ee19d8307cb7255e1cd9cbde883a267d5"
+                  - cell "Saved example" [ref=f4e256]
+                  - cell "N/A" [ref=f4e257]
+                  - cell "N/A" [ref=f4e258]
+                  - cell "N/A" [ref=f4e259]
+                  - cell "N/A" [ref=f4e260]
+                  - cell "Not modeled" [ref=f4e261]
+                  - cell [ref=f4e262]:
+                    - button "Inspect →" [ref=f4e263] [cursor=pointer]
+  - contentinfo [ref=f4e264]:
+    - generic [ref=f4e265]:
+      - generic [ref=f4e266]:
+        - paragraph [ref=f4e267]: WalletGenome
+        - paragraph [ref=f4e268]: Read-only, evidence-aware EVM wallet analytics. No wallet connection or signature required.
+      - navigation "Wallet analytics topics" [ref=f4e269]:
+        - link "Methodology" [ref=f4e270] [cursor=pointer]:
+          - /url: /docs
+        - link "EVM Wallet Analytics" [ref=f4e271] [cursor=pointer]:
+          - /url: /evm-wallet-analytics
+        - link "Crypto Wallet Risk Checker" [ref=f4e272] [cursor=pointer]:
+          - /url: /crypto-wallet-risk-checker
+        - link "Token Approval Checker" [ref=f4e273] [cursor=pointer]:
+          - /url: /token-approval-checker
+        - link "Sybil Wallet Analysis" [ref=f4e274] [cursor=pointer]:
+          - /url: /sybil-wallet-analysis
+        - link "Multi-Chain Wallet Forensics" [ref=f4e275] [cursor=pointer]:
+          - /url: /multi-chain-wallet-forensics
+  - alert [ref=f4e276]

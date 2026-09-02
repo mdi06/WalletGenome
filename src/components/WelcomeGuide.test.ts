@@ -6,6 +6,17 @@ import WelcomeGuide from './WelcomeGuide';
 import { DEMO_WALLETS, formatDemoSnapshotDate } from '@/lib/demoWallets';
 
 describe('WelcomeGuide saved demo hierarchy', () => {
+  it('keeps saved-card typography on the main font without monospace overrides', () => {
+    const markup = renderToStaticMarkup(createElement(WelcomeGuide, { onSelectDemo: () => {} }));
+    const cards = markup.match(/<button\b[^>]*aria-label="Load saved demo snapshot[^>]*>[\s\S]*?<\/button>/g) ?? [];
+
+    assert.strictEqual(cards.length, DEMO_WALLETS.length);
+    for (const card of cards) {
+      assert.match(card, /^<button\b[^>]*class="[^"]*\bfont-sans\b/);
+      assert.doesNotMatch(card, /\bfont-mono\b/);
+    }
+  });
+
   it('renders all saved demos in a uniform grid', () => {
     const markup = renderToStaticMarkup(createElement(WelcomeGuide, { onSelectDemo: () => {} }));
 

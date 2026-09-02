@@ -3,7 +3,7 @@ import { randomUUID } from 'node:crypto';
 const REQUEST_ID_PATTERN = /^[A-Za-z0-9._:-]{8,128}$/;
 
 export type ScanRouteName = 'scan' | 'batch-scan';
-export type ScanRequestOutcome = 'completed' | 'rejected' | 'failed';
+export type ScanRequestOutcome = 'completed' | 'rejected' | 'failed' | 'cancelled';
 
 export interface ScanRequestTelemetry {
   requestId: string;

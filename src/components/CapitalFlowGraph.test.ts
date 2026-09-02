@@ -1,11 +1,17 @@
 import assert from 'node:assert';
 import { it } from 'node:test';
 import {
+  FLOW_GRAPH_CENTER_X,
+  FLOW_GRAPH_CENTER_Y,
+  FLOW_GRAPH_INFLOW_X,
+  FLOW_GRAPH_OUTFLOW_X,
   FLOW_GRAPH_NODE_GAP,
   FLOW_GRAPH_NODE_WIDTH,
+  getGraphNodeBounds,
   formatGraphNetworkLabel,
   formatGraphSummaryValue,
   formatGraphVolume,
+  layoutCapitalFlowNodes,
   layoutProtocolNodes,
 } from './CapitalFlowGraph';
 
@@ -54,4 +60,59 @@ it('lays out zero to eight protocol nodes without horizontal box overlap', () =>
   })));
   assert.deepStrictEqual(eightNodes.slice(0, 4).map(node => node.y), [70, 70, 70, 70]);
   assert.deepStrictEqual(eightNodes.slice(4).map(node => node.y), [490, 490, 490, 490]);
+});
+
+it('keeps the dense 23-node fixture in separate lanes and inside the viewBox', () => {
+  const nodes = [
+    { id: 'center', type: 'center' as const, x: 0, y: 0 },
+    ...Array.from({ length: 7 }, (_, index) => ({
+      id: `inflow-${index}`,
+      type: 'inflow' as const,
+      x: 0,
+      y: 0,
+    })),
+    ...Array.from({ length: 8 }, (_, index) => ({
+      id: `protocol-${index}`,
+      type: 'protocol' as const,
+      x: 0,
+      y: 0,
+    })),
+    ...Array.from({ length: 7 }, (_, index) => ({
+      id: `outflow-${index}`,
+      type: 'outflow' as const,
+      x: 0,
+      y: 0,
+    })),
+  ];
+  const positioned = layoutCapitalFlowNodes(nodes);
+
+  assert.strictEqual(positioned.length, 23);
+  assert.deepStrictEqual(
+    positioned.find(node => node.id === 'center'),
+    { id: 'center', type: 'center', x: FLOW_GRAPH_CENTER_X, y: FLOW_GRAPH_CENTER_Y },
+  );
+  assert.strictEqual(positioned.find(node => node.id === 'inflow-0')?.x, FLOW_GRAPH_INFLOW_X);
+  assert.strictEqual(positioned.find(node => node.id === 'outflow-0')?.x, FLOW_GRAPH_OUTFLOW_X);
+
+  const bounds = positioned.map(node => getGraphNodeBounds(node));
+  for (const bound of bounds) {
+    assert.ok(bound.left >= 0, `node starts outside the left edge: ${bound.left}`);
+    assert.ok(bound.right <= 900, `node ends outside the right edge: ${bound.right}`);
+    assert.ok(bound.top >= 0, `node starts outside the top edge: ${bound.top}`);
+    assert.ok(bound.bottom <= 560, `node ends outside the bottom edge: ${bound.bottom}`);
+  }
+
+  for (let leftIndex = 0; leftIndex < bounds.length; leftIndex += 1) {
+    for (let rightIndex = leftIndex + 1; rightIndex < bounds.length; rightIndex += 1) {
+      const left = bounds[leftIndex]!;
+      const right = bounds[rightIndex]!;
+      assert.ok(
+        left.right <= right.left
+          || right.right <= left.left
+          || left.bottom <= right.top
+          || right.bottom <= left.top,
+        `nodes ${positioned[leftIndex]!.id} and ${positioned[rightIndex]!.id} overlap`,
+      );
+    }
+  }
 });

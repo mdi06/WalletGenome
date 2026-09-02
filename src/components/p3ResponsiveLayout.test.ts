@@ -24,12 +24,14 @@ describe('P3 mobile layout contracts', () => {
       isLoading: false,
     }));
 
-    assert.match(markup, /aria-label="Scan wallet address"[^>]*class="[^"]*w-full[^"]*sm:w-auto/);
+    assert.match(markup, /aria-label="Scan wallet address"[^>]*class="[^"]*w-full[^"]*md:w-auto/);
     assert.match(markup, /aria-label="Select target EVM networks"[^>]*class="[^"]*w-full/);
-    assert.match(markup, /class="card-3d[^"]*min-h-\[232px\][^"]*md:min-h-0/);
+    assert.doesNotMatch(markup, /class="card-3d[^"]*min-h-\[232px\]/);
+    assert.match(markup, /class="card-3d[^"]*px-3[^"]*sm:px-6[^"]*py-3\.5/);
+    assert.doesNotMatch(markup, /max-md:!(?:bg-transparent|border-transparent|shadow-none|p-0|min-h-0)/);
     assert.match(markup, /class="card-3d[^"]*flex-col[^"]*items-center[^"]*justify-center[^"]*md:justify-between/);
-    assert.match(markup, /well-recessed-light[^"]*w-full[^"]*max-w-\[288px\][^"]*md:max-w-none[^"]*md:flex-1/);
-    assert.match(markup, /aria-label="Select target EVM networks"[^>]*class="[^"]*max-w-\[288px\][^"]*justify-center[^"]*md:w-auto[^"]*md:max-w-none[^"]*md:justify-end/);
+    assert.match(markup, /well-recessed-light[^"]*w-full[^"]*max-w-\[288px\][^"]*min-\[400px\]:max-w-\[520px\][^"]*min-\[640px\]:max-w-\[600px\][^"]*md:max-w-none[^"]*md:flex-1/);
+    assert.match(markup, /aria-label="Select target EVM networks"[^>]*class="[^"]*max-w-\[288px\][^"]*min-\[400px\]:max-w-\[520px\][^"]*min-\[640px\]:max-w-\[600px\][^"]*justify-center[^\"]*md:w-auto[^\"]*md:max-w-none[^\"]*md:justify-end/);
   });
 
   it('keeps scan modes equal-width on mobile and hides decorative cluster metadata', () => {
@@ -50,7 +52,7 @@ describe('P3 mobile layout contracts', () => {
     assert.doesNotMatch(markup, /value="0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045"/);
   });
 
-  it('keeps the complete product promise above the wallet search console', () => {
+  it('keeps the bounded product promise above the wallet search console', () => {
     const pageSource = readSource('../app/page.tsx');
     const heroIndex = pageSource.indexOf('aria-labelledby="main-hero-title"');
     const consoleIndex = pageSource.indexOf('aria-label="Wallet Forensics Console"');

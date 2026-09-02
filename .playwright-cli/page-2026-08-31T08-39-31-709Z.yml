@@ -1,0 +1,23 @@
+- generic [active] [ref=f6e1]:
+  - generic [ref=f6e3]:
+    - heading "404" [level=1] [ref=f6e4]
+    - heading "This page could not be found." [level=2] [ref=f6e6]
+  - contentinfo [ref=f6e7]:
+    - generic [ref=f6e8]:
+      - generic [ref=f6e9]:
+        - paragraph [ref=f6e10]: WalletGenome
+        - paragraph [ref=f6e11]: Read-only, evidence-aware EVM wallet analytics. No wallet connection or signature required.
+      - navigation "Wallet analytics topics" [ref=f6e12]:
+        - link "Methodology" [ref=f6e13] [cursor=pointer]:
+          - /url: /docs
+        - link "EVM Wallet Analytics" [ref=f6e14] [cursor=pointer]:
+          - /url: /evm-wallet-analytics
+        - link "Crypto Wallet Risk Checker" [ref=f6e15] [cursor=pointer]:
+          - /url: /crypto-wallet-risk-checker
+        - link "Token Approval Checker" [ref=f6e16] [cursor=pointer]:
+          - /url: /token-approval-checker
+        - link "Sybil Wallet Analysis" [ref=f6e17] [cursor=pointer]:
+          - /url: /sybil-wallet-analysis
+        - link "Multi-Chain Wallet Forensics" [ref=f6e18] [cursor=pointer]:
+          - /url: /multi-chain-wallet-forensics
+  - alert [ref=f6e19]

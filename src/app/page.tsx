@@ -14,6 +14,7 @@ import DemoSnapshotNotice from '@/components/DemoSnapshotNotice';
 import { getIndexingStatus, shouldShowDemoSnapshotNotice } from '@/lib/indexingStatus';
 import SiteHeader from '@/components/SiteHeader';
 import LoadedScanSummary from '@/components/LoadedScanSummary';
+import { CLUSTER_SAMPLE_ADDRESSES, CLUSTER_SAMPLE_SNAPSHOT } from '@/lib/clusterDemoSnapshot';
 
 const Dashboard = dynamic(() => import('@/components/Dashboard'), {
   loading: () => (
@@ -45,6 +46,7 @@ export default function Home() {
     singleChainIds,
     activeDemoSnapshot,
     clusterResult,
+    activeClusterSnapshot,
     isLoading,
     progress,
     progressPercent,
@@ -54,13 +56,16 @@ export default function Home() {
     setShowGuide,
     handleSingleScan,
     handleDemoSnapshot,
-    handleClusterScan
+    handleClusterScan,
+    handleClusterDemoSnapshot,
+    handleClusterInputChange,
   } = useWalletScanner();
   const [isScanEditorOpen, setIsScanEditorOpen] = React.useState(false);
 
   const indexingStatus = getIndexingStatus({
     scanMode,
     activeDemoSnapshot: Boolean(activeDemoSnapshot),
+    activeClusterSnapshot: Boolean(activeClusterSnapshot),
     singleStatus: singleResult?.status ?? null,
     clusterStatus: clusterResult?.status ?? null,
     hasError: Boolean(error),
@@ -126,10 +131,10 @@ export default function Home() {
             <span>Multi-chain behavioral forensics</span>
           </div>
           <h1 id="main-hero-title" className="text-2xl sm:text-4xl md:text-5xl font-black text-[#0a0a0a] tracking-tight leading-tight font-sans text-balance">
-            See the complete story behind any crypto wallet
+            Investigate observable activity across supported EVM networks
           </h1>
           <p className="text-sm sm:text-base text-[#4b5563] font-medium leading-relaxed max-w-2xl mx-auto text-pretty">
-            Analyze on-chain behavior, map capital flows, resolve verified social identities, and audit security risks across four major blockchains.
+            Review observable on-chain behavior, capital flows, available public identities, and security signals across Ethereum, Base, Arbitrum, and Optimism.
           </p>
         </section>
       )}
@@ -183,27 +188,24 @@ export default function Home() {
         </div>
 
         {/* Input Views */}
-        {scanMode !== 'single' && (
-          <div id="scan-mode-single-panel" role="tabpanel" aria-labelledby="scan-mode-single-tab" hidden />
-        )}
-        {scanMode !== 'cluster' && (
-          <div id="scan-mode-cluster-panel" role="tabpanel" aria-labelledby="scan-mode-cluster-tab" hidden />
-        )}
-        {scanMode === 'single' ? (
-          !showGuide && singleResult && !isLoading && !isScanEditorOpen ? (
+        <div
+          id="scan-mode-single-panel"
+          role="tabpanel"
+          aria-labelledby="scan-mode-single-tab"
+          hidden={scanMode !== 'single'}
+          className="space-y-2"
+        >
+          {!showGuide && singleResult && !isLoading && !isScanEditorOpen ? (
             <LoadedScanSummary
               address={currentAddress || singleResult.address}
               chainIds={singleChainIds}
               evidenceMode={indexingStatus}
+              data={singleResult}
+              isLoading={isLoading}
+              onRefresh={() => void handleSingleScan(currentAddress || singleResult.address, singleChainIds, { forceRefresh: true })}
               onEdit={() => setIsScanEditorOpen(true)}
             />
           ) : (
-          <div
-            id="scan-mode-single-panel"
-            role="tabpanel"
-            aria-labelledby="scan-mode-single-tab"
-            className="space-y-2"
-          >
             <WalletInput
               key={`${currentAddress || 'wallet-input'}-${singleChainIds.join('-')}`}
               onScan={handleSingleScanFromForm}
@@ -211,20 +213,23 @@ export default function Home() {
               initialAddress={currentAddress}
               initialChainIds={singleChainIds}
             />
-          </div>
-          )
-        ) : (
-          <div
-            id="scan-mode-cluster-panel"
-            role="tabpanel"
-            aria-labelledby="scan-mode-cluster-tab"
-          >
+          )}
+        </div>
+        <div
+          id="scan-mode-cluster-panel"
+          role="tabpanel"
+          aria-labelledby="scan-mode-cluster-tab"
+          hidden={scanMode !== 'cluster'}
+        >
+          {scanMode === 'cluster' && (
             <BulkScanInput
               onScanCluster={handleClusterScan}
+              onLoadSavedClusterSnapshot={handleClusterDemoSnapshot}
+              onClusterInputChange={handleClusterInputChange}
               isLoading={isLoading}
             />
-          </div>
-        )}
+          )}
+        </div>
       </section>
 
       {/* Loading Progress Bar */}
@@ -238,7 +243,7 @@ export default function Home() {
 
       {/* Error Alert */}
       {error && (
-        <div role="alert" className="card-3d border-l-4 border-l-[#ef4444] p-4 text-xs font-bold text-[#ef4444]">
+        <div role="alert" className="card-3d border-l-4 border-l-[#ef4444] p-4 text-xs font-bold !text-[#991b1b]">
           {error}
         </div>
       )}
@@ -274,6 +279,8 @@ export default function Home() {
             <BulkDashboard
               data={clusterResult}
               onInspectWallet={handleInspectFromCluster}
+              snapshotGeneratedAt={activeClusterSnapshot?.generatedAt}
+              onRunFreshScan={() => void handleClusterScan([...CLUSTER_SAMPLE_ADDRESSES], [...CLUSTER_SAMPLE_SNAPSHOT.chainIds])}
             />
           )}
         </>

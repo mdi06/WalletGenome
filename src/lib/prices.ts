@@ -1,5 +1,6 @@
 import { STABLECOINS } from './chains';
 import { MemoryCache, getDomainLimiter } from './cache';
+import { abortableDelay, linkAbortSignal, throwIfAborted } from './cancellation';
 import { DataAvailabilityStatus, DataAvailabilityError, PriceQuote } from './types';
 
 // In-memory LRU price caches with TTL to prevent memory leaks and OOM crashes
@@ -141,7 +142,11 @@ function buildHistoricalPriceRanges(timestamps: number[]): HistoricalPriceRange[
   return ranges;
 }
 
-async function fetchDefiLlamaCurrentPrices(coingeckoIds: string[]): Promise<boolean> {
+async function fetchDefiLlamaCurrentPrices(
+  coingeckoIds: string[],
+  signal?: AbortSignal,
+): Promise<boolean> {
+  throwIfAborted(signal);
   const validIds = coingeckoIds.filter(id => id && !STABLE_IDS.has(id.toLowerCase()));
   if (validIds.length === 0) return true;
 
@@ -149,22 +154,22 @@ async function fetchDefiLlamaCurrentPrices(coingeckoIds: string[]): Promise<bool
   if (unresolvedIds.length === 0) return true;
 
   const limiter = getDomainLimiter('coins.llama.fi', 5);
-  const hasToken = await limiter.acquire(2000);
+  const hasToken = await limiter.acquire(2000, signal);
   if (!hasToken) return false;
 
   const coinsParam = unresolvedIds.map(id => `coingecko:${id}`).join(',');
+  const linked = linkAbortSignal(signal);
+  const timeoutId = setTimeout(() => linked.controller.abort(), 3500);
   try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 3500);
-
     const res = await fetch(`https://coins.llama.fi/prices/current/${coinsParam}`, {
       headers: { 'Accept': 'application/json' },
-      signal: controller.signal,
+      signal: linked.signal,
     });
-    clearTimeout(timeoutId);
+    throwIfAborted(signal);
 
     if (res.ok) {
       const data = await res.json();
+      throwIfAborted(signal);
       if (data?.coins) {
         for (const [key, coinData] of Object.entries<Record<string, unknown>>(data.coins)) {
           const id = key.replace('coingecko:', '');
@@ -176,7 +181,11 @@ async function fetchDefiLlamaCurrentPrices(coingeckoIds: string[]): Promise<bool
       }
     }
   } catch {
+    throwIfAborted(signal);
     // Ignore DefiLlama timeout gracefully
+  } finally {
+    clearTimeout(timeoutId);
+    linked.dispose();
   }
 
   return validIds.every(id => currentPriceCache.has(id));
@@ -184,28 +193,33 @@ async function fetchDefiLlamaCurrentPrices(coingeckoIds: string[]): Promise<bool
 
 async function fetchDefiLlamaHistoricalPrices(
   requestsByToken: Map<string, number[]>,
+  signal?: AbortSignal,
 ): Promise<void> {
+  throwIfAborted(signal);
   const batches = buildDefiLlamaHistoricalBatches(requestsByToken);
   if (batches.length === 0) return;
 
   const limiter = getDomainLimiter('coins.llama.fi', 5);
   for (const batch of batches) {
-    const hasToken = await limiter.acquire(3000);
+    throwIfAborted(signal);
+    const hasToken = await limiter.acquire(3000, signal);
     if (!hasToken) continue;
 
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10_000);
+    const linked = linkAbortSignal(signal);
+    const timeoutId = setTimeout(() => linked.controller.abort(), 10_000);
     try {
       const url = new URL('https://coins.llama.fi/batchHistorical');
       url.searchParams.set('coins', JSON.stringify(batch));
       url.searchParams.set('searchWidth', '12h');
       const res = await fetch(url, {
         headers: { 'Accept': 'application/json' },
-        signal: controller.signal,
+        signal: linked.signal,
       });
+      throwIfAborted(signal);
       if (!res.ok) continue;
 
       const data = await res.json() as DefiLlamaBatchHistoricalResponse;
+      throwIfAborted(signal);
       for (const [coinKey, coinData] of Object.entries(data.coins ?? {})) {
         const tokenId = coinKey.replace(/^coingecko:/, '');
         const requestedTimestamps = batch[coinKey] ?? [];
@@ -226,9 +240,11 @@ async function fetchDefiLlamaHistoricalPrices(
         }
       }
     } catch {
+      throwIfAborted(signal);
       // CoinGecko receives a small, bounded fallback opportunity below.
     } finally {
       clearTimeout(timeoutId);
+      linked.dispose();
     }
   }
 }
@@ -238,7 +254,9 @@ async function prefetchTokenPrices(
   timestamps: number[],
   apiKey?: string,
   maxRanges = Number.POSITIVE_INFINITY,
+  signal?: AbortSignal,
 ): Promise<boolean> {
+  throwIfAborted(signal);
   if (!coingeckoId) return false;
   const lower = coingeckoId.toLowerCase();
   if (STABLE_IDS.has(lower)) {
@@ -255,18 +273,20 @@ async function prefetchTokenPrices(
   const maxRetries = 2;
 
   for (const range of ranges.slice(0, maxRanges)) {
+    throwIfAborted(signal);
     let rangeLoaded = false;
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
-      const hasToken = await limiter.acquire(5000);
+      throwIfAborted(signal);
+      const hasToken = await limiter.acquire(5000, signal);
       if (!hasToken) {
         if (attempt < maxRetries) {
-          await new Promise(r => setTimeout(r, 200 * Math.pow(2, attempt)));
+          await abortableDelay(200 * Math.pow(2, attempt), signal);
         }
         continue;
       }
 
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 8000);
+      const linked = linkAbortSignal(signal);
+      const timeoutId = setTimeout(() => linked.controller.abort(), 8000);
       try {
         const url = new URL(
           `https://api.coingecko.com/api/v3/coins/${encodeURIComponent(coingeckoId)}/market_chart/range`,
@@ -283,19 +303,21 @@ async function prefetchTokenPrices(
           headers['x-cg-demo-api-key'] = apiKey;
         }
 
-        const res = await fetch(url, { headers, signal: controller.signal });
+        const res = await fetch(url, { headers, signal: linked.signal });
+        throwIfAborted(signal);
         if (res.status === 429 && attempt < maxRetries) {
           const retryAfterSeconds = Number(res.headers.get('retry-after'));
           const retryDelayMs = Number.isFinite(retryAfterSeconds)
             ? Math.min(retryAfterSeconds * 1000, 5000)
             : 500 * Math.pow(2, attempt);
-          await new Promise(r => setTimeout(r, retryDelayMs));
+          await abortableDelay(retryDelayMs, signal);
           continue;
         }
 
         if (!res.ok) break;
 
         const data = await res.json();
+        throwIfAborted(signal);
         if (Array.isArray(data.prices) && data.prices.length > 0) {
           for (const [timeMs, price] of data.prices) {
             if (typeof timeMs === 'number' && typeof price === 'number') {
@@ -309,11 +331,13 @@ async function prefetchTokenPrices(
           if (rangeLoaded) break;
         }
       } catch {
+        throwIfAborted(signal);
         if (attempt < maxRetries) {
-          await new Promise(r => setTimeout(r, 200 * Math.pow(2, attempt)));
+          await abortableDelay(200 * Math.pow(2, attempt), signal);
         }
       } finally {
         clearTimeout(timeoutId);
+        linked.dispose();
       }
     }
 
@@ -376,8 +400,10 @@ export interface PriceAvailabilityResult {
 
 export async function batchFetchPrices(
   requests: Array<{ coingeckoId: string; timestamp: number }>,
-  apiKey?: string
+  apiKey?: string,
+  options: { signal?: AbortSignal } = {},
 ): Promise<PriceAvailabilityResult> {
+  throwIfAborted(options.signal);
   const requestsByToken = new Map<string, number[]>();
   for (const request of requests) {
     if (!request.coingeckoId) continue;
@@ -389,10 +415,10 @@ export async function batchFetchPrices(
   if (uniqueTokenIds.length === 0) return { status: 'complete', errors: [] };
 
   // 1. Fetch current price baseline for all tokens in one fast DefiLlama request
-  const currentPricesComplete = await fetchDefiLlamaCurrentPrices(uniqueTokenIds);
+  const currentPricesComplete = await fetchDefiLlamaCurrentPrices(uniqueTokenIds, options.signal);
 
   // 2. Resolve all required asset-days through DefiLlama's batch endpoint.
-  await fetchDefiLlamaHistoricalPrices(requestsByToken);
+  await fetchDefiLlamaHistoricalPrices(requestsByToken, options.signal);
 
   // 3. Give only the highest-impact unresolved tokens a small CoinGecko range
   // fallback. This keeps a free-tier provider failure from dominating scan time.
@@ -414,8 +440,11 @@ export async function batchFetchPrices(
       requestsByToken.get(tokenId) ?? [],
       apiKey,
       COINGECKO_FALLBACK_RANGE_LIMIT,
+      options.signal,
     )
   )));
+
+  throwIfAborted(options.signal);
 
   const requestedHistoricalStates = [...requestsByToken.entries()].flatMap(([tokenId, timestamps]) => (
     [...new Set(timestamps.map(dateKeyFromTimestamp))].map(dateKey => (

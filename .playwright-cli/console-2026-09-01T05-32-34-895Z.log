@@ -1,0 +1,4 @@
+[     311ms] [LOG] {name: FCP, value: 264, rating: good, delta: 264, entries: Array(1)} @ http://127.0.0.1:3011/_next/static/chunks/app/layout-5aa3be0a0c7d327c.js:0
+[     312ms] [LOG] {name: TTFB, value: 107.19999998807907, rating: good, delta: 107.19999998807907, entries: Array(1)} @ http://127.0.0.1:3011/_next/static/chunks/app/layout-5aa3be0a0c7d327c.js:0
+[   17786ms] [LOG] {name: LCP, value: 264, rating: good, delta: 264, entries: Array(1)} @ http://127.0.0.1:3011/_next/static/chunks/app/layout-5aa3be0a0c7d327c.js:0
+[   17788ms] [LOG] {name: FID, value: 6.699999988079071, rating: good, delta: 6.699999988079071, entries: Array(1)} @ http://127.0.0.1:3011/_next/static/chunks/app/layout-5aa3be0a0c7d327c.js:0

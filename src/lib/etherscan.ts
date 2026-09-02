@@ -8,6 +8,7 @@ import {
 import { isCEXAddress, getAddressLabel } from './labels';
 import { getDomainLimiter } from './cache';
 import { getLatestBlockNumber } from './rpc';
+import { abortableDelay, linkAbortSignal, throwIfAborted } from './cancellation';
 
 // Open Blockscout REST endpoints
 const BLOCKSCOUT_APIS: Record<number, string> = {
@@ -127,17 +128,20 @@ function isEmptyResult(data: unknown): boolean {
   );
 }
 
-async function fetchWithTimeout(url: string, timeoutMs = 5000): Promise<Response> {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+async function fetchWithTimeout(url: string, timeoutMs = 5000, parentSignal?: AbortSignal): Promise<Response> {
+  throwIfAborted(parentSignal);
+  const linked = linkAbortSignal(parentSignal);
+  const timeoutId = setTimeout(() => linked.controller.abort(), timeoutMs);
   try {
     const res = await fetch(url, {
       headers: { 'User-Agent': 'Mozilla/5.0 (compatible; WalletGenome/2.0)' },
-      signal: controller.signal,
+      signal: linked.signal,
     });
+    throwIfAborted(parentSignal);
     return res;
   } finally {
     clearTimeout(timeoutId);
+    linked.dispose();
   }
 }
 
@@ -232,7 +236,7 @@ function errorCodeFor(error: unknown): ProviderErrorCode {
 }
 
 interface ExplorerFetchOptions {
-  fetcher?: (url: string, timeoutMs: number) => Promise<Response>;
+  fetcher?: (url: string, timeoutMs: number, signal?: AbortSignal) => Promise<Response>;
   maxAttempts?: number;
   backoffBaseMs?: number;
   backoffJitterMs?: number;
@@ -243,7 +247,12 @@ interface ExplorerFetchOptions {
   rangeConcurrency?: number;
   requestTimeoutMs?: number;
   maxDurationMs?: number;
+  signal?: AbortSignal;
 }
+
+type ResolvedExplorerPageOptions = Required<Pick<ExplorerFetchOptions,
+  'fetcher' | 'maxAttempts' | 'backoffBaseMs' | 'backoffJitterMs' | 'requestTimeoutMs'>>
+  & Pick<ExplorerFetchOptions, 'signal'>;
 
 interface SuccessfulPage<T> {
   kind: 'success';
@@ -256,9 +265,8 @@ interface FailedPage {
 
 type ExplorerPageResult<T> = SuccessfulPage<T> | FailedPage;
 
-function sleep(ms: number): Promise<void> {
-  if (ms <= 0) return Promise.resolve();
-  return new Promise(resolve => setTimeout(resolve, ms));
+function sleep(ms: number, signal?: AbortSignal): Promise<void> {
+  return abortableDelay(ms, signal);
 }
 
 function computeBackoffDelayMs(
@@ -321,7 +329,7 @@ async function fetchExplorerPage<T>(
   candidateUrl: string,
   page: number,
   offset: number,
-  options: Required<Pick<ExplorerFetchOptions, 'fetcher' | 'maxAttempts' | 'backoffBaseMs' | 'backoffJitterMs' | 'requestTimeoutMs'>>,
+  options: ResolvedExplorerPageOptions,
   errors: DataSourceResult<T>['errors'],
 ): Promise<ExplorerPageResult<T>> {
   let hostname = 'api.etherscan.io';
@@ -336,32 +344,35 @@ async function fetchExplorerPage<T>(
 
   for (let attempt = 1; attempt <= options.maxAttempts; attempt++) {
     try {
-      const acquired = await limiter.acquire(acquireTimeoutMs);
+      throwIfAborted(options.signal);
+      const acquired = await limiter.acquire(acquireTimeoutMs, options.signal);
       if (!acquired) {
         errors.push({ code: 'rate_limited', message: `${hostname} could not schedule the request within the provider budget.` });
         if (attempt < options.maxAttempts) {
-          await sleep(computeBackoffDelayMs(attempt, null, options.backoffBaseMs, options.backoffJitterMs));
+          await sleep(computeBackoffDelayMs(attempt, null, options.backoffBaseMs, options.backoffJitterMs), options.signal);
           continue;
         }
         return { kind: 'failure' };
       }
 
-      const res = await options.fetcher(pageUrl, options.requestTimeoutMs);
+      const res = await options.fetcher(pageUrl, options.requestTimeoutMs, options.signal);
+      throwIfAborted(options.signal);
       if (!res.ok) {
         const code = res.status === 429 ? 'rate_limited' : 'http_error';
         errors.push({ code, message: `${hostname} returned HTTP ${res.status} on page ${page}.` });
         if (attempt < options.maxAttempts && (res.status === 429 || res.status >= 500)) {
-          await sleep(computeBackoffDelayMs(attempt, res, options.backoffBaseMs, options.backoffJitterMs));
+          await sleep(computeBackoffDelayMs(attempt, res, options.backoffBaseMs, options.backoffJitterMs), options.signal);
           continue;
         }
         return { kind: 'failure' };
       }
 
       const data: unknown = await res.json().catch(() => null);
+      throwIfAborted(options.signal);
       if (!data) {
         errors.push({ code: 'invalid_response', message: `${hostname} returned invalid JSON on page ${page}.` });
         if (attempt < options.maxAttempts) {
-          await sleep(computeBackoffDelayMs(attempt, res, options.backoffBaseMs, options.backoffJitterMs));
+          await sleep(computeBackoffDelayMs(attempt, res, options.backoffBaseMs, options.backoffJitterMs), options.signal);
           continue;
         }
         return { kind: 'failure' };
@@ -381,7 +392,7 @@ async function fetchExplorerPage<T>(
       if (isRateLimitResponse(data)) {
         errors.push({ code: 'rate_limited', message: `${hostname} rate-limited page ${page}.` });
         if (attempt < options.maxAttempts) {
-          await sleep(computeBackoffDelayMs(attempt, res, options.backoffBaseMs, options.backoffJitterMs));
+          await sleep(computeBackoffDelayMs(attempt, res, options.backoffBaseMs, options.backoffJitterMs), options.signal);
           continue;
         }
         return { kind: 'failure' };
@@ -395,9 +406,10 @@ async function fetchExplorerPage<T>(
       errors.push({ code: 'invalid_response', message: `${hostname} returned an unrecognized response on page ${page}.` });
       return { kind: 'failure' };
     } catch (error) {
+      throwIfAborted(options.signal);
       errors.push({ code: errorCodeFor(error), message: `${hostname} could not complete page ${page}.` });
       if (attempt < options.maxAttempts) {
-        await sleep(computeBackoffDelayMs(attempt, null, options.backoffBaseMs, options.backoffJitterMs));
+          await sleep(computeBackoffDelayMs(attempt, null, options.backoffBaseMs, options.backoffJitterMs), options.signal);
         continue;
       }
       return { kind: 'failure' };
@@ -459,7 +471,8 @@ async function fetchProviderByBlockRange<T>(
   resultLimit: number,
   endBlock: number,
   options: Required<Pick<ExplorerFetchOptions,
-    'fetcher' | 'maxAttempts' | 'backoffBaseMs' | 'backoffJitterMs' | 'maxPages' | 'maxRangeRequests' | 'rangeConcurrency' | 'requestTimeoutMs'>>,
+    'fetcher' | 'maxAttempts' | 'backoffBaseMs' | 'backoffJitterMs' | 'maxPages' | 'maxRangeRequests' | 'rangeConcurrency' | 'requestTimeoutMs'>>
+    & Pick<ExplorerFetchOptions, 'signal'>,
   errors: DataSourceResult<T>['errors'],
   deadlineAt: number,
 ): Promise<RangeFetchResult<T>> {
@@ -505,6 +518,7 @@ async function fetchProviderByBlockRange<T>(
     rangeEndBlock: number,
     allowInitialFanout = false,
   ): Promise<RangeFetchResult<T>> => {
+    throwIfAborted(options.signal);
     if (Date.now() >= deadlineAt) {
       errors.push({
         code: 'result_truncated',
@@ -568,8 +582,10 @@ async function fetchProviderByBlockRange<T>(
         const results = new Array<RangeFetchResult<T>>(ranges.length);
         let nextRange = 0;
         const worker = async (): Promise<void> => {
-          while (nextRange < ranges.length) {
+          while (true) {
+            throwIfAborted(options.signal);
             const index = nextRange++;
+            if (index >= ranges.length) return;
             results[index] = await fetchRange(ranges[index].start, ranges[index].end, false);
           }
         };
@@ -610,6 +626,7 @@ export async function fetchExplorerData<T>(
   resultLimit: number,
   options: ExplorerFetchOptions = {},
 ): Promise<DataSourceResult<T>> {
+  throwIfAborted(options.signal);
   if (urls.length === 0) {
     return {
       data: [],
@@ -628,10 +645,19 @@ export async function fetchExplorerData<T>(
   const rangeConcurrency = options.rangeConcurrency ?? 4;
   const requestTimeoutMs = options.requestTimeoutMs ?? 12_000;
   const deadlineAt = Date.now() + (options.maxDurationMs ?? 200_000);
+  const pageOptions = {
+    fetcher,
+    maxAttempts,
+    backoffBaseMs,
+    backoffJitterMs,
+    requestTimeoutMs,
+    signal: options.signal,
+  };
   let bestPartialData: T[] = [];
   let bestPartialErrors: DataSourceResult<T>['errors'] = [];
 
   for (const url of urls) {
+    throwIfAborted(options.signal);
     const providerErrorsStart = errors.length;
 
     if (Date.now() >= deadlineAt) {
@@ -648,7 +674,7 @@ export async function fetchExplorerData<T>(
         url,
         rangeResultLimit,
         options.endBlock ?? 999_999_999,
-        { fetcher, maxAttempts, backoffBaseMs, backoffJitterMs, maxPages, maxRangeRequests, rangeConcurrency, requestTimeoutMs },
+        { ...pageOptions, maxPages, maxRangeRequests, rangeConcurrency },
         errors,
         deadlineAt,
       );
@@ -671,6 +697,7 @@ export async function fetchExplorerData<T>(
     let providerFailed = false;
 
     for (let page = 1; page <= maxPages && !providerFailed && !exhausted; page++) {
+      throwIfAborted(options.signal);
       if (Date.now() >= deadlineAt) {
         errors.push({
           code: 'result_truncated',
@@ -683,7 +710,7 @@ export async function fetchExplorerData<T>(
         url,
         page,
         resultLimit,
-        { fetcher, maxAttempts, backoffBaseMs, backoffJitterMs, requestTimeoutMs },
+        pageOptions,
         errors,
       );
 
@@ -767,7 +794,7 @@ export async function fetchNormalTransactions(
   options: ExplorerFetchOptions = {},
 ): Promise<DataSourceResult<EtherscanTransaction>> {
   const urls = buildCandidateUrls(address, chainId, 'txlist', apiKey);
-  const endBlock = options.endBlock ?? await getLatestBlockNumber(chainId) ?? 999_999_999;
+  const endBlock = options.endBlock ?? await getLatestBlockNumber(chainId, { signal: options.signal }) ?? 999_999_999;
   return await fetchExplorerData<EtherscanTransaction>(urls, offset, {
     ...options,
     endBlock,
@@ -783,7 +810,7 @@ export async function fetchTokenTransfers(
   options: ExplorerFetchOptions = {},
 ): Promise<DataSourceResult<EtherscanTokenTransfer>> {
   const urls = buildCandidateUrls(address, chainId, 'tokentx', apiKey);
-  const endBlock = options.endBlock ?? await getLatestBlockNumber(chainId) ?? 999_999_999;
+  const endBlock = options.endBlock ?? await getLatestBlockNumber(chainId, { signal: options.signal }) ?? 999_999_999;
   return await fetchExplorerData<EtherscanTokenTransfer>(urls, offset, {
     ...options,
     endBlock,
@@ -799,7 +826,7 @@ export async function fetchInternalTransactions(
   options: ExplorerFetchOptions = {},
 ): Promise<DataSourceResult<EtherscanInternalTransaction>> {
   const urls = buildCandidateUrls(address, chainId, 'txlistinternal', apiKey);
-  const endBlock = options.endBlock ?? await getLatestBlockNumber(chainId) ?? 999_999_999;
+  const endBlock = options.endBlock ?? await getLatestBlockNumber(chainId, { signal: options.signal }) ?? 999_999_999;
   return await fetchExplorerData<EtherscanInternalTransaction>(urls, offset, {
     ...options,
     endBlock,

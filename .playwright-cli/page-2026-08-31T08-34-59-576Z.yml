@@ -1,0 +1,76 @@
+- generic [active] [ref=f4e1]:
+  - main [ref=f4e2]:
+    - generic [ref=f4e3]:
+      - generic [ref=f4e4]:
+        - button "Open WalletGenome guide" [ref=f4e5] [cursor=pointer]:
+          - generic [ref=f4e6]: WALLET.GENOME
+        - button "Open navigation" [ref=f4e7] [cursor=pointer]
+      - 'status "Indexing status: Scanning" [ref=f4e10]':
+        - generic [ref=f4e12]: Scanning
+    - region "Wallet Forensics Console" [ref=f4e13]:
+      - tablist "Forensics Scan Mode" [ref=f4e14]:
+        - tab "Single wallet" [selected] [ref=f4e15] [cursor=pointer]
+        - tab "Cluster scan" [ref=f4e20] [cursor=pointer]
+      - tabpanel "Single wallet" [ref=f4e26]:
+        - generic [ref=f4e28]:
+          - generic [ref=f4e29]:
+            - generic [ref=f4e33]: Enter EVM address (0x...) or ENS name (vitalik.eth)
+            - textbox "EVM address or ENS domain" [disabled] [ref=f4e34]:
+              - /placeholder: Enter EVM address (0x...) or ENS name (vitalik.eth)
+              - text: "0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045"
+          - group "Select target EVM networks" [ref=f4e35]:
+            - button "Toggle Ethereum network" [disabled] [pressed] [ref=f4e36] [cursor=pointer]:
+              - generic [ref=f4e38]: ETH
+            - button "Toggle Base network" [disabled] [pressed] [ref=f4e39] [cursor=pointer]:
+              - generic [ref=f4e41]: BASE
+            - button "Toggle Arbitrum network" [disabled] [pressed] [ref=f4e42] [cursor=pointer]:
+              - generic [ref=f4e44]: ARB
+            - button "Toggle Optimism network" [disabled] [pressed] [ref=f4e45] [cursor=pointer]:
+              - generic [ref=f4e47]: OP
+            - button "Scan wallet address" [disabled] [ref=f4e48] [cursor=pointer]:
+              - generic [ref=f4e51]: SCANNING...
+    - generic [ref=f4e52]:
+      - generic [ref=f4e53]:
+        - generic [ref=f4e70]:
+          - generic [ref=f4e71]: ACTIVE MULTI-CHAIN PIPELINE
+          - status [ref=f4e74]: Loading saved demo snapshot for Vitalik Buterin...
+        - generic [ref=f4e75]: PROVIDER SYNC ACTIVE
+      - generic [ref=f4e81]:
+        - progressbar "Wallet scan progress" [ref=f4e82]
+        - generic [ref=f4e84]:
+          - generic [ref=f4e85]: INDEXING WALLET HISTORY
+          - generic [ref=f4e86]: Live updates active
+      - generic [ref=f4e87]:
+        - generic [ref=f4e88]: "TARGET NETWORKS:"
+        - generic [ref=f4e89]:
+          - generic [ref=f4e90]:
+            - generic [ref=f4e92]: Ethereum
+            - generic [ref=f4e93]: scanning
+          - generic [ref=f4e94]:
+            - generic [ref=f4e96]: Base
+            - generic [ref=f4e97]: scanning
+          - generic [ref=f4e98]:
+            - generic [ref=f4e100]: Arbitrum
+            - generic [ref=f4e101]: scanning
+          - generic [ref=f4e102]:
+            - generic [ref=f4e104]: Optimism
+            - generic [ref=f4e105]: scanning
+  - contentinfo [ref=f4e106]:
+    - generic [ref=f4e107]:
+      - generic [ref=f4e108]:
+        - paragraph [ref=f4e109]: WalletGenome
+        - paragraph [ref=f4e110]: Read-only, evidence-aware EVM wallet analytics. No wallet connection or signature required.
+      - navigation "Wallet analytics topics" [ref=f4e111]:
+        - link "Methodology" [ref=f4e112] [cursor=pointer]:
+          - /url: /docs
+        - link "EVM Wallet Analytics" [ref=f4e113] [cursor=pointer]:
+          - /url: /evm-wallet-analytics
+        - link "Crypto Wallet Risk Checker" [ref=f4e114] [cursor=pointer]:
+          - /url: /crypto-wallet-risk-checker
+        - link "Token Approval Checker" [ref=f4e115] [cursor=pointer]:
+          - /url: /token-approval-checker
+        - link "Sybil Wallet Analysis" [ref=f4e116] [cursor=pointer]:
+          - /url: /sybil-wallet-analysis
+        - link "Multi-Chain Wallet Forensics" [ref=f4e117] [cursor=pointer]:
+          - /url: /multi-chain-wallet-forensics
+  - alert [ref=f4e118]

@@ -1,6 +1,7 @@
 import { WalletIdentityReport, SocialLinkItem, DomainIdentityItem } from '../types';
 import { identityCache, getDomainLimiter } from '../cache';
 import { PERSISTENCE_POLICY } from '../persistencePolicy';
+import { linkAbortSignal, throwIfAborted } from '../cancellation';
 
 interface Web3BioProfile {
   platform: string;
@@ -20,7 +21,11 @@ function sanitizeHttpUrl(rawUrl?: string | null): string | null {
   return null;
 }
 
-export async function resolveWalletIdentity(address: string): Promise<WalletIdentityReport> {
+export async function resolveWalletIdentity(
+  address: string,
+  signal?: AbortSignal,
+): Promise<WalletIdentityReport> {
+  throwIfAborted(signal);
   const lower = (address || '').toLowerCase();
   if (!lower || !lower.startsWith('0x')) {
     return getEmptyReport();
@@ -29,27 +34,30 @@ export async function resolveWalletIdentity(address: string): Promise<WalletIden
   // Check LRU in-memory identity cache
   const cachedReport = identityCache.get(lower);
   if (cachedReport) {
+    throwIfAborted(signal);
     return cachedReport;
   }
 
   // Respect API rate limits with Token Bucket
   const limiter = getDomainLimiter('api.web3.bio', 5);
-  await limiter.acquire(2000);
+  await limiter.acquire(2000, signal);
 
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 3500);
+  const linked = linkAbortSignal(signal);
+  const timeoutId = setTimeout(() => linked.controller.abort(), 3500);
 
   try {
     const res = await fetch(`https://api.web3.bio/profile/${lower}`, {
-      signal: controller.signal,
+      signal: linked.signal,
       headers: { 'User-Agent': 'Wallet-Analytics-Identity/1.0' },
     });
+    throwIfAborted(signal);
 
     if (!res.ok) {
       return getEmptyReport();
     }
 
     const profiles: Web3BioProfile[] = await res.json();
+    throwIfAborted(signal);
     if (!Array.isArray(profiles) || profiles.length === 0) {
       const empty = getEmptyReport();
       identityCache.set(lower, empty, PERSISTENCE_POLICY.caches.emptyIdentityTtlSeconds);
@@ -176,9 +184,11 @@ export async function resolveWalletIdentity(address: string): Promise<WalletIden
     identityCache.set(lower, report, PERSISTENCE_POLICY.caches.identityTtlSeconds);
     return report;
   } catch {
+    throwIfAborted(signal);
     return getEmptyReport();
   } finally {
     clearTimeout(timeoutId);
+    linked.dispose();
   }
 }
 

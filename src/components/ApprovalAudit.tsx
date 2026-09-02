@@ -33,7 +33,7 @@ export default function ApprovalAudit({ results }: Props) {
     { value: 'low', label: 'Low risk' },
   ];
 
-  const allApprovals = useMemo(() => results.flatMap(result => (
+  const observedApprovals = useMemo(() => results.flatMap(result => (
     result.approvalSummary?.activeApprovals?.map(approval => ({
       ...approval,
       chainName: result.chainName,
@@ -41,14 +41,14 @@ export default function ApprovalAudit({ results }: Props) {
   )), [results]);
 
   const chainOptions = useMemo(() => (
-    [...new Map(allApprovals.map(approval => [approval.chainId, approval.chainName])).entries()]
+    [...new Map(observedApprovals.map(approval => [approval.chainId, approval.chainName])).entries()]
       .sort((a, b) => a[1].localeCompare(b[1]))
-  ), [allApprovals]);
+  ), [observedApprovals]);
 
   const filteredApprovals = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase();
 
-    return allApprovals.filter(approval => {
+    return observedApprovals.filter(approval => {
       if (riskFilter !== 'all' && approval.riskLevel !== riskFilter) return false;
       if (chainFilter !== 'all' && approval.chainId !== chainFilter) return false;
       if (!normalizedQuery) return true;
@@ -62,7 +62,7 @@ export default function ApprovalAudit({ results }: Props) {
         approval.chainName,
       ].some(value => value.toLowerCase().includes(normalizedQuery));
     });
-  }, [allApprovals, chainFilter, riskFilter, searchQuery]);
+  }, [observedApprovals, chainFilter, riskFilter, searchQuery]);
 
   const pageCount = Math.max(1, Math.ceil(filteredApprovals.length / APPROVALS_PAGE_SIZE));
   const currentPage = Math.min(page, pageCount);
@@ -105,9 +105,9 @@ export default function ApprovalAudit({ results }: Props) {
     ...chainOptions.map(([chainId, chainName]) => ({ value: chainId, label: chainName })),
   ];
 
-  const totalApprovals = allApprovals.length;
-  const highRisk = allApprovals.filter(a => a.riskLevel === 'high').length;
-  const unlimited = allApprovals.filter(a => a.isUnlimited).length;
+  const totalApprovals = observedApprovals.length;
+  const highRisk = observedApprovals.filter(a => a.riskLevel === 'high').length;
+  const unlimited = observedApprovals.filter(a => a.isUnlimited).length;
   const exposureComplete = results.every(result => result.approvalSummary.exposureStatus === 'complete');
   const totalExposureUSD = exposureComplete
     ? results.reduce((sum, result) => sum + (result.approvalSummary.totalExposureUSD ?? 0), 0)
@@ -125,19 +125,21 @@ export default function ApprovalAudit({ results }: Props) {
           <div className="text-[10px] text-[#6b7280]">Balance-capped; see per-row provenance.</div>
         </div>
         <div className="min-w-0 space-y-1 border-b border-[#c8c8c8] px-3 py-3 text-[#0a0a0a] sm:px-5 sm:py-4 lg:border-b-0 lg:border-r">
-          <div className="break-words text-[10px] font-extrabold leading-tight tracking-wider text-[#4b5563] uppercase sm:text-[11px]">TOTAL ACTIVE PERMISSIONS</div>
+          <div className="break-words text-[10px] font-extrabold leading-tight tracking-wider text-[#4b5563] uppercase sm:text-[11px]">OBSERVED APPROVALS</div>
           <div className="text-2xl font-black text-[#0a0a0a] font-mono sm:text-3xl">{totalApprovals}</div>
+          <div className="text-[10px] text-[#6b7280]">Latest observed state in returned history.</div>
         </div>
 
         <div className="min-w-0 space-y-1 border-r border-[#c8c8c8] px-3 py-3 text-[#0a0a0a] sm:px-5 sm:py-4 lg:border-r">
-          <div className="break-words text-[10px] font-extrabold leading-tight tracking-wider text-[#4b5563] uppercase sm:text-[11px]">HIGH-RISK SPENDERS</div>
+          <div className="break-words text-[10px] font-extrabold leading-tight tracking-wider text-[#4b5563] uppercase sm:text-[11px]">HIGH-RISK APPROVALS</div>
           <div className="text-2xl font-black text-[#dc2626] font-mono sm:text-3xl">{highRisk}</div>
-          <div className="text-[10px] text-[#6b7280]">Count, not USD exposure.</div>
+          <div className="text-[10px] text-[#6b7280]">Observed approval rows; not unique spenders.</div>
         </div>
 
         <div className="min-w-0 space-y-1 px-3 py-3 text-[#0a0a0a] sm:px-5 sm:py-4">
-          <div className="break-words text-[10px] font-extrabold leading-tight tracking-wider text-[#4b5563] uppercase sm:text-[11px]">UNLIMITED ALLOWANCES</div>
+          <div className="break-words text-[10px] font-extrabold leading-tight tracking-wider text-[#4b5563] uppercase sm:text-[11px]">UNLIMITED APPROVALS</div>
           <div className="text-2xl font-black text-orange-ink font-mono sm:text-3xl">{unlimited}</div>
+          <div className="text-[10px] text-[#6b7280]">Observed rows with an unlimited decoded value.</div>
         </div>
       </div>
 
@@ -230,7 +232,7 @@ export default function ApprovalAudit({ results }: Props) {
               <th className="py-3 px-4">TOKEN</th>
               <th className="py-3 px-4">CHAIN</th>
               <th className="py-3 px-4">SPENDER DAPP</th>
-              <th className="py-3 px-4">ALLOWANCE</th>
+              <th className="py-3 px-4">OBSERVED ALLOWANCE</th>
               <th className="py-3 px-4">EST. EXPOSURE</th>
               <th className="py-3 px-4">RISK LEVEL</th>
               <th className="py-3 px-4">LAST UPDATED</th>

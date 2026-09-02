@@ -1,0 +1,776 @@
+- generic [active] [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e3]:
+      - link "WalletGenome home" [ref=e5] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e6]: WALLET.GENOME
+      - navigation "Primary navigation" [ref=e9]:
+        - link "Scanner" [ref=e10] [cursor=pointer]:
+          - /url: /
+        - link "Docs / methodology" [ref=e15] [cursor=pointer]:
+          - /url: /docs
+    - status [ref=e19]
+    - generic [ref=e20]:
+      - generic [ref=e21]: Engineering Documentation & Algorithmic Methodology
+      - heading "How WalletGenome Computes On-Chain Intelligence" [level=1] [ref=e25]
+      - paragraph [ref=e26]: A clear breakdown of the core algorithms, data pipelines, and security checks powering WalletGenome's on-chain analysis.
+      - paragraph [ref=e27]: "The scanner currently examines observable public activity on four supported EVM networks: Ethereum, Base, Arbitrum, and Optimism. Provider gaps remain explicitly partial or unavailable in the report."
+      - link "Live scanner available — Open Live Scanner" [ref=e28] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e32]: Open Live Scanner
+      - generic [ref=e33]:
+        - generic [ref=e34]: Filter documentation topics
+        - textbox "Filter documentation topics" [ref=e39]:
+          - /placeholder: Filter by title, category, or component path
+        - status [ref=e41]: 11 documentation topics
+    - generic [ref=e42]:
+      - complementary [ref=e43]:
+        - region "TABLE OF CONTENTS" [ref=e44]:
+          - generic [ref=e45]:
+            - generic [ref=e46]: TABLE OF CONTENTS
+            - generic [ref=e51]: 11 TOPICS
+          - generic [ref=e52]:
+            - link "Reporting Metric Definitions 0. API Specifications" [ref=e53] [cursor=pointer]:
+              - /url: "#reporting-contract"
+              - generic [ref=e54]: Reporting Metric Definitions
+              - generic [ref=e58]: 0. API Specifications
+            - link "Multi-Chain Pipeline & Rate-Resilient Data Gateway 1. Architecture & Ingestion" [ref=e59] [cursor=pointer]:
+              - /url: "#pipeline-architecture"
+              - generic [ref=e60]: Multi-Chain Pipeline & Rate-Resilient Data Gateway
+              - generic [ref=e66]: 1. Architecture & Ingestion
+            - link "Calldata Decoding & Transaction Categorization Engine 2. Normalization & Gas" [ref=e67] [cursor=pointer]:
+              - /url: "#calldata-categorization"
+              - generic [ref=e68]: Calldata Decoding & Transaction Categorization Engine
+              - generic [ref=e74]: 2. Normalization & Gas
+            - link "6-Dimension Behavioral Fingerprinting & Persona Modeling 3. Behavioral Forensics" [ref=e75] [cursor=pointer]:
+              - /url: "#behavioral-fingerprint"
+              - generic [ref=e76]: 6-Dimension Behavioral Fingerprinting & Persona Modeling
+              - generic [ref=e90]: 3. Behavioral Forensics
+            - link "Composite Security Risk Engine (Score 0–100 & Grades A–F) 4. Security & Auditing" [ref=e91] [cursor=pointer]:
+              - /url: "#risk-score-engine"
+              - generic [ref=e92]: Composite Security Risk Engine (Score 0–100 & Grades A–F)
+              - generic [ref=e96]: 4. Security & Auditing
+            - link "Sybil Radar & Trusta AI / MEDIA Algorithmic Model 5. Sybil & Blacklist Defense" [ref=e97] [cursor=pointer]:
+              - /url: "#sybil-radar-media"
+              - generic [ref=e98]: Sybil Radar & Trusta AI / MEDIA Algorithmic Model
+              - generic [ref=e103]: 5. Sybil & Blacklist Defense
+            - link "ERC-20 Approval & Capital at Risk Exposure Engine 6. Token Allowances" [ref=e104] [cursor=pointer]:
+              - /url: "#approvals-exposure-audit"
+              - generic [ref=e105]: ERC-20 Approval & Capital at Risk Exposure Engine
+              - generic [ref=e110]: 6. Token Allowances
+            - link "24×7 Temporal Matrix & Continuous Streak Engine 7. Cadence & Streaks" [ref=e111] [cursor=pointer]:
+              - /url: "#temporal-activity-heatmap"
+              - generic [ref=e112]: 24×7 Temporal Matrix & Continuous Streak Engine
+              - generic [ref=e116]: 7. Cadence & Streaks
+            - link "Capital Flow Topology & Cluster Linkage Matrix 8. Network Topologies" [ref=e117] [cursor=pointer]:
+              - /url: "#capital-cluster-topologies"
+              - generic [ref=e118]: Capital Flow Topology & Cluster Linkage Matrix
+              - generic [ref=e125]: 8. Network Topologies
+            - link "Decentralized Identity & Platform Priority Hierarchy 9. Social Graph" [ref=e126] [cursor=pointer]:
+              - /url: "#decentralized-identity"
+              - generic [ref=e127]: Decentralized Identity & Platform Priority Hierarchy
+              - generic [ref=e133]: 9. Social Graph
+            - link "Algorithmic Complexity & Execution Guarantees 10. Technical Specifications" [ref=e134] [cursor=pointer]:
+              - /url: "#complexity-matrix"
+              - generic [ref=e135]: Algorithmic Complexity & Execution Guarantees
+              - generic [ref=e140]: 10. Technical Specifications
+        - region "KEY COMPUTATION STATS" [ref=e141]:
+          - generic [ref=e146]:
+            - generic [ref=e147]:
+              - generic [ref=e148]: CHAINS
+              - generic [ref=e149]: 4 supported EVM networks
+            - generic [ref=e150]:
+              - generic [ref=e151]: SYBIL CACHE
+              - generic [ref=e152]: ~800K entries (illustrative)
+            - generic [ref=e153]:
+              - generic [ref=e154]: LOOKUP TIME
+              - generic [ref=e155]: ~0.01 ms (illustrative)
+            - generic [ref=e156]:
+              - generic [ref=e157]: SCORING AXES
+              - generic [ref=e158]: 6 Dimensions
+      - generic [ref=e159]:
+        - generic [ref=e160]:
+          - generic [ref=e161]:
+            - generic [ref=e162]:
+              - text: SECTION 01 · DATA PIPELINE
+              - heading "Multi-Chain Pipeline & Rate-Resilient Data Gateway" [level=2] [ref=e163]
+            - button "Copy anchor link" [ref=e164] [cursor=pointer]
+          - paragraph [ref=e168]:
+            - text: We use a
+            - strong [ref=e169]: dual-gateway system
+            - text: and caching to bypass block explorer rate limits, ensuring fast and reliable data retrieval.
+          - generic [ref=e170]:
+            - generic [ref=e171]: DUAL-GATEWAY FAILOVER WORKFLOW
+            - generic [ref=e176]: "Client Request (Single or Cluster Batch) │ ▼ ┌─────────────────────────────────────────────────────────────┐ │ Priority 1: Open Blockscout REST APIs (Zero-Auth, Fast) │ │ eth.blockscout.com / base.blockscout.com │ │ arbitrum.blockscout.com / optimism.blockscout │ └──────────────────────────────┬──────────────────────────────┘ │ (If failed or rate-limited) ▼ ┌─────────────────────────────────────────────────────────────┐ │ Priority 2: Etherscan V2 Multi-Chain Gateway │ │ api.etherscan.io/v2/api?chainid=... │ └──────────────────────────────┬──────────────────────────────┘ │ ▼ ┌─────────────────────────────────────────────────────────────┐ │ Parallel Enrichment Pipeline: │ │ • Daily Price + Explicit Spot-Estimate Provenance │ │ • Anti-Spoofing Verified Contract Mapping │ │ • Web3.bio Identity Graph Resolution (Async non-blocking) │ └─────────────────────────────────────────────────────────────┘"
+          - generic [ref=e177]:
+            - generic [ref=e178]:
+              - generic [ref=e179]: Concurrency
+              - paragraph [ref=e180]: Historical asset-days are deduplicated and sent through DefiLlama batch requests. CoinGecko receives only a small bounded fallback workload. Provider failures remain explicit partial or unavailable results.
+            - generic [ref=e181]:
+              - generic [ref=e182]: Anti-Spoofing
+              - paragraph [ref=e183]: Contract allowlists and known symbols limit pricing inputs. Every calculated USD value carries historical, spot-estimate, stablecoin-assumption, or unpriced provenance.
+        - generic [ref=e184]:
+          - generic [ref=e185]:
+            - generic [ref=e186]:
+              - text: SECTION 02 · NORMALIZATION & GAS
+              - heading "Calldata Decoding & Transaction Categorization Engine" [level=2] [ref=e187]
+            - button "Copy anchor link" [ref=e188] [cursor=pointer]
+          - paragraph [ref=e192]: Transactions are decoded and categorized into distinct semantic types using their method signatures and contract registries.
+          - table [ref=e194]:
+            - rowgroup [ref=e195]:
+              - row [ref=e196]:
+                - columnheader "Category" [ref=e197]
+                - columnheader "Method IDs / Heuristic Signatures" [ref=e198]
+                - columnheader "Classification Rules" [ref=e199]
+            - rowgroup [ref=e200]:
+              - row [ref=e201]:
+                - cell "approval" [ref=e202]
+                - cell [ref=e203]:
+                  - code [ref=e204]: "0x095ea7b3"
+                  - text: ","
+                  - code [ref=e205]: approve()
+                - cell "ERC-20 token allowance approvals to DEXs, bridges, or custom spenders." [ref=e206]
+              - row [ref=e207]:
+                - cell "bridge" [ref=e208]
+                - cell [ref=e209]:
+                  - code [ref=e210]: "0xd2ce7d65"
+                  - text: ","
+                  - code [ref=e211]: "0xe9e05c42"
+                  - text: ","
+                  - code [ref=e212]: "0x0f5287e0"
+                - cell "Cross-chain bridging via Arbitrum Gateway, Optimism Portal, Across, Stargate, or Polygon." [ref=e213]
+              - row [ref=e214]:
+                - cell "swap" [ref=e215]
+                - cell [ref=e216]:
+                  - code [ref=e217]: exactInput
+                  - text: ","
+                  - code [ref=e218]: multicall
+                  - text: ","
+                  - code [ref=e219]: execute
+                - cell "DEX trading across Uniswap, Sushiswap, Curve, Balancer, or 1inch routers." [ref=e220]
+              - row [ref=e221]:
+                - cell "lending" [ref=e222]
+                - cell [ref=e223]:
+                  - code [ref=e224]: supply
+                  - text: ","
+                  - code [ref=e225]: borrow
+                  - text: ","
+                  - code [ref=e226]: repay
+                - cell "Money market operations on Aave, Compound, MakerDAO, or Morpho." [ref=e227]
+              - row [ref=e228]:
+                - cell "staking" [ref=e229]
+                - cell [ref=e230]:
+                  - code [ref=e231]: stake
+                  - text: ","
+                  - code [ref=e232]: unstake
+                  - text: ","
+                  - code [ref=e233]: delegate
+                - cell "Liquid staking / delegation across Lido, Rocket Pool, or native validators." [ref=e234]
+              - row [ref=e235]:
+                - cell "nft" [ref=e236]
+                - cell [ref=e237]:
+                  - code [ref=e238]: mint
+                  - text: ","
+                  - code [ref=e239]: safeTransferFrom
+                - cell "ERC-721 / ERC-1155 minting and marketplace trading on OpenSea, Blur, etc." [ref=e240]
+              - row [ref=e241]:
+                - cell "transfer" [ref=e242]
+                - cell [ref=e243]:
+                  - code [ref=e244]: input === '0x'
+                - cell "Pure native ETH / BNB value transfer between EOA accounts." [ref=e245]
+          - generic [ref=e246]:
+            - generic [ref=e247]: GAS & LIFETIME FEE VALUATION FORMULA
+            - generic [ref=e252]:
+              - generic [ref=e253]: Gas Cost (ETH) = (gasUsed × gasPrice) / 10^18
+              - generic [ref=e254]: Gas Cost (USD) = Gas Cost (Native) × Price(t, provenance)
+            - paragraph [ref=e255]: Timestamp-matched daily prices are requested in DefiLlama batches, with bounded CoinGecko ranges as fallback. Missing daily prices remain unavailable or are explicitly marked as current-price estimates; they never appear as exact historical values.
+        - generic [ref=e256]:
+          - generic [ref=e257]:
+            - generic [ref=e258]:
+              - text: SECTION 03 · BEHAVIORAL FORENSICS
+              - heading "6-Dimension Behavioral Fingerprinting & Persona Modeling" [level=2] [ref=e259]
+            - button "Copy anchor link" [ref=e260] [cursor=pointer]
+          - paragraph [ref=e264]: Wallets are analyzed across 6 behavioral dimensions, each scored from 0 to 100.
+          - generic [ref=e265]:
+            - generic [ref=e266]:
+              - generic [ref=e267]:
+                - generic [ref=e268]: 1. DeFi Diversity
+                - generic [ref=e269]: 0–100 PTS
+              - paragraph [ref=e270]: Measures breadth of smart contracts and distinct protocols used.
+            - generic [ref=e271]:
+              - generic [ref=e272]:
+                - generic [ref=e273]: 2. Activity Intensity
+                - generic [ref=e274]: 0–100 PTS
+              - paragraph [ref=e275]: Evaluates transaction execution frequency.
+            - generic [ref=e276]:
+              - generic [ref=e277]:
+                - generic [ref=e278]: 3. Capital Efficiency
+                - generic [ref=e279]: 0–100 PTS
+              - paragraph [ref=e280]: Ratio of transferred economic value to gas fees consumed.
+            - generic [ref=e281]:
+              - generic [ref=e282]:
+                - generic [ref=e283]: 4. Risk Appetite
+                - generic [ref=e284]: 0–100 PTS
+              - paragraph [ref=e285]: Measures tolerance for unverified contracts and failed transactions.
+            - generic [ref=e286]:
+              - generic [ref=e287]:
+                - generic [ref=e288]: 5. Maturity
+                - generic [ref=e289]: 0–100 PTS
+              - paragraph [ref=e290]: Longevity from first transaction combined with active consistency.
+            - generic [ref=e291]:
+              - generic [ref=e292]:
+                - generic [ref=e293]: 6. Network Breadth
+                - generic [ref=e294]: 0–100 PTS
+              - paragraph [ref=e295]: Diversity of peers across native transactions and token transfers.
+          - generic [ref=e296]:
+            - generic [ref=e297]: AUTOMATED PERSONA CLASSIFICATION DECISION TREE
+            - generic [ref=e301]:
+              - generic [ref=e302]:
+                - strong [ref=e303]: "DeFi Power User:"
+                - code [ref=e304]: UniqueContracts > 50
+                - text: OR
+                - code [ref=e305]: DeFi Diversity > 60
+                - text: . Multi-year on-chain presence with broad multi-protocol routing.
+              - generic [ref=e306]:
+                - strong [ref=e307]: "Active Trader:"
+                - code [ref=e308]: SwapCount > 40% of Txs
+                - text: AND
+                - code [ref=e309]: Activity > 50
+                - text: . High-frequency DEX rotation.
+              - generic [ref=e310]:
+                - strong [ref=e311]: "NFT Collector:"
+                - code [ref=e312]: NFTCount > 30% of Txs
+                - text: . Heavy minting, marketplace trading, and collection transfers.
+              - generic [ref=e313]:
+                - strong [ref=e314]: "Bridge Heavy:"
+                - code [ref=e315]: BridgeCount > 20% of Txs
+                - text: . High cross-chain asset mobility across L1s/L2s.
+              - generic [ref=e316]:
+                - strong [ref=e317]: "Airdrop Farmer:"
+                - code [ref=e318]: Activity > 40
+                - text: AND
+                - code [ref=e319]: UniqueContracts < 10
+                - text: AND
+                - code [ref=e320]: Maturity < 12 mo
+                - text: . Scripted repetitive interactions.
+              - generic [ref=e321]:
+                - strong [ref=e322]: "Passive Whale / Cautious Holder:"
+                - code [ref=e323]: Activity < 20
+                - text: AND
+                - code [ref=e324]: Maturity > 50
+                - text: . Long-term capital storage.
+        - generic [ref=e325]:
+          - generic [ref=e326]:
+            - generic [ref=e327]:
+              - text: SECTION 04 · SECURITY & AUDITING
+              - heading "Composite Security Risk Engine (Score 0–100 & Grades A–F)" [level=2] [ref=e328]
+            - button "Copy anchor link" [ref=e329] [cursor=pointer]
+          - paragraph [ref=e333]:
+            - text: The risk engine scores vulnerabilities from
+            - strong [ref=e334]: 0 (Safe) to 100 (Critical)
+            - text: ", mapping them to security grades A through F based on key risk factors."
+          - table [ref=e336]:
+            - rowgroup [ref=e337]:
+              - row [ref=e338]:
+                - columnheader "Risk Factor" [ref=e339]
+                - columnheader "Max Weight" [ref=e340]
+                - columnheader "Calculation Formula" [ref=e341]
+                - columnheader "Severity" [ref=e342]
+            - rowgroup [ref=e343]:
+              - row [ref=e344]:
+                - cell "1. High-Risk Unlimited Approvals" [ref=e345]
+                - cell "40 pts" [ref=e346]
+                - cell "min(40, HighRiskApprovals × 15)" [ref=e347]
+                - cell "Critical" [ref=e348]
+              - row [ref=e349]:
+                - cell "1b. Known-Contract Unlimited Approvals" [ref=e350]
+                - cell "20 pts" [ref=e351]
+                - cell "min(20, UnlimitedCount × 3) if no high-risk approvals and UnlimitedCount > 3" [ref=e352]
+                - cell "Warning" [ref=e353]
+              - row [ref=e354]:
+                - cell "2. Failed Transaction Ratio" [ref=e355]
+                - cell "25 pts" [ref=e356]
+                - cell "min(25, round(FailedRatio × 120)) if FailedRatio > 5%" [ref=e357]
+                - cell "Warning" [ref=e358]
+              - row [ref=e359]:
+                - cell "3. Stale Approvals (>6 Months)" [ref=e360]
+                - cell "15 pts" [ref=e361]
+                - cell "min(15, StaleCount × 3) if StaleCount > 2" [ref=e362]
+                - cell "Warning" [ref=e363]
+              - row [ref=e364]:
+                - cell "4. Unidentified Contract Ratio" [ref=e365]
+                - cell "10 pts" [ref=e366]
+                - cell "min(10, round(UnknownRatio × 20)) if UnknownRatio > 30% and UnknownCount > 5" [ref=e367]
+                - cell "Info" [ref=e368]
+          - generic [ref=e369]:
+            - generic [ref=e370]:
+              - generic [ref=e371]: GRADE A
+              - generic [ref=e372]: Score 0–15
+            - generic [ref=e373]:
+              - generic [ref=e374]: GRADE B
+              - generic [ref=e375]: Score 16–30
+            - generic [ref=e376]:
+              - generic [ref=e377]: GRADE C
+              - generic [ref=e378]: Score 31–50
+            - generic [ref=e379]:
+              - generic [ref=e380]: GRADE D
+              - generic [ref=e381]: Score 51–70
+            - generic [ref=e382]:
+              - generic [ref=e383]: GRADE F
+              - generic [ref=e384]: Score 71–100
+        - generic [ref=e385]:
+          - generic [ref=e386]:
+            - generic [ref=e387]:
+              - text: SECTION 05 · SYBIL & BLACKLIST DEFENSE
+              - heading "Sybil Radar & Trusta AI / MEDIA Algorithmic Model" [level=2] [ref=e388]
+            - button "Copy anchor link" [ref=e389] [cursor=pointer]
+          - paragraph [ref=e393]: Sybil defense checks an illustrative 800K+ blacklist-cache scale and uses the Trusta AI MEDIA model to identify bot-like behavior. A positive non-behavioral blacklist match overrides the overall clean/organic headline; the MEDIA probability remains a separate secondary heuristic.
+          - generic [ref=e394]:
+            - generic [ref=e395]:
+              - generic [ref=e396]:
+                - generic [ref=e397]: 1. LayerZero Sybil Database
+                - generic [ref=e398]: ~800K+ ADDR · illustrative
+              - paragraph [ref=e399]: Official community bounty hunter reports and algorithmic script execution loops.
+            - generic [ref=e400]:
+              - generic [ref=e401]:
+                - generic [ref=e402]: 2. Hop Protocol Sybil Defense
+                - generic [ref=e403]: GRAPH DEFENSE
+              - paragraph [ref=e404]: Graph analysis flagging co-funded multi-sig parent roots.
+            - generic [ref=e405]:
+              - generic [ref=e406]:
+                - generic [ref=e407]: 3. Umbra Privacy Mixer Clusters
+                - generic [ref=e408]: STEALTH POOLS
+              - paragraph [ref=e409]: Identified stealth address routing clusters.
+            - generic [ref=e410]:
+              - generic [ref=e411]:
+                - generic [ref=e412]: 4. US Treasury OFAC SDN
+                - generic [ref=e413]: SANCTIONED
+              - paragraph [ref=e414]: Specially Designated Nationals registry.
+          - generic [ref=e415]:
+            - generic [ref=e416]: TRUSTA AI / MEDIA COMPOSITE FORMULATION
+            - generic [ref=e421]:
+              - generic [ref=e422]: MEDIA Composite Score = (0.25 × M) + (0.25 × E) + (0.20 × D) + (0.15 × I) + (0.15 × A)
+              - generic [ref=e423]: Sybil Probability P(Sybil) = 100 - MEDIA Composite Score
+            - generic [ref=e424]:
+              - generic [ref=e425]:
+                - strong [ref=e426]: "M (Monetary):"
+                - text: 25% weight. Volume tiers ($100 to $50k+) + gas burned bonus.
+              - generic [ref=e427]:
+                - strong [ref=e428]: "E (Engagement):"
+                - text: 25% weight. Active months + bot burstiness penalty (>90% txs in <48h).
+              - generic [ref=e429]:
+                - strong [ref=e430]: "D (Diversity):"
+                - text: 20% weight. Unique smart contract depth + multi-category breadth.
+              - generic [ref=e431]:
+                - strong [ref=e432]: "I (Identity):"
+                - text: 15% weight. Multi-chain footprint (1 to 5 chains) + counterparty diversity.
+              - generic [ref=e433]:
+                - strong [ref=e434]: "A (Age):"
+                - text: 15% weight. Lifespan maturity from genesis block (30d to 365d+).
+        - generic [ref=e435]:
+          - generic [ref=e436]:
+            - generic [ref=e437]:
+              - text: SECTION 06 · TOKEN ALLOWANCES
+              - heading "ERC-20 Approval & Capital at Risk Exposure Engine" [level=2] [ref=e438]
+            - button "Copy anchor link" [ref=e439] [cursor=pointer]
+          - paragraph [ref=e443]: "WalletGenome estimates approval exposure from the latest observed non-revoked approval states reconstructed from returned ERC-20 approval transactions, reconstructed token balances, and current token prices. This is not a live allowance query: a later on-chain change may not appear in returned history. It does not treat an unknown balance or price as zero exposure."
+          - generic [ref=e444]:
+            - generic [ref=e445]: CALLDATA PARSING & BALANCE RECONSTRUCTION SPEC
+            - generic [ref=e446]:
+              - generic [ref=e447]:
+                - strong [ref=e448]: "1. Calldata Spender Extraction:"
+                - text: Byte slice
+                - code [ref=e449]: input[34:74]
+                - text: = 20-byte spender contract address.Byte slice
+                - code [ref=e450]: input[74:138]
+                - text: = 32-byte
+                - code [ref=e451]: uint256
+                - text: allowance amount.
+              - generic [ref=e452]:
+                - strong [ref=e453]: "2. Allowance Classification:"
+                - text: •
+                - code [ref=e454]: "Unlimited:"
+                - text: If amount starts with
+                - code [ref=e455]: ffff...
+                - text: or equals $2^256-1$.•
+                - code [ref=e456]: "Revoked:"
+                - text: If amount equals
+                - code [ref=e457]: "0x0"
+                - text: .•
+                - code [ref=e458]: "Custom:"
+                - text: Specific finite integer allowance.
+              - generic [ref=e459]:
+                - strong [ref=e460]: "3. Net Holdings Reconstruction & Dollar Risk:"
+                - generic [ref=e461]:
+                  - generic [ref=e462]: Reconstructed Token Balance = max(0, Σ(Inbound Transfers) - Σ(Outbound Transfers))
+                  - generic [ref=e463]: Exposed Units = min(Reconstructed Balance, Finite Allowance); unlimited approvals use the reconstructed balance.
+                  - generic [ref=e464]: Estimated Exposure (USD) = Exposed Units × Unit Price (USD)
+                  - generic [ref=e465]: Unknown balance or price = unavailable. A verified zero reconstructed balance is shown separately as zero balance.
+        - generic [ref=e466]:
+          - generic [ref=e467]:
+            - generic [ref=e468]:
+              - text: SECTION 07 · CADENCE & STREAKS
+              - heading "24×7 Temporal Matrix & Continuous Streak Engine" [level=2] [ref=e469]
+            - button "Copy anchor link" [ref=e470] [cursor=pointer]
+          - paragraph [ref=e474]: Transaction times are mapped to a 24x7 matrix to identify bot patterns and timezone activity.
+          - generic [ref=e475]:
+            - generic [ref=e476]:
+              - generic [ref=e477]: 24×7 Heatmap Normalization
+              - paragraph [ref=e478]:
+                - text: "Intensity per cell (day, hour) is normalized against maximum hourly volume:"
+                - code [ref=e479]: Intensity(d, h) = Count(d, h) / max(Count)
+            - generic [ref=e480]:
+              - generic [ref=e481]: O(N) Daily Streak Algorithm
+              - paragraph [ref=e482]:
+                - text: "Calculates consecutive active transaction days by sorting calendar keys and measuring date deltas:"
+                - code [ref=e483]: DeltaDays = (Time[i] - Time[i-1]) / 86400s
+        - generic [ref=e484]:
+          - generic [ref=e485]:
+            - generic [ref=e486]:
+              - text: SECTION 08 · NETWORK TOPOLOGIES
+              - heading "Capital Flow Topology & Cluster Linkage Matrix" [level=2] [ref=e487]
+            - button "Copy anchor link" [ref=e488] [cursor=pointer]
+          - paragraph [ref=e492]: We visualize funds using Capital Flow Graphs for single addresses and Cluster Matrices for multiple wallets.
+          - generic [ref=e493]:
+            - generic [ref=e494]: Cluster evidence rule
+            - paragraph [ref=e495]: Direct links require a native, internal, or ERC-20 transfer whose source and target are both submitted wallets. Evidence is deduplicated by chain, transaction hash, direction, asset type, and asset identifier, then aggregated by source, target, and chain.
+            - paragraph [ref=e496]: Every linkage retains unique evidence hashes, transaction count, direction, last date, and USD completeness. Shared counterparties are computed from the full evidence set; only rendering is truncated.
+          - generic [ref=e497]:
+            - generic [ref=e498]: "Graph Layout Mathematics:"
+            - generic [ref=e499]:
+              - generic [ref=e500]:
+                - strong [ref=e501]: "1. Arkham 3-Column Topology:"
+                - text: "• Column 1 (X=160): Inbound funding sources & CEX withdrawals.• Column 2 (X=550): User core address.• Column 3 (X=940): Destination DeFi protocols & recipient EOAs.• Line widths: Volume-weighted stroke"
+                - code [ref=e502]: W = min(8, 1.5 + log10(USD_Volume))
+                - text: .
+              - generic [ref=e503]:
+                - strong [ref=e504]: "2. Cluster Radial Orbital Layout:"
+                - text: "• Orbital Radius:"
+                - code [ref=e505]: R = max(320, WalletCount × 24.5)
+                - text: "px.• Angle per wallet:"
+                - code [ref=e506]: theta = (2π × i / N) - π/2
+                - text: ".• Coordinates:"
+                - code [ref=e507]: X = Xc + R × cos(theta)
+                - text: ","
+                - code [ref=e508]: Y = Yc + R × sin(theta)
+                - text: .• Shared Hubs placed at gravitational center with force links.
+        - generic [ref=e509]:
+          - generic [ref=e510]:
+            - generic [ref=e511]:
+              - text: SECTION 09 · SOCIAL GRAPH
+              - heading "Decentralized Identity & Platform Priority Hierarchy" [level=2] [ref=e512]
+            - button "Copy anchor link" [ref=e513] [cursor=pointer]
+          - paragraph [ref=e517]: Web3 identities (like ENS, Farcaster) are resolved using Web3.bio, picking the most trusted handle based on our priority matrix.
+          - table [ref=e519]:
+            - rowgroup [ref=e520]:
+              - row [ref=e521]:
+                - columnheader "Platform" [ref=e522]
+                - columnheader "Priority Weight" [ref=e523]
+                - columnheader "Deep Link Resolution Format" [ref=e524]
+            - rowgroup [ref=e525]:
+              - row [ref=e526]:
+                - cell "ENS (.eth)" [ref=e527]
+                - cell "10 (Highest)" [ref=e528]
+                - cell [ref=e529]:
+                  - code [ref=e530]: "https://app.ens.domains/{name}"
+              - row [ref=e531]:
+                - cell "Farcaster (Warpcast)" [ref=e532]
+                - cell "9" [ref=e533]
+                - cell [ref=e534]:
+                  - code [ref=e535]: "https://warpcast.com/{handle}"
+              - row [ref=e536]:
+                - cell "Lens Protocol" [ref=e537]
+                - cell "8" [ref=e538]
+                - cell [ref=e539]:
+                  - code [ref=e540]: "https://hey.xyz/u/{handle}"
+              - row [ref=e541]:
+                - cell "BaseNames (.base.eth)" [ref=e542]
+                - cell "7" [ref=e543]
+                - cell [ref=e544]:
+                  - code [ref=e545]: "https://base.org/names?query={name}"
+              - row [ref=e546]:
+                - cell "Unstoppable Domains" [ref=e547]
+                - cell "6" [ref=e548]
+                - cell [ref=e549]:
+                  - code [ref=e550]: https://unstoppabledomains.com
+        - generic [ref=e551]:
+          - generic [ref=e552]:
+            - text: CANONICAL API CONTRACT
+            - heading "Reporting metric definitions" [level=2] [ref=e553]
+          - paragraph [ref=e554]:
+            - text: "In plain language:"
+            - link "flow fields" [ref=e555] [cursor=pointer]:
+              - /url: "#metric-inflowUSD"
+            - text: describe value that entered or left,
+            - link "risk fields" [ref=e556] [cursor=pointer]:
+              - /url: "#metric-riskScore"
+            - text: describe a heuristic rather than a loss probability, and
+            - link "approval exposure" [ref=e557] [cursor=pointer]:
+              - /url: "#metric-approvalExposureUSD"
+            - text: estimates value covered by the latest observed approvals rather than a live allowance. Missing history or price inputs stay partial or unavailable instead of being guessed.
+          - paragraph [ref=e558]: These definitions are imported from the same contract used by API responses and dashboard labels. Use the stable field anchors in the table when linking to an exact definition; USD metrics are withheld when their required provider or price inputs are incomplete.
+          - region "Canonical reporting metric definitions table" [ref=e559]:
+            - table [ref=e560]:
+              - rowgroup [ref=e561]:
+                - row [ref=e562]:
+                  - columnheader "Field" [ref=e563]
+                  - columnheader "Unit / window" [ref=e564]
+                  - columnheader "Sources and rules" [ref=e565]
+                  - columnheader "Completeness / pricing" [ref=e566]
+              - rowgroup [ref=e567]:
+                - row [ref=e568]:
+                  - cell "inflowUSD Inflow" [ref=e569]:
+                    - code [ref=e570]: inflowUSD
+                    - generic [ref=e571]: Inflow
+                  - cell "USD Full history returned by the selected explorers." [ref=e572]:
+                    - generic [ref=e573]: USD
+                    - generic [ref=e574]: Full history returned by the selected explorers.
+                  - cell "Successful native, internal, and ERC-20 transfers to the scanned wallet. Includes priced inbound transfer legs; excludes failed and unpriced legs. Sum across selected chains; each transfer leg is counted once." [ref=e575]:
+                    - generic [ref=e576]: Successful native, internal, and ERC-20 transfers to the scanned wallet.
+                    - generic [ref=e577]: Includes priced inbound transfer legs; excludes failed and unpriced legs.
+                    - generic [ref=e578]: Sum across selected chains; each transfer leg is counted once.
+                  - cell "Publishes a verified subtotal when history is complete and at least one eligible leg is historically priced; otherwise unavailable. Historical or stablecoin assumption only. Spot estimates and unpriced legs are excluded and reported in capitalFlowCoverage." [ref=e579]:
+                    - generic [ref=e580]: Publishes a verified subtotal when history is complete and at least one eligible leg is historically priced; otherwise unavailable.
+                    - generic [ref=e581]: Historical or stablecoin assumption only. Spot estimates and unpriced legs are excluded and reported in capitalFlowCoverage.
+                - row [ref=e582]:
+                  - cell "outflowUSD Outflow" [ref=e583]:
+                    - code [ref=e584]: outflowUSD
+                    - generic [ref=e585]: Outflow
+                  - cell "USD Full history returned by the selected explorers." [ref=e586]:
+                    - generic [ref=e587]: USD
+                    - generic [ref=e588]: Full history returned by the selected explorers.
+                  - cell "Successful native, internal, and ERC-20 transfers from the scanned wallet. Includes priced outbound transfer legs; excludes failed and unpriced legs. Sum across selected chains; each transfer leg is counted once." [ref=e589]:
+                    - generic [ref=e590]: Successful native, internal, and ERC-20 transfers from the scanned wallet.
+                    - generic [ref=e591]: Includes priced outbound transfer legs; excludes failed and unpriced legs.
+                    - generic [ref=e592]: Sum across selected chains; each transfer leg is counted once.
+                  - cell "Publishes a verified subtotal when history is complete and at least one eligible leg is historically priced; otherwise unavailable. Historical or stablecoin assumption only. Spot estimates and unpriced legs are excluded and reported in capitalFlowCoverage." [ref=e593]:
+                    - generic [ref=e594]: Publishes a verified subtotal when history is complete and at least one eligible leg is historically priced; otherwise unavailable.
+                    - generic [ref=e595]: Historical or stablecoin assumption only. Spot estimates and unpriced legs are excluded and reported in capitalFlowCoverage.
+                - row [ref=e596]:
+                  - cell "netFlowUSD Net flow" [ref=e597]:
+                    - code [ref=e598]: netFlowUSD
+                    - generic [ref=e599]: Net flow
+                  - cell "USD Same window as inflowUSD and outflowUSD." [ref=e600]:
+                    - generic [ref=e601]: USD
+                    - generic [ref=e602]: Same window as inflowUSD and outflowUSD.
+                  - cell "Canonical inflowUSD and outflowUSD fields. No additional records are introduced. inflowUSD minus outflowUSD." [ref=e603]:
+                    - generic [ref=e604]: Canonical inflowUSD and outflowUSD fields.
+                    - generic [ref=e605]: No additional records are introduced.
+                    - generic [ref=e606]: inflowUSD minus outflowUSD.
+                  - cell "Available when both verified flow subtotals are available; inherits their partial coverage status. Combined provenance of the inflow and outflow inputs." [ref=e607]:
+                    - generic [ref=e608]: Available when both verified flow subtotals are available; inherits their partial coverage status.
+                    - generic [ref=e609]: Combined provenance of the inflow and outflow inputs.
+                - row [ref=e610]:
+                  - cell "grossVolumeUSD Gross transfer volume" [ref=e611]:
+                    - code [ref=e612]: grossVolumeUSD
+                    - generic [ref=e613]: Gross transfer volume
+                  - cell "USD Same window as inflowUSD and outflowUSD." [ref=e614]:
+                    - generic [ref=e615]: USD
+                    - generic [ref=e616]: Same window as inflowUSD and outflowUSD.
+                  - cell "Canonical inflowUSD and outflowUSD fields. Counts both directions; it is not net flow or portfolio value. inflowUSD plus outflowUSD." [ref=e617]:
+                    - generic [ref=e618]: Canonical inflowUSD and outflowUSD fields.
+                    - generic [ref=e619]: Counts both directions; it is not net flow or portfolio value.
+                    - generic [ref=e620]: inflowUSD plus outflowUSD.
+                  - cell "Available when both verified flow subtotals are available; inherits their partial coverage status. Combined provenance of the inflow and outflow inputs." [ref=e621]:
+                    - generic [ref=e622]: Available when both verified flow subtotals are available; inherits their partial coverage status.
+                    - generic [ref=e623]: Combined provenance of the inflow and outflow inputs.
+                - row [ref=e624]:
+                  - cell "protocolVolumeUSD Protocol interaction volume" [ref=e625]:
+                    - code [ref=e626]: protocolVolumeUSD
+                    - generic [ref=e627]: Protocol interaction volume
+                  - cell "USD Full history returned by the selected explorers." [ref=e628]:
+                    - generic [ref=e629]: USD
+                    - generic [ref=e630]: Full history returned by the selected explorers.
+                  - cell "Priced transfer legs correlated to recognized protocol transactions and contracts. Excludes unpriced legs and ordinary counterparty transfers. Sum by protocol contract and chain, then across chains without removing chain provenance." [ref=e631]:
+                    - generic [ref=e632]: Priced transfer legs correlated to recognized protocol transactions and contracts.
+                    - generic [ref=e633]: Excludes unpriced legs and ordinary counterparty transfers.
+                    - generic [ref=e634]: Sum by protocol contract and chain, then across chains without removing chain provenance.
+                  - cell "Unavailable unless transaction, transfer, and price inputs are complete. Combined provenance of attributed protocol transfer legs." [ref=e635]:
+                    - generic [ref=e636]: Unavailable unless transaction, transfer, and price inputs are complete.
+                    - generic [ref=e637]: Combined provenance of attributed protocol transfer legs.
+                - row [ref=e638]:
+                  - cell "approvalExposureUSD Estimated approval exposure" [ref=e639]:
+                    - code [ref=e640]: approvalExposureUSD
+                    - generic [ref=e641]: Estimated approval exposure
+                  - cell "USD Latest observed approval state in returned history." [ref=e642]:
+                    - generic [ref=e643]: USD
+                    - generic [ref=e644]: Latest observed approval state in returned history.
+                  - cell "Latest non-revoked observed ERC-20 approvals, reconstructed token balances, and current token prices. Includes priced positive balances for latest non-revoked observed approvals; revoked, zero-balance, and unpriced exposure are not converted to zero proof. Sum of per-approval estimated exposure across selected chains." [ref=e645]:
+                    - generic [ref=e646]: Latest non-revoked observed ERC-20 approvals, reconstructed token balances, and current token prices.
+                    - generic [ref=e647]: Includes priced positive balances for latest non-revoked observed approvals; revoked, zero-balance, and unpriced exposure are not converted to zero proof.
+                    - generic [ref=e648]: Sum of per-approval estimated exposure across selected chains.
+                  - cell "Unavailable when any latest non-revoked observed approval balance or required price is unknown. Current spot quote, stablecoin assumption, or unpriced when no current quote is available." [ref=e649]:
+                    - generic [ref=e650]: Unavailable when any latest non-revoked observed approval balance or required price is unknown.
+                    - generic [ref=e651]: Current spot quote, stablecoin assumption, or unpriced when no current quote is available.
+                - row [ref=e652]:
+                  - cell "riskScore Worst-chain risk score" [ref=e653]:
+                    - code [ref=e654]: riskScore
+                    - generic [ref=e655]: Worst-chain risk score
+                  - cell "score_0_100 Full history returned by the selected explorers." [ref=e656]:
+                    - generic [ref=e657]: score_0_100
+                    - generic [ref=e658]: Full history returned by the selected explorers.
+                  - cell "The documented approval, failure, stale-approval, and unknown-contract factors. Higher is riskier; this is a heuristic, not a loss probability. Maximum chain risk score across selected chains." [ref=e659]:
+                    - generic [ref=e660]: The documented approval, failure, stale-approval, and unknown-contract factors.
+                    - generic [ref=e661]: Higher is riskier; this is a heuristic, not a loss probability.
+                    - generic [ref=e662]: Maximum chain risk score across selected chains.
+                  - cell "Unavailable when wallet history is incomplete. Not applicable." [ref=e663]:
+                    - generic [ref=e664]: Unavailable when wallet history is incomplete.
+                    - generic [ref=e665]: Not applicable.
+                - row [ref=e666]:
+                  - cell "riskGrade Worst-chain risk grade" [ref=e667]:
+                    - code [ref=e668]: riskGrade
+                    - generic [ref=e669]: Worst-chain risk grade
+                  - cell "grade Same window as riskScore." [ref=e670]:
+                    - generic [ref=e671]: grade
+                    - generic [ref=e672]: Same window as riskScore.
+                  - cell "Canonical riskScore. Grades A, B, C, D, and F map to documented score thresholds. Grade derived from the maximum chain risk score." [ref=e673]:
+                    - generic [ref=e674]: Canonical riskScore.
+                    - generic [ref=e675]: Grades A, B, C, D, and F map to documented score thresholds.
+                    - generic [ref=e676]: Grade derived from the maximum chain risk score.
+                  - cell "Unavailable when wallet history is incomplete. Not applicable." [ref=e677]:
+                    - generic [ref=e678]: Unavailable when wallet history is incomplete.
+                    - generic [ref=e679]: Not applicable.
+                - row [ref=e680]:
+                  - cell "sybilProbability Behavioral Sybil probability" [ref=e681]:
+                    - code [ref=e682]: sybilProbability
+                    - generic [ref=e683]: Behavioral Sybil probability
+                  - cell "probability_percent Full returned cross-chain behavior history." [ref=e684]:
+                    - generic [ref=e685]: probability_percent
+                    - generic [ref=e686]: Full returned cross-chain behavior history.
+                  - cell "MEDIA behavioral dimensions; blacklist matches are reported separately. A heuristic behavioral score, not a blacklist verdict. Computed once from the combined selected-chain dataset." [ref=e687]:
+                    - generic [ref=e688]: MEDIA behavioral dimensions; blacklist matches are reported separately.
+                    - generic [ref=e689]: A heuristic behavioral score, not a blacklist verdict.
+                    - generic [ref=e690]: Computed once from the combined selected-chain dataset.
+                  - cell "Unavailable when wallet history or the behavioral report is incomplete. When historical prices are incomplete, the monetary dimension is omitted and the remaining behavioral dimensions are reweighted." [ref=e691]:
+                    - generic [ref=e692]: Unavailable when wallet history or the behavioral report is incomplete.
+                    - generic [ref=e693]: When historical prices are incomplete, the monetary dimension is omitted and the remaining behavioral dimensions are reweighted.
+                - row [ref=e694]:
+                  - cell "blacklistStatus Blacklist status" [ref=e695]:
+                    - code [ref=e696]: blacklistStatus
+                    - generic [ref=e697]: Blacklist status
+                  - cell "status Latest blacklist snapshots checked for the scan." [ref=e698]:
+                    - generic [ref=e699]: status
+                    - generic [ref=e700]: Latest blacklist snapshots checked for the scan.
+                  - cell "Configured external and bundled blacklist datasets; excludes the Trusta behavioral heuristic. Flagged when any non-behavioral blacklist source positively matches. flagged overrides clear; unavailable when checks did not complete." [ref=e701]:
+                    - generic [ref=e702]: Configured external and bundled blacklist datasets; excludes the Trusta behavioral heuristic.
+                    - generic [ref=e703]: Flagged when any non-behavioral blacklist source positively matches.
+                    - generic [ref=e704]: flagged overrides clear; unavailable when checks did not complete.
+                  - cell "Unavailable when the Sybil/blacklist report is absent. Not applicable." [ref=e705]:
+                    - generic [ref=e706]: Unavailable when the Sybil/blacklist report is absent.
+                    - generic [ref=e707]: Not applicable.
+                - row [ref=e708]:
+                  - cell "activeDays Active days" [ref=e709]:
+                    - code [ref=e710]: activeDays
+                    - generic [ref=e711]: Active days
+                  - cell "days Full transaction history returned by selected explorers." [ref=e712]:
+                    - generic [ref=e713]: days
+                    - generic [ref=e714]: Full transaction history returned by selected explorers.
+                  - cell "Successful and failed normal transactions with valid timestamps. A UTC calendar date counts once even when activity occurs on multiple chains. Cardinality of the union of UTC activity dates." [ref=e715]:
+                    - generic [ref=e716]: Successful and failed normal transactions with valid timestamps.
+                    - generic [ref=e717]: A UTC calendar date counts once even when activity occurs on multiple chains.
+                    - generic [ref=e718]: Cardinality of the union of UTC activity dates.
+                  - cell "Unavailable unless transaction history is complete. Not applicable." [ref=e719]:
+                    - generic [ref=e720]: Unavailable unless transaction history is complete.
+                    - generic [ref=e721]: Not applicable.
+                - row [ref=e722]:
+                  - cell "longestStreakDays Longest activity streak" [ref=e723]:
+                    - code [ref=e724]: longestStreakDays
+                    - generic [ref=e725]: Longest activity streak
+                  - cell "days Full transaction history returned by selected explorers." [ref=e726]:
+                    - generic [ref=e727]: days
+                    - generic [ref=e728]: Full transaction history returned by selected explorers.
+                  - cell "The union of UTC activity dates across selected chains. Consecutive UTC calendar dates; same-day cross-chain activity counts once. Longest consecutive run in the sorted date union." [ref=e729]:
+                    - generic [ref=e730]: The union of UTC activity dates across selected chains.
+                    - generic [ref=e731]: Consecutive UTC calendar dates; same-day cross-chain activity counts once.
+                    - generic [ref=e732]: Longest consecutive run in the sorted date union.
+                  - cell "Unavailable unless transaction history is complete. Not applicable." [ref=e733]:
+                    - generic [ref=e734]: Unavailable unless transaction history is complete.
+                    - generic [ref=e735]: Not applicable.
+                - row [ref=e736]:
+                  - cell "totalUnlimitedApprovals Unlimited approvals" [ref=e737]:
+                    - code [ref=e738]: totalUnlimitedApprovals
+                    - generic [ref=e739]: Unlimited approvals
+                  - cell "count Latest observed approval state in returned history." [ref=e740]:
+                    - generic [ref=e741]: count
+                    - generic [ref=e742]: Latest observed approval state in returned history.
+                  - cell "Decoded ERC-20 approval transactions. Counts unlimited approvals in the latest observed state; observed revoked states are excluded. Sum across selected chains." [ref=e743]:
+                    - generic [ref=e744]: Decoded ERC-20 approval transactions.
+                    - generic [ref=e745]: Counts unlimited approvals in the latest observed state; observed revoked states are excluded.
+                    - generic [ref=e746]: Sum across selected chains.
+                  - cell "Unavailable unless transaction history is complete. Not applicable." [ref=e747]:
+                    - generic [ref=e748]: Unavailable unless transaction history is complete.
+                    - generic [ref=e749]: Not applicable.
+        - generic [ref=e750]:
+          - generic [ref=e751]:
+            - generic [ref=e752]:
+              - text: SECTION 10 · TECHNICAL SPECIFICATIONS
+              - heading "Algorithmic Complexity & Execution Guarantees" [level=2] [ref=e753]
+            - button "Copy anchor link" [ref=e754] [cursor=pointer]
+          - paragraph [ref=e758]: Algorithmic complexity and cache policies. The cache-size and timing figures are illustrative, not reproducible benchmark results or production capacity guarantees.
+          - table [ref=e760]:
+            - rowgroup [ref=e761]:
+              - row [ref=e762]:
+                - columnheader "Subsystem" [ref=e763]
+                - columnheader "Time Complexity" [ref=e764]
+                - columnheader "Space Complexity" [ref=e765]
+                - columnheader "Execution Layer" [ref=e766]
+                - columnheader "Cache Policy" [ref=e767]
+            - rowgroup [ref=e768]:
+              - row [ref=e769]:
+                - cell "Sybil Blacklist Check" [ref=e770]
+                - cell "O(1) lookup" [ref=e771]
+                - cell "O(M) in-memory set (~800K entries, illustrative)" [ref=e772]
+                - cell "Server Memory" [ref=e773]
+                - cell "24h Global TTL" [ref=e774]
+              - row [ref=e775]:
+                - cell "Behavioral Fingerprint" [ref=e776]
+                - cell "O(N) transactions" [ref=e777]
+                - cell "O(U) unique contracts" [ref=e778]
+                - cell "Server / Client" [ref=e779]
+                - cell "Session / Per-Scan" [ref=e780]
+              - row [ref=e781]:
+                - cell "Risk Scoring Engine" [ref=e782]
+                - cell "O(A + G + D) summary" [ref=e783]
+                - cell "O(F) factor list" [ref=e784]
+                - cell "Server / Client" [ref=e785]
+                - cell "Instant Compute" [ref=e786]
+              - row [ref=e787]:
+                - cell "Cluster Linkage Graph" [ref=e788]
+                - cell "O(W × C) pair analysis" [ref=e789]
+                - cell "O(W + L) nodes & links" [ref=e790]
+                - cell "Server Route" [ref=e791]
+                - cell "Per-Batch Run" [ref=e792]
+              - row [ref=e793]:
+                - cell "Daily Price OHLC Feed" [ref=e794]
+                - cell "O(1) cache read" [ref=e795]
+                - cell "O(K) token day pairs" [ref=e796]
+                - cell "Server Memory" [ref=e797]
+                - cell "Process Lifecycle" [ref=e798]
+              - row [ref=e799]:
+                - cell "Web3.bio Identity Graph" [ref=e800]
+                - cell "O(1) async HTTP" [ref=e801]
+                - cell "O(P) profile records" [ref=e802]
+                - cell "Server Gateway" [ref=e803]
+                - cell "force-cache HTTP" [ref=e804]
+          - generic [ref=e805]:
+            - link "LAUNCH FORENSICS SCANNER" [ref=e806] [cursor=pointer]:
+              - /url: /
+            - button "BACK TO TOP ↑" [ref=e810] [cursor=pointer]
+  - contentinfo [ref=e811]:
+    - generic [ref=e812]:
+      - generic [ref=e813]:
+        - paragraph [ref=e814]: WalletGenome
+        - paragraph [ref=e815]: Read-only, evidence-aware EVM wallet analytics. No wallet connection or signature required.
+      - navigation "Wallet analytics topics" [ref=e816]:
+        - link "Methodology" [ref=e817] [cursor=pointer]:
+          - /url: /docs
+        - link "EVM Wallet Analytics" [ref=e818] [cursor=pointer]:
+          - /url: /evm-wallet-analytics
+        - link "Crypto Wallet Risk Checker" [ref=e819] [cursor=pointer]:
+          - /url: /crypto-wallet-risk-checker
+        - link "Token Approval Checker" [ref=e820] [cursor=pointer]:
+          - /url: /token-approval-checker
+        - link "Sybil Wallet Analysis" [ref=e821] [cursor=pointer]:
+          - /url: /sybil-wallet-analysis
+        - link "Multi-Chain Wallet Forensics" [ref=e822] [cursor=pointer]:
+          - /url: /multi-chain-wallet-forensics

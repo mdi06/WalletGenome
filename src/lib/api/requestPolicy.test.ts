@@ -6,12 +6,14 @@ import {
   RequestPolicyError,
   acquireRequestSlot,
   enforceRequestRateLimit,
+  enforceRefreshRateLimit,
   mapWithConcurrency,
   resetRequestPolicyForTests,
   runWithTimeout,
   validateBatchRequest,
   validateScanRequest,
 } from './requestPolicy';
+import { RequestCancellationError } from '@/lib/cancellation';
 
 describe('API request policy', () => {
   it('validates supported single-scan input and rejects arbitrary fields', () => {
@@ -22,6 +24,25 @@ describe('API request policy', () => {
       address: '0x1111111111111111111111111111111111111111',
       chainIds: [1, 8453],
     });
+
+    assert.deepStrictEqual(validateScanRequest({
+      address: '0x1111111111111111111111111111111111111111',
+      chainIds: [1],
+      refresh: true,
+    }), {
+      address: '0x1111111111111111111111111111111111111111',
+      chainIds: [1],
+      refresh: true,
+    });
+
+    assert.throws(
+      () => validateScanRequest({
+        address: '0x1111111111111111111111111111111111111111',
+        chainIds: [1],
+        refresh: 'yes',
+      }),
+      (error: unknown) => error instanceof RequestPolicyError && error.code === 'invalid_refresh',
+    );
 
     assert.throws(
       () => validateScanRequest({
@@ -102,6 +123,21 @@ describe('API request policy', () => {
     resetRequestPolicyForTests();
   });
 
+  it('rate-limits forced refreshes separately from ordinary scans', async () => {
+    resetRequestPolicyForTests();
+    const request = new Request('http://localhost/api/scan', {
+      headers: { 'x-forwarded-for': '203.0.113.11' },
+    });
+    await enforceRefreshRateLimit(request);
+    await assert.rejects(
+      enforceRefreshRateLimit(request),
+      (error: unknown) => error instanceof RequestPolicyError
+        && error.status === 429
+        && error.code === 'refresh_rate_limited',
+    );
+    resetRequestPolicyForTests();
+  });
+
   it('bounds active route work until each task actually settles', () => {
     resetRequestPolicyForTests();
     const releaseBatch = acquireRequestSlot('batch');
@@ -115,11 +151,57 @@ describe('API request policy', () => {
     resetRequestPolicyForTests();
   });
 
-  it('enforces timeout and bounded mapper concurrency', async () => {
+  it('aborts timed-out work while waiting for the underlying operation to settle', async () => {
+    let workAborted = false;
+    let workSettled = false;
+    const timedWork = runWithTimeout(signal => new Promise<void>(resolve => {
+      signal.addEventListener('abort', () => {
+        workAborted = true;
+        setTimeout(() => {
+          workSettled = true;
+          resolve();
+        }, 10);
+      }, { once: true });
+    }), 5);
+
     await assert.rejects(
-      runWithTimeout(new Promise(() => {}), 5),
+      timedWork,
       (error: unknown) => error instanceof RequestPolicyError && error.code === 'request_timeout',
     );
+    assert.strictEqual(workAborted, true);
+    assert.strictEqual(workSettled, false);
+    await new Promise(resolve => setTimeout(resolve, 15));
+    assert.strictEqual(workSettled, true);
+  });
+
+  it('propagates a disconnected request to cancellable work', async () => {
+    const requestController = new AbortController();
+    const pending = runWithTimeout(signal => new Promise<void>(resolve => {
+      signal.addEventListener('abort', () => resolve(), { once: true });
+    }), 100, { signal: requestController.signal });
+
+    requestController.abort();
+    await assert.rejects(
+      pending,
+      (error: unknown) => error instanceof RequestCancellationError && error.reason === 'disconnect',
+    );
+  });
+
+  it('stops claiming new mapper items after cancellation', async () => {
+    const requestController = new AbortController();
+    const started: number[] = [];
+    await assert.rejects(
+      mapWithConcurrency([1, 2, 3, 4], 3, async value => {
+        started.push(value);
+        requestController.abort();
+        return value;
+      }, { signal: requestController.signal }),
+      (error: unknown) => error instanceof RequestCancellationError && error.reason === 'disconnect',
+    );
+    assert.deepStrictEqual(started, [1]);
+  });
+
+  it('enforces bounded mapper concurrency', async () => {
 
     let active = 0;
     let peak = 0;

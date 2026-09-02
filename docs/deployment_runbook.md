@@ -70,6 +70,16 @@ event named `wallet_scan_request` with request ID, route, duration, target and
 chain counts, result status, and provider failure codes. They do not log wallet
 addresses or provider credentials.
 
+The client sends a 10% sample of Web Vitals to the same-origin
+`POST /api/web-vitals` endpoint. The route validates an allowlisted payload and
+emits one JSON event named `wallet_web_vital` for Vercel Observability with only
+`routeTemplate`, `deviceCategory`, `metricName`, `value`, `rating`, `appVersion`,
+and an opaque `eventId`. Query strings, wallet addresses, ENS names, full URLs,
+provider credentials, performance entries, and raw scan results are rejected
+or omitted. The application does not persist telemetry. Configure a maximum
+30-day retention, restrict access to release/observability operators, and
+record the retention and deletion/expiry check with the Preview evidence.
+
 Create alerts where the plan supports them for:
 
 - sustained `/api/scan` or `/api/batch-scan` 5xx responses;
@@ -77,6 +87,8 @@ Create alerts where the plan supports them for:
 - repeated `partial` or `unavailable` result status;
 - repeated `provider_error`, `rate_limited`, or timeout failure codes;
 - function resource exhaustion.
+- p75 LCP, INP, and CLS split by mobile and desktop once enough field traffic
+  exists; do not treat one Lighthouse load as an INP result.
 
 References: [Vercel Observability](https://vercel.com/docs/observability) and
 [Vercel alerts](https://vercel.com/docs/alerts).

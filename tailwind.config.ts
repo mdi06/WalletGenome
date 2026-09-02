@@ -10,10 +10,11 @@ const config: Config = {
     extend: {
       // DESIGN.md defines the current light/orange theme. Shared color and
       // surface tokens live in src/app/globals.css; do not add a second palette.
-      // Preserve existing font utilities here; font cleanup is a separate change.
+      // Font families are selected in src/app/fonts.ts.
       fontFamily: {
-        mono: ['var(--font-space-mono)', 'JetBrains Mono', 'Courier New', 'monospace'],
-        display: ['var(--font-share-tech)', 'Space Mono', 'monospace'],
+        sans: ['var(--font-sans)'],
+        mono: ['var(--font-mono)'],
+        display: ['var(--font-sans)'],
       },
     },
   },

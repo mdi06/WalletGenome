@@ -22,8 +22,10 @@ test('declares the runtime as stateless and treats caches as optional optimizati
   assert.equal(PERSISTENCE_POLICY.curatedDemoSnapshots.storage, 'versioned-static-assets');
   assert.equal(PERSISTENCE_POLICY.curatedDemoSnapshots.userGenerated, false);
   assert.equal(PERSISTENCE_POLICY.curatedDemoSnapshots.liveProviderCallsOnLoad, false);
-  assert.equal(PERSISTENCE_POLICY.caches.scope, 'process-local');
+  assert.equal(PERSISTENCE_POLICY.caches.scope, 'shared-with-process-fallback');
   assert.equal(PERSISTENCE_POLICY.caches.requiredForCorrectness, false);
+  assert.equal(PERSISTENCE_POLICY.caches.historyDatasetTtlSeconds, 3_600);
+  assert.equal(PERSISTENCE_POLICY.caches.refreshCooldownSeconds, 300);
 });
 test('production application code has no filesystem module dependency', () => {
   const sourceRoot = join(process.cwd(), 'src');

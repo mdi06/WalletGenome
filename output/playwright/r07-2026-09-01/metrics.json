@@ -1,0 +1,36 @@
+{
+  "date": "2026-09-01",
+  "candidate": {
+    "branch": "architecture-validation",
+    "baseSha": "5e7089c4fdc9b8969d07ef7822c43c28d56e4221",
+    "environment": "local next start production build"
+  },
+  "browser": {
+    "engine": "HeadlessChrome",
+    "version": "152.0.0.0",
+    "platform": "macOS",
+    "throttled": false,
+    "physicalMobileHardware": false
+  },
+  "runs": [
+    { "profile": "mobile-viewport", "run": 1, "viewport": "390x844", "lcpMs": 240, "fcpMs": 240, "cls": 0, "longTasksMs": [], "navigationMs": 45.4 },
+    { "profile": "mobile-viewport", "run": 2, "viewport": "390x844", "lcpMs": 304, "fcpMs": 304, "cls": 0, "longTasksMs": [], "navigationMs": 77.5 },
+    { "profile": "mobile-viewport", "run": 3, "viewport": "390x844", "lcpMs": 88, "fcpMs": 88, "cls": 0, "longTasksMs": [], "navigationMs": 47.2 },
+    { "profile": "desktop-viewport", "run": 1, "viewport": "1440x900", "lcpMs": 76, "fcpMs": 76, "cls": 0, "longTasksMs": [], "navigationMs": 45.6 },
+    { "profile": "desktop-viewport", "run": 2, "viewport": "1440x900", "lcpMs": 80, "fcpMs": 80, "cls": 0, "longTasksMs": [], "navigationMs": 39.4 },
+    { "profile": "desktop-viewport", "run": 3, "viewport": "1440x900", "lcpMs": 264, "fcpMs": 264, "cls": 0, "longTasksMs": [], "navigationMs": 62.8 }
+  ],
+  "assetComparison": {
+    "scannerInitialJsGzipBytes": { "baseline": 199142, "candidate": 199897, "changePercent": 0.38 },
+    "scannerInitialCssGzipBytes": { "baseline": 11500, "candidate": 11509, "changePercent": 0.08 },
+    "scannerInitialFontsGzipBytes": { "baseline": 88953, "candidate": 88953, "changePercent": 0 },
+    "vitalikSnapshotGzipBytes": { "baseline": 358017, "candidate": 358017, "changePercent": 0 }
+  },
+  "limitations": [
+    "Not a Lighthouse report",
+    "No CPU or network throttling",
+    "Not physical mobile hardware",
+    "No Preview deployment",
+    "No field INP percentile"
+  ]
+}

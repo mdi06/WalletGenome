@@ -12,7 +12,7 @@ it('keeps secondary controls compact on desktop while preserving mobile targets'
 
   assert.match(pageSource, /min-h-11[^\n]*md:min-h-9/);
   assert.match(walletSource, /min-h-11 md:min-h-9/);
-  assert.match(walletSource, /sm:w-auto sm:ml-1\.5 min-h-11/);
+  assert.match(walletSource, /md:w-auto md:ml-1\.5 min-h-11/);
   assert.match(transferSource, /grid grid-cols-3 gap-2 md:flex/);
   assert.match(transferSource, /min-h-11 w-full justify-center/);
   assert.match(filterSource, /min-h-11 md:min-h-9/);

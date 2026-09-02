@@ -1,0 +1,157 @@
+- generic [active] [ref=f2e1]:
+  - main [ref=f2e2]:
+    - generic [ref=f2e3]:
+      - link "WalletGenome home" [ref=f2e5] [cursor=pointer]:
+        - /url: /
+        - generic [ref=f2e6]: WALLET.GENOME
+      - generic [ref=f2e7]:
+        - 'status "Indexing status: Ready" [ref=f2e8]':
+          - generic [ref=f2e10]: Ready
+        - navigation "Primary navigation" [ref=f2e12]:
+          - link "Scanner" [ref=f2e13] [cursor=pointer]:
+            - /url: /
+          - link "Docs / methodology" [ref=f2e18] [cursor=pointer]:
+            - /url: /docs
+    - region [ref=f2e22]:
+      - generic [ref=f2e23]: Multi-chain behavioral forensics
+      - heading "See the complete story behind any crypto wallet" [level=1] [ref=f2e27]
+      - paragraph [ref=f2e28]: Analyze on-chain behavior, map capital flows, resolve verified social identities, and audit security risks across four major blockchains.
+    - region "Wallet Forensics Console" [ref=f2e29]:
+      - tablist "Forensics Scan Mode" [ref=f2e30]:
+        - tab "Single wallet" [selected] [ref=f2e31] [cursor=pointer]
+        - tab "Cluster scan New" [ref=f2e36] [cursor=pointer]:
+          - generic [ref=f2e41]: Cluster scan
+          - generic [ref=f2e42]: New
+      - tabpanel "Single wallet" [ref=f2e43]:
+        - generic [ref=f2e45]:
+          - generic [ref=f2e46]:
+            - generic [ref=f2e50]: Enter EVM address (0x...) or ENS name (vitalik.eth)
+            - textbox "EVM address or ENS domain" [ref=f2e51]:
+              - /placeholder: Enter EVM address (0x...) or ENS name (vitalik.eth)
+          - group "Select target EVM networks" [ref=f2e52]:
+            - button "Toggle Ethereum network" [pressed] [ref=f2e53] [cursor=pointer]:
+              - generic [ref=f2e55]: ETH
+            - button "Toggle Base network" [pressed] [ref=f2e56] [cursor=pointer]:
+              - generic [ref=f2e58]: BASE
+            - button "Toggle Arbitrum network" [pressed] [ref=f2e59] [cursor=pointer]:
+              - generic [ref=f2e61]: ARB
+            - button "Toggle Optimism network" [pressed] [ref=f2e62] [cursor=pointer]:
+              - generic [ref=f2e64]: OP
+            - button "Scan wallet address" [ref=f2e65] [cursor=pointer]:
+              - generic [ref=f2e66]: SCAN
+    - generic [ref=f2e69]:
+      - region [ref=f2e70]:
+        - generic [ref=f2e71]:
+          - heading "Explore saved demo wallets" [level=2] [ref=f2e72]
+          - generic [ref=f2e76]: Opens instantly without provider API calls
+        - generic [ref=f2e77]:
+          - button "Load saved demo snapshot for Vitalik Buterin" [ref=f2e78] [cursor=pointer]:
+            - generic [ref=f2e79]:
+              - generic [ref=f2e80]:
+                - generic [ref=f2e81]: Co-founder of Ethereum
+                - generic [ref=f2e82]: Saved · non-live
+              - generic [ref=f2e83]: vitalik.eth
+              - generic [ref=f2e84]: Public multi-chain demo data for Vitalik Buterin. The dashboard keeps the original provider and pricing completeness warnings.
+            - generic [ref=f2e85]:
+              - generic [ref=f2e86]: Four chains · Updated Aug 26, 2026
+              - generic [ref=f2e87]: Open
+          - button "Load saved demo snapshot for Hayden Adams" [ref=f2e91] [cursor=pointer]:
+            - generic [ref=f2e92]:
+              - generic [ref=f2e93]:
+                - generic [ref=f2e94]: Founder of Uniswap
+                - generic [ref=f2e95]: Saved · non-live
+              - generic [ref=f2e96]: hayden.eth
+              - generic [ref=f2e97]: Public multi-chain demo data for Hayden Adams. The dashboard keeps the original provider and pricing completeness warnings.
+            - generic [ref=f2e98]:
+              - generic [ref=f2e99]: Four chains · Updated Aug 25, 2026
+              - generic [ref=f2e100]: Open
+          - button "Load saved demo snapshot for Anthony Sassano" [ref=f2e104] [cursor=pointer]:
+            - generic [ref=f2e105]:
+              - generic [ref=f2e106]:
+                - generic [ref=f2e107]: Founder of The Daily Gwei
+                - generic [ref=f2e108]: Saved · non-live
+              - generic [ref=f2e109]: sassal.eth
+              - generic [ref=f2e110]: Public multi-chain demo data for Anthony Sassano. The dashboard keeps the original provider and pricing completeness warnings.
+            - generic [ref=f2e111]:
+              - generic [ref=f2e112]: Four chains · Updated Aug 25, 2026
+              - generic [ref=f2e113]: Open
+          - button "Load saved demo snapshot for Richerd Chan" [ref=f2e117] [cursor=pointer]:
+            - generic [ref=f2e118]:
+              - generic [ref=f2e119]:
+                - generic [ref=f2e120]: Co-founder of Manifold
+                - generic [ref=f2e121]: Saved · non-live
+              - generic [ref=f2e122]: richerd.eth
+              - generic [ref=f2e123]: Public multi-chain demo data for Richerd Chan. The dashboard keeps the original provider and pricing completeness warnings.
+            - generic [ref=f2e124]:
+              - generic [ref=f2e125]: Four chains · Updated Aug 25, 2026
+              - generic [ref=f2e126]: Open
+      - region [ref=f2e130]:
+        - heading "HOW DOES WALLETGENOME WORK?" [level=2] [ref=f2e131]
+        - generic [ref=f2e136]:
+          - generic [ref=f2e137]:
+            - generic [ref=f2e138]: "01"
+            - heading "Multi-Chain Scan" [level=3] [ref=f2e139]
+            - paragraph [ref=f2e140]: Enter any 0x address or ENS domain. We query Ethereum, Arbitrum, Base, and Optimism simultaneously—without requiring you to connect a wallet or install extensions.
+          - generic [ref=f2e141]:
+            - generic [ref=f2e142]: "02"
+            - heading "Forensic Processing" [level=3] [ref=f2e143]
+            - paragraph [ref=f2e144]: Our indexing engine filters out spoofed/scam meme tokens, verifies legitimate protocol contracts, audits 5 public Sybil databases, and resolves verified social profiles (Web3.bio).
+          - generic [ref=f2e145]:
+            - generic [ref=f2e146]: "03"
+            - heading "Actionable Intelligence" [level=3] [ref=f2e147]
+            - paragraph [ref=f2e148]: Synthesizes a 6-axis Behavioral Radar, assigns a quantified Persona archetype, renders an interactive money flow graph, and flags open unlimited approval exposures.
+      - region [ref=f2e149]:
+        - heading "WHAT YOU CAN UNCOVER ON ANY WALLET" [level=2] [ref=f2e150]
+        - generic [ref=f2e156]:
+          - generic [ref=f2e157]:
+            - generic [ref=f2e172]:
+              - heading "Behavioral DNA & Personas" [level=3] [ref=f2e173]
+              - text: Quantitative archetype classification
+            - paragraph [ref=f2e174]: Understand how an entity operates on-chain. Are they a DeFi Power User, Active Trader, or Passive Whale? Our engine computes 6 mathematical dimensions including contract breadth, maturity, and Shannon entropy.
+          - generic [ref=f2e175]:
+            - generic [ref=f2e183]:
+              - heading "Interactive Capital Flow Topology" [level=3] [ref=f2e184]
+              - text: Follow where the capital really travels
+            - paragraph [ref=f2e185]: "Visualize inflows from exchanges, DeFi protocol interactions, and outbound destinations in an interactive particle-flow canvas. Automatically uncovers the #1 most-sent-to recipient wallet."
+          - generic [ref=f2e186]:
+            - generic [ref=f2e193]:
+              - heading "Universal Social Identities" [level=3] [ref=f2e194]
+              - text: Bridge hex addresses to real-world accounts
+            - paragraph [ref=f2e195]: Connects addresses to public Web2 and Web3 profiles across ENS domains, Farcaster Warpcast, Lens Protocol, Twitter/X, and GitHub with direct verified external links.
+          - generic [ref=f2e196]:
+            - generic [ref=f2e202]:
+              - heading "Security & Approval Audit" [level=3] [ref=f2e203]
+              - text: Identify wallet vulnerabilities & blacklist status
+            - paragraph [ref=f2e204]: Protects assets by highlighting active unlimited token allowances to unverified contracts, calculating dead zero-liquidity tokens, and checking against LayerZero, Hop, and OFAC sanctions lists.
+      - generic [ref=f2e205]:
+        - generic [ref=f2e206]:
+          - generic [ref=f2e207]: ALGORITHMIC SPECIFICATION & MATHEMATICS
+          - paragraph [ref=f2e211]: Explore how we compute Shannon entropy, Trusta MEDIA Sybil scores, risk grade heuristics, and multi-chain gas valuations.
+        - link "READ THE DOCS" [ref=f2e212] [cursor=pointer]:
+          - /url: /docs
+      - generic [ref=f2e216]:
+        - generic [ref=f2e217]:
+          - generic [ref=f2e221]: "100% Read-Only & Safe:"
+          - generic [ref=f2e222]: We never ask for wallet signatures or private keys.
+        - generic [ref=f2e223]:
+          - generic [ref=f2e224]: "Supported Networks:"
+          - generic [ref=f2e225]: Ethereum · Arbitrum · Base · Optimism
+  - contentinfo [ref=f2e226]:
+    - generic [ref=f2e227]:
+      - generic [ref=f2e228]:
+        - paragraph [ref=f2e229]: WalletGenome
+        - paragraph [ref=f2e230]: Read-only, evidence-aware EVM wallet analytics. No wallet connection or signature required.
+      - navigation "Wallet analytics topics" [ref=f2e231]:
+        - link "Methodology" [ref=f2e232] [cursor=pointer]:
+          - /url: /docs
+        - link "EVM Wallet Analytics" [ref=f2e233] [cursor=pointer]:
+          - /url: /evm-wallet-analytics
+        - link "Crypto Wallet Risk Checker" [ref=f2e234] [cursor=pointer]:
+          - /url: /crypto-wallet-risk-checker
+        - link "Token Approval Checker" [ref=f2e235] [cursor=pointer]:
+          - /url: /token-approval-checker
+        - link "Sybil Wallet Analysis" [ref=f2e236] [cursor=pointer]:
+          - /url: /sybil-wallet-analysis
+        - link "Multi-Chain Wallet Forensics" [ref=f2e237] [cursor=pointer]:
+          - /url: /multi-chain-wallet-forensics
+  - alert [ref=f2e238]
