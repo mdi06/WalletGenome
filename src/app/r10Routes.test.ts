@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { describe, it } from 'node:test';
+import { join } from 'node:path';
 import nextConfig from '../../next.config';
 import { metadata as docsMetadata } from './docs/layout';
 import robots from './robots';
@@ -41,6 +43,13 @@ describe('R10 public route and security contracts', () => {
     assert.deepEqual(docsMetadata.alternates, { canonical: '/docs' });
     assert.equal(docsMetadata.openGraph?.url, '/docs');
     assert.match(JSON.stringify(docsMetadata.twitter), /summary_large_image/);
+  });
+
+  it('describes rate-limit resilience without guaranteeing retrieval', () => {
+    const docsPage = readFileSync(join(process.cwd(), 'src/app/docs/page.tsx'), 'utf8');
+
+    assert.match(docsPage, /reduce the impact of provider rate limits and improve retrieval resilience/);
+    assert.doesNotMatch(docsPage, /bypass block explorer rate limits, ensuring fast and reliable data retrieval/);
   });
 
   it('declares the required response headers and disables powered-by disclosure', async () => {

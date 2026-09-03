@@ -396,7 +396,9 @@ export default function BulkDashboard({ data, onInspectWallet, snapshotGenerated
                 </div>
               ) : (
                 <p className="text-xs text-[#4b5563] py-2">
-                  No significant shared funding sources or overlapping counterparties detected.
+                  {data.source === 'saved'
+                    ? 'No shared-counterparty evidence is included in this saved example.'
+                    : 'No significant shared funding sources or overlapping counterparties detected.'}
                 </p>
               )}
             </div>

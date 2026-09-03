@@ -648,8 +648,8 @@ Release role: **Preview blocker**
 
 ### R11 — Reduce visual competition without redesigning
 
-Status: [ ]  
-Owner: unassigned  
+Status: [x] local implementation and evidence complete; screenshot approval remains required before merge
+Owner: Codex
 Audit finding: F13  
 Release role: **optional pre-release polish**
 
@@ -746,17 +746,18 @@ Do not combine mobile and desktop field results. Do not use the best Lighthouse 
 
 ## 7. Go/no-go decision record
 
-Use this table only after R12. Any unresolved blocker means **NO-GO**.
+Use this table to summarize the current candidate. Preview and production rows remain pending until R12 evidence is recorded. Any unresolved blocker means **NO-GO**.
 
 | Gate | Status | Evidence link or reason |
 | --- | --- | --- |
-| Reporting truthfulness | Pending | R01–R02 |
-| Accessibility and graph usability | Pending | R03–R04 |
-| Timeout/disconnect cancellation | Pending | R05 |
-| Server error explanation | Pending | R06 |
-| Performance baseline and privacy-safe monitoring | In progress | R07 |
-| Docs, cluster and recovery | In progress | R08–R09 complete; R10 pending |
-| Canonical local verification | Pending | `npm run verify`; `git diff --check` |
+| Reporting truthfulness | Complete locally | R01–R02 implementation and local evidence |
+| Accessibility and graph usability | In progress — screen-reader smoke pending | R03–R04 local evidence; no real screen-reader run yet |
+| Timeout/disconnect cancellation | Complete locally | R05 implementation and local evidence |
+| Server error explanation | Complete locally | R06 implementation and local evidence |
+| Performance baseline and privacy-safe monitoring | In progress — Preview/field gates pending | R07 local implementation and evidence |
+| Docs, cluster and recovery | Complete locally | R08–R10 implementation and local evidence |
+| Saved-demo visual hierarchy | Complete locally — screenshot approval pending | R11 optional polish; local evidence |
+| Canonical local verification | Complete locally | `npm run verify`; `git diff --check` |
 | Vercel environment and abuse controls | Pending | R12 configuration evidence |
 | Preview browser/provider/security checks | Pending | R12 Preview evidence |
 | Rollback target and operator | Pending | Deployment runbook record |
@@ -891,6 +892,20 @@ Append one entry per completed task. Do not replace earlier evidence silently.
 - Screenshots/artifacts: `output/playwright/r09-2026-09-01/cluster-input-1440x900.png`, `cluster-saved-no-links-1440x900.png`, `cluster-saved-no-links-390.png`.
 - Provider/cloud actions performed, if explicitly authorized: none. No live scan, Preview, deployment, push, reset, discard, or remote/cloud action was performed.
 - Remaining limits or follow-up: local evidence does not prove Preview/production, real-device, Safari, screen-reader, or live-provider behavior. Overall release remains **NO-GO** until remaining required gates complete.
+- Status changed to `[x]` by: Codex, 2026-09-02.
+
+### 2026-09-02 — R11 — Reduce visual competition without redesigning
+
+- Agent/owner: Codex
+- Candidate branch/ref and SHA: `architecture-validation` / `45ed24b450cee932d134f854c0afa96d15a5df2b`; worktree was clean before this scoped change.
+- Files changed: `src/components/WelcomeGuide.tsx`, `src/components/WelcomeGuide.test.ts`, `src/components/p3Accessibility.test.ts`, and this plan. Fresh before/after screenshots are under `output/playwright/`.
+- Focused tests: `node --import tsx --test src/components/WelcomeGuide.test.ts src/components/p3Accessibility.test.ts src/components/productPromise.test.ts src/lib/demoWallets.test.ts` — **29/29 passed**.
+- `npm run verify` result and test count: **PASS** — lint, generated-route typecheck, **324/324 tests**, and production webpack build.
+- `git diff --check` result: **PASS** before and after the evidence update.
+- Browser widths/states checked: local production build (`PORT=3021 npm start`) at **1440×900** and **390×844** on the default guide; all four saved-demo buttons, identity labels, updated dates, saved/non-live states, shared provider/pricing caveat, and fresh-scan distinction remained visible. At both widths, page/body width matched the viewport; each demo button measured **256px** with computed `box-shadow: none`; no nested button/link controls were present.
+- Screenshots/artifacts: `output/playwright/r11-before-1440.png`, `r11-before-390.png`, `r11-after-1440.png`, and `r11-after-390.png`.
+- Provider/cloud actions performed, if explicitly authorized: none. No live/provider-backed scan, Preview, deployment, push, reset, discard, or remote/cloud action was performed.
+- Remaining limits or follow-up: the before/after screenshots are ready for product-owner approval before merge; local evidence does not prove Preview/production, real-device, Safari, screen-reader, or provider-backed behavior. Overall release remains **NO-GO** until the documented gates complete.
 - Status changed to `[x]` by: Codex, 2026-09-02.
 
 ## 9. Suggested agent batches

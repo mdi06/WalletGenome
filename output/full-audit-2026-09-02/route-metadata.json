@@ -1,0 +1,72 @@
+[
+  {
+    "canonical": "http://localhost:3000/",
+    "description": "Analyze observable EVM wallet activity, security signals, approvals, capital flows, and Sybil patterns across Ethereum, Base, Arbitrum, and Optimism.",
+    "h1": [
+      "Investigate observable activity across supported EVM networks"
+    ],
+    "jsonLd": 1,
+    "path": "/",
+    "title": "WalletGenome — EVM Wallet Analytics & Forensics"
+  },
+  {
+    "canonical": "http://localhost:3000/docs",
+    "description": "Read how WalletGenome sources data and calculates wallet behavior, risk, approval exposure, capital flow, activity, identity, and Sybil signals.",
+    "h1": [
+      "How WalletGenome Computes On-Chain Intelligence"
+    ],
+    "jsonLd": 2,
+    "path": "/docs",
+    "title": "Methodology & Algorithmic Documentation | WalletGenome"
+  },
+  {
+    "canonical": "http://localhost:3000/evm-wallet-analytics",
+    "description": "Analyze observable EVM wallet activity, counterparties, gas usage, protocol interactions, identities, and behavioral patterns across Ethereum, Base, Arbitrum, and Optimism.",
+    "h1": [
+      "EVM Wallet Analytics Across Four Supported Networks"
+    ],
+    "jsonLd": 2,
+    "path": "/evm-wallet-analytics",
+    "title": "EVM Wallet Analytics | WalletGenome"
+  },
+  {
+    "canonical": "http://localhost:3000/crypto-wallet-risk-checker",
+    "description": "Review explainable wallet risk factors, blacklist availability, failed transactions, approvals, and unknown-contract interactions across supported EVM chains.",
+    "h1": [
+      "Check an EVM Wallet for Observable Risk Signals"
+    ],
+    "jsonLd": 2,
+    "path": "/crypto-wallet-risk-checker",
+    "title": "Crypto Wallet Risk Checker | WalletGenome"
+  },
+  {
+    "canonical": "http://localhost:3000/token-approval-checker",
+    "description": "Inspect observable ERC-20 approval activity, unlimited allowances, spender addresses, stale approvals, and available exposure estimates for an EVM wallet.",
+    "h1": [
+      "Inspect Token Approvals and Unlimited Allowance Signals"
+    ],
+    "jsonLd": 2,
+    "path": "/token-approval-checker",
+    "title": "Token Approval Checker | WalletGenome"
+  },
+  {
+    "canonical": "http://localhost:3000/sybil-wallet-analysis",
+    "description": "Review behavioral Sybil signals and available public blacklist matches while keeping heuristics, source coverage, and confirmed matches clearly separated.",
+    "h1": [
+      "Analyze Observable Sybil Signals Without Hiding Uncertainty"
+    ],
+    "jsonLd": 2,
+    "path": "/sybil-wallet-analysis",
+    "title": "Sybil Wallet Analysis | WalletGenome"
+  },
+  {
+    "canonical": "http://localhost:3000/multi-chain-wallet-forensics",
+    "description": "Investigate wallet activity, capital-flow evidence, counterparties, gas usage, approvals, and data completeness across supported EVM networks.",
+    "h1": [
+      "Multi-Chain Wallet Forensics With Explicit Data Coverage"
+    ],
+    "jsonLd": 2,
+    "path": "/multi-chain-wallet-forensics",
+    "title": "Multi-Chain Wallet Forensics | WalletGenome"
+  }
+]

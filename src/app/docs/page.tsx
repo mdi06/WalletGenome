@@ -517,7 +517,7 @@ export default function DocsPage() {
             </div>
 
             <p className="text-xs sm:text-sm text-[#374151] leading-relaxed text-pretty">
-              We use a <strong>dual-gateway system</strong> and caching to bypass block explorer rate limits, ensuring fast and reliable data retrieval.
+              We use a <strong>dual-gateway system</strong> and caching to reduce the impact of provider rate limits and improve retrieval resilience.
             </p>
 
             {/* Architecture Card */}

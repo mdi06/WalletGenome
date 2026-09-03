@@ -49,6 +49,12 @@ describe('release verification configuration', () => {
     assert.doesNotMatch(nextConfig, /ignoreBuildErrors/);
   });
 
+  it('excludes generated Playwright traces from the lint input', () => {
+    const eslintConfig = readFileSync(join(process.cwd(), 'eslint.config.mjs'), 'utf8');
+
+    assert.match(eslintConfig, /"\.playwright-cli\/\*\*"/);
+  });
+
   it('applies baseline security headers without disabling static rendering', () => {
     const nextConfig = readFileSync(join(process.cwd(), 'next.config.ts'), 'utf8');
 

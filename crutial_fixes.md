@@ -670,7 +670,7 @@ Deployment is **NO-GO** until all of the following are true:
 - [x] Unauthenticated callers cannot modify durable application data or version-controlled configuration. Evidence: unused process-local scan-job routes/service were removed; production code has no durable storage or filesystem dependency; known-wallet writes return HTTP 405 in route tests and the local production smoke.
 - [x] Scan endpoints have tested abuse controls.
 - [x] Mobile layouts pass at 320px, 375px, 390px, 768px, and desktop widths. Evidence: item 13; final local production checks reported document and body widths equal to each viewport width.
-- [x] Keyboard and screen-reader critical paths are verified. Evidence: item 14; focused semantics regressions, production-build keyboard navigation, accessibility-tree inspection, and the zero-critical rendered-DOM audit.
+- [~] Keyboard and rendered accessibility critical paths are verified locally; real screen-reader smoke remains pending. Evidence: item 14; focused semantics regressions, production-build keyboard navigation, accessibility-tree inspection, and the zero-critical rendered-DOM audit. These checks do not constitute screen-reader testing.
 - [ ] Vercel preview deployment is smoke-tested before promoting to production.
 - [ ] Production rollback procedure and last-known-good deployment are documented. Procedure: `docs/deployment_runbook.md`; the actual last-known-good immutable deployment URL must be recorded before promotion.
 

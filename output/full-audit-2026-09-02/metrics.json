@@ -1,0 +1,511 @@
+{
+  "generatedAt": "2026-09-02T04:31:33.816Z",
+  "environment": "local production build, unthrottled, serial warm requests; not browser paint timings",
+  "routes": [
+    {
+      "route": "/",
+      "htmlBytes": 48483,
+      "htmlGzipBytes": 10300,
+      "initialAssets": {
+        "woff2": {
+          "files": 2,
+          "rawBytes": 88912,
+          "gzipBytes": 88953
+        },
+        "css": {
+          "files": 1,
+          "rawBytes": 59853,
+          "gzipBytes": 11624
+        },
+        "js": {
+          "files": 10,
+          "rawBytes": 658215,
+          "gzipBytes": 201507
+        }
+      },
+      "timings": [
+        {
+          "status": 200,
+          "responseMs": 6.91,
+          "totalMs": 7.98
+        },
+        {
+          "status": 200,
+          "responseMs": 5.73,
+          "totalMs": 6.49
+        },
+        {
+          "status": 200,
+          "responseMs": 2.59,
+          "totalMs": 3.78
+        },
+        {
+          "status": 200,
+          "responseMs": 5,
+          "totalMs": 5.46
+        },
+        {
+          "status": 200,
+          "responseMs": 2.8,
+          "totalMs": 5.03
+        }
+      ],
+      "headers": {
+        "cache-control": "s-maxage=31536000",
+        "connection": "keep-alive",
+        "content-encoding": "gzip",
+        "content-security-policy": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https:; font-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests",
+        "content-type": "text/html; charset=utf-8",
+        "cross-origin-opener-policy": "same-origin",
+        "date": "Wed, 02 Sep 2026 04:31:33 GMT",
+        "etag": "\"bgiyzkx34c11dw\"",
+        "keep-alive": "timeout=5",
+        "permissions-policy": "camera=(), microphone=(), geolocation=(), payment=(), usb=()",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "transfer-encoding": "chunked",
+        "vary": "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch, Accept-Encoding",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY",
+        "x-nextjs-cache": "HIT",
+        "x-nextjs-prerender": "1, 1",
+        "x-nextjs-stale-time": "300"
+      }
+    },
+    {
+      "route": "/docs",
+      "htmlBytes": 104286,
+      "htmlGzipBytes": 19476,
+      "initialAssets": {
+        "woff2": {
+          "files": 2,
+          "rawBytes": 88912,
+          "gzipBytes": 88953
+        },
+        "css": {
+          "files": 1,
+          "rawBytes": 59853,
+          "gzipBytes": 11624
+        },
+        "js": {
+          "files": 10,
+          "rawBytes": 668927,
+          "gzipBytes": 199899
+        }
+      },
+      "timings": [
+        {
+          "status": 200,
+          "responseMs": 8.55,
+          "totalMs": 9.47
+        },
+        {
+          "status": 200,
+          "responseMs": 6.28,
+          "totalMs": 7.72
+        },
+        {
+          "status": 200,
+          "responseMs": 5.66,
+          "totalMs": 6.52
+        },
+        {
+          "status": 200,
+          "responseMs": 3.55,
+          "totalMs": 5.28
+        },
+        {
+          "status": 200,
+          "responseMs": 4.64,
+          "totalMs": 5.28
+        }
+      ],
+      "headers": {
+        "cache-control": "s-maxage=31536000",
+        "connection": "keep-alive",
+        "content-encoding": "gzip",
+        "content-security-policy": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https:; font-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests",
+        "content-type": "text/html; charset=utf-8",
+        "cross-origin-opener-policy": "same-origin",
+        "date": "Wed, 02 Sep 2026 04:31:34 GMT",
+        "etag": "\"5hd0h8nkk427rf\"",
+        "keep-alive": "timeout=5",
+        "permissions-policy": "camera=(), microphone=(), geolocation=(), payment=(), usb=()",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "transfer-encoding": "chunked",
+        "vary": "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch, Accept-Encoding",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY",
+        "x-nextjs-cache": "HIT",
+        "x-nextjs-prerender": "1, 1",
+        "x-nextjs-stale-time": "300"
+      }
+    },
+    {
+      "route": "/evm-wallet-analytics",
+      "htmlBytes": 41491,
+      "htmlGzipBytes": 7722,
+      "initialAssets": {
+        "woff2": {
+          "files": 2,
+          "rawBytes": 88912,
+          "gzipBytes": 88953
+        },
+        "css": {
+          "files": 1,
+          "rawBytes": 59853,
+          "gzipBytes": 11624
+        },
+        "js": {
+          "files": 9,
+          "rawBytes": 591580,
+          "gzipBytes": 183423
+        }
+      },
+      "timings": [
+        {
+          "status": 200,
+          "responseMs": 4.39,
+          "totalMs": 4.8
+        },
+        {
+          "status": 200,
+          "responseMs": 2.43,
+          "totalMs": 2.71
+        },
+        {
+          "status": 200,
+          "responseMs": 4.25,
+          "totalMs": 4.72
+        },
+        {
+          "status": 200,
+          "responseMs": 2.52,
+          "totalMs": 2.79
+        },
+        {
+          "status": 200,
+          "responseMs": 1.92,
+          "totalMs": 2.32
+        }
+      ],
+      "headers": {
+        "cache-control": "s-maxage=31536000",
+        "connection": "keep-alive",
+        "content-encoding": "gzip",
+        "content-security-policy": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https:; font-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests",
+        "content-type": "text/html; charset=utf-8",
+        "cross-origin-opener-policy": "same-origin",
+        "date": "Wed, 02 Sep 2026 04:31:34 GMT",
+        "etag": "\"vpib2bahqmw0f\"",
+        "keep-alive": "timeout=5",
+        "permissions-policy": "camera=(), microphone=(), geolocation=(), payment=(), usb=()",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "transfer-encoding": "chunked",
+        "vary": "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch, Accept-Encoding",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY",
+        "x-nextjs-cache": "HIT",
+        "x-nextjs-prerender": "1, 1",
+        "x-nextjs-stale-time": "300"
+      }
+    },
+    {
+      "route": "/crypto-wallet-risk-checker",
+      "htmlBytes": 41886,
+      "htmlGzipBytes": 7870,
+      "initialAssets": {
+        "woff2": {
+          "files": 2,
+          "rawBytes": 88912,
+          "gzipBytes": 88953
+        },
+        "css": {
+          "files": 1,
+          "rawBytes": 59853,
+          "gzipBytes": 11624
+        },
+        "js": {
+          "files": 9,
+          "rawBytes": 591580,
+          "gzipBytes": 183423
+        }
+      },
+      "timings": [
+        {
+          "status": 200,
+          "responseMs": 4.35,
+          "totalMs": 5.21
+        },
+        {
+          "status": 200,
+          "responseMs": 2.21,
+          "totalMs": 2.47
+        },
+        {
+          "status": 200,
+          "responseMs": 4.25,
+          "totalMs": 5
+        },
+        {
+          "status": 200,
+          "responseMs": 2.7,
+          "totalMs": 3.1
+        },
+        {
+          "status": 200,
+          "responseMs": 1.96,
+          "totalMs": 2.29
+        }
+      ],
+      "headers": {
+        "cache-control": "s-maxage=31536000",
+        "connection": "keep-alive",
+        "content-encoding": "gzip",
+        "content-security-policy": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https:; font-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests",
+        "content-type": "text/html; charset=utf-8",
+        "cross-origin-opener-policy": "same-origin",
+        "date": "Wed, 02 Sep 2026 04:31:34 GMT",
+        "etag": "\"6i8to6pj5wwbe\"",
+        "keep-alive": "timeout=5",
+        "permissions-policy": "camera=(), microphone=(), geolocation=(), payment=(), usb=()",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "transfer-encoding": "chunked",
+        "vary": "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch, Accept-Encoding",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY",
+        "x-nextjs-cache": "HIT",
+        "x-nextjs-prerender": "1, 1",
+        "x-nextjs-stale-time": "300"
+      }
+    },
+    {
+      "route": "/token-approval-checker",
+      "htmlBytes": 41671,
+      "htmlGzipBytes": 7795,
+      "initialAssets": {
+        "woff2": {
+          "files": 2,
+          "rawBytes": 88912,
+          "gzipBytes": 88953
+        },
+        "css": {
+          "files": 1,
+          "rawBytes": 59853,
+          "gzipBytes": 11624
+        },
+        "js": {
+          "files": 9,
+          "rawBytes": 591580,
+          "gzipBytes": 183423
+        }
+      },
+      "timings": [
+        {
+          "status": 200,
+          "responseMs": 2.41,
+          "totalMs": 2.74
+        },
+        {
+          "status": 200,
+          "responseMs": 4.03,
+          "totalMs": 9.18
+        },
+        {
+          "status": 200,
+          "responseMs": 6.55,
+          "totalMs": 8.79
+        },
+        {
+          "status": 200,
+          "responseMs": 4.97,
+          "totalMs": 5.31
+        },
+        {
+          "status": 200,
+          "responseMs": 1.99,
+          "totalMs": 2.35
+        }
+      ],
+      "headers": {
+        "cache-control": "s-maxage=31536000",
+        "connection": "keep-alive",
+        "content-encoding": "gzip",
+        "content-security-policy": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https:; font-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests",
+        "content-type": "text/html; charset=utf-8",
+        "cross-origin-opener-policy": "same-origin",
+        "date": "Wed, 02 Sep 2026 04:31:34 GMT",
+        "etag": "\"5qtyawfxpw5f\"",
+        "keep-alive": "timeout=5",
+        "permissions-policy": "camera=(), microphone=(), geolocation=(), payment=(), usb=()",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "transfer-encoding": "chunked",
+        "vary": "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch, Accept-Encoding",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY",
+        "x-nextjs-cache": "HIT",
+        "x-nextjs-prerender": "1, 1",
+        "x-nextjs-stale-time": "300"
+      }
+    },
+    {
+      "route": "/sybil-wallet-analysis",
+      "htmlBytes": 41453,
+      "htmlGzipBytes": 7811,
+      "initialAssets": {
+        "woff2": {
+          "files": 2,
+          "rawBytes": 88912,
+          "gzipBytes": 88953
+        },
+        "css": {
+          "files": 1,
+          "rawBytes": 59853,
+          "gzipBytes": 11624
+        },
+        "js": {
+          "files": 9,
+          "rawBytes": 591580,
+          "gzipBytes": 183423
+        }
+      },
+      "timings": [
+        {
+          "status": 200,
+          "responseMs": 2.21,
+          "totalMs": 2.57
+        },
+        {
+          "status": 200,
+          "responseMs": 4.09,
+          "totalMs": 4.54
+        },
+        {
+          "status": 200,
+          "responseMs": 2.4,
+          "totalMs": 2.75
+        },
+        {
+          "status": 200,
+          "responseMs": 1.77,
+          "totalMs": 4.06
+        },
+        {
+          "status": 200,
+          "responseMs": 3.83,
+          "totalMs": 4.19
+        }
+      ],
+      "headers": {
+        "cache-control": "s-maxage=31536000",
+        "connection": "keep-alive",
+        "content-encoding": "gzip",
+        "content-security-policy": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https:; font-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests",
+        "content-type": "text/html; charset=utf-8",
+        "cross-origin-opener-policy": "same-origin",
+        "date": "Wed, 02 Sep 2026 04:31:34 GMT",
+        "etag": "\"va91yxzpu1vzd\"",
+        "keep-alive": "timeout=5",
+        "permissions-policy": "camera=(), microphone=(), geolocation=(), payment=(), usb=()",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "transfer-encoding": "chunked",
+        "vary": "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch, Accept-Encoding",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY",
+        "x-nextjs-cache": "HIT",
+        "x-nextjs-prerender": "1, 1",
+        "x-nextjs-stale-time": "300"
+      }
+    },
+    {
+      "route": "/multi-chain-wallet-forensics",
+      "htmlBytes": 41957,
+      "htmlGzipBytes": 7810,
+      "initialAssets": {
+        "woff2": {
+          "files": 2,
+          "rawBytes": 88912,
+          "gzipBytes": 88953
+        },
+        "css": {
+          "files": 1,
+          "rawBytes": 59853,
+          "gzipBytes": 11624
+        },
+        "js": {
+          "files": 9,
+          "rawBytes": 591580,
+          "gzipBytes": 183423
+        }
+      },
+      "timings": [
+        {
+          "status": 200,
+          "responseMs": 2.12,
+          "totalMs": 2.48
+        },
+        {
+          "status": 200,
+          "responseMs": 1.71,
+          "totalMs": 2.13
+        },
+        {
+          "status": 200,
+          "responseMs": 3.88,
+          "totalMs": 4.27
+        },
+        {
+          "status": 200,
+          "responseMs": 1.91,
+          "totalMs": 2.25
+        },
+        {
+          "status": 200,
+          "responseMs": 3.94,
+          "totalMs": 4.46
+        }
+      ],
+      "headers": {
+        "cache-control": "s-maxage=31536000",
+        "connection": "keep-alive",
+        "content-encoding": "gzip",
+        "content-security-policy": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https:; font-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests",
+        "content-type": "text/html; charset=utf-8",
+        "cross-origin-opener-policy": "same-origin",
+        "date": "Wed, 02 Sep 2026 04:31:34 GMT",
+        "etag": "\"11ra4o0aogtwdd\"",
+        "keep-alive": "timeout=5",
+        "permissions-policy": "camera=(), microphone=(), geolocation=(), payment=(), usb=()",
+        "referrer-policy": "strict-origin-when-cross-origin",
+        "transfer-encoding": "chunked",
+        "vary": "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch, Accept-Encoding",
+        "x-content-type-options": "nosniff",
+        "x-frame-options": "DENY",
+        "x-nextjs-cache": "HIT",
+        "x-nextjs-prerender": "1, 1",
+        "x-nextjs-stale-time": "300"
+      }
+    }
+  ],
+  "demos": [
+    {
+      "file": "hayden-2026-08-25.json",
+      "rawBytes": 167367,
+      "gzipBytes": 31659
+    },
+    {
+      "file": "richerd-2026-08-25.json",
+      "rawBytes": 289194,
+      "gzipBytes": 56229
+    },
+    {
+      "file": "sassal-2026-08-25.json",
+      "rawBytes": 481237,
+      "gzipBytes": 89402
+    },
+    {
+      "file": "vitalik-2026-08-26.json",
+      "rawBytes": 2247790,
+      "gzipBytes": 358017
+    }
+  ]
+}

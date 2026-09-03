@@ -174,8 +174,8 @@ The current history cache reuses a complete indexed dataset as a point-in-time s
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/wallet-analytics.git
-cd wallet-analytics
+git clone https://github.com/mdi06/WalletGenome.git
+cd WalletGenome
 
 # Install dependencies
 npm install

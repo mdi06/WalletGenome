@@ -76,4 +76,28 @@ describe('Cluster dashboard provider availability messaging', () => {
     assert.match(markup, /2 direct transactions on Ethereum/i);
     assert.doesNotMatch(markup, /operate autonomously/i);
   });
+
+  it('labels saved-cluster shared-counterparty gaps as excluded evidence', () => {
+    const data: ClusterScanResult = {
+      source: 'saved',
+      status: 'complete',
+      totalWallets: 4,
+      requestedWallets: 4,
+      totalTransactions: 0,
+      totalGasUSD: 0,
+      totalInflowUSD: 0,
+      avgSybilProbability: 0,
+      flaggedCount: 0,
+      totalHighRiskApprovals: 0,
+      wallets: [],
+      failedWallets: [],
+      linkages: [],
+      sharedCounterparties: [],
+      scannedAt: Date.now(),
+    };
+
+    const markup = renderToStaticMarkup(createElement(BulkDashboard, { data, onInspectWallet: () => {} }));
+    assert.match(markup, /No shared-counterparty evidence is included in this saved example\./);
+    assert.doesNotMatch(markup, /No significant shared funding sources or overlapping counterparties detected\./);
+  });
 });
