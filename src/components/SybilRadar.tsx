@@ -28,12 +28,13 @@ export default function SybilRadar({ report }: Props) {
           : 'High Sybil Risk';
 
   const explanation = hasBlacklistMatch
-    ? `Positive match in ${blacklistMatches.map(match => match.databaseName).join(', ')}. The ${sybilProb === null ? 'unavailable' : `${sybilProb}%`} behavioral Sybil estimate is a separate secondary heuristic.`
-    : report.mediaScore?.explanation ?? 'Behavioral Sybil scoring is unavailable for this scan.';
+    ? `Positive match in ${blacklistMatches.map(match => match.databaseName).join(', ')}. The ${sybilProb === null ? 'unavailable' : `${sybilProb}%`} behavioral risk score is separate from blacklist status.`
+    : report.mediaScore?.explanation ?? 'Behavioral risk scoring is unavailable for this scan.';
+  const scoreNote = 'Local MEDIA-style heuristic; not a live Trusta score.';
 
   return (
-    <section aria-labelledby="sybil-probability-heading" className="card-3d p-5 text-[#0a0a0a] flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-      {/* Left: Sybil Probability & Verdict */}
+    <section aria-labelledby="behavioral-sybil-risk-heading" className="card-3d p-5 text-[#0a0a0a] flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      {/* Left: Behavioral Sybil Risk & Verdict */}
       <div className="flex items-center gap-4">
         <div
           className={`w-11 h-11 border flex items-center justify-center flex-shrink-0 badge-3d ${
@@ -50,8 +51,8 @@ export default function SybilRadar({ report }: Props) {
         </div>
         <div>
           <div className="flex items-center gap-2">
-            <span id="sybil-probability-heading" className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider">
-              SYBIL PROBABILITY
+            <span id="behavioral-sybil-risk-heading" className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider">
+              BEHAVIORAL SYBIL RISK
             </span>
             <span className="text-sm font-black text-[#0a0a0a] font-mono">
               {sybilProb === null ? 'Unavailable' : `${sybilProb}%`}
@@ -72,6 +73,9 @@ export default function SybilRadar({ report }: Props) {
           </div>
           <p className="text-xs text-[#374151] max-w-xl pt-0.5 leading-normal font-medium text-pretty">
             {explanation}
+          </p>
+          <p className="text-[10px] text-[#6b7280] max-w-xl leading-normal font-mono">
+            {scoreNote}
           </p>
         </div>
       </div>
@@ -111,11 +115,12 @@ export default function SybilRadar({ report }: Props) {
 
 function formatDbName(id: string): string {
   switch (id) {
+    case 'arbitrumFoundation': return 'Arbitrum Foundation';
     case 'layerzero': return 'LayerZero Sybil';
     case 'hop': return 'Hop Protocol';
     case 'umbra': return 'Umbra Mixer';
     case 'ofac': return 'OFAC Sanctions';
-    case 'trusta': return 'Trusta MEDIA';
+    case 'trusta': return 'Behavioral heuristic';
     default: return id;
   }
 }

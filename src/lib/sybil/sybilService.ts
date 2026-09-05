@@ -6,6 +6,7 @@ interface SybilCache {
   hop: Set<string>;
   umbra: Set<string>;
   ofac: Set<string>;
+  arbitrumFoundation: Map<string, number>;
   lastSyncedAt: number;
   isSyncing: boolean;
 }
@@ -42,12 +43,20 @@ const BASELINE_UMBRA = new Set([
   '0x5a183424d5462cf1b439366df0472cbcfd4dfeb1',
 ]);
 
+const BASELINE_ARBITRUM_FOUNDATION = new Map<string, number>([
+  ['0x1ddbf60792aac896aed180eaa6810fccd7839ada', 319],
+  ['0xc7bb9b943fd2a04f651cc513c17eb5671b90912d', 1544],
+  ['0x3fb4c01b5ceecf307010f84c9a858aeaeab0b9fa', 2554],
+  ['0x15bc18bb8c378c94c04795d72621957497130400', 3316],
+]);
+
 // ── In-Memory Global Cache (Singleton Across Requests initialized with baselines) ──
 const cache: SybilCache = {
   layerZero: new Set(BASELINE_LZ),
   hop: new Set(BASELINE_HOP),
   umbra: new Set(BASELINE_UMBRA),
   ofac: new Set(BASELINE_OFAC),
+  arbitrumFoundation: new Map(BASELINE_ARBITRUM_FOUNDATION),
   lastSyncedAt: 0,
   isSyncing: false,
 };
@@ -80,9 +89,14 @@ const SOURCES = {
     criteria: 'Identified clusters routing funds through privacy pools to disguise common funding sources across airdrop campaigns.',
   },
   trusta: {
-    name: 'Trusta AI / MEDIA Heuristic Model',
+    name: 'Local MEDIA-style behavioral heuristic',
     repoUrl: 'https://www.trustalabs.ai',
-    criteria: 'Algorithmic assessment of Monetary volume, Engagement velocity, Protocol Diversity, Identity breadth, and Wallet Age.',
+    criteria: 'Local assessment of Monetary volume, Engagement velocity, Protocol Diversity, Identity breadth, and Wallet Age; not a live Trusta score.',
+  },
+  arbitrumFoundation: {
+    name: 'Arbitrum Foundation Sybil Clusters',
+    repoUrl: 'https://github.com/ArbitrumFoundation/sybil-detection',
+    criteria: 'Published Arbitrum Foundation sample addresses from its airdrop Sybil-detection research; this does not reproduce the full graph-based clustering model.',
   },
 };
 
@@ -165,7 +179,7 @@ export async function syncSybilDatabases(signal?: AbortSignal): Promise<void> {
 }
 
 /**
- * Checks an address against all in-memory Sybil databases and evaluates the Trusta MEDIA Model
+ * Checks an address against all in-memory Sybil databases and evaluates the local MEDIA-style behavioral heuristic.
  */
 export async function checkSybilStatus(
   address: string,
@@ -190,10 +204,23 @@ export async function checkSybilStatus(
   const isHop = cache.hop.has(lower);
   const isLz = cache.layerZero.has(lower);
   const isUmbra = cache.umbra.has(lower);
+  const arbitrumCluster = cache.arbitrumFoundation.get(lower);
+  const isArbitrumFoundation = arbitrumCluster !== undefined;
 
   const isTrustaFlagged = (mediaScore?.sybilProbability ?? 0) > 55;
 
   const matches: SybilMatch[] = [
+    {
+      databaseId: 'arbitrumFoundation',
+      databaseName: SOURCES.arbitrumFoundation.name,
+      flagged: isArbitrumFoundation,
+      severity: isArbitrumFoundation ? 'critical' : 'clean',
+      details: isArbitrumFoundation
+        ? `Published Arbitrum Foundation sample address in Sybil Cluster ${arbitrumCluster}.`
+        : SOURCES.arbitrumFoundation.criteria,
+      sourceUrl: SOURCES.arbitrumFoundation.repoUrl,
+      matchedReason: isArbitrumFoundation ? `Arbitrum Foundation Cluster ${arbitrumCluster}` : undefined,
+    },
     {
       databaseId: 'layerzero',
       databaseName: SOURCES.layerZero.name,
@@ -244,10 +271,10 @@ export async function checkSybilStatus(
       flagged: isTrustaFlagged,
       severity: isTrustaFlagged ? 'warning' : 'clean',
       details: mediaScore
-        ? `${mediaScore.classification} (MEDIA Score: ${mediaScore.compositeScore}/100, Sybil Probability: ${mediaScore.sybilProbability}%). ${mediaScore.explanation}`
+        ? `${mediaScore.classification} (Behavioral risk score: ${mediaScore.sybilProbability}%). This is a local MEDIA-style heuristic, not a live Trusta score. ${mediaScore.explanation}`
         : SOURCES.trusta.criteria,
       sourceUrl: SOURCES.trusta.repoUrl,
-      matchedReason: isTrustaFlagged ? `High Automation Risk (${mediaScore?.sybilProbability}% probability)` : undefined,
+      matchedReason: isTrustaFlagged ? `High behavioral automation risk (${mediaScore?.sybilProbability}% heuristic score)` : undefined,
     },
   ];
 
@@ -255,7 +282,7 @@ export async function checkSybilStatus(
   const isFlagged = flaggedCount > 0;
 
   let overallStatus: 'clean' | 'flagged' | 'suspicious' = 'clean';
-  if (isOfac || (flaggedCount >= 2 && !isTrustaFlagged)) {
+  if (isOfac || isArbitrumFoundation || (flaggedCount >= 2 && !isTrustaFlagged)) {
     overallStatus = 'flagged';
   } else if (flaggedCount >= 1) {
     overallStatus = (isUmbra || isTrustaFlagged) ? 'suspicious' : 'flagged';

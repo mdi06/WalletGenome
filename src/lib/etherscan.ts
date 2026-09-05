@@ -19,17 +19,38 @@ const BLOCKSCOUT_APIS: Record<number, string> = {
   137: 'https://polygon.blockscout.com/api',
 };
 
+const BLOCKSCOUT_REST_APIS: Record<number, string> = {
+  1: 'https://eth.blockscout.com/api/v2',
+  8453: 'https://base.blockscout.com/api/v2',
+  42161: 'https://arbitrum.blockscout.com/api/v2',
+  10: 'https://optimism.blockscout.com/api/v2',
+};
+
 const ROUTESCAN_APIS: Record<number, string> = {
   1: 'https://api.routescan.io/v2/network/mainnet/evm/1/etherscan/api',
 };
 
-// Blockscout Pro does not currently index Base. Keep this capability
-// list explicit so a configured key is never sent to an unsupported chain.
-const BLOCKSCOUT_PRO_CHAIN_IDS = new Set([1, 10, 42161]);
+// Keep this capability list explicit so a configured key is only sent to
+// chains currently supported by the Blockscout multichain API.
+const BLOCKSCOUT_PRO_CHAIN_IDS = new Set([1, 10, 8453, 42161]);
 const ETHERSCAN_FREE_HISTORY_CHAIN_IDS = new Set([1, 42161]);
+const BLOCKSCOUT_MAX_RESULT_WINDOW = 10_000;
 
 function isPublicBlockscoutHostname(hostname: string): boolean {
   return hostname.endsWith('.blockscout.com') && hostname !== 'api.blockscout.com';
+}
+
+function supportsOrdinaryBlockscoutPagination(url: string): boolean {
+  try {
+    return new URL(url).hostname.endsWith('.blockscout.com');
+  } catch {
+    return false;
+  }
+}
+
+function blockscoutPageWindowLimit(url: string, offset: number): number | null {
+  if (!supportsOrdinaryBlockscoutPagination(url)) return null;
+  return Math.max(1, Math.floor(BLOCKSCOUT_MAX_RESULT_WINDOW / Math.max(1, offset)));
 }
 
 function isUsableApiKey(value: string | undefined): value is string {
@@ -235,7 +256,7 @@ function errorCodeFor(error: unknown): ProviderErrorCode {
   return error instanceof Error && error.name === 'AbortError' ? 'timeout' : 'provider_error';
 }
 
-interface ExplorerFetchOptions {
+export interface ExplorerFetchOptions {
   fetcher?: (url: string, timeoutMs: number, signal?: AbortSignal) => Promise<Response>;
   maxAttempts?: number;
   backoffBaseMs?: number;
@@ -284,7 +305,10 @@ function computeBackoffDelayMs(
   }
 
   const jitter = jitterMs > 0 ? Math.floor(Math.random() * jitterMs) : 0;
-  return attempt * baseMs + jitter;
+  const fallbackDelay = attempt * baseMs + jitter;
+  return response?.status === 429
+    ? Math.max(attempt * 1_000, fallbackDelay)
+    : fallbackDelay;
 }
 
 function buildPageUrl(url: string, page: number, offset: number): string {
@@ -338,8 +362,9 @@ async function fetchExplorerPage<T>(
   } catch {}
 
   const publicBlockscout = isPublicBlockscoutHostname(hostname);
-  const limiter = getDomainLimiter(hostname, publicBlockscout ? 1 : hostname === 'api.blockscout.com' ? 5 : 3);
-  const acquireTimeoutMs = publicBlockscout ? 12_000 : 3_000;
+  const blockscout = hostname.endsWith('.blockscout.com');
+  const limiter = getDomainLimiter(hostname, publicBlockscout ? 1 : hostname === 'api.blockscout.com' ? 4 : 3);
+  const acquireTimeoutMs = blockscout ? 15_000 : 3_000;
   const pageUrl = buildPageUrl(candidateUrl, page, offset);
 
   for (let attempt = 1; attempt <= options.maxAttempts; attempt++) {
@@ -426,6 +451,12 @@ function withBlockRange(url: string, startBlock: number, endBlock: number): stri
   return resolved.toString();
 }
 
+function withStartBlock(url: string, startBlock: number): string {
+  const resolved = new URL(url);
+  resolved.searchParams.set('startblock', String(startBlock));
+  return resolved.toString();
+}
+
 function providerResultLimit(url: string, requestedLimit: number): number {
   try {
     const hostname = new URL(url).hostname;
@@ -459,6 +490,277 @@ function mergeUniqueRecords<T>(...groups: T[][]): T[] {
     }
   }
   return merged;
+}
+
+type BlockscoutRestDataset = 'transactions' | 'tokenTransfers' | 'internalTransactions';
+
+interface BlockscoutRestPage {
+  items?: unknown;
+  next_page_params?: unknown;
+}
+
+function restField(item: Record<string, unknown>, field: string): unknown {
+  return item[field];
+}
+
+function restString(value: unknown, fallback = ''): string {
+  if (typeof value === 'string') return value;
+  if (typeof value === 'number' && Number.isFinite(value)) return String(value);
+  return fallback;
+}
+
+function restNestedHash(value: unknown): string {
+  if (!value || typeof value !== 'object') return '';
+  return restString((value as Record<string, unknown>).hash);
+}
+
+function restTimestamp(value: unknown): string {
+  if (typeof value === 'number' && Number.isFinite(value)) return String(Math.floor(value));
+  if (typeof value !== 'string') return '';
+  const parsed = Date.parse(value);
+  return Number.isFinite(parsed) ? String(Math.floor(parsed / 1000)) : value;
+}
+
+function restErrorFlag(value: unknown): string {
+  if (value === false || value === 0 || value === '0' || value === 'ok' || value === 'success') return '0';
+  if (value === true || value === 1 || value === '1' || value === 'error' || value === 'failed') return '1';
+  return '';
+}
+
+function normalizeRestTransaction(item: unknown): EtherscanTransaction | null {
+  if (!item || typeof item !== 'object') return null;
+  const raw = item as Record<string, unknown>;
+  const status = restString(restField(raw, 'status')).toLowerCase();
+  const isError = restErrorFlag(status === 'ok' ? 'ok' : status === 'error' ? 'error' : restField(raw, 'is_error'));
+  const receiptStatus = status === 'ok' || status === 'success'
+    ? '1'
+    : status === 'error' || status === 'failed'
+      ? '0'
+      : restErrorFlag(restField(raw, 'receipt_status')) === '1' ? '0' : '';
+  return {
+    blockNumber: restString(restField(raw, 'block_number')),
+    timeStamp: restTimestamp(restField(raw, 'timestamp')),
+    hash: restString(restField(raw, 'hash')),
+    nonce: restString(restField(raw, 'nonce')),
+    blockHash: restString(restField(raw, 'block_hash')),
+    transactionIndex: restString(restField(raw, 'position')),
+    from: restNestedHash(restField(raw, 'from')),
+    to: restNestedHash(restField(raw, 'to')),
+    value: restString(restField(raw, 'value')),
+    gas: restString(restField(raw, 'gas')),
+    gasPrice: restString(restField(raw, 'gas_price')),
+    isError,
+    txreceipt_status: receiptStatus,
+    input: restString(restField(raw, 'raw_input') ?? restField(raw, 'input')),
+    contractAddress: restNestedHash(restField(raw, 'created_contract')),
+    cumulativeGasUsed: restString(restField(raw, 'cumulative_gas_used')),
+    gasUsed: restString(restField(raw, 'gas_used')),
+    confirmations: restString(restField(raw, 'confirmations')),
+    methodId: restString(restField(raw, 'method_id')),
+    functionName: restString(restField(raw, 'method')),
+  };
+}
+
+function normalizeRestTokenTransfer(item: unknown): EtherscanTokenTransfer | null {
+  if (!item || typeof item !== 'object') return null;
+  const raw = item as Record<string, unknown>;
+  const token = raw.token && typeof raw.token === 'object' ? raw.token as Record<string, unknown> : {};
+  return {
+    blockNumber: restString(restField(raw, 'block_number')),
+    timeStamp: restTimestamp(restField(raw, 'timestamp')),
+    hash: restString(restField(raw, 'transaction_hash')),
+    nonce: restString(restField(raw, 'nonce')),
+    blockHash: restString(restField(raw, 'block_hash')),
+    from: restNestedHash(restField(raw, 'from')),
+    contractAddress: restString(token.address_hash),
+    to: restNestedHash(restField(raw, 'to')),
+    value: restString(raw.total && typeof raw.total === 'object'
+      ? (raw.total as Record<string, unknown>).value
+      : raw.value),
+    tokenName: restString(token.name),
+    tokenSymbol: restString(token.symbol),
+    tokenDecimal: restString(token.decimals),
+    transactionIndex: restString(restField(raw, 'transaction_index')),
+    logIndex: restString(restField(raw, 'log_index')),
+    gas: restString(restField(raw, 'gas')),
+    gasPrice: restString(restField(raw, 'gas_price')),
+    gasUsed: restString(restField(raw, 'gas_used')),
+    cumulativeGasUsed: restString(restField(raw, 'cumulative_gas_used')),
+    input: restString(restField(raw, 'raw_input') ?? restField(raw, 'input')),
+    confirmations: restString(restField(raw, 'confirmations')),
+  };
+}
+
+function normalizeRestInternalTransaction(item: unknown): EtherscanInternalTransaction | null {
+  if (!item || typeof item !== 'object') return null;
+  const raw = item as Record<string, unknown>;
+  return {
+    blockNumber: restString(restField(raw, 'block_number')),
+    timeStamp: restTimestamp(restField(raw, 'timestamp')),
+    hash: restString(restField(raw, 'transaction_hash')),
+    from: restNestedHash(restField(raw, 'from')),
+    to: restNestedHash(restField(raw, 'to')),
+    value: restString(restField(raw, 'value')),
+    contractAddress: restNestedHash(restField(raw, 'created_contract')),
+    input: restString(restField(raw, 'raw_input') ?? restField(raw, 'input')),
+    type: restString(restField(raw, 'type')),
+    gas: restString(restField(raw, 'gas_limit')),
+    gasUsed: restString(restField(raw, 'gas_used')),
+    traceId: restString(restField(raw, 'index')),
+    isError: restErrorFlag(restField(raw, 'success')) === '0' ? '1' : restErrorFlag(restField(raw, 'error')),
+    errCode: restString(restField(raw, 'error')),
+  };
+}
+
+function normalizeRestRecords<T>(dataset: BlockscoutRestDataset, items: unknown[]): T[] {
+  const normalized = items.map(item => {
+    switch (dataset) {
+      case 'transactions': return normalizeRestTransaction(item);
+      case 'tokenTransfers': return normalizeRestTokenTransfer(item);
+      case 'internalTransactions': return normalizeRestInternalTransaction(item);
+    }
+  });
+  return normalized.filter(record => record !== null) as unknown as T[];
+}
+
+function blockscoutRestPath(dataset: BlockscoutRestDataset): string {
+  switch (dataset) {
+    case 'transactions': return 'transactions';
+    case 'tokenTransfers': return 'token-transfers';
+    case 'internalTransactions': return 'internal-transactions';
+  }
+}
+
+function isRestCursor(value: unknown): value is Record<string, string | number | boolean> {
+  return Boolean(value) && typeof value === 'object' && !Array.isArray(value)
+    && Object.values(value as Record<string, unknown>).every(item => (
+      typeof item === 'string' || typeof item === 'number' || typeof item === 'boolean'
+    ));
+}
+
+function restCursorKey(cursor: Record<string, string | number | boolean>): string {
+  return JSON.stringify(Object.entries(cursor).sort(([left], [right]) => left.localeCompare(right)));
+}
+
+async function fetchBlockscoutRestData<T>(
+  address: string,
+  chainId: number,
+  dataset: BlockscoutRestDataset,
+  options: ExplorerFetchOptions,
+): Promise<DataSourceResult<T> | null> {
+  const base = BLOCKSCOUT_REST_APIS[chainId];
+  if (!base) return null;
+
+  const errors: DataSourceResult<T>['errors'] = [];
+  const fetcher = options.fetcher ?? fetchWithTimeout;
+  const maxAttempts = options.maxAttempts ?? 3;
+  const backoffBaseMs = options.backoffBaseMs ?? 250;
+  const backoffJitterMs = options.backoffJitterMs ?? 100;
+  const requestTimeoutMs = options.requestTimeoutMs ?? 12_000;
+  const maxPages = options.maxPages ?? 500;
+  const deadlineAt = Date.now() + (options.maxDurationMs ?? 200_000);
+  const hostname = new URL(base).hostname;
+  const limiter = getDomainLimiter(hostname, 1);
+  const records: T[] = [];
+  const seenCursors = new Set<string>();
+  let nextParams: Record<string, string | number | boolean> | null = null;
+
+  for (let page = 1; page <= maxPages; page++) {
+    throwIfAborted(options.signal);
+    if (Date.now() >= deadlineAt) {
+      errors.push({ code: 'result_truncated', message: `Blockscout REST ${dataset} budget expired before full exhaustion.` });
+      break;
+    }
+
+    const url = new URL(`${base}/addresses/${encodeURIComponent(address)}/${blockscoutRestPath(dataset)}`);
+    if (nextParams) {
+      for (const [key, value] of Object.entries(nextParams)) url.searchParams.set(key, String(value));
+    }
+
+    let pageData: BlockscoutRestPage | null = null;
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      let response: Response | null = null;
+      try {
+        const acquired = await limiter.acquire(15_000, options.signal);
+        if (!acquired) {
+          errors.push({ code: 'rate_limited', message: `${hostname} could not schedule REST ${dataset} page ${page}.` });
+          continue;
+        }
+        response = await fetcher(url.toString(), requestTimeoutMs, options.signal);
+        throwIfAborted(options.signal);
+        if (!response.ok) {
+          const code = response.status === 429 ? 'rate_limited' : 'http_error';
+          errors.push({ code, message: `${hostname} returned HTTP ${response.status} for REST ${dataset} page ${page}.` });
+          if (attempt < maxAttempts && (response.status === 429 || response.status >= 500)) {
+            await sleep(computeBackoffDelayMs(attempt, response, backoffBaseMs, backoffJitterMs), options.signal);
+            continue;
+          }
+          break;
+        }
+        const payload: unknown = await response.json().catch(() => null);
+        if (!payload || typeof payload !== 'object' || !Array.isArray((payload as BlockscoutRestPage).items)) {
+          errors.push({ code: 'invalid_response', message: `${hostname} returned invalid REST ${dataset} data on page ${page}.` });
+          if (attempt < maxAttempts) {
+            await sleep(computeBackoffDelayMs(attempt, response, backoffBaseMs, backoffJitterMs), options.signal);
+            continue;
+          }
+          break;
+        }
+        pageData = payload as BlockscoutRestPage;
+        break;
+      } catch (error) {
+        throwIfAborted(options.signal);
+        errors.push({ code: errorCodeFor(error), message: `${hostname} could not complete REST ${dataset} page ${page}.` });
+        if (attempt < maxAttempts) {
+          await sleep(computeBackoffDelayMs(attempt, response, backoffBaseMs, backoffJitterMs), options.signal);
+        }
+      }
+    }
+
+    if (!pageData || !Array.isArray(pageData.items)) break;
+    records.push(...normalizeRestRecords<T>(dataset, pageData.items));
+    if (pageData.next_page_params === undefined || pageData.next_page_params === null) {
+      return { data: mergeUniqueRecords(records), status: 'complete', errors: [] };
+    }
+    if (!isRestCursor(pageData.next_page_params)) {
+      errors.push({ code: 'invalid_response', message: `${hostname} returned invalid REST ${dataset} pagination parameters.` });
+      break;
+    }
+    const cursorKey = restCursorKey(pageData.next_page_params);
+    if (seenCursors.has(cursorKey)) {
+      errors.push({ code: 'provider_error', message: `${hostname} repeated REST ${dataset} pagination parameters.` });
+      break;
+    }
+    seenCursors.add(cursorKey);
+    nextParams = pageData.next_page_params;
+  }
+
+  if (records.length > 0) {
+    return {
+      data: mergeUniqueRecords(records),
+      status: 'partial',
+      errors: errors.length > 0 ? errors : [{ code: 'result_truncated', message: `Blockscout REST ${dataset} pagination was truncated.` }],
+    };
+  }
+  return { data: [], status: 'unavailable', errors: errors.length > 0 ? errors : [{ code: 'provider_error', message: `${hostname} returned no REST ${dataset} data.` }] };
+}
+
+async function fetchWithBlockscoutRestFallback<T>(
+  legacyResult: DataSourceResult<T>,
+  address: string,
+  chainId: number,
+  dataset: BlockscoutRestDataset,
+  options: ExplorerFetchOptions,
+): Promise<DataSourceResult<T>> {
+  if (legacyResult.status === 'complete') return legacyResult;
+  const restResult = await fetchBlockscoutRestData<T>(address, chainId, dataset, options);
+  if (!restResult) return legacyResult;
+  if (restResult.status === 'complete' || restResult.data.length > legacyResult.data.length) return restResult;
+  return {
+    data: legacyResult.data,
+    status: legacyResult.status,
+    errors: [...legacyResult.errors, ...restResult.errors],
+  };
 }
 
 interface RangeFetchResult<T> {
@@ -668,7 +970,7 @@ export async function fetchExplorerData<T>(
       break;
     }
 
-    if (options.useBlockRangeSplitting) {
+    if (options.useBlockRangeSplitting && !supportsOrdinaryBlockscoutPagination(url)) {
       const rangeResultLimit = providerResultLimit(url, resultLimit);
       const rangeResult = await fetchProviderByBlockRange<T>(
         url,
@@ -693,10 +995,16 @@ export async function fetchExplorerData<T>(
 
     const dedupedResults: T[] = [];
     const seenKeys = new Set<string>();
+    const pageWindowLimit = blockscoutPageWindowLimit(url, resultLimit);
+    let pageUrl = url;
+    let page = 1;
+    let totalPageRequests = 0;
+    let windowStartBlock: number | null = null;
+    let uniqueRecordsAtWindowStart = 0;
     let exhausted = false;
     let providerFailed = false;
 
-    for (let page = 1; page <= maxPages && !providerFailed && !exhausted; page++) {
+    while (totalPageRequests < maxPages && !providerFailed && !exhausted) {
       throwIfAborted(options.signal);
       if (Date.now() >= deadlineAt) {
         errors.push({
@@ -706,8 +1014,9 @@ export async function fetchExplorerData<T>(
         providerFailed = true;
         break;
       }
+      totalPageRequests += 1;
       const pageResult = await fetchExplorerPage<T>(
-        url,
+        pageUrl,
         page,
         resultLimit,
         pageOptions,
@@ -725,6 +1034,19 @@ export async function fetchExplorerData<T>(
         break;
       }
 
+      if (windowStartBlock !== null && pageResult.records.length > 0) {
+        const currentWindowStartBlock = windowStartBlock;
+        const blockNumbers = pageResult.records.map(recordBlockNumber);
+        if (blockNumbers.some(block => block === null || block < currentWindowStartBlock)) {
+          errors.push({
+            code: 'invalid_response',
+            message: `Blockscout ignored the continuation starting at block ${currentWindowStartBlock}.`,
+          });
+          providerFailed = true;
+          break;
+        }
+      }
+
       const beforeCount = dedupedResults.length;
       for (const record of pageResult.records) {
         const key = recordKey(record, dedupedResults.length);
@@ -739,7 +1061,38 @@ export async function fetchExplorerData<T>(
         break;
       }
 
-      if (dedupedResults.length === beforeCount) {
+      if (pageWindowLimit !== null && page >= pageWindowLimit) {
+        const blockNumbers = pageResult.records.map(recordBlockNumber);
+        if (blockNumbers.some(block => block === null)) {
+          errors.push({
+            code: 'invalid_response',
+            message: 'Blockscout omitted block numbers required to continue beyond its 10,000-record window.',
+          });
+          providerFailed = true;
+          break;
+        }
+
+        const nextStartBlock = Math.max(...blockNumbers as number[]);
+        if (dedupedResults.length === uniqueRecordsAtWindowStart) {
+          errors.push({
+            code: 'result_truncated',
+            message: `Blockscout could not advance beyond block ${nextStartBlock} without risking omitted records.`,
+          });
+          providerFailed = true;
+          break;
+        }
+
+        // The Etherscan-compatible Blockscout API caps page x offset at
+        // 10,000. Reopen an overlapping window at the last observed block,
+        // then deduplicate that boundary block as normal pagination resumes.
+        pageUrl = withStartBlock(url, nextStartBlock);
+        windowStartBlock = nextStartBlock;
+        uniqueRecordsAtWindowStart = dedupedResults.length;
+        page = 1;
+        continue;
+      }
+
+      if (dedupedResults.length === beforeCount && windowStartBlock === null) {
         errors.push({
           code: 'provider_error',
           message: `Provider pagination looped without yielding new records on page ${page}.`,
@@ -747,9 +1100,14 @@ export async function fetchExplorerData<T>(
         providerFailed = true;
         break;
       }
+
+      page += 1;
     }
 
     if (exhausted) {
+      if (dedupedResults.length === 0 && bestPartialData.length > 0) {
+        continue;
+      }
       return {
         data: dedupedResults,
         status: 'complete',
@@ -795,11 +1153,12 @@ export async function fetchNormalTransactions(
 ): Promise<DataSourceResult<EtherscanTransaction>> {
   const urls = buildCandidateUrls(address, chainId, 'txlist', apiKey);
   const endBlock = options.endBlock ?? await getLatestBlockNumber(chainId, { signal: options.signal }) ?? 999_999_999;
-  return await fetchExplorerData<EtherscanTransaction>(urls, offset, {
+  const legacyResult = await fetchExplorerData<EtherscanTransaction>(urls, offset, {
     ...options,
     endBlock,
     useBlockRangeSplitting: options.useBlockRangeSplitting ?? true,
   });
+  return await fetchWithBlockscoutRestFallback(legacyResult, address, chainId, 'transactions', options);
 }
 
 export async function fetchTokenTransfers(
@@ -811,11 +1170,12 @@ export async function fetchTokenTransfers(
 ): Promise<DataSourceResult<EtherscanTokenTransfer>> {
   const urls = buildCandidateUrls(address, chainId, 'tokentx', apiKey);
   const endBlock = options.endBlock ?? await getLatestBlockNumber(chainId, { signal: options.signal }) ?? 999_999_999;
-  return await fetchExplorerData<EtherscanTokenTransfer>(urls, offset, {
+  const legacyResult = await fetchExplorerData<EtherscanTokenTransfer>(urls, offset, {
     ...options,
     endBlock,
     useBlockRangeSplitting: options.useBlockRangeSplitting ?? true,
   });
+  return await fetchWithBlockscoutRestFallback(legacyResult, address, chainId, 'tokenTransfers', options);
 }
 
 export async function fetchInternalTransactions(
@@ -827,11 +1187,12 @@ export async function fetchInternalTransactions(
 ): Promise<DataSourceResult<EtherscanInternalTransaction>> {
   const urls = buildCandidateUrls(address, chainId, 'txlistinternal', apiKey);
   const endBlock = options.endBlock ?? await getLatestBlockNumber(chainId, { signal: options.signal }) ?? 999_999_999;
-  return await fetchExplorerData<EtherscanInternalTransaction>(urls, offset, {
+  const legacyResult = await fetchExplorerData<EtherscanInternalTransaction>(urls, offset, {
     ...options,
     endBlock,
     useBlockRangeSplitting: options.useBlockRangeSplitting ?? true,
   });
+  return await fetchWithBlockscoutRestFallback(legacyResult, address, chainId, 'internalTransactions', options);
 }
 
 /**

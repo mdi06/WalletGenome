@@ -89,9 +89,9 @@ const SECTIONS: DocSection[] = [
   {
     id: 'sybil-radar-media',
     category: '5. Sybil & Blacklist Defense',
-    title: 'Sybil Radar & Trusta AI / MEDIA Algorithmic Model',
+    title: 'Sybil Radar & Local MEDIA-style Behavioral Heuristic',
     badge: 'GRAPH & BOUNTY RADAR',
-    summary: '24-hour in-memory cache with an illustrative ~800K-entry scale, plus Trusta MEDIA composite probability scoring.',
+    summary: '24-hour in-memory cache with an illustrative ~800K-entry scale, plus a local MEDIA-style behavioral risk heuristic that is not a live Trusta score.',
     icon: ShieldCheck,
     filePath: 'src/lib/sybil/sybilService.ts · src/lib/sybil/mediaScoring.ts',
   },
@@ -879,7 +879,7 @@ export default function DocsPage() {
                   SECTION 05 · SYBIL & BLACKLIST DEFENSE
                 </span>
                 <h2 className="text-xl sm:text-2xl font-black uppercase text-[#0a0a0a] pt-1">
-                  Sybil Radar & Trusta AI / MEDIA Algorithmic Model
+                  Sybil Radar & Local MEDIA-style Behavioral Heuristic
                 </h2>
               </div>
               <button
@@ -892,8 +892,8 @@ export default function DocsPage() {
             </div>
 
             <p className="text-xs sm:text-sm text-[#374151] leading-relaxed text-pretty">
-              Sybil defense checks an illustrative 800K+ blacklist-cache scale and uses the Trusta AI MEDIA model to identify bot-like behavior.
-              A positive non-behavioral blacklist match overrides the overall clean/organic headline; the MEDIA probability remains a separate secondary heuristic.
+              Sybil defense checks an illustrative 800K+ blacklist-cache scale and computes a local MEDIA-style behavioral heuristic to identify bot-like behavior.
+              This behavioral risk score is not a live Trusta score. A positive non-behavioral blacklist match overrides the overall clean/organic headline; the behavioral score remains a separate secondary heuristic.
             </p>
 
             {/* In-Memory Datasets */}
@@ -940,11 +940,11 @@ export default function DocsPage() {
             <div className="well-recessed-light p-5 space-y-3 font-mono text-xs">
               <div className="text-xs font-black uppercase text-black flex items-center gap-1.5">
                 <Scale size={14} className="text-orange-ink" />
-                TRUSTA AI / MEDIA COMPOSITE FORMULATION
+                LOCAL MEDIA-STYLE HEURISTIC FORMULATION
               </div>
               <div className="card-3d-dark p-3.5 text-xs text-white space-y-1">
                 <div className="text-gray-200">{'MEDIA Composite Score = (0.25 × M) + (0.25 × E) + (0.20 × D) + (0.15 × I) + (0.15 × A)'}</div>
-                <div className="text-[#ff5500] font-black">{'Sybil Probability P(Sybil) = 100 - MEDIA Composite Score'}</div>
+                <div className="text-[#ff5500] font-black">{'Behavioral Sybil Risk = 100 - MEDIA-style Composite Score'}</div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-5 gap-2 text-[11px] pt-1">
                 <div className="card-3d p-2.5">
@@ -1096,7 +1096,7 @@ export default function DocsPage() {
             <div className="card-3d p-4 text-xs text-[#374151] space-y-1">
               <div className="font-black text-[#0a0a0a] uppercase">Cluster evidence rule</div>
               <p>Direct links require a native, internal, or ERC-20 transfer whose source and target are both submitted wallets. Evidence is deduplicated by chain, transaction hash, direction, asset type, and asset identifier, then aggregated by source, target, and chain.</p>
-              <p>Every linkage retains unique evidence hashes, transaction count, direction, last date, and USD completeness. Shared counterparties are computed from the full evidence set; only rendering is truncated.</p>
+              <p>Every linkage retains unique evidence hashes, transaction count, direction, last date, and USD completeness. Shared counterparties are computed from the full evidence set; only rendering is truncated. These are observed direct-transfer and shared-counterparty signals, not proof of common control. The Arbitrum Foundation match is limited to published sample addresses and does not reproduce its full graph-based clustering model.</p>
             </div>
 
             <div className="well-recessed-light p-5 space-y-3 font-mono text-xs">
@@ -1106,7 +1106,7 @@ export default function DocsPage() {
                   <strong>1. Arkham 3-Column Topology:</strong><br />
                   • Column 1 (X=160): Inbound funding sources & CEX withdrawals.<br />
                   • Column 2 (X=550): User core address.<br />
-                  • Column 3 (X=940): Destination DeFi protocols & recipient EOAs.<br />
+                  • Column 3 (X=940): Destination DeFi protocols & recipient addresses.<br />
                   • Line widths: Volume-weighted stroke <code className="badge-3d px-1.5 py-0.2">W = min(8, 1.5 + log10(USD_Volume))</code>.
                 </div>
                 <div className="card-3d p-3.5 space-y-1">

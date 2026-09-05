@@ -17,7 +17,13 @@ import {
 } from '../labels';
 import { getChainConfig } from '../chains';
 
-type CounterpartyAccumulator = Omit<AddressInteraction, 'totalTxCount' | 'netFlowUSD' | 'chainId' | 'lastInteractionDate'> & {
+type CounterpartyAccumulator = Omit<
+  AddressInteraction,
+  'inboundCount' | 'outboundCount' | 'totalTxCount' | 'netFlowUSD' | 'chainId' | 'lastInteractionDate'
+> & {
+  inboundTransactionHashes: Set<string>;
+  outboundTransactionHashes: Set<string>;
+  transactionHashes: Set<string>;
   lastTimestamp: number;
   lastDate: string;
 };
@@ -190,17 +196,7 @@ export function analyzeInteractions(
     .reduce((sum, protocol) => sum + protocol.totalVolumeUSD, 0);
 
   // 3. Top Counterparty Addresses (Strictly distinguishing EOAs vs Contracts)
-  const counterpartyMap = new Map<string, {
-    address: string;
-    label: string | null;
-    type: 'cex' | 'dex' | 'bridge' | 'contract' | 'eoa';
-    inboundCount: number;
-    outboundCount: number;
-    inboundUSD: number;
-    outboundUSD: number;
-    lastTimestamp: number;
-    lastDate: string;
-  }>();
+  const counterpartyMap = new Map<string, CounterpartyAccumulator>();
 
   // Process Native Transactions
   for (const tx of transactions) {
@@ -214,7 +210,7 @@ export function analyzeInteractions(
 
     if (fromAddr === lower && toAddr && toAddr !== lower && !isBurnAddress(toAddr)) {
       const existing = getOrCreateCounterparty(counterpartyMap, toAddr, knownWallets, tx.date, tx.timestamp, isContractCall);
-      existing.outboundCount++;
+      recordCounterpartyTransaction(existing, 'outbound', getTransactionKey(tx.hash, tx.timestamp, fromAddr, toAddr));
       existing.outboundUSD += tx.valueUSD || 0;
       if (isContractCall) existing.type = 'contract';
       if (tx.timestamp > existing.lastTimestamp) {
@@ -223,7 +219,7 @@ export function analyzeInteractions(
       }
     } else if (toAddr === lower && fromAddr && fromAddr !== lower) {
       const existing = getOrCreateCounterparty(counterpartyMap, fromAddr, knownWallets, tx.date, tx.timestamp, false);
-      existing.inboundCount++;
+      recordCounterpartyTransaction(existing, 'inbound', getTransactionKey(tx.hash, tx.timestamp, fromAddr, toAddr));
       existing.inboundUSD += tx.valueUSD || 0;
       if (tx.timestamp > existing.lastTimestamp) {
         existing.lastTimestamp = tx.timestamp;
@@ -240,7 +236,7 @@ export function analyzeInteractions(
     if (fromAddr === lower && toAddr && toAddr !== lower && !isBurnAddress(toAddr)) {
       const isContract = contractMap.has(toAddr) || isPureTokenContract(toAddr);
       const existing = getOrCreateCounterparty(counterpartyMap, toAddr, knownWallets, t.date, t.timestamp, isContract);
-      existing.outboundCount++;
+      recordCounterpartyTransaction(existing, 'outbound', getTransactionKey(t.hash, t.timestamp, fromAddr, toAddr));
       existing.outboundUSD += t.valueUSD || 0;
       if (isContract) existing.type = 'contract';
       if (t.timestamp > existing.lastTimestamp) {
@@ -250,7 +246,7 @@ export function analyzeInteractions(
     } else if (toAddr === lower && fromAddr && fromAddr !== lower) {
       const isContract = contractMap.has(fromAddr) || isPureTokenContract(fromAddr);
       const existing = getOrCreateCounterparty(counterpartyMap, fromAddr, knownWallets, t.date, t.timestamp, isContract);
-      existing.inboundCount++;
+      recordCounterpartyTransaction(existing, 'inbound', getTransactionKey(t.hash, t.timestamp, fromAddr, toAddr));
       existing.inboundUSD += t.valueUSD || 0;
       if (isContract) existing.type = 'contract';
       if (t.timestamp > existing.lastTimestamp) {
@@ -262,14 +258,16 @@ export function analyzeInteractions(
 
   const topCounterparties: AddressInteraction[] = Array.from(counterpartyMap.values())
     .map(c => {
-      const totalTxCount = c.inboundCount + c.outboundCount;
+      const inboundCount = c.inboundTransactionHashes.size;
+      const outboundCount = c.outboundTransactionHashes.size;
+      const totalTxCount = c.transactionHashes.size;
       const netFlowUSD = c.inboundUSD - c.outboundUSD;
       return {
         address: c.address,
         label: c.label,
         type: c.type,
-        inboundCount: c.inboundCount,
-        outboundCount: c.outboundCount,
+        inboundCount,
+        outboundCount,
         inboundUSD: c.inboundUSD,
         outboundUSD: c.outboundUSD,
         totalTxCount,
@@ -301,14 +299,14 @@ function getOrCreateCounterparty(
   const addr = address.toLowerCase();
   if (map.has(addr)) {
     const existing = map.get(addr)!;
-    if (isContractCall && existing.type === 'eoa') {
+    if (isContractCall && (existing.type === 'eoa' || existing.type === 'unknown')) {
       existing.type = 'contract';
     }
     return existing;
   }
 
   const label = getAddressLabel(addr, knownWallets);
-  let type: 'cex' | 'dex' | 'bridge' | 'contract' | 'eoa' = 'eoa';
+  let type: AddressInteraction['type'] = 'unknown';
 
   if (isCEXAddress(addr, knownWallets)) type = 'cex';
   else if (isDEXAddress(addr, knownWallets)) type = 'dex';
@@ -319,14 +317,33 @@ function getOrCreateCounterparty(
     address: addr,
     label,
     type,
-    inboundCount: 0,
-    outboundCount: 0,
     inboundUSD: 0,
     outboundUSD: 0,
+    inboundTransactionHashes: new Set<string>(),
+    outboundTransactionHashes: new Set<string>(),
+    transactionHashes: new Set<string>(),
     lastTimestamp: timestamp,
     lastDate: date,
   };
 
   map.set(addr, entry);
   return entry;
+}
+
+function getTransactionKey(hash: string, timestamp: number, from: string, to: string): string {
+  const normalizedHash = (hash || '').trim().toLowerCase();
+  return normalizedHash || `missing:${timestamp}:${from}:${to}`;
+}
+
+function recordCounterpartyTransaction(
+  counterparty: CounterpartyAccumulator,
+  direction: 'inbound' | 'outbound',
+  transactionHash: string,
+): void {
+  counterparty.transactionHashes.add(transactionHash);
+  if (direction === 'inbound') {
+    counterparty.inboundTransactionHashes.add(transactionHash);
+  } else {
+    counterparty.outboundTransactionHashes.add(transactionHash);
+  }
 }

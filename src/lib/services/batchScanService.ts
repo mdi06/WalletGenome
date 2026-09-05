@@ -2,10 +2,13 @@ import { detectDirectWalletLinkages, findSharedCounterparties } from '@/lib/clus
 import { BATCH_WALLET_CONCURRENCY, enforceSharedQuota, mapWithConcurrency } from '@/lib/api/requestPolicy';
 import { processWalletScan } from '@/lib/services/scanService';
 import { throwIfAborted, RequestCancellationError } from '@/lib/cancellation';
+import { classifyWalletAccount } from '@/lib/accountClassifier';
+import { formatWalletAccountType, isClusterEligibleAccountType } from '@/lib/accountClassification';
 import type {
   BulkWrappedWallet,
   ClusterScanResult,
   DataAvailabilityError,
+  WalletAccountClassification,
   WalletScanResponse,
 } from '@/lib/types';
 
@@ -19,6 +22,28 @@ type WalletResult =
       kind: 'failure';
       failure: ClusterScanResult['failedWallets'][number];
     };
+
+type TargetAccountClassifier = (
+  chainId: number,
+  address: string,
+  options?: { signal?: AbortSignal },
+) => Promise<WalletAccountClassification>;
+
+export async function classifyTargetAccounts(
+  address: string,
+  chainIds: number[],
+  options: { signal?: AbortSignal; classifier?: TargetAccountClassifier } = {},
+): Promise<WalletAccountClassification[]> {
+  const classifier = options.classifier ?? ((chainId, target, classifierOptions) => (
+    classifyWalletAccount(chainId, target, classifierOptions)
+  ));
+  return await mapWithConcurrency(
+    chainIds,
+    2,
+    async chainId => await classifier(chainId, address, { signal: options.signal }),
+    { signal: options.signal },
+  );
+}
 
 export function getClusterHistoryFailureReasons(
   result: Pick<WalletScanResponse, 'status' | 'availability'>,
@@ -37,7 +62,7 @@ export function getClusterHistoryFailureReasons(
 export async function processBatchScan(
   addresses: string[],
   chainIds: number[],
-  options: { signal?: AbortSignal } = {},
+  options: { signal?: AbortSignal; classifier?: TargetAccountClassifier } = {},
 ): Promise<ClusterScanResult> {
   throwIfAborted(options.signal);
   await enforceSharedQuota('batch', addresses.length, options.signal);
@@ -47,7 +72,33 @@ export async function processBatchScan(
     async (target): Promise<WalletResult> => {
       try {
         throwIfAborted(options.signal);
-        const result = await processWalletScan(target, chainIds, '', true, { signal: options.signal });
+        const accountClassifications = await classifyTargetAccounts(target, chainIds, {
+          signal: options.signal,
+          classifier: options.classifier,
+        });
+        const unsupportedAccounts = accountClassifications.filter(
+          classification => !isClusterEligibleAccountType(classification.type),
+        );
+        if (unsupportedAccounts.length > 0) {
+          return {
+            kind: 'failure',
+            failure: {
+              target,
+              status: 'unavailable',
+              reasons: unsupportedAccounts.map(classification => ({
+                source: 'scan' as const,
+                code: 'unsupported_target' as const,
+                message: classification.type === 'unknown'
+                  ? `Could not verify the account type for ${target} on ${classification.chainName} (chain ${classification.chainId}); Cluster Scan requires a verified EOA or EIP-7702 delegated EOA.`
+                  : `${target} is classified as ${formatWalletAccountType(classification.type)} on ${classification.chainName} (chain ${classification.chainId}). Cluster Scan currently supports EOAs and EIP-7702 delegated EOAs for its wallet-history linkage model.`,
+              })),
+            },
+          };
+        }
+        const result = await processWalletScan(target, chainIds, '', true, {
+          signal: options.signal,
+          accountClassifications,
+        });
 
         const historyFailureReasons = getClusterHistoryFailureReasons(result);
         if (historyFailureReasons) {
@@ -131,6 +182,7 @@ export async function processBatchScan(
           unlimitedApprovalsCount: metrics.totalUnlimitedApprovals ?? 0,
           socialsCount: identityReport?.socials?.length || 0,
           counterparties: Array.from(counterpartyMap.values()),
+          accountClassifications,
         };
 
         return { kind: 'success', item, evidence: clusterEvidence };

@@ -48,6 +48,7 @@ export type ProviderErrorCode =
   | 'provider_error'
   | 'missing_api_key'
   | 'unsupported_chain'
+  | 'unsupported_target'
   | 'result_truncated'
   | 'quota_exhausted'
   | 'spot_estimate'
@@ -398,6 +399,7 @@ export interface ScanResult {
 export interface MultiChainScanResult {
   address: string;
   status: DataAvailabilityStatus;
+  accountClassifications?: WalletAccountClassification[];
   availability: ChainDataAvailability[];
   chains: ScanResult[];
   sybilReport?: SybilReport;
@@ -423,6 +425,25 @@ export interface WalletScanResponse extends MultiChainScanResult {
   allInboundUSD: number;
   allOutboundUSD: number;
   clusterEvidence?: WalletClusterEvidence;
+}
+
+export type WalletAccountType =
+  | 'eoa'
+  | 'smart_account'
+  | 'multisig_or_proxy'
+  | 'eip_7702'
+  | 'regular_contract'
+  | 'unknown';
+
+export type AccountClassificationConfidence = 'verified' | 'heuristic' | 'unknown';
+
+export interface WalletAccountClassification {
+  address: string;
+  chainId: number;
+  chainName: string;
+  type: WalletAccountType;
+  confidence: AccountClassificationConfidence;
+  evidence: string;
 }
 
 // ── Behavioral Fingerprint ──
@@ -525,11 +546,15 @@ export interface ProtocolInteraction {
 export interface AddressInteraction {
   address: string;
   label: string | null;
-  type: 'cex' | 'dex' | 'bridge' | 'contract' | 'eoa';
+  type: 'cex' | 'dex' | 'bridge' | 'contract' | 'eoa' | 'unknown';
+  accountClassification?: WalletAccountClassification;
+  /** Distinct transaction hashes in which this counterparty funded the wallet. */
   inboundCount: number;
+  /** Distinct transaction hashes in which the wallet sent to this counterparty. */
   outboundCount: number;
   inboundUSD: number;
   outboundUSD: number;
+  /** Distinct transaction hashes across both directions. */
   totalTxCount: number;
   netFlowUSD: number;
   lastInteractionDate: string;
@@ -545,7 +570,7 @@ export interface InteractionsSummary {
 }
 
 export interface SybilMatch {
-  databaseId: 'layerzero' | 'hop' | 'umbra' | 'ofac' | 'trusta';
+  databaseId: 'arbitrumFoundation' | 'layerzero' | 'hop' | 'umbra' | 'ofac' | 'trusta';
   databaseName: string;
   flagged: boolean;
   severity: 'critical' | 'warning' | 'clean';
@@ -600,6 +625,7 @@ export interface WalletIdentityReport {
 // ── Bulk / Cluster Scan Types ──
 export interface BulkWrappedWallet {
   address: string;
+  accountClassifications?: WalletAccountClassification[];
   primaryName?: string;
   avatar?: string | null;
   persona: string;

@@ -52,13 +52,13 @@ Read [DESIGN.md](DESIGN.md) before changing the UI. It defines the current light
 - **Umbra Mixer Clusters**: Flags stealth address pooling and privacy mixer obfuscation patterns.
 - **US Treasury OFAC Sanctions**: Validates against sanctioned Tornado Cash, hack, and exploit addresses.
 - **Hybrid Auto-Sync**: 24-hour cache TTL auto-refreshing from authoritative GitHub upstream repositories with illustrative ~0.01 ms in-memory Set lookup timing; this is not a reproducible benchmark or production latency guarantee.
-- **Verdict Precedence**: A positive non-behavioral blacklist match overrides a clean behavioral headline; MEDIA Sybil probability remains a separate secondary heuristic.
+- **Verdict Precedence**: A positive non-behavioral blacklist match overrides a clean behavioral headline; the local MEDIA-style behavioral risk score remains a separate secondary heuristic and is not a live Trusta score.
 
 ### 5. 🗺️ Arkham-Style Capital Flow Graph
 - **3-Column Liquidity Network Topology**: Maps fund origins (CEXs, bridges, funding wallets) through core user address to active DeFi protocols and destination wallets.
 - **Animated SVG Flow Particles**: Particle-traced directed lines with volume-weighted stroke widths.
 - **Flow Summary**: Shows verified inflow, outflow, and net flow when history is complete. When history is incomplete but returned transfer legs have historical or stablecoin prices, the Flow Graph shows a separately labelled observed lower bound with missing-history and excluded-value warnings; it is not presented as a complete lifetime total or promoted as a Behavioral DNA headline.
-- **Evidence-Backed Cluster Links**: Batch mode detects direct submitted-wallet transfers from full native, internal, and ERC-20 evidence, preserving direction, chain, unique transaction hashes, and USD completeness. Shared hubs use full counterparty sets; display truncation does not change conclusions.
+- **Evidence-Backed Cluster Links**: Batch mode detects direct submitted-wallet transfers from full native, internal, and ERC-20 evidence, preserving direction, chain, unique transaction hashes, and USD completeness. Shared hubs use full counterparty sets; display truncation does not change conclusions. These are observed linkage signals, not proof of common control; the Arbitrum Foundation check recognizes published sample addresses and does not reproduce its full graph model.
 
 ### 6. 🔓 Approval & Exposure Audit
 - **Calldata Spender Decoding**: Decodes ERC-20 `approve(address, uint256)` method inputs (`0x095ea7b3`).
@@ -130,7 +130,7 @@ Every single-wallet API response exposes a typed `metrics` object. The methodolo
 | `protocolVolumeUSD` | Priced legs attributed to recognized protocol transactions/contracts, preserving chain provenance. |
 | `approvalExposureUSD` | Estimated positive balances covered by latest non-revoked observed approvals using current prices; unknown balance/price is unavailable, not zero. |
 | `riskScore` / `riskGrade` | Maximum (worst) chain risk score and its grade; withheld when wallet history is incomplete. |
-| `sybilProbability` | Cross-chain MEDIA behavioral heuristic; separate from blacklist status. If historical pricing is incomplete, the price-dependent monetary dimension is omitted and the remaining behavioral dimensions are reweighted. |
+| `sybilProbability` | Cross-chain local MEDIA-style behavioral risk heuristic; separate from blacklist status and not a live Trusta score. If historical pricing is incomplete, the price-dependent monetary dimension is omitted and the remaining behavioral dimensions are reweighted. |
 | `blacklistStatus` | `flagged`, `clear`, or `unavailable` from non-behavioral blacklist checks. |
 | `activeDays` / `longestStreakDays` | Union and longest consecutive run of UTC activity dates across selected chains. |
 | `totalUnlimitedApprovals` | Count of unlimited approvals in the latest observed state across selected chains. |
@@ -188,7 +188,9 @@ cp .env.example .env.local
 
 ```env
 ETHERSCAN_API_KEY=your_etherscan_api_key
-MORALIS_API_KEY=your_moralis_api_key
+# Optional last-resort fallback; disabled unless explicitly enabled.
+MORALIS_FALLBACK_ENABLED=false
+# MORALIS_API_KEY=your_current_moralis_api_key
 MORALIS_MAX_FALLBACK_CU_PER_SCAN=3000
 MORALIS_MAX_PAGES_PER_DATASET=100
 ETHERSCAN_ENABLE_PAID_CHAINS=false
@@ -206,12 +208,17 @@ indexed explorers. A dataset marked complete never triggers Moralis. Ethereum
 and Arbitrum use the Etherscan V2 free tier when configured; Base and Optimism
 prefer Blockscout. Set `ETHERSCAN_ENABLE_PAID_CHAINS=true` only when the
 Etherscan key has paid access to Base and Optimism.
+When a legacy Etherscan-compatible Blockscout endpoint fails, the scanner falls
+back to Blockscout REST v2 address transactions, token transfers, and internal
+transactions with cursor pagination.
 
 Moralis is a dataset-level last resort. Missing normal transactions use the
 30-CU raw transaction endpoint, missing ERC-20 transfers use the 50-CU transfer
 endpoint, and missing internal traces use the 50-CU verbose transaction
 endpoint. The app never automatically calls the 150-CU Wallet History endpoint.
-`MORALIS_MAX_FALLBACK_CU_PER_SCAN` remains a scan-level cap and is partitioned
+Moralis fallback is disabled by default. Only set `MORALIS_FALLBACK_ENABLED=true`
+with a current key when this optional last-resort provider is intentionally
+configured. `MORALIS_MAX_FALLBACK_CU_PER_SCAN` remains a scan-level cap and is partitioned
 equally across only the chains whose explorer data is incomplete. This prevents
 one chain from consuming another fallback chain's allocation. Account-quota
 exhaustion is reported separately from the local CU limit.

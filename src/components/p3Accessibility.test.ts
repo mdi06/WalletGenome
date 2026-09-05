@@ -88,8 +88,12 @@ describe('P3 accessibility contracts', () => {
     assert.match(docsSource, /inline-flex min-h-11 min-w-11/);
     assert.match(landingSource, /inline-flex min-h-11 items-center/);
     assert.match(footerSource, /inline-flex min-h-11 w-full items-center justify-start/);
-    assert.match(footerSource, /flex w-full flex-col items-start gap-2 md:w-auto/);
+    assert.match(footerSource, /<nav aria-label="Wallet analytics topics"[\s\S]*SEO_LANDING_PAGES\.map/);
+    assert.match(footerSource, /<div className="max-w-md space-y-2">[\s\S]*href="https:\/\/x\.com\/wallet_genome"[\s\S]*@wallet_genome/);
+    assert.match(footerSource, /<svg aria-hidden="true" className="h-3\.5 w-3\.5"/);
+    assert.doesNotMatch(footerSource, /md:border-l/);
     assert.match(footerSource, /flex flex-col gap-3 border-t/);
+    assert.match(footerSource, /target="_blank"[\s\S]*rel="noopener noreferrer"/);
     assert.match(transferSource, /grid grid-cols-3 gap-2 md:flex/);
     assert.match(transferSource, /min-h-11 w-full justify-center/);
     assert.match(interactionSource, /min-h-11 text-xs font-bold px-3 py-1/);

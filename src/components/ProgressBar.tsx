@@ -39,6 +39,8 @@ export default function ProgressBar({ message, progress, scan }: ProgressBarProp
   const completedChains = scan?.completedChains ?? 0;
   const totalChains = scan?.totalChains ?? selectedChainIds.length;
   const recordsFound = scan?.recordsFound ?? 0;
+  const completedDatasets = scan?.completedDatasets ?? 0;
+  const totalDatasets = scan?.totalDatasets ?? totalChains * 3;
   const elapsed = scan ? formatElapsed(now - scan.startedAt) : null;
   const secondsSinceUpdate = scan ? Math.max(0, Math.floor((now - scan.lastUpdatedAt) / 1000)) : 0;
   const providerStatus = secondsSinceUpdate >= 15
@@ -112,7 +114,7 @@ export default function ProgressBar({ message, progress, scan }: ProgressBarProp
       </div>
 
       {scan && (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2" aria-label="Live scan counters">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2" aria-label="Live scan counters">
           <div className="well-recessed px-3 py-2">
             <div className="text-[9px] font-extrabold uppercase tracking-wider text-[#6b7280]">History records found</div>
             <div className="font-mono text-base font-black">{recordsFound.toLocaleString('en-US')}</div>
@@ -120,6 +122,10 @@ export default function ProgressBar({ message, progress, scan }: ProgressBarProp
           <div className="well-recessed px-3 py-2">
             <div className="text-[9px] font-extrabold uppercase tracking-wider text-[#6b7280]">Chain progress</div>
             <div className="font-mono text-base font-black">{completedChains} of {totalChains} chains complete</div>
+          </div>
+          <div className="well-recessed px-3 py-2">
+            <div className="text-[9px] font-extrabold uppercase tracking-wider text-[#6b7280]">History datasets</div>
+            <div className="font-mono text-base font-black">{completedDatasets} of {totalDatasets} queried</div>
           </div>
           <div className="well-recessed px-3 py-2">
             <div className="text-[9px] font-extrabold uppercase tracking-wider text-[#6b7280]">Elapsed time</div>

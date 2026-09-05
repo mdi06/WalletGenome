@@ -4,10 +4,81 @@ import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, it } from 'node:test';
 import { getMockScanResult } from '@/lib/mockData';
-import type { WalletScanResponse } from '@/lib/types';
+import type { AddressInteraction, WalletScanResponse } from '@/lib/types';
 import CapitalFlowGraph from './CapitalFlowGraph';
 
+function renderWithOutboundRecipients(recipients: AddressInteraction[]): string {
+  const data = getMockScanResult();
+  data.chains = [data.chains[0]];
+  data.chains[0].interactionsSummary.topCounterparties = recipients;
+  return renderToStaticMarkup(createElement(CapitalFlowGraph, {
+    results: data.chains,
+    metrics: data.metrics,
+  }));
+}
+
+function outboundRecipient(address: string, label: string, outboundCount: number, outboundUSD: number): AddressInteraction {
+  return {
+    address,
+    label,
+    type: 'eoa',
+    inboundCount: 0,
+    outboundCount,
+    inboundUSD: 0,
+    outboundUSD,
+    totalTxCount: outboundCount,
+    netFlowUSD: -outboundUSD,
+    lastInteractionDate: '2026-09-05',
+    chainId: 1,
+  };
+}
+
 describe('Capital Flow Graph verified summary', () => {
+  it('keeps a one-transaction recipient in the table without showing the trophy card', () => {
+    const markup = renderWithOutboundRecipients([
+      outboundRecipient('0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', 'Single Recipient', 1, 100),
+    ]);
+
+    assert.match(markup, /Single Recipient/);
+    assert.match(markup, /1 txs/);
+    assert.doesNotMatch(markup, /MOST INTERACTED RECIPIENT ADDRESS/);
+  });
+
+  it('labels all recipients tied for the highest eligible count', () => {
+    const markup = renderWithOutboundRecipients([
+      outboundRecipient('0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', 'Recipient Alpha', 2, 100),
+      outboundRecipient('0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb', 'Recipient Beta', 2, 200),
+    ]);
+
+    assert.match(markup, /TIED TOP RECIPIENT ADDRESSES/);
+    assert.match(markup, /Recipient Alpha/);
+    assert.match(markup, /Recipient Beta/);
+    assert.match(markup, /2 TXS EACH/);
+    assert.doesNotMatch(markup, /MOST INTERACTED RECIPIENT ADDRESS/);
+    assert.doesNotMatch(markup, /★ TOP \(2 txs\)/);
+  });
+
+  it('does not present legacy unverified recipient labels as EOA wallets', () => {
+    const data = getMockScanResult();
+    data.chains = [data.chains[0]];
+    data.chains[0].interactionsSummary.topCounterparties = [{
+      address: '0xdc723b71ca7ed367624a906a008893c69f291894',
+      label: null, type: 'eoa', inboundCount: 0, outboundCount: 3,
+      inboundUSD: 0, outboundUSD: 10660, totalTxCount: 3,
+      netFlowUSD: -10660, lastInteractionDate: '2026-09-05', chainId: 1,
+    }];
+    const render = () => renderToStaticMarkup(createElement(CapitalFlowGraph, {
+      results: data.chains, metrics: data.metrics,
+    }));
+    assert.match(render(), /ACCOUNT TYPE UNVERIFIED/);
+    assert.doesNotMatch(render(), /EOA WALLET/);
+    data.chains[0].interactionsSummary.topCounterparties[0].accountClassification = {
+      address: '0xdc723b71ca7ed367624a906a008893c69f291894', chainId: 1,
+      chainName: 'Ethereum', type: 'regular_contract', confidence: 'heuristic',
+      evidence: 'Deployed bytecode',
+    };
+    assert.doesNotMatch(render(), /MOST INTERACTED RECIPIENT ADDRESS/);
+  });
   it('renders network labels when the same protocol appears on multiple chains', () => {
     const data = getMockScanResult();
     const ethereumProtocol = data.chains[0].interactionsSummary.topProtocols[0];

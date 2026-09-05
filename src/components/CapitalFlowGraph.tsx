@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useRef, useState, useMemo } from 'react';
-import { ReportingMetrics, ScanResult } from '@/lib/types';
+import { AddressInteraction, ReportingMetrics, ScanResult } from '@/lib/types';
 import { getExplorerAddressUrl } from '@/lib/chains';
 import { ExternalLink, ArrowUpRight, ArrowDownLeft, Trophy } from 'lucide-react';
 import { isBurnAddress, isPureTokenContract, PROTOCOL_REGISTRY } from '@/lib/labels';
@@ -27,6 +27,15 @@ interface GraphNode {
   x: number;
   y: number;
   isTopRecipient?: boolean;
+}
+
+interface RankedRecipient {
+  address: string;
+  label: string | null;
+  type: string;
+  txCount: number;
+  volumeUSD: number;
+  chainId: number;
 }
 
 interface GraphLink {
@@ -168,6 +177,15 @@ export function formatGraphNetworkLabel(chainName: string | undefined, chainId: 
   return chainName?.trim() || `Chain ${chainId}`;
 }
 
+function counterpartyLabel(counterparty: AddressInteraction): string {
+  const account = counterparty.accountClassification;
+  if (account?.type === 'eoa' && account.confidence === 'verified') return 'EOA wallet';
+  if (account?.type === 'eip_7702' && account.confidence === 'verified') return 'EIP-7702 delegated EOA';
+  if (counterparty.type === 'cex') return 'Exchange address';
+  if (counterparty.type === 'eoa' || counterparty.type === 'unknown') return 'Account type unverified';
+  return counterparty.type;
+}
+
 export default function CapitalFlowGraph({ results, metrics }: Props) {
   const [minVolume, setMinVolume] = useState<number>(0);
   const [selectedChain, setSelectedChain] = useState<number | 'all'>('all');
@@ -218,9 +236,9 @@ export default function CapitalFlowGraph({ results, metrics }: Props) {
   };
 
   // 1. Calculate Top Interacted Wallets (Excluding Smart Contracts and Token Contracts)
-  const { topOutboundWallets, topInboundWallets, mostInteractedWallet } = useMemo(() => {
-    const outboundMap = new Map<string, { address: string; label: string | null; type: string; txCount: number; volumeUSD: number; chainId: number }>();
-    const inboundMap = new Map<string, { address: string; label: string | null; type: string; txCount: number; volumeUSD: number; chainId: number }>();
+  const { topOutboundWallets, topInboundWallets, highlightedRecipients } = useMemo(() => {
+    const outboundMap = new Map<string, RankedRecipient>();
+    const inboundMap = new Map<string, RankedRecipient>();
 
     const activeResults = selectedChain === 'all'
       ? results
@@ -231,47 +249,55 @@ export default function CapitalFlowGraph({ results, metrics }: Props) {
         const cAddr = c.address.toLowerCase();
         if (cAddr === userAddress || isBurnAddress(cAddr)) return;
 
-        const isContract = isKnownSmartContractOrToken(cAddr, c.type);
+        const account = c.accountClassification;
+        const isContract = isKnownSmartContractOrToken(cAddr, c.type)
+          || Boolean(account && ['regular_contract', 'smart_account', 'multisig_or_proxy'].includes(account.type));
+        const recipientType = counterpartyLabel(c);
+        const counterpartyKey = `${r.chainId}:${cAddr}`;
 
         // Outbound Recipient Wallets (EOA / CEX Wallets)
         if (!isContract && (c.outboundCount > 0 || c.outboundUSD > 0)) {
-          const existing = outboundMap.get(cAddr) || {
+          const existing = outboundMap.get(counterpartyKey) || {
             address: c.address,
             label: c.label,
-            type: c.type,
+            type: recipientType,
             txCount: 0,
             volumeUSD: 0,
             chainId: r.chainId,
           };
           existing.txCount += c.outboundCount;
           existing.volumeUSD += c.outboundUSD;
-          outboundMap.set(cAddr, existing);
+          outboundMap.set(counterpartyKey, existing);
         }
 
         // Inbound Funding Wallets
         if (!isContract && (c.inboundCount > 0 || c.inboundUSD > 0)) {
-          const existing = inboundMap.get(cAddr) || {
+          const existing = inboundMap.get(counterpartyKey) || {
             address: c.address,
             label: c.label,
-            type: c.type,
+            type: recipientType,
             txCount: 0,
             volumeUSD: 0,
             chainId: r.chainId,
           };
           existing.txCount += c.inboundCount;
           existing.volumeUSD += c.inboundUSD;
-          inboundMap.set(cAddr, existing);
+          inboundMap.set(counterpartyKey, existing);
         }
       });
     });
 
     const sortedOutbound = Array.from(outboundMap.values()).sort((a, b) => b.txCount - a.txCount || b.volumeUSD - a.volumeUSD);
     const sortedInbound = Array.from(inboundMap.values()).sort((a, b) => b.txCount - a.txCount || b.volumeUSD - a.volumeUSD);
+    const highestOutboundTxCount = sortedOutbound[0]?.txCount || 0;
+    const highlightedRecipients = highestOutboundTxCount >= 2
+      ? sortedOutbound.filter(wallet => wallet.txCount === highestOutboundTxCount)
+      : [];
 
     return {
       topOutboundWallets: sortedOutbound,
       topInboundWallets: sortedInbound,
-      mostInteractedWallet: sortedOutbound[0] || null,
+      highlightedRecipients,
     };
   }, [results, selectedChain, userAddress]);
 
@@ -279,6 +305,9 @@ export default function CapitalFlowGraph({ results, metrics }: Props) {
   const { nodes, links } = useMemo(() => {
     const nodeMap = new Map<string, GraphNode>();
     const linkList: GraphLink[] = [];
+    const highlightedRecipientKeys = new Set(
+      highlightedRecipients.map(recipient => `${recipient.chainId}:${recipient.address.toLowerCase()}`),
+    );
 
     nodeMap.set('center', {
       id: 'center',
@@ -350,7 +379,7 @@ export default function CapitalFlowGraph({ results, metrics }: Props) {
           const existing = nodeMap.get(inId) || {
             id: inId,
             label,
-            subLabel: c.type.toUpperCase(),
+            subLabel: counterpartyLabel(c).toUpperCase(),
             type: 'inflow',
             category: c.type,
             volumeUSD: 0,
@@ -379,12 +408,12 @@ export default function CapitalFlowGraph({ results, metrics }: Props) {
         if (c.outboundUSD >= minVolume || (c.outboundCount > 0 && minVolume === 0)) {
           const outId = `out-${cAddr}`;
           const label = c.label || truncAddr(c.address);
-          const isTop = mostInteractedWallet && mostInteractedWallet.address.toLowerCase() === cAddr;
+          const isTop = highlightedRecipientKeys.has(`${c.chainId}:${cAddr}`);
 
           const existing = nodeMap.get(outId) || {
             id: outId,
             label,
-            subLabel: c.type.toUpperCase(),
+            subLabel: counterpartyLabel(c).toUpperCase(),
             type: 'outflow',
             category: c.type,
             volumeUSD: 0,
@@ -432,12 +461,18 @@ export default function CapitalFlowGraph({ results, metrics }: Props) {
       nodes: activeNodes,
       links: activeLinks,
     };
-  }, [results, minVolume, selectedChain, userAddress, mostInteractedWallet]);
+  }, [results, minVolume, selectedChain, userAddress, highlightedRecipients]);
 
   const activeNodeMap = useMemo(() => new Map(nodes.map(n => [n.id, n])), [nodes]);
   const hoveredNode = hoveredNodeId ? activeNodeMap.get(hoveredNodeId) : null;
   const selectedNode = selectedNodeId ? activeNodeMap.get(selectedNodeId) : null;
   const inspectedNode = selectedNode || hoveredNode;
+  const highlightedRecipientIsTied = highlightedRecipients.length > 1;
+  const highlightedRecipientTxCount = highlightedRecipients[0]?.txCount || 0;
+  const highlightedRecipientVolumeUSD = highlightedRecipients.reduce(
+    (sum, recipient) => sum + recipient.volumeUSD,
+    0,
+  );
 
   return (
     <div className="space-y-7">
@@ -521,55 +556,75 @@ export default function CapitalFlowGraph({ results, metrics }: Props) {
       </section>
 
       {/* ── Highlighted recipient evidence ── */}
-      {mostInteractedWallet ? (
+      {highlightedRecipients.length > 0 ? (
         <section aria-labelledby="most-interacted-heading" className="card-3d flex flex-col items-start justify-between gap-4 p-4 text-[#0a0a0a] md:flex-row md:items-center sm:p-5">
-          <div className="flex items-center gap-3.5">
+          <div className="flex min-w-0 items-start gap-3.5">
             <div className="w-12 h-12 btn-3d-orange text-[#0a0a0a] flex items-center justify-center font-black text-xl flex-shrink-0">
               <Trophy size={24} />
             </div>
-            <div className="space-y-0.5">
-              <div className="flex items-center gap-2">
+            <div className="min-w-0 space-y-1">
+              <div className="flex flex-wrap items-center gap-2">
                 <span id="most-interacted-heading" className="text-[10px] font-extrabold tracking-widest text-orange-ink uppercase">
-                  MOST INTERACTED RECIPIENT WALLET
+                  {highlightedRecipientIsTied ? 'TIED TOP RECIPIENT ADDRESSES' : 'MOST INTERACTED RECIPIENT ADDRESS'}
                 </span>
-                <span className="badge-3d text-[10px] font-mono font-bold px-2 py-0.5 bg-[#d0d0d0] text-[#0a0a0a]">
-                  {mostInteractedWallet.type.toUpperCase()} WALLET
-                </span>
+                {!highlightedRecipientIsTied && (
+                  <span className="badge-3d text-[10px] font-mono font-bold px-2 py-0.5 bg-[#d0d0d0] text-[#0a0a0a]">
+                    {highlightedRecipients[0].type.toUpperCase()}
+                  </span>
+                )}
               </div>
-              <div className="flex items-center gap-2">
-                <span className="text-base font-black font-mono tracking-tight text-[#0a0a0a]">
-                  {mostInteractedWallet.label || mostInteractedWallet.address}
-                </span>
-                <button
-                  type="button"
-                  aria-label={`View ${mostInteractedWallet.label || mostInteractedWallet.address} on block explorer`}
-                  onClick={() => handleNodeClick(mostInteractedWallet)}
-                  className="min-h-11 min-w-11 md:min-h-9 md:min-w-9 inline-flex items-center justify-center text-[#6b7280] hover:text-orange-ink transition-colors cursor-pointer"
-                  title="View on Explorer"
-                >
-                  <ExternalLink size={13} />
-                </button>
+              <div className="space-y-1">
+                {highlightedRecipients.map(recipient => (
+                  <div key={`${recipient.chainId}:${recipient.address}`} className="flex min-w-0 items-center gap-2">
+                    <span className="min-w-0 break-all text-base font-black font-mono tracking-tight text-[#0a0a0a]">
+                      {recipient.label || recipient.address}
+                    </span>
+                    {highlightedRecipientIsTied && (
+                      <span className="badge-3d shrink-0 text-[10px] font-mono font-bold px-2 py-0.5 bg-[#d0d0d0] text-[#0a0a0a]">
+                        {recipient.type.toUpperCase()}
+                      </span>
+                    )}
+                    <button
+                      type="button"
+                      aria-label={`View ${recipient.label || recipient.address} on block explorer`}
+                      onClick={() => handleNodeClick(recipient)}
+                      className="min-h-11 min-w-11 md:min-h-9 md:min-w-9 shrink-0 inline-flex items-center justify-center text-[#6b7280] hover:text-orange-ink transition-colors cursor-pointer"
+                      title="View on Explorer"
+                    >
+                      <ExternalLink size={13} />
+                    </button>
+                  </div>
+                ))}
               </div>
+              {highlightedRecipientIsTied && (
+                <p className="text-[10px] font-bold text-[#4b5563]">
+                  {highlightedRecipients.length} recipients tied at {highlightedRecipientTxCount} distinct outgoing transactions each.
+                </p>
+              )}
             </div>
           </div>
 
           <div className="grid w-full grid-cols-1 gap-2 font-mono sm:grid-cols-2 md:w-auto">
             <div className="well-recessed-light min-w-40 p-3">
-              <div className="text-[10px] font-bold text-[#4b5563] uppercase">TRANSACTIONS SENT</div>
-              <div className="text-xl font-black text-orange-ink">{mostInteractedWallet.txCount} TXS</div>
+              <div className="text-[10px] font-bold text-[#4b5563] uppercase">{highlightedRecipientIsTied ? 'TIED AT' : 'TRANSACTIONS SENT'}</div>
+              <div className="text-xl font-black text-orange-ink">
+                {highlightedRecipientTxCount} TXS{highlightedRecipientIsTied ? ' EACH' : ''}
+              </div>
             </div>
             <div className="well-recessed-light min-w-48 p-3">
-              <div className="text-[10px] font-bold text-[#4b5563] uppercase">TOTAL CAPITAL SENT</div>
-              <div className={`text-xl font-black ${mostInteractedWallet.volumeUSD > 0 ? 'text-[#0a0a0a]' : 'text-[#92400e]'}`}>
-                {formatGraphVolume(mostInteractedWallet.volumeUSD, mostInteractedWallet.txCount)}
+              <div className="text-[10px] font-bold text-[#4b5563] uppercase">{highlightedRecipientIsTied ? 'COMBINED CAPITAL SENT' : 'TOTAL CAPITAL SENT'}</div>
+              <div className={`text-xl font-black ${highlightedRecipientVolumeUSD > 0 ? 'text-[#0a0a0a]' : 'text-[#92400e]'}`}>
+                {formatGraphVolume(highlightedRecipientVolumeUSD, highlightedRecipientTxCount * highlightedRecipients.length)}
               </div>
-              {mostInteractedWallet.volumeUSD <= 0 && <div className="text-[10px] font-bold text-[#92400e]">USD value unavailable</div>}
+              {highlightedRecipientVolumeUSD <= 0 && <div className="text-[10px] font-bold text-[#92400e]">USD value unavailable</div>}
             </div>
           </div>
         </section>
       ) : (
         <div className="card-3d p-4 text-[#4b5563] text-xs font-mono font-bold">
-          No external recipient EOA wallets recorded in outbound transfer events.
+          {topOutboundWallets.length > 0
+            ? 'No recipient has at least two distinct outgoing transactions.'
+            : 'No external recipient EOA wallets recorded in outbound transfer events.'}
         </div>
       )}
 
@@ -775,7 +830,9 @@ export default function CapitalFlowGraph({ results, metrics }: Props) {
                   </text>
                 )}
                 <text x="0" y={networkLabel ? 16 : 11} textAnchor="middle" fill={nodeBorder} className="font-mono" style={{ fontSize: 9, fontWeight: 700 }}>
-                  {node.isTopRecipient ? `★ TOP (${node.txCount} txs)` : `${formatGraphVolume(node.volumeUSD, node.txCount)} · ${node.txCount} txs`}
+                  {node.isTopRecipient
+                    ? `${highlightedRecipientIsTied ? '★ TIED TOP' : '★ TOP'} (${node.txCount} txs)`
+                    : `${formatGraphVolume(node.volumeUSD, node.txCount)} · ${node.txCount} txs`}
                 </text>
               </g>
             );
@@ -881,10 +938,10 @@ export default function CapitalFlowGraph({ results, metrics }: Props) {
           <div className="flex items-center justify-between">
             <span className="text-xs font-black text-[#0a0a0a] uppercase tracking-wider flex items-center gap-1.5">
               <ArrowUpRight size={15} className="text-orange-ink" />
-              TOP RECIPIENT WALLETS (MOST SENT TO)
+              TOP RECIPIENT ADDRESSES (MOST SENT TO)
             </span>
             <span className="text-xs font-bold font-mono text-[#555555]">
-              {topOutboundWallets.length} EOA Wallets
+              {topOutboundWallets.length} Recipients
             </span>
           </div>
 
@@ -898,7 +955,7 @@ export default function CapitalFlowGraph({ results, metrics }: Props) {
               <thead>
                 <tr className="bg-[#d4d4d4] border-b border-[#cecece] text-[10px] font-extrabold text-[#555555] uppercase tracking-wider">
                   <th className="py-2.5 px-3">#</th>
-                  <th className="py-2.5 px-3">RECIPIENT WALLET</th>
+                  <th className="py-2.5 px-3">RECIPIENT ADDRESS</th>
                   <th className="py-2.5 px-3 text-right">TXS SENT</th>
                   <th className="py-2.5 px-3 text-right">VOLUME</th>
                   <th className="py-2.5 px-3 text-right">ACTION</th>
@@ -906,7 +963,7 @@ export default function CapitalFlowGraph({ results, metrics }: Props) {
               </thead>
               <tbody className="divide-y divide-[#cecece] text-xs font-bold text-[#0a0a0a]">
                 {topOutboundWallets.slice(0, 7).map((w, i) => (
-                  <tr key={w.address} className="hover:bg-[#d5d5d5] transition-colors">
+                  <tr key={`${w.chainId}:${w.address}`} className="hover:bg-[#d5d5d5] transition-colors">
                     <td className="py-2.5 px-3 font-mono text-[#777777]">{i + 1}</td>
                     <td className="py-2.5 px-3 font-mono">
                       <div className="font-bold text-[#0a0a0a]">{w.label || truncAddr(w.address)}</div>
@@ -939,7 +996,7 @@ export default function CapitalFlowGraph({ results, metrics }: Props) {
           <div className="flex items-center justify-between">
             <span className="text-xs font-black text-[#0a0a0a] uppercase tracking-wider flex items-center gap-1.5">
               <ArrowDownLeft size={15} className="text-[#047857]" />
-              TOP FUNDING WALLETS (MOST RECEIVED FROM)
+              TOP FUNDING ADDRESSES (MOST RECEIVED FROM)
             </span>
             <span className="text-xs font-bold font-mono text-[#555555]">
               {topInboundWallets.length} Senders
@@ -956,7 +1013,7 @@ export default function CapitalFlowGraph({ results, metrics }: Props) {
               <thead>
                 <tr className="bg-[#d4d4d4] border-b border-[#cecece] text-[10px] font-extrabold text-[#555555] uppercase tracking-wider">
                   <th className="py-2.5 px-3">#</th>
-                  <th className="py-2.5 px-3">SENDER WALLET</th>
+                  <th className="py-2.5 px-3">SENDER ADDRESS</th>
                   <th className="py-2.5 px-3 text-right">TXS RECEIVED</th>
                   <th className="py-2.5 px-3 text-right">VOLUME</th>
                   <th className="py-2.5 px-3 text-right">ACTION</th>
@@ -964,7 +1021,7 @@ export default function CapitalFlowGraph({ results, metrics }: Props) {
               </thead>
               <tbody className="divide-y divide-[#cecece] text-xs font-bold text-[#0a0a0a]">
                 {topInboundWallets.slice(0, 7).map((w, i) => (
-                  <tr key={w.address} className="hover:bg-[#d5d5d5] transition-colors">
+                  <tr key={`${w.chainId}:${w.address}`} className="hover:bg-[#d5d5d5] transition-colors">
                     <td className="py-2.5 px-3 font-mono text-[#777777]">{i + 1}</td>
                     <td className="py-2.5 px-3 font-mono">
                       <div className="font-bold text-[#0a0a0a]">{w.label || truncAddr(w.address)}</div>

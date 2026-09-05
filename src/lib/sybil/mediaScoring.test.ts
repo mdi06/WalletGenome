@@ -23,6 +23,25 @@ describe('MEDIA Sybil Model & API Data Flow Tests', () => {
     assert.strictEqual(score.classification, 'High Sybil Risk');
   });
 
+  it('does not invent contract diversity when the detected contract count is zero', () => {
+    const score = computeMediaScore({
+      address: dummyAddress,
+      transactions: [{
+        hash: '0xdeploy', timestamp: 1700000000, date: '2023-11-14', from: dummyAddress, to: '',
+        value: '0', valueFormatted: 0, valueUSD: 0, valueUSDProvenance: 'historical',
+        gasUsed: 21000, gasPrice: 1, gasCostETH: 0, gasCostUSD: 0, gasCostUSDProvenance: 'historical',
+        isError: false, methodId: '', functionName: '', category: 'contract_deploy', chainId: 1,
+      }],
+      tokenTransfers: [],
+      uniqueContractCount: 0,
+      activeChainsCount: 1,
+      totalVolumeUSD: 0,
+      totalGasUSD: 0,
+    });
+
+    assert.strictEqual(score.diversity, 15);
+  });
+
   it('should correctly evaluate category diversity and lifespan with full ProcessedTransaction history', () => {
     // 20 transactions spread across 4 months and multiple categories
     const now = Math.floor(Date.now() / 1000);

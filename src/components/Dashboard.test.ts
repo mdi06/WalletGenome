@@ -285,7 +285,7 @@ describe('Dashboard provider availability messaging', () => {
     const markup = renderToStaticMarkup(createElement(Dashboard, { data: getMockScanResult() }));
 
     assert.match(markup, /Worst-chain risk/i);
-    assert.match(markup, /SYBIL PROBABILITY/i);
+    assert.match(markup, /BEHAVIORAL SYBIL RISK/i);
     assert.doesNotMatch(markup, /Definitive analytics unavailable/i);
     assert.doesNotMatch(markup, /Partial provider data/i);
   });
@@ -480,9 +480,9 @@ describe('Dashboard provider availability messaging', () => {
     );
 
     const markup = renderToStaticMarkup(createElement(Dashboard, { data }));
-    assert.match(markup, /SYBIL PROBABILITY/i);
+    assert.match(markup, /BEHAVIORAL SYBIL RISK/i);
     assert.match(markup, /Unavailable/i);
-    assert.match(markup, /Behavioral Sybil scoring is unavailable/i);
+    assert.match(markup, /Behavioral risk scoring is unavailable/i);
   });
 
   it('keeps horizontally scrolled dashboard tabs discoverable and operable', () => {

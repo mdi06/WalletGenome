@@ -11,6 +11,7 @@ import {
   MoralisQuotaBudget,
 } from '@/lib/moralis';
 import {
+  DataAvailabilityStatus,
   DataSourceResult,
   EtherscanInternalTransaction,
   EtherscanTokenTransfer,
@@ -47,6 +48,12 @@ export interface WalletHistoryCacheOptions {
   cacheReadEnabled?: boolean;
   cacheWriteEnabled?: boolean;
   signal?: AbortSignal;
+  onDatasetComplete?: (progress: {
+    chainId: number;
+    dataset: HistoryDatasetName;
+    source: 'explorer' | 'moralis';
+    status: DataAvailabilityStatus;
+  }) => void;
 }
 
 type MoralisDatasetFetcher<T> = (
@@ -71,6 +78,7 @@ export interface WalletHistoryServiceOptions {
   cacheReadEnabled?: boolean;
   cacheWriteEnabled?: boolean;
   signal?: AbortSignal;
+  onDatasetComplete?: WalletHistoryCacheOptions['onDatasetComplete'];
 }
 
 function historyCacheKey(
@@ -205,28 +213,41 @@ export async function fetchExplorerHistorySources(
     maxDurationMs: EXPLORER_HISTORY_BUDGET_MS,
     signal: cacheOptions.signal,
   };
+  const fetchDataset = async <T>(
+    dataset: HistoryDatasetName,
+    operation: () => Promise<CachedDatasetResult<T>>,
+  ): Promise<CachedDatasetResult<T>> => {
+    const result = await operation();
+    cacheOptions.onDatasetComplete?.({
+      chainId,
+      dataset,
+      source: 'explorer',
+      status: result.result?.status ?? 'unavailable',
+    });
+    return result;
+  };
   const [transactions, tokenTransfers, internalTransactions] = await Promise.all([
-    fetchDatasetWithCache(
+    fetchDataset('transactions', () => fetchDatasetWithCache(
       historyCacheKey('explorer', address, chainId, 'transactions'),
       () => fetchNormalTransactions(address, chainId, apiKey, 1_000, options),
       cacheReadEnabled,
       cacheWriteEnabled,
       cacheOptions.signal,
-    ),
-    fetchDatasetWithCache(
+    )),
+    fetchDataset('tokenTransfers', () => fetchDatasetWithCache(
       historyCacheKey('explorer', address, chainId, 'tokenTransfers'),
       () => fetchTokenTransfers(address, chainId, apiKey, 1_000, options),
       cacheReadEnabled,
       cacheWriteEnabled,
       cacheOptions.signal,
-    ),
-    fetchDatasetWithCache(
+    )),
+    fetchDataset('internalTransactions', () => fetchDatasetWithCache(
       historyCacheKey('explorer', address, chainId, 'internalTransactions'),
       () => fetchInternalTransactions(address, chainId, apiKey, 500, options),
       cacheReadEnabled,
       cacheWriteEnabled,
       cacheOptions.signal,
-    ),
+    )),
   ]);
   return {
     transactions: transactions.result ?? unavailableDataset<EtherscanTransaction>(),
@@ -290,6 +311,7 @@ export async function fetchWalletHistorySources(
       cacheReadEnabled,
       cacheWriteEnabled,
       signal: options.signal,
+      onDatasetComplete: options.onDatasetComplete,
     });
 
   // This is the core quota invariant: successful indexed explorers end the
@@ -352,6 +374,21 @@ export async function applyWalletHistoryFallback(
         cacheWriteEnabled,
         options.signal,
       );
+
+  for (const [dataset, result] of [
+    ['transactions', transactionsFallback],
+    ['tokenTransfers', tokenTransfersFallback],
+    ['internalTransactions', internalTransactionsFallback],
+  ] as const) {
+    if (result) {
+      options.onDatasetComplete?.({
+        chainId,
+        dataset,
+        source: 'moralis',
+        status: result.result?.status ?? 'unavailable',
+      });
+    }
+  }
 
   return {
     transactions: mergeIncompleteResults(

@@ -17,7 +17,9 @@ import {
   isWalletHistoryComplete,
 } from '@/lib/services/walletHistoryService';
 import type { WalletHistoryCacheOptions } from '@/lib/services/walletHistoryService';
-import { createMoralisQuotaBudget } from '@/lib/moralis';
+import { createMoralisFallbackState, createMoralisQuotaBudget } from '@/lib/moralis';
+import { classifyWalletAccounts } from '@/lib/accountClassifier';
+import { classifyCounterparties } from './counterpartyClassification';
 import {
   ChainDataAvailability,
   DataAvailabilityError,
@@ -31,14 +33,15 @@ import {
   RiskGrade,
   CachedHistoryDataset,
   WalletScanResponse,
+  WalletAccountClassification,
 } from '@/lib/types';
 import type { HistoryDatasetName } from '@/lib/services/walletHistoryService';
-import type { ScanProgressDetail } from '@/lib/scanProgress';
+import type { ScanProgressDataset, ScanProgressDetail } from '@/lib/scanProgress';
 import { throwIfAborted } from '@/lib/cancellation';
 
-// All selected chains run concurrently. Per-provider domain limiters in the
-// explorer/RPC clients enforce the actual upstream request budgets.
-const CHAIN_SCAN_CONCURRENCY = 5;
+// Keep only a small number of chains in flight. Per-provider domain limiters
+// in the explorer/RPC clients enforce the actual upstream request budgets.
+const CHAIN_SCAN_CONCURRENCY = 2;
 const CHAIN_ANALYSIS_CONCURRENCY = 5;
 
 export type ProcessWalletScanProgress = ScanProgressDetail;
@@ -47,13 +50,14 @@ interface ProcessWalletScanOptions {
   onProgress?: (progress: ProcessWalletScanProgress) => void;
   forceRefresh?: boolean;
   signal?: AbortSignal;
+  accountClassifications?: WalletAccountClassification[];
 }
 
 const HISTORY_DATASETS = ['transactions', 'tokenTransfers', 'internalTransactions'] as const satisfies readonly HistoryDatasetName[];
 const inFlightScans = new Map<string, Promise<WalletScanResponse>>();
 
 function reportCacheKey(address: string, chains: readonly number[]): string {
-  return `wallet-analytics:report:v2:${address.toLowerCase()}:${[...chains].sort((a, b) => a - b).join(',')}`;
+  return `wallet-analytics:report:v3:${address.toLowerCase()}:${[...chains].sort((a, b) => a - b).join(',')}`;
 }
 
 function reportExpiresAt(response: WalletScanResponse, fetchedAt: number): number {
@@ -110,11 +114,17 @@ function unavailableSource<T>(message: string): DataSourceResult<T> {
   };
 }
 
-function sourceErrors(
+export function sourceErrors(
   source: DataSourceName,
   errors: DataSourceResult<unknown>['errors'],
+  chainId: number,
+  chainName: string,
 ): DataAvailabilityError[] {
-  return errors.map(error => ({ source, ...error }));
+  return errors.map(error => ({
+    source,
+    ...error,
+    message: `[${chainName} (chain ${chainId}) · ${source}] ${error.message}`,
+  }));
 }
 
 export function summarizeAvailability(availability: ChainDataAvailability[]): DataAvailabilityStatus {
@@ -134,14 +144,20 @@ export function moralisBudgetPerFallbackChain(totalBudget: number, fallbackChain
   return Math.max(1, Math.floor(totalBudget / fallbackChainCount));
 }
 
-function countHistoryRecords(history: {
-  transactions: DataSourceResult<EtherscanTransaction>;
-  tokenTransfers: DataSourceResult<EtherscanTokenTransfer>;
-  internalTransactions: DataSourceResult<EtherscanInternalTransaction>;
-}): number {
+interface HistoryDatasetCounts {
+  transactions: { data: unknown[] };
+  tokenTransfers: { data: unknown[] };
+  internalTransactions: { data: unknown[] };
+}
+
+function countHistoryRecords(history: HistoryDatasetCounts): number {
   return history.transactions.data.length
     + history.tokenTransfers.data.length
     + history.internalTransactions.data.length;
+}
+
+export function countActiveChains(chains: readonly HistoryDatasetCounts[]): number {
+  return chains.filter(chain => countHistoryRecords(chain) > 0).length;
 }
 
 async function runWalletScan(
@@ -149,6 +165,7 @@ async function runWalletScan(
   chains: number[],
   customApiKey: string = '',
   includeClusterEvidence: boolean = false,
+  accountClassifications: WalletAccountClassification[] = [],
   options: ProcessWalletScanOptions = {},
   historyCacheOptions: WalletHistoryCacheOptions = {},
 ): Promise<WalletScanResponse> {
@@ -168,8 +185,34 @@ async function runWalletScan(
   let completedChains = 0;
   let queriedChains = 0;
   let recordsFound = 0;
+  let completedDatasets = 0;
   const completedChainIds: number[] = [];
   const explorerRecordCounts = new Map<number, number>();
+  const completedDatasetKeys = new Set<string>();
+  const totalDatasets = chains.length * HISTORY_DATASETS.length;
+  const reportDatasetProgress = (
+    chainId: number,
+    chainName: string,
+    dataset: ScanProgressDataset,
+  ): void => {
+    const key = `${chainId}:${dataset}`;
+    if (completedDatasetKeys.has(key)) return;
+    completedDatasetKeys.add(key);
+    completedDatasets += 1;
+    options.onProgress?.({
+      phase: 'fetching',
+      completedChains,
+      queriedChains,
+      totalChains: chains.length,
+      currentChainId: chainId,
+      currentChainName: chainName,
+      currentDataset: dataset,
+      completedChainIds: [...completedChainIds],
+      recordsFound,
+      completedDatasets,
+      totalDatasets,
+    });
+  };
   options.onProgress?.({
     phase: 'fetching',
     completedChains,
@@ -177,6 +220,8 @@ async function runWalletScan(
     totalChains: chains.length,
     completedChainIds,
     recordsFound,
+    completedDatasets,
+    totalDatasets,
   });
 
   const explorerChainsData = await mapWithConcurrency(
@@ -201,6 +246,7 @@ async function runWalletScan(
         };
         queriedChains += 1;
         explorerRecordCounts.set(chainId, 0);
+        for (const dataset of HISTORY_DATASETS) reportDatasetProgress(chainId, chainName, dataset);
         options.onProgress?.({
           phase: 'fetching', completedChains, queriedChains, totalChains: chains.length,
           currentChainId: chainId, currentChainName: chainName,
@@ -213,9 +259,13 @@ async function runWalletScan(
         address,
         chainId,
         etherscanKey,
-        historyCacheOptions,
+        {
+          ...historyCacheOptions,
+          onDatasetComplete: progress => reportDatasetProgress(chainId, chainName, progress.dataset),
+        },
       ).catch(() => {
         throwIfAborted(options.signal);
+        for (const dataset of HISTORY_DATASETS) reportDatasetProgress(chainId, chainName, dataset);
         return {
           transactions: unavailableSource<EtherscanTransaction>(`${chainName} transaction data could not be loaded.`),
           tokenTransfers: unavailableSource<EtherscanTokenTransfer>(`${chainName} token transfer data could not be loaded.`),
@@ -232,6 +282,7 @@ async function runWalletScan(
         phase: 'fetching', completedChains, queriedChains, totalChains: chains.length,
         currentChainId: chainId, currentChainName: chainName,
         completedChainIds: [...completedChainIds], recordsFound,
+        completedDatasets, totalDatasets,
       });
       return { chainId, chainName, transactions, tokenTransfers, internalTransactions, cacheMetadata: history.cacheMetadata };
     },
@@ -244,6 +295,7 @@ async function runWalletScan(
     totalMoralisBudget,
     fallbackCandidates.length,
   );
+  const moralisFallbackState = createMoralisFallbackState();
 
   // Partition the configured scan budget across only the chains that need a
   // fallback. One noisy or quota-blocked chain cannot consume another chain's
@@ -255,9 +307,10 @@ async function runWalletScan(
       throwIfAborted(options.signal);
       const history = isWalletHistoryComplete(chain)
         ? chain
-        : await applyWalletHistoryFallback(address, chain.chainId, chain, {
-            quotaBudget: createMoralisQuotaBudget(perChainMoralisBudget),
+          : await applyWalletHistoryFallback(address, chain.chainId, chain, {
+            quotaBudget: createMoralisQuotaBudget(perChainMoralisBudget, moralisFallbackState),
             ...historyCacheOptions,
+            onDatasetComplete: progress => reportDatasetProgress(chain.chainId, chain.chainName, progress.dataset),
           });
 
       const finalRecordCount = countHistoryRecords(history);
@@ -273,6 +326,8 @@ async function runWalletScan(
         currentChainName: chain.chainName,
         completedChainIds: [...completedChainIds],
         recordsFound,
+        completedDatasets,
+        totalDatasets,
       });
 
       return { ...chain, ...history };
@@ -290,6 +345,8 @@ async function runWalletScan(
     totalChains: chains.length,
     completedChainIds: [...completedChainIds],
     recordsFound,
+    completedDatasets,
+    totalDatasets,
   };
   options.onProgress?.({ phase: 'pricing', ...finishedProgress });
 
@@ -313,9 +370,9 @@ async function runWalletScan(
       internalTransactions: chain.internalTransactions.status,
       prices: 'complete' as const,
       errors: [
-        ...sourceErrors('transactions', chain.transactions.errors),
-        ...sourceErrors('tokenTransfers', chain.tokenTransfers.errors),
-        ...sourceErrors('internalTransactions', chain.internalTransactions.errors),
+        ...sourceErrors('transactions', chain.transactions.errors, chain.chainId, chain.chainName),
+        ...sourceErrors('tokenTransfers', chain.tokenTransfers.errors, chain.chainId, chain.chainName),
+        ...sourceErrors('internalTransactions', chain.internalTransactions.errors, chain.chainId, chain.chainName),
       ],
     };
   });
@@ -348,6 +405,7 @@ async function runWalletScan(
 
   const validChainData = chainAnalysisResults.filter((r): r is NonNullable<typeof r> => r !== null);
   const validResults = validChainData.map(r => r.analysis);
+  await classifyCounterparties(validResults, { signal: options.signal });
   const allTransactions = validChainData.flatMap(r => r.processedTxs);
   const allInternalTransactions = validChainData.flatMap(r => r.processedInternals);
   const allTokenTransfers = validChainData.flatMap(r => r.processedTransfers);
@@ -442,14 +500,15 @@ async function runWalletScan(
   const allOutboundUSD = validResults.reduce((sum, r) => sum + (r.transferSummary?.totalOutboundUSD || 0), 0);
   const totalVolumeUSD = allInboundUSD + allOutboundUSD;
   const uniqueContracts = validResults.reduce((sum, r) => sum + (r.fingerprint?.uniqueContracts || 0), 0);
+  const activeChainsCount = countActiveChains(rawChainsData);
 
   const mediaScore = status === 'complete'
     ? computeMediaScore({
         address,
         transactions: allTransactions,
         tokenTransfers: allTokenTransfers,
-        uniqueContractCount: uniqueContracts || 5,
-        activeChainsCount: validResults.length,
+        uniqueContractCount: uniqueContracts,
+        activeChainsCount,
         totalVolumeUSD,
         totalGasUSD: aggregated.totalGasUSD,
         includeMonetary: priceProvenance.status === 'complete',
@@ -477,6 +536,7 @@ async function runWalletScan(
   const responseData: WalletScanResponse = {
     address,
     status,
+    accountClassifications,
     availability,
     chains: validResults,
     aggregated,
@@ -525,10 +585,13 @@ export async function processWalletScan(
   }
 
   const chains: number[] = (chainIds && chainIds.length > 0) ? chainIds : [1];
+  const accountClassifications = options.accountClassifications
+    ?? await classifyWalletAccounts(address, chains, { signal: options.signal });
   const canUseReportCache = !customApiKey && !includeClusterEvidence;
+  const canUseHistoryCache = !customApiKey;
   const historyCacheOptions: WalletHistoryCacheOptions = {
-    cacheReadEnabled: canUseReportCache && !options.forceRefresh,
-    cacheWriteEnabled: canUseReportCache,
+    cacheReadEnabled: canUseHistoryCache && !options.forceRefresh,
+    cacheWriteEnabled: canUseHistoryCache,
     signal: options.signal,
   };
   const cacheKey = reportCacheKey(address, chains);
@@ -540,7 +603,7 @@ export async function processWalletScan(
       throwIfAborted(options.signal);
       const fetchedAt = localCached.cacheMetadata?.fetchedAt;
       if (typeof fetchedAt === 'number' && remainingReportTtlSeconds(localCached, fetchedAt) > 0) {
-        return withCachedMetadata(localCached, 'memory', fetchedAt);
+        return withCachedMetadata({ ...localCached, accountClassifications }, 'memory', fetchedAt);
       }
       scanResultCache.delete(cacheKey);
     }
@@ -553,7 +616,7 @@ export async function processWalletScan(
     if (sharedCached) {
       throwIfAborted(options.signal);
       if (cacheReportLocally(cacheKey, sharedCached.value, sharedCached.fetchedAt)) {
-        return withCachedMetadata(sharedCached.value, sharedCached.source, sharedCached.fetchedAt);
+        return withCachedMetadata({ ...sharedCached.value, accountClassifications }, sharedCached.source, sharedCached.fetchedAt);
       }
     }
   }
@@ -569,6 +632,7 @@ export async function processWalletScan(
       chains,
       customApiKey,
       includeClusterEvidence,
+      accountClassifications,
       options,
       historyCacheOptions,
     );

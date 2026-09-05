@@ -1,6 +1,6 @@
 import { describe, it, mock } from 'node:test';
 import assert from 'node:assert';
-import { moralisBudgetPerFallbackChain, processWalletScan, summarizeAvailability } from './scanService';
+import { countActiveChains, moralisBudgetPerFallbackChain, processWalletScan, sourceErrors, summarizeAvailability } from './scanService';
 import { scanResultCache, sharedCache } from '@/lib/cache';
 import { ChainDataAvailability, EtherscanTransaction } from '@/lib/types';
 
@@ -43,6 +43,31 @@ function scanTransaction(wallet: string, hash: string): EtherscanTransaction {
 }
 
 describe('Scan availability aggregation', () => {
+  it('prefixes provider errors with the exact chain and dataset', () => {
+    const errors = sourceErrors(
+      'tokenTransfers',
+      [{ code: 'http_error', message: 'Blockscout returned HTTP 500.' }],
+      8453,
+      'Base',
+    );
+
+    assert.deepStrictEqual(errors, [{
+      source: 'tokenTransfers',
+      code: 'http_error',
+      message: '[Base (chain 8453) · tokenTransfers] Blockscout returned HTTP 500.',
+    }]);
+  });
+
+  it('counts only history-bearing chains as active', () => {
+    const empty = { data: [] };
+    const populated = { data: [{}] };
+
+    assert.strictEqual(countActiveChains([
+      { transactions: empty, tokenTransfers: empty, internalTransactions: empty },
+      { transactions: populated, tokenTransfers: empty, internalTransactions: empty },
+    ]), 1);
+  });
+
   it('keeps verified empty or populated complete datasets complete', () => {
     assert.strictEqual(summarizeAvailability([availability()]), 'complete');
   });
@@ -79,6 +104,7 @@ describe('Scan availability aggregation', () => {
   });
 
   it('preserves verified empty explorer results as a complete scan', async () => {
+    const progressEvents: Array<{ completedDatasets?: number; totalDatasets?: number }> = [];
     const fetchMock = mock.method(globalThis, 'fetch', async (input: string | URL | Request) => {
       const url = String(input);
       if (url.includes('api.web3.bio')) {
@@ -97,12 +123,47 @@ describe('Scan availability aggregation', () => {
       const result = await processWalletScan(
         '0x1111111111111111111111111111111111111111',
         [1],
+        '',
+        false,
+        { onProgress: progress => progressEvents.push(progress) },
       );
       assert.strictEqual(result.status, 'complete');
       assert.strictEqual(result.availability[0]?.transactions, 'complete');
       assert.strictEqual(result.availability[0]?.tokenTransfers, 'complete');
       assert.strictEqual(result.availability[0]?.internalTransactions, 'complete');
       assert.strictEqual(result.aggregated.worstChainRiskGrade, 'A');
+      assert.equal(progressEvents.some(progress => progress.completedDatasets === 3 && progress.totalDatasets === 3), true);
+    } finally {
+      fetchMock.mock.restore();
+    }
+  });
+
+  it('reuses complete single-wallet history datasets during cluster scans', async () => {
+    const wallet = '0x1212121212121212121212121212121212121212';
+    let historyCalls = 0;
+    const fetchMock = mock.method(globalThis, 'fetch', async (input: string | URL | Request) => {
+      const url = String(input);
+      if (url.includes('api.etherscan.io') || url.includes('blockscout.com') || url.includes('routescan.io')) {
+        historyCalls += 1;
+        return new Response(JSON.stringify({ status: '0', message: 'No transactions found', result: [] }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+      if (url.includes('api.web3.bio')) return new Response('[]', { status: 200 });
+      return new Response('', { status: 503 });
+    });
+
+    try {
+      const single = await processWalletScan(wallet, [1]);
+      assert.equal(single.status, 'complete');
+      assert.equal(single.cacheMetadata?.historyDatasets?.length, 3);
+      const callsAfterSingle = historyCalls;
+
+      const cluster = await processWalletScan(wallet, [1], '', true);
+      assert.equal(cluster.status, 'complete');
+      assert.ok(cluster.clusterEvidence);
+      assert.equal(historyCalls, callsAfterSingle);
     } finally {
       fetchMock.mock.restore();
     }
@@ -429,7 +490,7 @@ describe('Scan availability aggregation', () => {
     try {
       const first = await processWalletScan(wallet, [1]);
       assert.equal(first.cached, undefined);
-      const reportKey = `wallet-analytics:report:v2:${wallet}:1`;
+      const reportKey = `wallet-analytics:report:v3:${wallet}:1`;
       scanResultCache.delete(reportKey);
       sharedCache.clearLocal();
 

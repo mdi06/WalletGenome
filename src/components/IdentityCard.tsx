@@ -2,16 +2,51 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
-import { WalletIdentityReport, SocialLinkItem } from '@/lib/types';
+import { WalletIdentityReport, SocialLinkItem, WalletAccountClassification } from '@/lib/types';
+import { formatWalletAccountType } from '@/lib/accountClassification';
 import { ExternalLink, Globe, MessageSquare, Send, CheckCircle2, Copy } from 'lucide-react';
 
 interface Props {
   identity?: WalletIdentityReport;
   address: string;
   persona?: string;
+  accountClassifications?: WalletAccountClassification[];
 }
 
-export default function IdentityCard({ identity, address, persona }: Props) {
+type AccountClassificationDisplay =
+  | { kind: 'hidden' }
+  | { kind: 'label'; label: 'Contract' | 'Smart wallet' }
+  | { kind: 'varies'; classifications: WalletAccountClassification[] }
+  | { kind: 'unverified'; classifications: WalletAccountClassification[] };
+
+function getAccountClassificationDisplay(
+  classifications: WalletAccountClassification[] | undefined,
+): AccountClassificationDisplay | null {
+  if (!classifications || classifications.length === 0) return null;
+
+  const failedChecks = classifications.filter(classification => classification.type === 'unknown');
+  if (failedChecks.length > 0) {
+    return { kind: 'unverified', classifications: failedChecks };
+  }
+
+  const types = new Set(classifications.map(classification => classification.type));
+  if (types.size > 1) {
+    return { kind: 'varies', classifications };
+  }
+
+  const [type] = types;
+  if (type === 'eoa') return { kind: 'hidden' };
+  if (type === 'regular_contract' || type === 'multisig_or_proxy') {
+    return { kind: 'label', label: 'Contract' };
+  }
+  if (type === 'smart_account' || type === 'eip_7702') {
+    return { kind: 'label', label: 'Smart wallet' };
+  }
+
+  return { kind: 'varies', classifications };
+}
+
+export default function IdentityCard({ identity, address, persona, accountClassifications }: Props) {
   const hasSocials = identity && identity.socials && identity.socials.length > 0;
   const linkedSocialHandles = new Set(
     (identity?.socials ?? []).map(social => social.handle.replace(/^@/, '').toLowerCase()),
@@ -21,6 +56,7 @@ export default function IdentityCard({ identity, address, persona }: Props) {
   );
   const [copyStatus, setCopyStatus] = useState('');
   const [isExpanded, setIsExpanded] = useState(true);
+  const classificationDisplay = getAccountClassificationDisplay(accountClassifications);
 
   React.useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -110,6 +146,43 @@ export default function IdentityCard({ identity, address, persona }: Props) {
           <span className="sr-only" role="status" aria-live="polite">{copyStatus}</span>
         </div>
       </div>
+
+      {classificationDisplay && classificationDisplay.kind !== 'hidden' && (
+        <div className="border-t border-[#c8c8c8] pt-4">
+          {classificationDisplay.kind === 'label' && (
+            <p className="text-xs font-bold text-[#374151]">
+              Account type: {classificationDisplay.label}
+            </p>
+          )}
+
+          {(classificationDisplay.kind === 'varies' || classificationDisplay.kind === 'unverified') && (
+            <details className="group">
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-3 outline-none focus-visible:ring-2 focus-visible:ring-[#ff5500] [&::-webkit-details-marker]:hidden">
+                <span className="text-xs font-bold text-[#374151]">
+                  {classificationDisplay.kind === 'varies'
+                    ? 'Account type varies by network'
+                    : 'Account type could not be verified'}
+                </span>
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#963300] group-open:text-[#0a0a0a]">
+                  Details
+                </span>
+              </summary>
+              <ul className="mt-3 space-y-2 border-l-2 border-[#d4d4d8] pl-3 text-xs">
+                {classificationDisplay.classifications.map(classification => (
+                  <li key={`${classification.chainId}-${classification.address}`} className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+                    <span className="font-bold text-[#374151]">{classification.chainName}</span>
+                    <span className="font-mono text-[10px] text-[#6b7280]">
+                      {classificationDisplay.kind === 'varies'
+                        ? formatWalletAccountType(classification.type)
+                        : 'Check failed'}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </details>
+          )}
+        </div>
+      )}
 
       {/* Connected accounts */}
       {hasSocials ? (

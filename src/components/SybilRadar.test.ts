@@ -49,7 +49,8 @@ describe('Sybil and blacklist precedence', () => {
 
     assert.match(markup, /Blacklist Match/);
     assert.match(markup, /12%/);
-    assert.match(markup, /separate secondary heuristic/);
+    assert.match(markup, /separate from blacklist status/);
+    assert.match(markup, /not a live Trusta score/);
     assert.doesNotMatch(markup, />Organic Human</);
   });
 
@@ -66,6 +67,6 @@ describe('Sybil and blacklist precedence', () => {
 
     assert.match(markup, /OFAC Sanctions[\s\S]*CLEAN/);
     assert.match(markup, /Behavioral Score Unavailable/);
-    assert.match(markup, /Trusta MEDIA[\s\S]*UNAVAILABLE/);
+    assert.match(markup, /Behavioral heuristic[\s\S]*UNAVAILABLE/);
   });
 });

@@ -13,7 +13,7 @@ export type ReportingMetricKey = Exclude<keyof ReportingMetrics, 'priceProvenanc
 export interface ReportingMetricDefinition {
   field: ReportingMetricKey;
   label: string;
-  unit: 'USD' | 'score_0_100' | 'grade' | 'probability_percent' | 'status' | 'days' | 'count';
+  unit: 'USD' | 'score_0_100' | 'grade' | 'risk_percent' | 'status' | 'days' | 'count';
   timeWindow: string;
   dataSources: string;
   inclusionExclusion: string;
@@ -113,11 +113,11 @@ export const REPORTING_METRIC_DEFINITIONS: readonly ReportingMetricDefinition[] 
   },
   {
     field: 'sybilProbability',
-    label: 'Behavioral Sybil probability',
-    unit: 'probability_percent',
+    label: 'Behavioral Sybil risk (heuristic)',
+    unit: 'risk_percent',
     timeWindow: 'Full returned cross-chain behavior history.',
-    dataSources: 'MEDIA behavioral dimensions; blacklist matches are reported separately.',
-    inclusionExclusion: 'A heuristic behavioral score, not a blacklist verdict.',
+    dataSources: 'Local MEDIA-style behavioral dimensions; blacklist matches are reported separately.',
+    inclusionExclusion: 'A local behavioral heuristic, not a live Trusta score and not a blacklist verdict.',
     aggregation: 'Computed once from the combined selected-chain dataset.',
     completeness: 'Unavailable when wallet history or the behavioral report is incomplete.',
     priceProvenance: 'When historical prices are incomplete, the monetary dimension is omitted and the remaining behavioral dimensions are reweighted.',

@@ -4,6 +4,7 @@ import {
   fetchMoralisInternalTransactions,
   fetchMoralisTokenTransfers,
   fetchMoralisTransactions,
+  createMoralisFallbackState,
   getMoralisApiKey,
   MoralisQuotaBudget,
 } from './moralis';
@@ -189,6 +190,33 @@ describe('Moralis dataset fallbacks', () => {
     assert.equal(quotaBudget.blocked, true);
   });
 
+  it('disables fallback across dataset budgets after the first confirmed 401', async () => {
+    const state = createMoralisFallbackState();
+    let calls = 0;
+    const fetcher = async (): Promise<Response> => {
+      calls += 1;
+      return jsonResponse({ message: 'Unauthorized' }, 401);
+    };
+
+    const first = await fetchMoralisTransactions(WALLET, 1, {
+      apiKey: 'moralis-test-key',
+      quotaBudget: new MoralisQuotaBudget(500, state),
+      maxAttempts: 2,
+      fetcher,
+    });
+    const second = await fetchMoralisTokenTransfers(WALLET, 1, {
+      apiKey: 'moralis-test-key',
+      quotaBudget: new MoralisQuotaBudget(500, state),
+      maxAttempts: 2,
+      fetcher,
+    });
+
+    assert.equal(calls, 1);
+    assert.equal(first?.errors[0]?.code, 'http_error');
+    assert.equal(second?.errors[0]?.code, 'quota_exhausted');
+    assert.match(second?.errors[0]?.message ?? '', /authentication failed/i);
+  });
+
   it('ignores placeholder API keys', () => {
     const previous = process.env.MORALIS_API_KEY;
     delete process.env.MORALIS_API_KEY;
@@ -197,6 +225,23 @@ describe('Moralis dataset fallbacks', () => {
     } finally {
       if (previous === undefined) delete process.env.MORALIS_API_KEY;
       else process.env.MORALIS_API_KEY = previous;
+    }
+  });
+
+  it('keeps environment-backed Moralis fallback disabled unless explicitly enabled', () => {
+    const previousKey = process.env.MORALIS_API_KEY;
+    const previousEnabled = process.env.MORALIS_FALLBACK_ENABLED;
+    process.env.MORALIS_API_KEY = 'current-moralis-test-key';
+    delete process.env.MORALIS_FALLBACK_ENABLED;
+    try {
+      assert.equal(getMoralisApiKey(), undefined);
+      process.env.MORALIS_FALLBACK_ENABLED = 'true';
+      assert.equal(getMoralisApiKey(), 'current-moralis-test-key');
+    } finally {
+      if (previousKey === undefined) delete process.env.MORALIS_API_KEY;
+      else process.env.MORALIS_API_KEY = previousKey;
+      if (previousEnabled === undefined) delete process.env.MORALIS_FALLBACK_ENABLED;
+      else process.env.MORALIS_FALLBACK_ENABLED = previousEnabled;
     }
   });
 

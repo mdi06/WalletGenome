@@ -1,4 +1,5 @@
 export type ScanProgressPhase = 'resolving' | 'fetching' | 'pricing' | 'analyzing' | 'finalizing';
+export type ScanProgressDataset = 'transactions' | 'tokenTransfers' | 'internalTransactions';
 
 export interface ScanProgressDetail {
   phase: ScanProgressPhase;
@@ -7,8 +8,11 @@ export interface ScanProgressDetail {
   queriedChains?: number;
   currentChainId?: number;
   currentChainName?: string;
+  currentDataset?: ScanProgressDataset;
   completedChainIds?: number[];
   recordsFound?: number;
+  completedDatasets?: number;
+  totalDatasets?: number;
 }
 
 export interface DisplayScanProgress extends ScanProgressDetail {
@@ -38,9 +42,10 @@ export function formatScanProgress(
   }
 
   const totalChains = progress.totalChains ?? 0;
-  const completedChains = progress.completedChains ?? 0;
   const queriedChains = progress.queriedChains ?? 0;
   const recordsFound = progress.recordsFound ?? 0;
+  const totalDatasets = progress.totalDatasets ?? totalChains * 3;
+  const completedDatasets = progress.completedDatasets ?? 0;
 
   let message = 'Indexing EVM block state and resolving multi-chain forensics...';
   let progressPercent = 8;
@@ -51,8 +56,8 @@ export function formatScanProgress(
       progressPercent = 8;
       break;
     case 'fetching': {
-      if (completedChains > 0) {
-        message = `${completedChains} of ${totalChains || 1} chain histories complete; ${recordsFound.toLocaleString('en-US')} records found so far.`;
+      if (completedDatasets > 0) {
+        message = `${completedDatasets} of ${totalDatasets || 1} history datasets queried; ${recordsFound.toLocaleString('en-US')} records found so far.`;
       } else if (queriedChains > 0) {
         message = `History providers responded for ${queriedChains} of ${totalChains || 1} chains; ${recordsFound.toLocaleString('en-US')} records found so far.`;
       } else {
@@ -60,8 +65,8 @@ export function formatScanProgress(
       }
 
       const queriedFraction = totalChains > 0 ? Math.min(queriedChains, totalChains) / totalChains : 0;
-      const completedFraction = totalChains > 0 ? Math.min(completedChains, totalChains) / totalChains : 0;
-      progressPercent = 18 + Math.round((queriedFraction * 18) + (completedFraction * 34));
+      const datasetFraction = totalDatasets > 0 ? Math.min(completedDatasets, totalDatasets) / totalDatasets : 0;
+      progressPercent = 18 + Math.round((queriedFraction * 12) + (datasetFraction * 40));
       break;
     }
     case 'pricing':

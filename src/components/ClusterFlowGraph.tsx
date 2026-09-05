@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { BulkWrappedWallet, ClusterLinkage, SharedCounterparty } from '@/lib/types';
 import { formatCompactUSD } from '@/lib/utils/dashboardUtils';
 import { ZoomIn, ZoomOut, RotateCcw, ArrowRight, Move, ExternalLink, GitFork } from 'lucide-react';
@@ -47,6 +47,254 @@ interface RenderLink {
   color: string;
 }
 
+export interface ClusterFlowGraphPointerTarget {
+  setPointerCapture: (pointerId: number) => void;
+  hasPointerCapture: (pointerId: number) => boolean;
+  releasePointerCapture: (pointerId: number) => void;
+}
+
+export interface ClusterFlowGraphPointerEvent {
+  pointerId: number;
+  pointerType: string;
+  button: number;
+  clientX: number;
+  clientY: number;
+  currentTarget: ClusterFlowGraphPointerTarget;
+}
+
+export interface ClusterFlowGraphInteractionState {
+  pan: { x: number; y: number };
+  scale: number;
+  isDragging: boolean;
+}
+
+interface ClusterFlowGraphInteractionOptions {
+  initialScale: number;
+  initialPan?: { x: number; y: number };
+  onChange?: (state: ClusterFlowGraphInteractionState) => void;
+  requestAnimationFrame?: (callback: () => void) => number;
+  cancelAnimationFrame?: (frameId: number) => void;
+}
+
+export interface ClusterFlowGraphInteraction {
+  pointerDown: (event: ClusterFlowGraphPointerEvent) => void;
+  pointerMove: (event: ClusterFlowGraphPointerEvent) => void;
+  pointerUp: (event: ClusterFlowGraphPointerEvent) => void;
+  pointerCancel: (event: ClusterFlowGraphPointerEvent) => void;
+  lostPointerCapture: (event: ClusterFlowGraphPointerEvent) => void;
+  zoomIn: () => void;
+  zoomOut: () => void;
+  resetZoom: (initialScale?: number) => void;
+  getState: () => ClusterFlowGraphInteractionState;
+  dispose: () => void;
+}
+
+const TOUCH_DRAG_THRESHOLD = 8;
+
+export function createClusterFlowGraphInteraction(
+  options: ClusterFlowGraphInteractionOptions,
+): ClusterFlowGraphInteraction {
+  const requestFrame = options.requestAnimationFrame ?? ((callback: () => void) => requestAnimationFrame(callback));
+  const cancelFrame = options.cancelAnimationFrame ?? ((frameId: number) => cancelAnimationFrame(frameId));
+  const initialPan = options.initialPan ?? { x: 0, y: 0 };
+  const state: ClusterFlowGraphInteractionState = {
+    pan: { ...initialPan },
+    scale: options.initialScale,
+    isDragging: false,
+  };
+
+  let resetScale = options.initialScale;
+  let activePointerId: number | null = null;
+  let latestPointer = { x: 0, y: 0 };
+  let dragStart = { x: 0, y: 0 };
+  let touchGesture: {
+    startX: number;
+    startY: number;
+    axis: 'undecided' | 'horizontal' | 'vertical';
+  } | null = null;
+  let pendingFrame: number | null = null;
+  let disposed = false;
+
+  const notify = () => {
+    options.onChange?.({
+      pan: { ...state.pan },
+      scale: state.scale,
+      isDragging: state.isDragging,
+    });
+  };
+
+  const cancelPendingPanFrame = () => {
+    if (pendingFrame !== null) {
+      cancelFrame(pendingFrame);
+      pendingFrame = null;
+    }
+  };
+
+  const schedulePanFrame = () => {
+    if (pendingFrame !== null || disposed) return;
+
+    pendingFrame = requestFrame(() => {
+      if (disposed) {
+        pendingFrame = null;
+        return;
+      }
+
+      state.pan = {
+        x: latestPointer.x - dragStart.x,
+        y: latestPointer.y - dragStart.y,
+      };
+      pendingFrame = null;
+      notify();
+    });
+  };
+
+  const releasePointerCapture = (event: ClusterFlowGraphPointerEvent) => {
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+  };
+
+  const pointerDown = (event: ClusterFlowGraphPointerEvent) => {
+    if (disposed || event.button !== 0 || activePointerId !== null) return;
+
+    activePointerId = event.pointerId;
+    latestPointer = { x: event.clientX, y: event.clientY };
+    dragStart = { x: event.clientX - state.pan.x, y: event.clientY - state.pan.y };
+
+    if (event.pointerType === 'touch') {
+      touchGesture = {
+        startX: event.clientX,
+        startY: event.clientY,
+        axis: 'undecided',
+      };
+      state.isDragging = false;
+      notify();
+      return;
+    }
+
+    touchGesture = null;
+    state.isDragging = true;
+    event.currentTarget.setPointerCapture(event.pointerId);
+    notify();
+  };
+
+  const pointerMove = (event: ClusterFlowGraphPointerEvent) => {
+    if (disposed || activePointerId !== event.pointerId) return;
+    latestPointer = { x: event.clientX, y: event.clientY };
+
+    if (event.pointerType === 'touch') {
+      if (!touchGesture) return;
+
+      if (touchGesture.axis === 'undecided') {
+        const deltaX = event.clientX - touchGesture.startX;
+        const deltaY = event.clientY - touchGesture.startY;
+        if (Math.max(Math.abs(deltaX), Math.abs(deltaY)) < TOUCH_DRAG_THRESHOLD) return;
+
+        if (Math.abs(deltaX) <= Math.abs(deltaY)) {
+          touchGesture.axis = 'vertical';
+          return;
+        }
+
+        touchGesture.axis = 'horizontal';
+        state.isDragging = true;
+        event.currentTarget.setPointerCapture(event.pointerId);
+        notify();
+      }
+
+      if (touchGesture.axis !== 'horizontal') return;
+    } else if (!state.isDragging) {
+      return;
+    }
+
+    schedulePanFrame();
+  };
+
+  const pointerUp = (event: ClusterFlowGraphPointerEvent) => {
+    if (disposed || activePointerId !== event.pointerId) return;
+
+    const shouldCommitFinalPosition = event.pointerType !== 'touch' || touchGesture?.axis === 'horizontal';
+    if (shouldCommitFinalPosition) {
+      latestPointer = { x: event.clientX, y: event.clientY };
+      schedulePanFrame();
+    }
+
+    activePointerId = null;
+    state.isDragging = false;
+    touchGesture = null;
+    notify();
+    releasePointerCapture(event);
+  };
+
+  const pointerCancel = (event: ClusterFlowGraphPointerEvent) => {
+    if (disposed || activePointerId !== event.pointerId) return;
+
+    activePointerId = null;
+    state.isDragging = false;
+    touchGesture = null;
+    cancelPendingPanFrame();
+    notify();
+    releasePointerCapture(event);
+  };
+
+  const lostPointerCapture = (event: ClusterFlowGraphPointerEvent) => {
+    if (disposed || activePointerId !== event.pointerId) return;
+
+    activePointerId = null;
+    state.isDragging = false;
+    touchGesture = null;
+    cancelPendingPanFrame();
+    notify();
+  };
+
+  const zoomIn = () => {
+    if (disposed) return;
+    state.scale = Math.min(3.2, state.scale + 0.2);
+    notify();
+  };
+
+  const zoomOut = () => {
+    if (disposed) return;
+    state.scale = Math.max(0.25, state.scale - 0.2);
+    notify();
+  };
+
+  const resetZoom = (nextInitialScale = resetScale) => {
+    if (disposed) return;
+    resetScale = nextInitialScale;
+    state.scale = nextInitialScale;
+    state.pan = { x: 0, y: 0 };
+    notify();
+  };
+
+  const getState = (): ClusterFlowGraphInteractionState => ({
+    pan: { ...state.pan },
+    scale: state.scale,
+    isDragging: state.isDragging,
+  });
+
+  const dispose = () => {
+    if (disposed) return;
+    disposed = true;
+    activePointerId = null;
+    state.isDragging = false;
+    touchGesture = null;
+    cancelPendingPanFrame();
+  };
+
+  return {
+    pointerDown,
+    pointerMove,
+    pointerUp,
+    pointerCancel,
+    lostPointerCapture,
+    zoomIn,
+    zoomOut,
+    resetZoom,
+    getState,
+    dispose,
+  };
+}
+
 export function formatClusterConnectionSummary({
   sourceName,
   targetName,
@@ -88,10 +336,22 @@ export default function ClusterFlowGraph({
   const [scale, setScale] = useState<number>(initialScale);
   const [pan, setPan] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState<boolean>(false);
-  const dragStartRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
-  const rafRef = useRef<number | null>(null);
+  const [graphInteraction] = useState<ClusterFlowGraphInteraction>(() => createClusterFlowGraphInteraction({
+    initialScale,
+    onChange: nextState => {
+      setPan(nextState.pan);
+      setScale(nextState.scale);
+      setIsDragging(nextState.isDragging);
+    },
+  }));
   const containerRef = useRef<HTMLDivElement>(null);
   const graphVisibility = useAnimationVisibility(containerRef);
+
+  useEffect(() => {
+    return () => {
+      graphInteraction.dispose();
+    };
+  }, [graphInteraction]);
 
   const { nodes, links } = useMemo(() => {
     const nodeList: ClusterNode[] = [];
@@ -212,51 +472,25 @@ export default function ClusterFlowGraph({
   const activeLink = selectedLink || hoveredLink;
 
   // ── Drag & Pan Handlers (Pointer Events & RAF) ──
-  const handlePointerDown = (e: React.PointerEvent) => {
-    if (e.button !== 0) return;
-    setIsDragging(true);
-    e.currentTarget.setPointerCapture(e.pointerId);
-    dragStartRef.current = { x: e.clientX - pan.x, y: e.clientY - pan.y };
-  };
-
-  const handlePointerMove = (e: React.PointerEvent) => {
-    if (!isDragging) return;
-    if (rafRef.current !== null) return;
-    
-    rafRef.current = requestAnimationFrame(() => {
-      setPan({
-        x: e.clientX - dragStartRef.current.x,
-        y: e.clientY - dragStartRef.current.y,
-      });
-      rafRef.current = null;
-    });
-  };
-
-  const handlePointerUp = (e: React.PointerEvent) => {
-    setIsDragging(false);
-    if (e.currentTarget.hasPointerCapture(e.pointerId)) {
-      e.currentTarget.releasePointerCapture(e.pointerId);
-    }
-    if (rafRef.current !== null) {
-      cancelAnimationFrame(rafRef.current);
-      rafRef.current = null;
-    }
-  };
+  const handlePointerDown = (e: React.PointerEvent) => graphInteraction.pointerDown(e);
+  const handlePointerMove = (e: React.PointerEvent) => graphInteraction.pointerMove(e);
+  const handlePointerUp = (e: React.PointerEvent) => graphInteraction.pointerUp(e);
+  const handlePointerCancel = (e: React.PointerEvent) => graphInteraction.pointerCancel(e);
+  const handleLostPointerCapture = (e: React.PointerEvent) => graphInteraction.lostPointerCapture(e);
 
   const handleZoomIn = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setScale(prev => Math.min(3.2, prev + 0.2));
+    graphInteraction.zoomIn();
   };
 
   const handleZoomOut = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setScale(prev => Math.max(0.25, prev - 0.2));
+    graphInteraction.zoomOut();
   };
 
   const handleResetZoom = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setScale(initialScale);
-    setPan({ x: 0, y: 0 });
+    graphInteraction.resetZoom(initialScale);
     setSelectedNodeId(null);
     setSelectedLink(null);
   };
@@ -287,7 +521,8 @@ export default function ClusterFlowGraph({
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
-        onPointerCancel={handlePointerUp}
+        onPointerCancel={handlePointerCancel}
+        onLostPointerCapture={handleLostPointerCapture}
         className={`relative bg-[#0d0f17] border border-[#cecece] shadow-inner overflow-hidden select-none touch-pan-y ${
           graphVisibility.isVisible ? '' : 'graph-animations-paused'
         } ${

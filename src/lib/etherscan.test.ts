@@ -1,6 +1,11 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { fetchExplorerData, fetchNormalTransactions } from './etherscan';
+import {
+  fetchExplorerData,
+  fetchInternalTransactions,
+  fetchNormalTransactions,
+  fetchTokenTransfers,
+} from './etherscan';
 import { RequestCancellationError } from './cancellation';
 
 const explorerUrl = 'https://example.test/api';
@@ -170,6 +175,151 @@ describe('Explorer data availability', () => {
     assert.deepStrictEqual(result.errors, []);
   });
 
+  it('uses the keyed Blockscout multichain API for Base', async () => {
+    const previousBlockscoutKey = process.env.BLOCKSCOUT_API_KEY;
+    process.env.BLOCKSCOUT_API_KEY = 'proapi_test_key';
+    const requestedUrls: string[] = [];
+
+    try {
+      const result = await fetchNormalTransactions(
+        '0x1234567890123456789012345678901234567890',
+        8453,
+        '',
+        2,
+        {
+          endBlock: 1,
+          maxAttempts: 1,
+          fetcher: async (url) => {
+            requestedUrls.push(url);
+            return jsonResponse({ status: '0', message: 'No transactions found', result: [] });
+          },
+        },
+      );
+
+      assert.strictEqual(result.status, 'complete');
+      assert.strictEqual(requestedUrls.length, 1);
+      const requestedUrl = new URL(requestedUrls[0]);
+      assert.strictEqual(requestedUrl.origin + requestedUrl.pathname, 'https://api.blockscout.com/v2/api');
+      assert.strictEqual(requestedUrl.searchParams.get('chain_id'), '8453');
+      assert.strictEqual(requestedUrl.searchParams.get('apikey'), 'proapi_test_key');
+    } finally {
+      if (previousBlockscoutKey === undefined) delete process.env.BLOCKSCOUT_API_KEY;
+      else process.env.BLOCKSCOUT_API_KEY = previousBlockscoutKey;
+    }
+  });
+
+  it('falls back to Blockscout REST v2 when the legacy Base endpoint returns 500', async () => {
+    const requestedUrls: string[] = [];
+    let restPages = 0;
+    const result = await fetchNormalTransactions(
+      '0x1234567890123456789012345678901234567890',
+      8453,
+      '',
+      2,
+      {
+        endBlock: 1,
+        maxAttempts: 1,
+        fetcher: async (url) => {
+          requestedUrls.push(url);
+          if (url.includes('/api/v2/addresses/')) {
+            restPages += 1;
+            return jsonResponse({
+              items: [restPages === 1 ? {
+                timestamp: '2024-01-02T03:04:05.000Z',
+                block_number: 1,
+                status: 'ok',
+                from: { hash: '0x1111111111111111111111111111111111111111' },
+                to: { hash: '0x1234567890123456789012345678901234567890' },
+                gas_used: 21_000,
+                gas_price: '1000000000',
+                hash: '0xrest-v2',
+                nonce: 7,
+                position: 3,
+                raw_input: '0x',
+                value: '100',
+              } : {
+                timestamp: '2024-01-03T03:04:05.000Z',
+                block_number: 2,
+                status: 'ok',
+                from: { hash: '0x1111111111111111111111111111111111111111' },
+                to: { hash: '0x1234567890123456789012345678901234567890' },
+                hash: '0xrest-v2-page-2',
+                value: '200',
+              }],
+              ...(restPages === 1 ? { next_page_params: { block_number: 1, index: 0, items_count: 1 } } : {}),
+            });
+          }
+          return new Response('gateway error', { status: 500 });
+        },
+      },
+    );
+
+    assert.strictEqual(result.status, 'complete');
+    assert.deepStrictEqual(result.data.map(item => item.hash), ['0xrest-v2', '0xrest-v2-page-2']);
+    assert.strictEqual(result.data[0]?.from, '0x1111111111111111111111111111111111111111');
+    assert.ok(requestedUrls.some(url => url.includes('base.blockscout.com/api?')));
+    assert.ok(requestedUrls.some(url => url.includes('base.blockscout.com/api/v2/addresses/')));
+    assert.equal(restPages, 2);
+    assert.match(requestedUrls.at(-1) ?? '', /block_number=1/);
+  });
+
+  it('normalizes Blockscout REST v2 token and internal transfer datasets', async () => {
+    const fetcher = async (url: string): Promise<Response> => {
+      if (url.includes('/token-transfers')) {
+        return jsonResponse({
+          items: [{
+            timestamp: '2024-01-02T03:04:05.000Z',
+            block_number: 2,
+            transaction_hash: '0xrest-token',
+            from: { hash: '0x1111111111111111111111111111111111111111' },
+            to: { hash: '0x1234567890123456789012345678901234567890' },
+            token: { address_hash: '0x2222222222222222222222222222222222222222', name: 'USD Coin', symbol: 'USDC', decimals: 6 },
+            total: { value: '2500000' },
+            log_index: 9,
+          }],
+        });
+      }
+      if (url.includes('/internal-transactions')) {
+        return jsonResponse({
+          items: [{
+            timestamp: '2024-01-02T03:04:05.000Z',
+            block_number: 3,
+            transaction_hash: '0xrest-internal',
+            from: { hash: '0x1234567890123456789012345678901234567890' },
+            to: { hash: '0x3333333333333333333333333333333333333333' },
+            value: '42',
+            gas_used: 21_000,
+            success: true,
+            type: 'call',
+            index: 1,
+          }],
+        });
+      }
+      return new Response('gateway error', { status: 500 });
+    };
+
+    const tokenTransfers = await fetchTokenTransfers(
+      '0x1234567890123456789012345678901234567890',
+      8453,
+      '',
+      2,
+      { endBlock: 1, maxAttempts: 1, fetcher },
+    );
+    const internalTransactions = await fetchInternalTransactions(
+      '0x1234567890123456789012345678901234567890',
+      8453,
+      '',
+      2,
+      { endBlock: 1, maxAttempts: 1, fetcher },
+    );
+
+    assert.strictEqual(tokenTransfers.status, 'complete');
+    assert.strictEqual(tokenTransfers.data[0]?.tokenSymbol, 'USDC');
+    assert.strictEqual(tokenTransfers.data[0]?.contractAddress, '0x2222222222222222222222222222222222222222');
+    assert.strictEqual(internalTransactions.status, 'complete');
+    assert.strictEqual(internalTransactions.data[0]?.hash, '0xrest-internal');
+  });
+
   it('retries transient non-JSON public Blockscout responses before failing over', async () => {
     let attempts = 0;
     const result = await fetchExplorerData<{ hash: string }>(['https://base.blockscout.com/api'], 2, {
@@ -299,45 +449,80 @@ describe('Explorer data availability', () => {
     assert.ok(requestedRanges.some(range => range !== '0-9'));
   });
 
-  it('uses conservative single-worker range fanout for public Blockscout hosts', async () => {
-    const requestedRanges: string[] = [];
-    let inFlight = 0;
-    let maxInFlight = 0;
+  it('uses ordinary page pagination for public Blockscout histories', async () => {
+    const requestedPages: number[] = [];
 
-    const result = await fetchExplorerData<{ hash: string; blockNumber: string }>(['https://base.blockscout.com/api'], 2, {
+    const result = await fetchExplorerData<{ hash: string }>(['https://base.blockscout.com/api'], 2, {
       maxAttempts: 1,
       useBlockRangeSplitting: true,
       endBlock: 3999,
-      rangeConcurrency: 4,
       fetcher: async (url) => {
         const parsed = new URL(url);
-        const start = Number(parsed.searchParams.get('startblock') ?? '0');
-        const end = Number(parsed.searchParams.get('endblock') ?? '0');
-        requestedRanges.push(`${start}-${end}`);
-        inFlight += 1;
-        maxInFlight = Math.max(maxInFlight, inFlight);
-        await new Promise(resolve => setTimeout(resolve, 5));
-        inFlight -= 1;
-
-        if (start === 0 && end === 3999) {
-          return jsonResponse({
-            status: '1',
-            result: Array.from({ length: 10_000 }, (_, index) => ({
-              hash: `0xroot-${index}`,
-              blockNumber: index % 2 === 0 ? '1' : '3999',
-            })),
-          });
-        }
-
-        return jsonResponse({
-          status: '1',
-          result: [{ hash: `0x${start}`, blockNumber: String(start) }],
-        });
+        requestedPages.push(Number(parsed.searchParams.get('page') ?? '0'));
+        assert.strictEqual(parsed.searchParams.has('startblock'), false);
+        assert.strictEqual(parsed.searchParams.has('endblock'), false);
+        const page = requestedPages.at(-1);
+        return page === 1
+          ? jsonResponse({ status: '1', result: [{ hash: '0x1' }, { hash: '0x2' }] })
+          : jsonResponse({ status: '1', result: [{ hash: '0x3' }] });
       },
     });
 
     assert.strictEqual(result.status, 'complete');
-    assert.strictEqual(maxInFlight, 1);
-    assert.deepStrictEqual(requestedRanges, ['0-3999', '0-999', '1000-1999', '2000-2999', '3000-3999']);
+    assert.deepStrictEqual(result.data.map(record => record.hash), ['0x1', '0x2', '0x3']);
+    assert.deepStrictEqual(requestedPages, [1, 2]);
+  });
+
+  it('continues Blockscout histories beyond 10,000 records without requesting a forbidden page', async () => {
+    const resultLimit = 2_000;
+    const records = [
+      ...Array.from({ length: 8_000 }, (_, index) => ({
+        hash: `0x${index + 1}`,
+        blockNumber: String(index + 1),
+      })),
+      ...Array.from({ length: 2_000 }, (_, index) => ({
+        hash: `0xboundary${index}`,
+        blockNumber: '9000',
+      })),
+      { hash: '0xafter-1', blockNumber: '9001' },
+      { hash: '0xafter-2', blockNumber: '9002' },
+      { hash: '0xafter-3', blockNumber: '9003' },
+    ];
+    const requests: Array<{ page: number; startBlock: number }> = [];
+
+    const result = await fetchExplorerData<typeof records[number]>(
+      ['https://api.blockscout.com/v2/api'],
+      resultLimit,
+      {
+        maxAttempts: 1,
+        useBlockRangeSplitting: true,
+        fetcher: async (url) => {
+          const parsed = new URL(url);
+          const page = Number(parsed.searchParams.get('page') ?? '1');
+          const startBlock = Number(parsed.searchParams.get('startblock') ?? '0');
+          requests.push({ page, startBlock });
+          if (page * resultLimit > 10_000) {
+            return jsonResponse({
+              status: '0',
+              message: 'Result window is too large',
+              result: null,
+            });
+          }
+
+          const eligible = records.filter(record => Number(record.blockNumber) >= startBlock);
+          const startIndex = (page - 1) * resultLimit;
+          return jsonResponse({
+            status: '1',
+            result: eligible.slice(startIndex, startIndex + resultLimit),
+          });
+        },
+      },
+    );
+
+    assert.strictEqual(result.status, 'complete');
+    assert.strictEqual(result.data.length, records.length);
+    assert.ok(requests.some(request => request.page === 1 && request.startBlock === 9000));
+    assert.ok(requests.some(request => request.page === 2 && request.startBlock === 9000));
+    assert.equal(requests.some(request => request.page > 5), false);
   });
 });

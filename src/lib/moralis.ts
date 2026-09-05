@@ -51,14 +51,21 @@ interface MoralisDatasetSpec<T> {
   label: string;
 }
 
+export interface MoralisFallbackState {
+  blockedReason: string | null;
+}
+
 export class MoralisQuotaBudget {
   private usedComputeUnits = 0;
   private blockedReason: string | null = null;
 
-  constructor(readonly maxComputeUnits: number) {}
+  constructor(
+    readonly maxComputeUnits: number,
+    private readonly sharedState?: MoralisFallbackState,
+  ) {}
 
   tryReserve(computeUnits: number): boolean {
-    if (this.blockedReason || computeUnits <= 0) return false;
+    if (this.blocked || computeUnits <= 0) return false;
     if (this.usedComputeUnits + computeUnits > this.maxComputeUnits) return false;
     this.usedComputeUnits += computeUnits;
     return true;
@@ -66,6 +73,7 @@ export class MoralisQuotaBudget {
 
   block(reason: string): void {
     this.blockedReason = reason;
+    if (this.sharedState) this.sharedState.blockedReason = reason;
   }
 
   get used(): number {
@@ -77,12 +85,16 @@ export class MoralisQuotaBudget {
   }
 
   get blocked(): boolean {
-    return this.blockedReason !== null;
+    return this.blockedReason !== null || Boolean(this.sharedState?.blockedReason);
   }
 
   get blockReason(): string | null {
-    return this.blockedReason;
+    return this.blockedReason ?? this.sharedState?.blockedReason ?? null;
   }
+}
+
+export function createMoralisFallbackState(): MoralisFallbackState {
+  return { blockedReason: null };
 }
 
 function positiveInteger(value: string | undefined, fallback: number): number {
@@ -90,12 +102,15 @@ function positiveInteger(value: string | undefined, fallback: number): number {
   return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : fallback;
 }
 
-export function createMoralisQuotaBudget(maxComputeUnits?: number): MoralisQuotaBudget {
+export function createMoralisQuotaBudget(
+  maxComputeUnits?: number,
+  sharedState?: MoralisFallbackState,
+): MoralisQuotaBudget {
   const configured = maxComputeUnits ?? positiveInteger(
     process.env.MORALIS_MAX_FALLBACK_CU_PER_SCAN,
     DEFAULT_MORALIS_SCAN_CU_BUDGET,
   );
-  return new MoralisQuotaBudget(configured);
+  return new MoralisQuotaBudget(configured, sharedState);
 }
 
 function isUsableApiKey(value: string | undefined): value is string {
@@ -110,6 +125,7 @@ function isUsableApiKey(value: string | undefined): value is string {
 
 export function getMoralisApiKey(override?: string): string | undefined {
   if (isUsableApiKey(override)) return override;
+  if (process.env.MORALIS_FALLBACK_ENABLED?.trim().toLowerCase() !== 'true') return undefined;
   return isUsableApiKey(process.env.MORALIS_API_KEY)
     ? process.env.MORALIS_API_KEY
     : undefined;
@@ -343,12 +359,14 @@ async function fetchMoralisPage(
         const quotaExhausted = body.includes('quota')
           || body.includes('included usage has been consumed')
           || body.includes('daily limit');
+        const unauthorized = response.status === 401;
         const code: ProviderErrorCode = quotaExhausted
           ? 'quota_exhausted'
           : response.status === 429
             ? 'rate_limited'
             : 'http_error';
         if (quotaExhausted) quotaBudget.block('Moralis account quota is exhausted.');
+        else if (unauthorized) quotaBudget.block('Moralis authentication failed; fallback is disabled for this scan.');
         if (attempt < options.maxAttempts && !quotaExhausted && (response.status === 429 || response.status >= 500)) {
           const retryAfterSeconds = Number(response.headers.get('retry-after'));
           await sleep(Number.isFinite(retryAfterSeconds)
@@ -361,6 +379,8 @@ async function fetchMoralisPage(
           code,
           message: quotaExhausted
             ? 'Moralis reported that the account quota is exhausted.'
+            : unauthorized
+              ? 'Moralis rejected the fallback credentials with HTTP 401; fallback is disabled for this scan.'
             : `Moralis returned HTTP ${response.status} while loading fallback data.`,
         };
       }

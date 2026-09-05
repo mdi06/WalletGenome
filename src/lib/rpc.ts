@@ -17,7 +17,7 @@ const DEFAULT_RPC_ENDPOINTS: Record<number, readonly string[]> = {
   ],
 };
 
-interface RpcHeadOptions {
+export interface RpcHeadOptions {
   fetcher?: typeof fetch;
   timeoutMs?: number;
   endpoints?: readonly string[];
@@ -43,10 +43,11 @@ function configuredRpcEndpoints(chainId: number): string[] {
 
 async function postRpc(
   endpoint: string,
-  method: 'eth_chainId' | 'eth_blockNumber',
+  method: 'eth_chainId' | 'eth_blockNumber' | 'eth_getCode' | 'eth_call',
   fetcher: typeof fetch,
   timeoutMs: number,
   parentSignal?: AbortSignal,
+  params: unknown[] = [],
 ): Promise<string> {
   throwIfAborted(parentSignal);
   const linked = linkAbortSignal(parentSignal);
@@ -55,7 +56,7 @@ async function postRpc(
     const response = await fetcher(endpoint, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params: [] }),
+      body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }),
       signal: linked.signal,
     });
     if (!response.ok) throw new Error(`RPC returned HTTP ${response.status}`);
@@ -69,6 +70,84 @@ async function postRpc(
     clearTimeout(timeout);
     linked.dispose();
   }
+}
+
+export interface RpcAccountState {
+  code: string;
+  call: (data: string) => Promise<string | null>;
+}
+
+/**
+ * Resolve the account bytecode and expose a small, best-effort eth_call
+ * helper against the same chain-validated RPC endpoint.
+ */
+export async function getRpcAccountState(
+  chainId: number,
+  address: string,
+  options: RpcHeadOptions = {},
+): Promise<RpcAccountState | null> {
+  throwIfAborted(options.signal);
+  if (!/^0x[a-fA-F0-9]{40}$/.test(address)) return null;
+
+  const endpoints = options.endpoints ? [...options.endpoints] : configuredRpcEndpoints(chainId);
+  if (endpoints.length === 0) return null;
+
+  const fetcher = options.fetcher ?? fetch;
+  const timeoutMs = options.timeoutMs ?? 4_000;
+
+  for (const endpoint of endpoints) {
+    try {
+      const hostname = new URL(endpoint).hostname;
+      const limiter = getDomainLimiter(hostname, 4);
+      if (!await limiter.acquire(3_000, options.signal)) continue;
+
+      const returnedChainId = parseHexQuantity(await postRpc(
+        endpoint,
+        'eth_chainId',
+        fetcher,
+        timeoutMs,
+        options.signal,
+      ));
+      if (returnedChainId !== chainId) continue;
+
+      if (!await limiter.acquire(3_000, options.signal)) continue;
+      const code = await postRpc(
+        endpoint,
+        'eth_getCode',
+        fetcher,
+        timeoutMs,
+        options.signal,
+        [address, 'latest'],
+      );
+      if (!/^0x[0-9a-f]*$/i.test(code)) continue;
+
+      return {
+        code,
+        call: async (data: string): Promise<string | null> => {
+          throwIfAborted(options.signal);
+          try {
+            if (!await limiter.acquire(3_000, options.signal)) return null;
+            return await postRpc(
+              endpoint,
+              'eth_call',
+              fetcher,
+              timeoutMs,
+              options.signal,
+              [{ to: address, data }, 'latest'],
+            );
+          } catch {
+            throwIfAborted(options.signal);
+            return null;
+          }
+        },
+      };
+    } catch {
+      throwIfAborted(options.signal);
+      // Try the next official or configured mirror.
+    }
+  }
+
+  return null;
 }
 
 function parseHexQuantity(value: string): number {
@@ -102,6 +181,19 @@ export async function getLatestBlockNumber(
   } finally {
     if (!options.endpoints && !options.signal) inFlightHeads.delete(chainId);
   }
+}
+
+/**
+ * Returns whether an address has deployed bytecode on a selected chain.
+ * A null result means no configured RPC could verify the account type.
+ */
+export async function hasDeployedContractCode(
+  chainId: number,
+  address: string,
+  options: RpcHeadOptions = {},
+): Promise<boolean | null> {
+  const state = await getRpcAccountState(chainId, address, options);
+  return state ? !/^0x0*$/i.test(state.code) : null;
 }
 
 async function resolveLatestBlockNumber(

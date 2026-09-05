@@ -30,7 +30,8 @@ Required or optional server-side variables are catalogued in `.env.example`:
 - `ETHERSCAN_API_KEY`
 - `ETHERSCAN_ENABLE_PAID_CHAINS`
 - `BLOCKSCOUT_API_KEY`
-- `MORALIS_API_KEY`
+- `MORALIS_FALLBACK_ENABLED` (optional; `false` by default)
+- `MORALIS_API_KEY` (optional; only required when the fallback is intentionally enabled)
 - `MORALIS_MAX_FALLBACK_CU_PER_SCAN`
 - `MORALIS_MAX_PAGES_PER_DATASET`
 - `COINGECKO_API_KEY`

@@ -6,9 +6,9 @@ import { ProcessedTokenTransfer, ProcessedTransaction } from '../types';
 const wallet = '0x1234567890123456789012345678901234567890';
 const router = '0x68b3465833fb72a70ecdf485e0e4c7bd8665fc45';
 
-function transaction(chainId: number): ProcessedTransaction {
+function transaction(chainId: number, hash = '0xswap'): ProcessedTransaction {
   return {
-    hash: '0xswap',
+    hash,
     timestamp: 1_700_000_000,
     date: '2023-11-14',
     from: wallet,
@@ -34,9 +34,10 @@ function transfer(
   from: string,
   to: string,
   valueUSD: number | null,
+  hash = '0xswap',
 ): ProcessedTokenTransfer {
   return {
-    hash: '0xswap',
+    hash,
     timestamp: 1_700_000_000,
     date: '2023-11-14',
     from,
@@ -51,6 +52,17 @@ function transfer(
     valueUSDProvenance: valueUSD === null ? 'unpriced' : 'historical',
     direction: from.toLowerCase() === wallet.toLowerCase() ? 'out' : 'in',
     chainId: 1,
+  };
+}
+
+function outboundTransferTransaction(hash: string, to: string): ProcessedTransaction {
+  return {
+    ...transaction(1, hash),
+    to,
+    valueUSD: 100,
+    methodId: '0x',
+    functionName: '',
+    category: 'transfer',
   };
 }
 
@@ -77,5 +89,38 @@ describe('Protocol interaction attribution', () => {
     assert.strictEqual(result.topProtocols[0].chainName, 'Base');
     assert.strictEqual(result.topProtocols[0].nativeTokenSymbol, 'ETH');
     assert.strictEqual(result.topProtocols[0].contracts[0].nativeTokenSymbol, 'ETH');
+  });
+});
+
+describe('Counterparty transaction counts', () => {
+  it('counts one outgoing transaction when native and multiple token legs share a hash', () => {
+    const recipient = '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+    const result = analyzeInteractions([
+      outboundTransferTransaction('0xfirst', recipient),
+    ], [
+      transfer(wallet, recipient, 20, '0xfirst'),
+      transfer(wallet, recipient, 30, '0xfirst'),
+    ], wallet, 1);
+
+    const counterparty = result.topCounterparties[0];
+    assert.ok(counterparty);
+    assert.strictEqual(counterparty.outboundCount, 1);
+    assert.strictEqual(counterparty.totalTxCount, 1);
+    assert.strictEqual(counterparty.outboundUSD, 150);
+  });
+
+  it('counts distinct outgoing transaction hashes separately for the same recipient', () => {
+    const recipient = '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
+    const result = analyzeInteractions([], [
+      transfer(wallet, recipient, 20, '0xfirst'),
+      transfer(wallet, recipient, 30, '0xfirst'),
+      transfer(wallet, recipient, 40, '0xsecond'),
+    ], wallet, 1);
+
+    const counterparty = result.topCounterparties[0];
+    assert.ok(counterparty);
+    assert.strictEqual(counterparty.outboundCount, 2);
+    assert.strictEqual(counterparty.totalTxCount, 2);
+    assert.strictEqual(counterparty.outboundUSD, 90);
   });
 });

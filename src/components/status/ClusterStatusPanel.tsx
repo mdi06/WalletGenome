@@ -4,8 +4,8 @@ import ProviderStatusSummary from './ProviderStatusSummary';
 export function getClusterAvailabilityMessage(status: DataAvailabilityStatus): string | null {
   if (status === 'complete') return null;
   return status === 'partial'
-    ? 'Cluster scan is partial. Aggregates and coordination conclusions are withheld because one or more wallets lack complete provider data.'
-    : 'Cluster scan is unavailable. No wallet returned enough verified provider data for cluster analytics.';
+    ? 'Cluster scan is partial. Aggregates and coordination conclusions are withheld because one or more targets are not eligible wallet accounts or lack complete provider data.'
+    : 'Cluster scan is unavailable. No eligible wallet returned enough verified data for cluster analytics.';
 }
 
 export default function ClusterStatusPanel({ data }: { data: ClusterScanResult }) {
@@ -13,9 +13,10 @@ export default function ClusterStatusPanel({ data }: { data: ClusterScanResult }
   if (!message) return null;
 
   const isUnavailable = data.status === 'unavailable';
+  const attentionCount = data.failedWallets.length;
   const summary = isUnavailable
-    ? 'No wallet returned enough verified provider data.'
-    : `${data.requestedWallets - data.totalWallets} wallet${data.requestedWallets - data.totalWallets === 1 ? '' : 's'} need provider follow-up.`;
+    ? 'No eligible wallet returned enough verified data.'
+    : `${attentionCount} target${attentionCount === 1 ? ' needs' : 's need'} attention.`;
 
   return (
     <ProviderStatusSummary
@@ -25,11 +26,11 @@ export default function ClusterStatusPanel({ data }: { data: ClusterScanResult }
     >
       <p className="text-sm font-bold">{message}</p>
       <p className="text-xs">
-        {data.totalWallets} of {data.requestedWallets} wallets completed with verified provider data.
+        {data.totalWallets} of {data.requestedWallets} targets completed with verified wallet data.
       </p>
       {data.failedWallets.length > 0 && (
         <div className="space-y-3">
-          <h3 className="text-xs font-black uppercase tracking-wider">Incomplete wallets</h3>
+          <h3 className="text-xs font-black uppercase tracking-wider">Targets needing attention</h3>
           {data.failedWallets.map(wallet => (
             <div key={wallet.target} className="border border-[#c8c8c8] p-3 text-xs">
               <div className="font-mono font-black break-all">{wallet.target}</div>

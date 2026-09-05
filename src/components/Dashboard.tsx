@@ -229,7 +229,12 @@ export default function Dashboard({ data, showStatusPanel = true }: DashboardPro
           {/* Mobile: Sybil First, Desktop: Identity First */}
           <div className="flex flex-col">
             <div className="order-2 md:order-1 mt-6 md:mt-0 mb-0 md:mb-5">
-              <IdentityCard identity={identityReport} address={data.address} persona={persona} />
+              <IdentityCard
+                identity={identityReport}
+                address={data.address}
+                persona={persona}
+                accountClassifications={data.accountClassifications}
+              />
             </div>
             <div className="order-1 md:order-2">
               <SybilRadar report={sybilReport} />

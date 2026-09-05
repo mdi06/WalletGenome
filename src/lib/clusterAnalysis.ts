@@ -7,6 +7,12 @@ import {
   SharedCounterparty,
 } from './types';
 
+// Current cluster evidence is intentionally graph-adjacent: it records
+// observed wallet-to-wallet transfers and shared counterparties. It does not
+// infer common control or reproduce a protocol's full Sybil graph model.
+// Future graph signals should add provenance-backed funding roots, temporal
+// similarity, and connected-component scores as separate evidence fields.
+
 function isPositiveTransfer(valueFormatted: number): boolean {
   return Number.isFinite(valueFormatted) && valueFormatted > 0;
 }

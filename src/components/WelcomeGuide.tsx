@@ -161,7 +161,7 @@ export default function WelcomeGuide({ onSelectDemo }: Props) {
               </div>
             </div>
             <p className="text-xs text-[#374151] leading-relaxed text-pretty">
-              Visualize inflows from exchanges, DeFi protocol interactions, and outbound destinations in an interactive particle-flow canvas. Automatically uncovers the #1 most-sent-to recipient wallet.
+              Visualize inflows from exchanges, DeFi protocol interactions, and outbound destinations in an interactive particle-flow canvas. Surfaces repeated recipient addresses once at least two distinct outbound transactions support the pattern, and labels ties.
             </p>
           </div>
 
@@ -218,7 +218,7 @@ export default function WelcomeGuide({ onSelectDemo }: Props) {
             </span>
           </div>
           <p className="text-xs text-gray-300 font-medium">
-            Explore how we compute Shannon entropy, Trusta MEDIA Sybil scores, risk grade heuristics, and multi-chain gas valuations.
+            Explore how we compute Shannon entropy, local MEDIA-style behavioral scores (not live Trusta scores), risk grade heuristics, and multi-chain gas valuations.
           </p>
         </div>
         <Link

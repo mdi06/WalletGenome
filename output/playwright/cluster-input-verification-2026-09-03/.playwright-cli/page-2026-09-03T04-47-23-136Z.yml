@@ -1,0 +1,158 @@
+- generic [ref=e1]:
+  - main [ref=e2]:
+    - generic [ref=e3]:
+      - button "Open WalletGenome guide" [ref=e240] [cursor=pointer]:
+        - generic [ref=e241]: WALLET.GENOME
+      - generic [ref=e7]:
+        - 'status "Indexing status: Saved snapshot" [ref=e242]':
+          - generic [ref=e10]: Saved snapshot
+        - generic [ref=e11]:
+          - button "HOW IT WORKS" [ref=e244] [cursor=pointer]
+          - navigation "Primary navigation" [ref=e12]:
+            - link "Scanner" [ref=e13] [cursor=pointer]:
+              - /url: /
+            - link "Docs / methodology" [ref=e18] [cursor=pointer]:
+              - /url: /docs
+    - region "Wallet Forensics Console" [ref=e29]:
+      - tablist "Forensics Scan Mode" [ref=e30]:
+        - tab "Single wallet" [ref=e31] [cursor=pointer]
+        - tab "Cluster scan New" [selected] [ref=e36] [cursor=pointer]:
+          - generic [ref=e41]: Cluster scan
+          - generic [ref=e42]: New
+      - tabpanel "Cluster scan New" [ref=e249]:
+        - generic [ref=e250]:
+          - generic [ref=e251]:
+            - generic [ref=e252]:
+              - generic [ref=e253]: MULTI-WALLET CLUSTER MATRIX SCANNER
+              - generic [ref=e259]: BATCH MODE
+            - generic [ref=e260]:
+              - button "Fill Sample Addresses (4)" [ref=e261] [cursor=pointer]
+              - button "Load Saved Cluster Example" [ref=e266] [cursor=pointer]
+          - generic [ref=e272]:
+            - generic [ref=e273]: Paste EVM addresses separated by new lines, commas, or spaces
+            - textbox "Paste EVM addresses to scan" [ref=e274]:
+              - /placeholder: "Paste EVM addresses separated by new lines, commas, or spaces:\n0x2e21f5d34208a3d5483f9829f2709e9005bf15f2\n0x163473950fbcfcfc31ac7ad0eec26f5fe549046c"
+          - generic [ref=e275]: 0 addresses
+          - generic [ref=e277]:
+            - group "Select target EVM networks for cluster" [ref=e278]:
+              - generic [ref=e279]: "Networks:"
+              - generic [ref=e280]:
+                - button "Toggle Ethereum network" [pressed] [ref=e281] [cursor=pointer]:
+                  - generic [ref=e283]: ETH
+                - button "Toggle Base network" [pressed] [ref=e284] [cursor=pointer]:
+                  - generic [ref=e286]: BASE
+                - button "Toggle Arbitrum network" [pressed] [ref=e287] [cursor=pointer]:
+                  - generic [ref=e289]: ARB
+                - button "Toggle Optimism network" [ref=e290] [cursor=pointer]:
+                  - generic [ref=e292]: OP
+            - button "SCAN CLUSTER (0)" [disabled] [ref=e293] [cursor=pointer]
+    - generic [ref=e297]:
+      - region "Cluster snapshot status" [ref=e298]:
+        - generic [ref=e299]:
+          - generic [ref=e300]:
+            - paragraph [ref=e301]: Saved cluster example · Non-live
+            - paragraph [ref=e302]: Fixed provider-free example updated Sep 1, 2026. It contains no modeled activity or connection evidence and does not spend provider API quota.
+          - button "Run fresh cluster scan" [ref=e303] [cursor=pointer]
+      - generic [ref=e304]:
+        - generic [ref=e305]:
+          - generic [ref=e306]: WALLETS SCANNED
+          - generic [ref=e307]: 4 Wallets
+          - generic [ref=e308]: Not modeled in example
+        - generic [ref=e309]:
+          - generic [ref=e310]: COMBINED LIFETIME GAS
+          - generic [ref=e311]: N/A
+          - generic [ref=e312]: No live values in example
+        - generic [ref=e313]:
+          - generic [ref=e314]: COMBINED INFLOWS
+          - generic [ref=e315]: N/A
+          - generic [ref=e316]: No live values in example
+        - generic [ref=e317]:
+          - generic [ref=e318]: AVG SYBIL PROBABILITY
+          - generic [ref=e319]: N/A
+          - generic [ref=e320]: No live scoring in example
+        - generic [ref=e321]:
+          - generic [ref=e322]: HIGH-RISK APPROVALS
+          - generic [ref=e323]: N/A
+          - generic [ref=e324]: No live approval data in example
+      - generic [ref=e325]:
+        - generic [ref=e326]:
+          - generic [ref=e332]:
+            - generic [ref=e333]: CLUSTER FORENSIC EXECUTIVE SUMMARY
+            - text: Automated multi-wallet behavioral intelligence & correlation analysis
+          - generic [ref=e334]: SAVED EXAMPLE
+        - paragraph [ref=e336]: This saved cluster example contains no modeled connection evidence. It is a non-live fixture, not evidence that the submitted wallets are independent.
+        - generic [ref=e337]:
+          - generic [ref=e338]:
+            - generic [ref=e339]: INTER-WALLET LINKAGE
+            - generic [ref=e345]: No Modeled Connections
+            - generic [ref=e346]: No connection evidence included in saved example
+          - generic [ref=e347]:
+            - generic [ref=e348]: CENTRAL HUB OVERLAP
+            - generic [ref=e353]: N/A
+            - generic [ref=e354]: No shared hubs modeled
+          - generic [ref=e355]:
+            - generic [ref=e356]: DOMINANT ARCHETYPE
+            - generic [ref=e369]: N/A
+            - generic [ref=e370]: No live behavior data in example
+      - tablist "Cluster dashboard sections; scroll horizontally for more tabs" [ref=e371]:
+        - tab "CLUSTER LEADERBOARD 4" [ref=e372] [cursor=pointer]:
+          - generic [ref=e375]: CLUSTER LEADERBOARD
+          - generic [ref=e376]: "4"
+        - tab "INTER-WALLET FLOW GRAPH ALL WALLETS" [selected] [ref=e377] [cursor=pointer]:
+          - generic [ref=e383]: INTER-WALLET FLOW GRAPH
+          - generic [ref=e384]: ALL WALLETS
+      - tabpanel "INTER-WALLET FLOW GRAPH ALL WALLETS" [ref=e487]:
+        - generic [ref=e488]:
+          - generic [ref=e489]:
+            - generic [ref=e490]: ALL 4 WALLETS MAPPED IN CLUSTER TOPOLOGY
+            - generic [ref=e493]: Direct Transfer (0)
+          - generic [ref=e496]:
+            - generic [ref=e497]:
+              - heading "Cluster flow graph summary" [level=3] [ref=e498]
+              - paragraph [ref=e499]: 4 wallet or hub nodes and 0 evidence-backed connections.
+              - list
+            - status [ref=e500]:
+              - paragraph [ref=e501]: No connection evidence is included in this saved example.
+              - paragraph [ref=e502]: Wallet nodes remain mapped. This is not a rendering error.
+            - generic [ref=e503]:
+              - button "Zoom in on cluster graph" [ref=e504] [cursor=pointer]
+              - button "Zoom out on cluster graph" [ref=e508] [cursor=pointer]
+              - generic [ref=e513]: 88%
+              - button "Reset cluster graph view" [active] [ref=e514] [cursor=pointer]
+            - generic [ref=e518]: Use zoom buttons · Drag to move · Page scrolling stays native
+            - img [aria-hidden] [ref=e525]:
+              - generic [ref=e527]: INTER-WALLET CAPITAL MOVEMENTS & SHARED ECOSYSTEM HUBS
+              - generic [ref=e528]:
+                - generic [ref=e529] [cursor=pointer]:
+                  - generic [ref=e531]: stani.eth
+                  - generic [ref=e532]: SAVED EXAMPLE
+                - generic [ref=e533] [cursor=pointer]:
+                  - generic [ref=e535]: danno.eth
+                  - generic [ref=e536]: SAVED EXAMPLE
+                - generic [ref=e537] [cursor=pointer]:
+                  - generic [ref=e539]: ricburton.eth
+                  - generic [ref=e540]: SAVED EXAMPLE
+                - generic [ref=e541] [cursor=pointer]:
+                  - generic [ref=e543]: nick.eth
+                  - generic [ref=e544]: SAVED EXAMPLE
+          - group [ref=e545]:
+            - generic "Accessible cluster graph data" [ref=e546] [cursor=pointer]
+  - contentinfo [ref=e227]:
+    - generic [ref=e228]:
+      - generic [ref=e229]:
+        - paragraph [ref=e230]: WalletGenome
+        - paragraph [ref=e231]: Read-only, evidence-aware EVM wallet analytics. No wallet connection or signature required.
+      - navigation "Wallet analytics topics" [ref=e232]:
+        - link "Methodology" [ref=e233] [cursor=pointer]:
+          - /url: /docs
+        - link "EVM Wallet Analytics" [ref=e234] [cursor=pointer]:
+          - /url: /evm-wallet-analytics
+        - link "Crypto Wallet Risk Checker" [ref=e235] [cursor=pointer]:
+          - /url: /crypto-wallet-risk-checker
+        - link "Token Approval Checker" [ref=e236] [cursor=pointer]:
+          - /url: /token-approval-checker
+        - link "Sybil Wallet Analysis" [ref=e237] [cursor=pointer]:
+          - /url: /sybil-wallet-analysis
+        - link "Multi-Chain Wallet Forensics" [ref=e238] [cursor=pointer]:
+          - /url: /multi-chain-wallet-forensics
+  - alert [ref=e239]

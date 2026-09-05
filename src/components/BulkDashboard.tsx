@@ -13,6 +13,7 @@ import {
 import ClusterStatusPanel, { getClusterAvailabilityMessage } from './status/ClusterStatusPanel';
 import { getNextTabIndex } from '@/lib/accessibility/tabs';
 import { formatClusterSnapshotDate } from '@/lib/clusterDemoSnapshot';
+import { formatWalletAccountType } from '@/lib/accountClassification';
 
 interface Props {
   data: ClusterScanResult;
@@ -59,7 +60,7 @@ export default function BulkDashboard({ data, onInspectWallet, snapshotGenerated
   };
 
   const handleExportCSV = () => {
-    const headers = ['Address', 'Primary Name', 'Persona', 'Risk Grade', 'Sybil Prob (%)', 'Lifetime Gas (USD)', 'Total Inflow (USD)', 'Transactions', 'High Risk Approvals'];
+    const headers = ['Address', 'Primary Name', 'Persona', 'Risk Grade', 'Behavioral Sybil Risk (%)', 'Lifetime Gas (USD)', 'Total Inflow (USD)', 'Transactions', 'High Risk Approvals'];
     const rows = sortedWallets.map(w => [
       w.address,
       w.primaryName || '',
@@ -160,13 +161,16 @@ export default function BulkDashboard({ data, onInspectWallet, snapshotGenerated
         {/* Cluster Sybil Exposure */}
         <div className="well-recessed-light p-4 text-[#0a0a0a] space-y-1">
           <div className="text-[10px] font-extrabold text-[#4b5563] uppercase tracking-wider">
-            AVG SYBIL PROBABILITY
+            AVG BEHAVIORAL SYBIL RISK
           </div>
           <div className={`text-2xl font-black font-mono ${data.source === 'saved' ? 'text-[#4b5563]' : data.flaggedCount > 0 ? 'text-[#dc2626]' : 'text-[#059669]'}`}>
             {data.source === 'saved' ? 'N/A' : `${typeof data.avgSybilProbability === 'number' ? data.avgSybilProbability.toFixed(2) : Number(data.avgSybilProbability || 0).toFixed(2)}%`}
           </div>
           <div className="text-[11px] font-bold text-[#4b5563] font-mono">
             {data.source === 'saved' ? 'No live scoring in example' : data.flaggedCount > 0 ? `${data.flaggedCount} Flagged Wallets` : 'All Wallets Clean'}
+          </div>
+          <div className="text-[10px] font-medium text-[#6b7280]">
+            Local heuristic · not a live Trusta score
           </div>
         </div>
 
@@ -446,7 +450,7 @@ export default function BulkDashboard({ data, onInspectWallet, snapshotGenerated
                     </th>
                     <th aria-sort={getSortDirection('sybil')} className="py-3 px-4">
                       <button type="button" onClick={() => handleSort('sybil')} className="min-h-11 md:min-h-9 font-extrabold hover:text-black">
-                        SYBIL PROB. {sortField === 'sybil' && (sortAsc ? '▲' : '▼')}
+                        BEHAVIORAL RISK {sortField === 'sybil' && (sortAsc ? '▲' : '▼')}
                       </button>
                     </th>
                     <th aria-sort={getSortDirection('gas')} className="py-3 px-4 text-right">
@@ -484,6 +488,19 @@ export default function BulkDashboard({ data, onInspectWallet, snapshotGenerated
                           )}
                         </div>
                         <div className="text-[10px] text-[#4b5563]">{w.address}</div>
+                        {w.accountClassifications && w.accountClassifications.length > 0 && (
+                          <div className="mt-1 flex flex-wrap gap-1">
+                            {w.accountClassifications.map(classification => (
+                              <span
+                                key={`${classification.chainId}-${classification.address}`}
+                                className="badge-3d border border-[#c8c8c8] bg-white px-1.5 py-0.5 text-[9px] font-bold text-[#374151]"
+                                title={classification.evidence}
+                              >
+                                {classification.chainName}: {formatWalletAccountType(classification.type)}
+                              </span>
+                            ))}
+                          </div>
+                        )}
                       </td>
 
                       {/* Persona */}
@@ -511,7 +528,7 @@ export default function BulkDashboard({ data, onInspectWallet, snapshotGenerated
                         {data.source !== 'saved' && <span className="text-[10px] text-[#4b5563] font-normal ml-1">({w.riskScore})</span>}
                       </td>
 
-                      {/* Sybil Probability */}
+                      {/* Behavioral Sybil Risk */}
                       <td className="py-3.5 px-4 font-mono">
                         <span
                           className={`font-bold ${
