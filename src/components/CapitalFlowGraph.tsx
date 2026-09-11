@@ -372,7 +372,7 @@ export default function CapitalFlowGraph({ results, metrics }: Props) {
         if (cAddr === userAddress || isBurnAddress(cAddr) || isPureTokenContract(cAddr)) continue;
 
         // Inflows
-        if (c.inboundUSD >= minVolume || (c.inboundCount > 0 && minVolume === 0)) {
+        if (c.inboundCount > 0 && (c.inboundUSD >= minVolume || minVolume === 0)) {
           const inId = `in-${cAddr}`;
           const label = c.label || truncAddr(c.address);
 
@@ -405,7 +405,7 @@ export default function CapitalFlowGraph({ results, metrics }: Props) {
         }
 
         // Outflows
-        if (c.outboundUSD >= minVolume || (c.outboundCount > 0 && minVolume === 0)) {
+        if (c.outboundCount > 0 && (c.outboundUSD >= minVolume || minVolume === 0)) {
           const outId = `out-${cAddr}`;
           const label = c.label || truncAddr(c.address);
           const isTop = highlightedRecipientKeys.has(`${c.chainId}:${cAddr}`);

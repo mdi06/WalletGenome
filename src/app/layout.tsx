@@ -7,6 +7,7 @@ import { absoluteUrl, getSiteUrl, SITE_DESCRIPTION, SITE_NAME } from "@/lib/seo"
 import { WebVitals } from "@/components/WebVitals";
 import BackgroundNodes from "@/components/BackgroundNodes";
 import CursorGlow from "@/components/CursorGlow";
+import { AuthProvider } from "@/components/auth/AuthProvider";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -87,12 +88,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${mainFont.variable} ${monoFont.variable}`}>
       <body className="bg-[#ebebeb] text-[#0a0a0a] antialiased font-sans selection:bg-[#ff5500] selection:text-[#0a0a0a]">
-        <WebVitals />
-        <JsonLd data={applicationJsonLd} />
-        <BackgroundNodes />
-        <CursorGlow />
-        {children}
-        <SiteFooter />
+        <AuthProvider>
+          <div data-app-shell>
+            <WebVitals />
+            <JsonLd data={applicationJsonLd} />
+            <BackgroundNodes />
+            <CursorGlow />
+            {children}
+            <SiteFooter />
+          </div>
+        </AuthProvider>
       </body>
     </html>
   );

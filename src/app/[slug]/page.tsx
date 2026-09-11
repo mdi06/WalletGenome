@@ -88,7 +88,7 @@ export default async function SeoLandingPage({ params }: LandingPageProps) {
     <main className="max-w-[1120px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
       <JsonLd data={pageJsonLd} />
 
-      <SiteHeader activePage="" indexingStatus="ready" showIndexingStatus={false} />
+      <SiteHeader activePage="" />
 
       <article className="space-y-8">
         <section className="well-recessed-light p-6 sm:p-10 space-y-5">

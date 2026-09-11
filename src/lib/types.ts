@@ -47,6 +47,10 @@ export type ProviderErrorCode =
   | 'invalid_response'
   | 'provider_error'
   | 'missing_api_key'
+  | 'authentication_failure'
+  | 'unsupported_token'
+  | 'unavailable_historical_date'
+  | 'pricing_budget_exhausted'
   | 'unsupported_chain'
   | 'unsupported_target'
   | 'result_truncated'
@@ -58,6 +62,11 @@ export interface DataAvailabilityError {
   source: DataSourceName;
   code: ProviderErrorCode;
   message: string;
+  provider?: string;
+  asset?: string;
+  dates?: string[];
+  chainId?: number;
+  count?: number;
 }
 
 export interface DataSourceResult<T> {
@@ -85,6 +94,11 @@ export type PriceProvenance =
 export interface PriceQuote {
   priceUSD: number | null;
   provenance: PriceProvenance;
+  source?: string;
+  timestamp?: number;
+  fetchedAt?: number;
+  asset?: string;
+  quoteCurrency?: string;
 }
 
 export interface PriceProvenanceSummary {
@@ -251,6 +265,7 @@ export interface ProcessedTokenTransfer {
 export interface GasSummary {
   totalGasETH: number;
   totalGasUSD: number;
+  priceProvenance?: PriceProvenanceSummary;
   transactionCount: number;
   failedTransactionCount: number;
   failedGasETH: number;
@@ -635,9 +650,11 @@ export interface BulkWrappedWallet {
   isFlagged: boolean;
   flaggedDatabases: string[];
   totalGasETH: number;
-  totalGasUSD: number;
-  totalInflowUSD: number;
-  totalOutflowUSD: number;
+  totalGasUSD: number | null;
+  gasPriceProvenance?: PriceProvenanceSummary;
+  totalInflowUSD: number | null;
+  totalOutflowUSD: number | null;
+  priceProvenance?: PriceProvenanceSummary;
   transactionCount: number;
   highRiskApprovalsCount: number;
   unlimitedApprovalsCount: number;
@@ -689,8 +706,10 @@ export interface ClusterScanResult {
   totalWallets: number;
   requestedWallets: number;
   totalTransactions: number;
-  totalGasUSD: number;
-  totalInflowUSD: number;
+  totalGasUSD: number | null;
+  gasPriceProvenance?: PriceProvenanceSummary;
+  totalInflowUSD: number | null;
+  priceProvenance?: PriceProvenanceSummary;
   avgSybilProbability: number;
   flaggedCount: number;
   totalHighRiskApprovals: number;

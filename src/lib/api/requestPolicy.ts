@@ -26,16 +26,20 @@ export {
 
 const SINGLE_BODY_LIMIT_BYTES = 8_192;
 const BATCH_BODY_LIMIT_BYTES = 32_768;
+const TELEMETRY_BODY_LIMIT_BYTES = 2_048;
+const BODY_READ_TIMEOUT_MS = 5_000;
 const RATE_WINDOW_MS = 60_000;
-const RATE_LIMITS = { scan: 12, batch: 4 } as const;
-const CONCURRENCY_LIMITS = { scan: 4, batch: 1 } as const;
+const RATE_LIMITS = { scan: 12, batch: 4, telemetry: 60 } as const;
+const CONCURRENCY_LIMITS = { scan: 4, batch: 1, telemetry: 8 } as const;
+const MAX_REQUEST_LOG_ENTRIES = 2_048;
+const MAX_REQUEST_IDENTITY_LENGTH = 128;
 const EVM_ADDRESS = /^0x[a-fA-F0-9]{40}$/;
 const ENS_NAME = /^(?=.{1,255}$)[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,62}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,62}[a-zA-Z0-9])?)+$/;
 const supportedChains = new Set<number>(SUPPORTED_CHAIN_IDS);
 const REFRESH_COOLDOWN_SECONDS = 300;
 const SHARED_QUOTA_WINDOW_SECONDS = 86_400;
 
-type RouteKind = keyof typeof RATE_LIMITS;
+export type RouteKind = keyof typeof RATE_LIMITS;
 
 export class RequestPolicyError extends Error {
   constructor(
@@ -62,7 +66,7 @@ export interface ValidatedBatchRequest {
 export type SharedQuotaKind = 'scan' | 'batch';
 
 const requestLog = new Map<string, number[]>();
-const activeRequests: Record<RouteKind, number> = { scan: 0, batch: 0 };
+const activeRequests: Record<RouteKind, number> = { scan: 0, batch: 0, telemetry: 0 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value);
@@ -103,16 +107,94 @@ function validateChainIds(value: unknown): number[] {
   return chainIds;
 }
 
+async function readRequestBody(request: Request, maxBytes: number): Promise<string> {
+  const body = request.body;
+  if (!body) return '';
+
+  const reader = body.getReader();
+  const decoder = new TextDecoder();
+  const chunks: string[] = [];
+  let bytesRead = 0;
+  const deadline = Date.now() + BODY_READ_TIMEOUT_MS;
+
+  try {
+    while (true) {
+      throwIfAborted(request.signal);
+      const remainingMs = deadline - Date.now();
+      if (remainingMs <= 0) {
+        throw new RequestPolicyError('Request body read timed out.', 408, 'body_read_timeout');
+      }
+
+      const result = await new Promise<ReadableStreamReadResult<Uint8Array>>((resolve, reject) => {
+        let settled = false;
+        const timeoutId = setTimeout(() => {
+          if (settled) return;
+          settled = true;
+          request.signal.removeEventListener('abort', onAbort);
+          reject(new RequestPolicyError('Request body read timed out.', 408, 'body_read_timeout'));
+        }, remainingMs);
+        const onAbort = () => {
+          if (settled) return;
+          settled = true;
+          clearTimeout(timeoutId);
+          reject(cancellationErrorForSignal(request.signal) ?? new RequestCancellationError('disconnect'));
+        };
+        request.signal.addEventListener('abort', onAbort, { once: true });
+
+        void reader.read().then(
+          value => {
+            if (settled) return;
+            settled = true;
+            clearTimeout(timeoutId);
+            request.signal.removeEventListener('abort', onAbort);
+            resolve(value);
+          },
+          error => {
+            if (settled) return;
+            settled = true;
+            clearTimeout(timeoutId);
+            request.signal.removeEventListener('abort', onAbort);
+            reject(error);
+          },
+        );
+      });
+
+      if (result.done) {
+        chunks.push(decoder.decode());
+        return chunks.join('');
+      }
+
+      bytesRead += result.value.byteLength;
+      if (bytesRead > maxBytes) {
+        throw new RequestPolicyError('Request body is too large.', 413, 'body_too_large');
+      }
+      chunks.push(decoder.decode(result.value, { stream: true }));
+    }
+  } catch (error) {
+    void reader.cancel().catch(() => undefined);
+    throw error;
+  } finally {
+    reader.releaseLock();
+  }
+}
+
 export async function parseJsonBody(request: Request, kind: RouteKind): Promise<unknown> {
-  const maxBytes = kind === 'scan' ? SINGLE_BODY_LIMIT_BYTES : BATCH_BODY_LIMIT_BYTES;
-  const contentLength = Number(request.headers.get('content-length') || '0');
-  if (Number.isFinite(contentLength) && contentLength > maxBytes) {
+  const maxBytes = kind === 'scan'
+    ? SINGLE_BODY_LIMIT_BYTES
+    : kind === 'batch'
+      ? BATCH_BODY_LIMIT_BYTES
+      : TELEMETRY_BODY_LIMIT_BYTES;
+  const declaredLength = request.headers.get('content-length');
+  const contentLength = declaredLength === null || declaredLength.trim() === ''
+    ? null
+    : Number(declaredLength);
+  if (contentLength !== null && (!Number.isSafeInteger(contentLength) || contentLength < 0)) {
+    throw new RequestPolicyError('Content-Length must be a valid non-negative integer.', 400, 'invalid_content_length');
+  }
+  if (contentLength !== null && contentLength > maxBytes) {
     throw new RequestPolicyError('Request body is too large.', 413, 'body_too_large');
   }
-  const text = await request.text();
-  if (new TextEncoder().encode(text).byteLength > maxBytes) {
-    throw new RequestPolicyError('Request body is too large.', 413, 'body_too_large');
-  }
+  const text = await readRequestBody(request, maxBytes);
   try {
     return JSON.parse(text);
   } catch {
@@ -146,30 +228,66 @@ export function validateBatchRequest(body: unknown): ValidatedBatchRequest {
       'too_many_wallets',
     );
   }
-  const addresses = body.addresses.map((target, index) => validateTarget(target, `addresses[${index}]`));
+  const chainIds = validateChainIds(body.chainIds);
+  const addresses = body.addresses.map((target, index) => {
+    if (typeof target !== 'string' || !EVM_ADDRESS.test(target.trim())) {
+      throw new RequestPolicyError(
+        `addresses[${index}] must be a complete EVM address. ENS names are not supported in batch scans.`,
+        400,
+        'invalid_target',
+      );
+    }
+    return target.trim().toLowerCase();
+  });
   if (new Set(addresses).size !== addresses.length) {
     throw new RequestPolicyError('addresses must not contain duplicates.', 400, 'duplicate_wallet');
   }
-  return { addresses, chainIds: validateChainIds(body.chainIds) };
+  return { addresses, chainIds };
 }
 
 function requestIdentity(request: Request): string {
-  return request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
-    || request.headers.get('x-real-ip')?.trim()
-    || 'local';
+  const forwarded = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim();
+  const realIp = request.headers.get('x-real-ip')?.trim();
+  const identity = forwarded || realIp || 'local';
+  if (
+    identity.length > MAX_REQUEST_IDENTITY_LENGTH
+    || !/^[A-Za-z0-9:._-]+$/.test(identity)
+  ) {
+    throw new RequestPolicyError('Caller identity header is invalid.', 400, 'invalid_caller_identity');
+  }
+  return identity;
+}
+
+function storeRequestLog(key: string, timestamps: number[]): void {
+  requestLog.delete(key);
+  requestLog.set(key, timestamps);
+  while (requestLog.size > MAX_REQUEST_LOG_ENTRIES) {
+    const oldestKey = requestLog.keys().next().value;
+    if (typeof oldestKey !== 'string') break;
+    requestLog.delete(oldestKey);
+  }
+}
+
+function pruneRequestLog(now: number): void {
+  for (const [key, timestamps] of requestLog) {
+    const recent = timestamps.filter(timestamp => now - timestamp < RATE_WINDOW_MS);
+    if (recent.length === 0) requestLog.delete(key);
+    else requestLog.set(key, recent);
+  }
 }
 
 export function enforceRequestRateLimit(request: Request, kind: RouteKind): { retryAfterSeconds: number } {
   const now = Date.now();
+  pruneRequestLog(now);
   const key = `${kind}:${requestIdentity(request)}`;
   const recent = (requestLog.get(key) || []).filter(timestamp => now - timestamp < RATE_WINDOW_MS);
   if (recent.length >= RATE_LIMITS[kind]) {
     const retryAfterSeconds = Math.max(1, Math.ceil((RATE_WINDOW_MS - (now - recent[0])) / 1000));
-    requestLog.set(key, recent);
+    storeRequestLog(key, recent);
     throw new RequestPolicyError(`Rate limit exceeded. Retry in ${retryAfterSeconds} seconds.`, 429, 'rate_limited');
   }
   recent.push(now);
-  requestLog.set(key, recent);
+  storeRequestLog(key, recent);
   return { retryAfterSeconds: 0 };
 }
 

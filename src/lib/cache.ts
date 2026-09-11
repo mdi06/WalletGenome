@@ -10,46 +10,101 @@ import { abortableDelay, cancellationErrorForSignal, linkAbortSignal, throwIfAbo
 interface CacheEntry<T> {
   value: T;
   expiresAt: number;
+  sizeBytes: number;
+}
+
+export interface MemoryCacheOptions {
+  maxBytes?: number;
+  maxItemBytes?: number;
+}
+
+export interface MemoryCacheStats {
+  items: number;
+  bytes: number;
+  maxItems: number;
+  maxBytes: number;
+  maxItemBytes: number;
+  hits: number;
+  misses: number;
+  evictions: number;
+  hitRate: number;
+}
+
+const DEFAULT_MAX_BYTES = 16 * 1024 * 1024;
+const DEFAULT_MAX_ITEM_BYTES = 4 * 1024 * 1024;
+
+function estimateValueBytes(value: unknown): number {
+  try {
+    const serialized = JSON.stringify(value);
+    return typeof serialized === 'string'
+      ? new TextEncoder().encode(serialized).byteLength
+      : 0;
+  } catch {
+    return Number.MAX_SAFE_INTEGER;
+  }
 }
 
 export class MemoryCache<T = unknown> {
   private store = new Map<string, CacheEntry<T>>();
   private maxItems: number;
   private defaultTtlMs: number;
+  private maxBytes: number;
+  private maxItemBytes: number;
+  private totalBytes = 0;
+  private hits = 0;
+  private misses = 0;
+  private evictions = 0;
 
-  constructor(maxItems = 1000, defaultTtlSeconds = 300) {
-    this.maxItems = maxItems;
+  constructor(maxItems = 1000, defaultTtlSeconds = 300, options: MemoryCacheOptions = {}) {
+    this.maxItems = Math.max(1, maxItems);
     this.defaultTtlMs = defaultTtlSeconds * 1000;
+    this.maxBytes = Math.max(1, options.maxBytes ?? DEFAULT_MAX_BYTES);
+    this.maxItemBytes = Math.max(1, Math.min(options.maxItemBytes ?? DEFAULT_MAX_ITEM_BYTES, this.maxBytes));
   }
 
   get(key: string): T | null {
     const entry = this.store.get(key);
-    if (!entry) return null;
+    if (!entry) {
+      this.misses++;
+      return null;
+    }
 
     if (Date.now() > entry.expiresAt) {
-      this.store.delete(key);
+      this.delete(key);
+      this.misses++;
       return null;
     }
 
     // Refresh LRU position (delete & re-set)
     this.store.delete(key);
     this.store.set(key, entry);
+    this.hits++;
     return entry.value;
   }
 
   set(key: string, value: T, ttlSeconds?: number): void {
     const ttlMs = ttlSeconds !== undefined ? ttlSeconds * 1000 : this.defaultTtlMs;
-    
-    // Evict oldest if capacity reached
-    if (this.store.size >= this.maxItems && !this.store.has(key)) {
+    const sizeBytes = estimateValueBytes(value);
+    if (sizeBytes > this.maxItemBytes) return;
+
+    if (this.store.has(key)) this.delete(key);
+
+    while (
+      this.store.size >= this.maxItems
+      || this.totalBytes + sizeBytes > this.maxBytes
+    ) {
       const oldestKey = this.store.keys().next().value;
-      if (oldestKey) this.store.delete(oldestKey);
+      if (typeof oldestKey !== 'string') break;
+      this.delete(oldestKey);
+      this.evictions++;
     }
 
     this.store.set(key, {
       value,
       expiresAt: Date.now() + ttlMs,
+      sizeBytes,
     });
+    this.totalBytes += sizeBytes;
   }
 
   has(key: string): boolean {
@@ -57,11 +112,30 @@ export class MemoryCache<T = unknown> {
   }
 
   delete(key: string): boolean {
+    const entry = this.store.get(key);
+    if (!entry) return false;
+    this.totalBytes = Math.max(0, this.totalBytes - entry.sizeBytes);
     return this.store.delete(key);
   }
 
   clear(): void {
     this.store.clear();
+    this.totalBytes = 0;
+  }
+
+  getStats(): MemoryCacheStats {
+    const lookups = this.hits + this.misses;
+    return {
+      items: this.store.size,
+      bytes: this.totalBytes,
+      maxItems: this.maxItems,
+      maxBytes: this.maxBytes,
+      maxItemBytes: this.maxItemBytes,
+      hits: this.hits,
+      misses: this.misses,
+      evictions: this.evictions,
+      hitRate: lookups > 0 ? this.hits / lookups : 0,
+    };
   }
 
   get size(): number {
@@ -91,6 +165,14 @@ interface RedisCommandResult {
   result: unknown | null;
 }
 
+export interface RedisMetrics {
+  requests: number;
+  failures: number;
+  totalLatencyMs: number;
+}
+
+const redisMetrics: RedisMetrics = { requests: 0, failures: 0, totalLatencyMs: 0 };
+
 function sharedRedisConfig(): { url: string; token: string } | null {
   const url = process.env.UPSTASH_REDIS_REST_URL?.trim();
   const token = process.env.UPSTASH_REDIS_REST_TOKEN?.trim();
@@ -116,6 +198,9 @@ async function redisCommand(command: readonly string[], parentSignal?: AbortSign
   const linked = linkAbortSignal(parentSignal);
   const controller = linked.controller;
   const timeoutId = setTimeout(() => controller.abort(), 2_500);
+  const startedAt = Date.now();
+  redisMetrics.requests++;
+  let failed = false;
   try {
     const response = await fetch(config.url, {
       method: 'POST',
@@ -127,17 +212,26 @@ async function redisCommand(command: readonly string[], parentSignal?: AbortSign
       body: JSON.stringify(command),
       signal: controller.signal,
     });
-    if (!response.ok) return { ok: false, result: null };
+    if (!response.ok) {
+      failed = true;
+      return { ok: false, result: null };
+    }
     const payload = await response.json() as unknown;
     throwIfAborted(parentSignal);
-    if (!isRecord(payload) || !('result' in payload)) return { ok: false, result: null };
+    if (!isRecord(payload) || !('result' in payload)) {
+      failed = true;
+      return { ok: false, result: null };
+    }
     return { ok: true, result: payload.result ?? null };
   } catch {
+    failed = true;
     const cancellation = cancellationErrorForSignal(parentSignal);
     if (cancellation) throw cancellation;
     return { ok: false, result: null };
   } finally {
     clearTimeout(timeoutId);
+    redisMetrics.totalLatencyMs += Math.max(0, Date.now() - startedAt);
+    if (failed) redisMetrics.failures++;
     linked.dispose();
   }
 }
@@ -152,7 +246,10 @@ export function isSharedCacheConfigured(): boolean {
  * optimization, so development and correctness do not depend on Redis.
  */
 export class SharedCache {
-  private readonly localCache = new MemoryCache<CacheEnvelope<unknown>>(2_000, 3_600);
+  private readonly localCache = new MemoryCache<CacheEnvelope<unknown>>(2_000, 3_600, {
+    maxBytes: 16 * 1024 * 1024,
+    maxItemBytes: 4 * 1024 * 1024,
+  });
 
   async get<T>(key: string, ttlSeconds: number, signal?: AbortSignal): Promise<SharedCacheHit<T> | null> {
     throwIfAborted(signal);
@@ -210,6 +307,10 @@ export class SharedCache {
 
   clearLocal(): void {
     this.localCache.clear();
+  }
+
+  getLocalStats(): MemoryCacheStats {
+    return this.localCache.getStats();
   }
 }
 
@@ -355,11 +456,13 @@ export class DomainRateLimiter {
 export const scanResultCache = new MemoryCache<WalletScanResponse>(
   500,
   PERSISTENCE_POLICY.caches.scanTtlSeconds,
+  { maxBytes: 32 * 1024 * 1024, maxItemBytes: 4 * 1024 * 1024 },
 );
 export const sharedCache = new SharedCache();
 export const identityCache = new MemoryCache<WalletIdentityReport>(
   500,
   PERSISTENCE_POLICY.caches.identityTtlSeconds,
+  { maxBytes: 8 * 1024 * 1024, maxItemBytes: 512 * 1024 },
 );
 export const domainRateLimiters = new Map<string, DomainRateLimiter>();
 
@@ -370,4 +473,25 @@ export function getDomainLimiter(domainOrHost: string, maxReqPerSec = 4): Domain
     domainRateLimiters.set(domainOrHost, limiter);
   }
   return limiter;
+}
+
+export interface CacheMetrics {
+  scanResultCache: MemoryCacheStats;
+  identityCache: MemoryCacheStats;
+  sharedLocalCache: MemoryCacheStats;
+  redis: RedisMetrics & { averageLatencyMs: number };
+}
+
+export function getCacheMetrics(): CacheMetrics {
+  return {
+    scanResultCache: scanResultCache.getStats(),
+    identityCache: identityCache.getStats(),
+    sharedLocalCache: sharedCache.getLocalStats(),
+    redis: {
+      ...redisMetrics,
+      averageLatencyMs: redisMetrics.requests > 0
+        ? redisMetrics.totalLatencyMs / redisMetrics.requests
+        : 0,
+    },
+  };
 }

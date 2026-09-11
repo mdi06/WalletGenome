@@ -1,9 +1,43 @@
-import { ProcessedTransaction, GasSummary, MonthlyGas, CategoryGas, TransactionCategory } from '../types';
+import {
+  ProcessedTransaction,
+  GasSummary,
+  MonthlyGas,
+  CategoryGas,
+  TransactionCategory,
+  PriceProvenanceSummary,
+} from '../types';
+
+function summarizeGasPrices(transactions: ProcessedTransaction[]): PriceProvenanceSummary {
+  const summary: PriceProvenanceSummary = {
+    historical: 0,
+    spotEstimate: 0,
+    stablecoinAssumption: 0,
+    unpriced: 0,
+    status: 'complete',
+  };
+  const pricedTransactions = transactions.filter(transaction => transaction.gasCostETH > 0);
+
+  for (const transaction of pricedTransactions) {
+    const provenance = transaction.gasCostUSDProvenance;
+    if (provenance === 'historical') summary.historical++;
+    if (provenance === 'spot_estimate') summary.spotEstimate++;
+    if (provenance === 'stablecoin_assumption') summary.stablecoinAssumption++;
+    if (provenance === 'unpriced') summary.unpriced++;
+  }
+
+  if (pricedTransactions.length > 0 && summary.unpriced === pricedTransactions.length) {
+    summary.status = 'unavailable';
+  } else if (summary.spotEstimate > 0 || summary.unpriced > 0) {
+    summary.status = 'partial';
+  }
+  return summary;
+}
 
 export function analyzeGasFees(transactions: ProcessedTransaction[]): GasSummary {
   if (transactions.length === 0) {
     return {
       totalGasETH: 0, totalGasUSD: 0, transactionCount: 0,
+      priceProvenance: summarizeGasPrices([]),
       failedTransactionCount: 0, failedGasETH: 0, failedGasUSD: 0,
       monthlyBreakdown: [], categoryBreakdown: [], worstDay: null, averageGasPerTx: 0,
     };
@@ -79,6 +113,7 @@ export function analyzeGasFees(transactions: ProcessedTransaction[]): GasSummary
   return {
     totalGasETH,
     totalGasUSD,
+    priceProvenance: summarizeGasPrices(transactions),
     transactionCount: transactions.length,
     failedTransactionCount: failedCount,
     failedGasETH,

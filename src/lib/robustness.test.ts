@@ -51,9 +51,11 @@ describe('System Robustness & Precision Tests', () => {
     const usdtPrice = getCachedPriceQuote('tether', Math.floor(Date.now() / 1000));
     const usdcPrice = getCachedPriceQuote('usd-coin', Math.floor(Date.now() / 1000));
     const daiPrice = getCachedPriceQuote('dai', Math.floor(Date.now() / 1000));
-    assert.deepStrictEqual(usdtPrice, { priceUSD: 1, provenance: 'stablecoin_assumption' });
-    assert.deepStrictEqual(usdcPrice, { priceUSD: 1, provenance: 'stablecoin_assumption' });
-    assert.deepStrictEqual(daiPrice, { priceUSD: 1, provenance: 'stablecoin_assumption' });
+    for (const quote of [usdtPrice, usdcPrice, daiPrice]) {
+      assert.strictEqual(quote.priceUSD, 1);
+      assert.strictEqual(quote.provenance, 'stablecoin_assumption');
+      assert.strictEqual(quote.source, 'stablecoin_assumption');
+    }
   });
 
   test('should process normal and internal transactions with safe unit math', () => {

@@ -50,14 +50,14 @@ describe('P3 accessibility contracts', () => {
     assert.match(pageSource, /activeDemoSnapshot: Boolean\(activeDemoSnapshot\)/);
   });
 
-  it('renders a state-aware top-level indexing status', () => {
+  it('keeps scan evidence state logic out of the shared navigation chrome', () => {
     const pageSource = readSource('../app/page.tsx');
     const headerSource = readSource('./SiteHeader.tsx');
     const statusSource = readSource('../lib/indexingStatus.ts');
     assert.doesNotMatch(pageSource, /Live indexing/);
-    assert.match(pageSource, /indexingStatus=\{indexingStatus\}/);
-    assert.match(headerSource, /Indexing status:/);
-    assert.match(headerSource, /Live scan/);
+    assert.match(pageSource, /evidenceMode=\{indexingStatus\}/);
+    assert.doesNotMatch(headerSource, /Indexing status:/);
+    assert.doesNotMatch(headerSource, /STATUS_PRESENTATION/);
     assert.match(statusSource, /'ready' \| 'scanning' \| 'completed' \| 'saved' \| 'partial' \| 'unavailable'/);
     assert.match(statusSource, /scanMode === 'single' && activeDemoSnapshot/);
   });
@@ -68,7 +68,7 @@ describe('P3 accessibility contracts', () => {
     const headerSource = readSource('./SiteHeader.tsx');
 
     assert.match(pageSource, /<SiteHeader[\s\S]*activePage="scanner"/);
-    assert.match(docsSource, /<SiteHeader activePage="docs" indexingStatus="ready" showIndexingStatus=\{false\}/);
+    assert.match(docsSource, /<SiteHeader activePage="docs" \/>/);
     assert.match(docsSource, /Live scanner available/);
     assert.match(headerSource, /aria-label="Primary navigation"/);
     assert.match(headerSource, /aria-current=\{activePage === 'scanner'/);

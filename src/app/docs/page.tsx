@@ -275,7 +275,7 @@ export default function DocsPage() {
 
   return (
     <main className="max-w-[1400px] mx-auto p-4 sm:p-6 lg:p-8 pb-32 lg:pb-6 space-y-4 sm:space-y-8">
-      <SiteHeader activePage="docs" indexingStatus="ready" showIndexingStatus={false} />
+      <SiteHeader activePage="docs" />
       <div aria-live="polite" className="sr-only" role="status">{copyStatus}</div>
 
       {/* ── Hero Header ── */}

@@ -110,6 +110,69 @@ describe('Cluster dashboard provider availability messaging', () => {
     assert.doesNotMatch(markup, /operate autonomously/i);
   });
 
+  it('labels partial cluster USD totals as verified subtotals', () => {
+    const data: ClusterScanResult = {
+      status: 'complete',
+      totalWallets: 1,
+      requestedWallets: 1,
+      totalTransactions: 1,
+      totalGasUSD: 0,
+      totalInflowUSD: null,
+      priceProvenance: {
+        historical: 0,
+        spotEstimate: 0,
+        stablecoinAssumption: 0,
+        unpriced: 1,
+        status: 'unavailable',
+      },
+      avgSybilProbability: 0,
+      flaggedCount: 0,
+      totalHighRiskApprovals: 0,
+      wallets: [],
+      failedWallets: [],
+      linkages: [],
+      sharedCounterparties: [],
+      scannedAt: Date.now(),
+    };
+
+    const markup = renderToStaticMarkup(createElement(BulkDashboard, { data, onInspectWallet: () => {} }));
+    assert.match(markup, /Price coverage · unavailable/i);
+    assert.match(markup, /USD inflows are unavailable/i);
+    assert.match(markup, /COMBINED INFLOWS/);
+    assert.match(markup, /Unavailable/);
+  });
+
+  it('does not show missing gas prices as zero dollars', () => {
+    const data: ClusterScanResult = {
+      status: 'complete',
+      totalWallets: 1,
+      requestedWallets: 1,
+      totalTransactions: 1,
+      totalGasUSD: null,
+      gasPriceProvenance: {
+        historical: 0,
+        spotEstimate: 0,
+        stablecoinAssumption: 0,
+        unpriced: 1,
+        status: 'unavailable',
+      },
+      totalInflowUSD: 0,
+      avgSybilProbability: 0,
+      flaggedCount: 0,
+      totalHighRiskApprovals: 0,
+      wallets: [],
+      failedWallets: [],
+      linkages: [],
+      sharedCounterparties: [],
+      scannedAt: Date.now(),
+    };
+
+    const markup = renderToStaticMarkup(createElement(BulkDashboard, { data, onInspectWallet: () => {} }));
+    assert.match(markup, /COMBINED LIFETIME GAS/);
+    assert.match(markup, /Gas prices unavailable/);
+    assert.match(markup, /COMBINED LIFETIME GAS[\s\S]{0,250}>Unavailable</);
+  });
+
   it('labels saved-cluster shared-counterparty gaps as excluded evidence', () => {
     const data: ClusterScanResult = {
       source: 'saved',

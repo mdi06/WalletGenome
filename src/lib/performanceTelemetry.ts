@@ -47,6 +47,24 @@ function isValidMetricValue(metricName: PerformanceMetricName, value: unknown): 
   return metricName === 'CLS' ? value <= 100 : value <= 600_000;
 }
 
+export function calculatePerformanceRating(
+  metricName: PerformanceMetricName,
+  value: number,
+): PerformanceRating {
+  const thresholds: Record<PerformanceMetricName, readonly [number, number]> = {
+    CLS: [0.1, 0.25],
+    FCP: [1_800, 3_000],
+    FID: [100, 300],
+    INP: [200, 500],
+    LCP: [2_500, 4_000],
+    TTFB: [800, 1_800],
+  };
+  const [good, needsImprovement] = thresholds[metricName];
+  if (value <= good) return 'good';
+  if (value <= needsImprovement) return 'needs-improvement';
+  return 'poor';
+}
+
 export function normalizePerformanceRoute(pathname: string | null | undefined): PerformanceRouteTemplate {
   if (pathname === '/' || pathname === '/docs') return pathname;
   if (typeof pathname === 'string' && /^\/[^/]+$/.test(pathname)) return '/[slug]';

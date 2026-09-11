@@ -1,0 +1,33 @@
+
+> wallet-analytics@0.1.0 start
+> next start --hostname 127.0.0.1 --port 3015
+
+▲ Next.js 16.3.1
+- Local:         http://127.0.0.1:3015
+- Network:       http://127.0.0.1:3015
+✓ Ready in 164ms
+✓ Running next.config.ts took 100ms
+{"timestamp":"2026-09-05T05:46:08.199Z","event":"wallet_web_vital","eventId":"v4-1788587159762-4625643667535","routeTemplate":"/","deviceCategory":"desktop","metricName":"FID","value":0.5,"rating":"good","appVersion":"0.1.0"}
+{"timestamp":"2026-09-05T05:46:08.212Z","event":"wallet_web_vital","eventId":"v4-1788587159762-7419780306494","routeTemplate":"/","deviceCategory":"desktop","metricName":"LCP","value":252,"rating":"good","appVersion":"0.1.0"}
+{"timestamp":"2026-09-05T05:48:57.412Z","event":"wallet_scan_request","requestId":"1b84ca3e-ef7e-4b15-a196-f677fdd722da","route":"scan","durationMs":0,"outcome":"rejected","statusCode":400,"failureCodes":["malformed_json"]}
+{"timestamp":"2026-09-05T05:48:57.417Z","event":"wallet_scan_request","requestId":"09da3f45-39d4-41d9-b594-bd79157d04a9","route":"scan","durationMs":0,"outcome":"rejected","statusCode":413,"failureCodes":["body_too_large"]}
+{"timestamp":"2026-09-05T05:48:57.420Z","event":"wallet_scan_request","requestId":"94d8fac6-7c01-4cc3-b852-1db52b767ca8","route":"scan","durationMs":0,"outcome":"rejected","statusCode":400,"failureCodes":["invalid_target"]}
+{"timestamp":"2026-09-05T05:48:57.424Z","event":"wallet_scan_request","requestId":"bb1b9977-f55d-4aec-853d-5457c3c5a073","route":"scan","durationMs":0,"outcome":"rejected","statusCode":400,"failureCodes":["unsupported_field"]}
+{"timestamp":"2026-09-05T05:48:57.428Z","event":"wallet_scan_request","requestId":"dafae94d-2c39-4a26-b160-ad6a972ec127","route":"scan","durationMs":0,"outcome":"rejected","statusCode":400,"failureCodes":["unsupported_chain"]}
+{"timestamp":"2026-09-05T05:48:57.434Z","event":"wallet_scan_request","requestId":"b57731da-8263-4076-9557-9540c8d1bf78","route":"batch-scan","durationMs":1,"outcome":"rejected","statusCode":400,"failureCodes":["duplicate_wallet"]}
+{"timestamp":"2026-09-05T05:48:57.438Z","event":"wallet_scan_request","requestId":"77cc7f84-7851-4629-a16c-ccaa91600d3e","route":"batch-scan","durationMs":1,"outcome":"rejected","statusCode":400,"failureCodes":["too_many_wallets"]}
+{"timestamp":"2026-09-05T05:50:28.652Z","event":"wallet_web_vital","eventId":"v4-1788587428615-9000240068223","routeTemplate":"/","deviceCategory":"mobile","metricName":"LCP","value":124,"rating":"good","appVersion":"0.1.0"}
+{"timestamp":"2026-09-05T05:50:28.734Z","event":"wallet_web_vital","eventId":"v4-1788587428724-3928984766290","routeTemplate":"/docs","deviceCategory":"mobile","metricName":"TTFB","value":5.299999997019768,"rating":"good","appVersion":"0.1.0"}
+{"timestamp":"2026-09-05T05:50:28.826Z","event":"wallet_web_vital","eventId":"v4-1788587428811-8957873030799","routeTemplate":"/[slug]","deviceCategory":"mobile","metricName":"CLS","value":0,"rating":"good","appVersion":"0.1.0"}
+{"timestamp":"2026-09-05T05:50:28.882Z","event":"wallet_web_vital","eventId":"v4-1788587428852-2298180505428","routeTemplate":"/[slug]","deviceCategory":"mobile","metricName":"LCP","value":64,"rating":"good","appVersion":"0.1.0"}
+{"timestamp":"2026-09-05T05:50:28.943Z","event":"wallet_web_vital","eventId":"v4-1788587428908-8631166631101","routeTemplate":"/[slug]","deviceCategory":"mobile","metricName":"FCP","value":64,"rating":"good","appVersion":"0.1.0"}
+{"timestamp":"2026-09-05T05:50:29.295Z","event":"wallet_web_vital","eventId":"v4-1788587429262-1201727310455","routeTemplate":"/[slug]","deviceCategory":"mobile","metricName":"LCP","value":64,"rating":"good","appVersion":"0.1.0"}
+{"timestamp":"2026-09-05T05:50:29.583Z","event":"wallet_web_vital","eventId":"v4-1788587429538-2517710803432","routeTemplate":"/[slug]","deviceCategory":"desktop","metricName":"CLS","value":0,"rating":"good","appVersion":"0.1.0"}
+{"timestamp":"2026-09-05T05:50:29.626Z","event":"wallet_web_vital","eventId":"v4-1788587429620-9440350163523","routeTemplate":"/","deviceCategory":"desktop","metricName":"TTFB","value":24.400000005960464,"rating":"good","appVersion":"0.1.0"}
+{"timestamp":"2026-09-05T05:50:29.766Z","event":"wallet_web_vital","eventId":"v4-1788587429738-9550754802391","routeTemplate":"/docs","deviceCategory":"desktop","metricName":"FCP","value":84,"rating":"good","appVersion":"0.1.0"}
+{"timestamp":"2026-09-05T05:50:30.170Z","event":"wallet_web_vital","eventId":"v4-1788587430164-2296503968981","routeTemplate":"/","deviceCategory":"desktop","metricName":"TTFB","value":3.7000000029802322,"rating":"good","appVersion":"0.1.0"}
+{"timestamp":"2026-09-05T05:50:30.205Z","event":"wallet_web_vital","eventId":"v4-1788587430164-6645325038689","routeTemplate":"/","deviceCategory":"desktop","metricName":"LCP","value":76,"rating":"good","appVersion":"0.1.0"}
+{"timestamp":"2026-09-05T05:50:30.381Z","event":"wallet_web_vital","eventId":"v4-1788587430347-3217674602182","routeTemplate":"/[slug]","deviceCategory":"desktop","metricName":"FCP","value":68,"rating":"good","appVersion":"0.1.0"}
+{"timestamp":"2026-09-05T05:50:30.582Z","event":"wallet_web_vital","eventId":"v4-1788587430547-6748456554516","routeTemplate":"/[slug]","deviceCategory":"desktop","metricName":"FCP","value":64,"rating":"good","appVersion":"0.1.0"}
+{"timestamp":"2026-09-05T05:51:16.576Z","event":"wallet_web_vital","eventId":"v4-1788587476552-8661052871806","routeTemplate":"/[slug]","deviceCategory":"desktop","metricName":"FCP","value":116,"rating":"good","appVersion":"0.1.0"}
+{"timestamp":"2026-09-05T05:51:16.662Z","event":"wallet_web_vital","eventId":"v4-1788587476569-1025170328583","routeTemplate":"/[slug]","deviceCategory":"desktop","metricName":"CLS","value":0,"rating":"good","appVersion":"0.1.0"}

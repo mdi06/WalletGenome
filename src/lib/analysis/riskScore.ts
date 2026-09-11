@@ -11,7 +11,8 @@ import { formatNativeTokenValue } from '../utils/dashboardUtils';
 export function computeRiskScore(
   approvalSummary: ApprovalSummary,
   gasSummary: GasSummary,
-  transactions: ProcessedTransaction[]
+  transactions: ProcessedTransaction[],
+  analysisTime = Date.now(),
 ): RiskAssessment {
   const factors: RiskFactor[] = [];
   let rawScore = 0;
@@ -66,7 +67,7 @@ export function computeRiskScore(
   }
 
   // ── Factor 3: Stale approvals — approvals older than 6 months (weight: 15) ──
-  const sixMonthsAgo = Math.floor(Date.now() / 1000) - (RISK_MODEL.staleApprovals.ageDays * 24 * 3600);
+  const sixMonthsAgo = Math.floor(analysisTime / 1000) - (RISK_MODEL.staleApprovals.ageDays * 24 * 3600);
   const staleApprovals = approvalSummary.activeApprovals.filter(a => a.timestamp < sixMonthsAgo);
   if (staleApprovals.length > RISK_MODEL.staleApprovals.minimumCountExclusive) {
     const staleImpact = Math.min(

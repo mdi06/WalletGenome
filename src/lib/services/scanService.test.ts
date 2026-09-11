@@ -3,6 +3,7 @@ import assert from 'node:assert';
 import { countActiveChains, moralisBudgetPerFallbackChain, processWalletScan, sourceErrors, summarizeAvailability } from './scanService';
 import { scanResultCache, sharedCache } from '@/lib/cache';
 import { ChainDataAvailability, EtherscanTransaction } from '@/lib/types';
+import { RequestCancellationError } from '@/lib/cancellation';
 
 function availability(overrides: Partial<ChainDataAvailability> = {}): ChainDataAvailability {
   return {
@@ -110,7 +111,7 @@ describe('Scan availability aggregation', () => {
       if (url.includes('api.web3.bio')) {
         return new Response('[]', { status: 200 });
       }
-      if (url.includes('api.etherscan.io') || url.includes('blockscout.com')) {
+      if (url.includes('api.etherscan.io') || url.includes('blockscout.com') || url.includes('routescan.io')) {
         return new Response(JSON.stringify({ status: '0', message: 'No transactions found', result: [] }), {
           status: 200,
           headers: { 'Content-Type': 'application/json' },
@@ -342,6 +343,79 @@ describe('Scan availability aggregation', () => {
       assert.equal(second.status, 'complete');
       assert.equal(first.cached, undefined);
       assert.equal(second.cached, undefined);
+    } finally {
+      fetchMock.mock.restore();
+    }
+  });
+
+  it('keeps shared provider work alive when one cancellable subscriber disconnects', async () => {
+    const wallet = '0x8888888888888888888888888888888888888887';
+    let explorerCalls = 0;
+    const fetchMock = mock.method(globalThis, 'fetch', async (input: string | URL | Request) => {
+      const url = String(input);
+      if (url.includes('api.etherscan.io') || url.includes('blockscout.com') || url.includes('routescan.io')) {
+        explorerCalls += 1;
+        await new Promise<void>(resolve => setImmediate(resolve));
+        return new Response(JSON.stringify({ status: '0', message: 'No transactions found', result: [] }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+      if (url.includes('api.web3.bio')) return new Response('[]', { status: 200 });
+      return new Response('', { status: 503 });
+    });
+    const firstController = new AbortController();
+
+    try {
+      const first = processWalletScan(wallet, [1], 'signal-coalescing-test-key', false, {
+        signal: firstController.signal,
+      });
+      const firstRejection = assert.rejects(
+        first,
+        (error: unknown) => error instanceof RequestCancellationError && error.reason === 'disconnect',
+      );
+      const second = processWalletScan(wallet, [1], 'signal-coalescing-test-key', false, {
+        signal: new AbortController().signal,
+      });
+      await new Promise<void>(resolve => setImmediate(resolve));
+      firstController.abort();
+
+      const secondResult = await second;
+      await firstRejection;
+      assert.equal(explorerCalls, 3);
+      assert.equal(secondResult.status, 'complete');
+    } finally {
+      fetchMock.mock.restore();
+    }
+  });
+
+  it('returns a cached report before repeating RPC account classification', async () => {
+    const wallet = '0x8888888888888888888888888888888888888886';
+    let rpcCalls = 0;
+    const fetchMock = mock.method(globalThis, 'fetch', async (input: string | URL | Request, init?: RequestInit) => {
+      const url = String(input);
+      if (url.includes('cloudflare-eth.com') || url.includes('publicnode.com')) {
+        rpcCalls += 1;
+        const body = JSON.parse(String(init?.body)) as { method?: string };
+        const result = body.method === 'eth_chainId' ? '0x1' : '0x';
+        return Response.json({ jsonrpc: '2.0', id: 1, result });
+      }
+      if (url.includes('api.etherscan.io') || url.includes('blockscout.com') || url.includes('routescan.io')) {
+        return Response.json({ status: '0', message: 'No transactions found', result: [] });
+      }
+      if (url.includes('api.web3.bio')) return new Response('[]', { status: 200 });
+      return new Response('', { status: 503 });
+    });
+
+    try {
+      const first = await processWalletScan(wallet, [1]);
+      assert.equal(first.status, 'complete');
+      assert.ok(rpcCalls >= 2);
+      const rpcCallsAfterFirst = rpcCalls;
+
+      const second = await processWalletScan(wallet, [1]);
+      assert.equal(second.cached, true);
+      assert.equal(rpcCalls, rpcCallsAfterFirst);
     } finally {
       fetchMock.mock.restore();
     }

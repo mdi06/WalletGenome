@@ -23,8 +23,8 @@ interface ClusterNode {
   persona?: string;
   riskGrade?: string;
   sybilProb?: number;
-  totalGasUSD?: number;
-  totalInflowUSD?: number;
+  totalGasUSD?: number | null;
+  totalInflowUSD?: number | null;
   sharedCount?: number;
   x: number;
   y: number;
@@ -848,11 +848,17 @@ export default function ClusterFlowGraph({
                   </div>
                   <div className="flex justify-between text-[#555555]">
                     <span>Lifetime Gas:</span>
-                    <span className="font-bold text-orange-ink">{isSavedSnapshot ? 'N/A' : formatCompactUSD(inspectorNode.totalGasUSD || 0)}</span>
+                    <span className="font-bold text-orange-ink">
+                      {isSavedSnapshot
+                        ? 'N/A'
+                        : inspectorNode.totalGasUSD === null || inspectorNode.totalGasUSD === undefined
+                          ? 'Unavailable'
+                          : formatCompactUSD(inspectorNode.totalGasUSD)}
+                    </span>
                   </div>
                   <div className="flex justify-between text-[#555555]">
                     <span>Inflow Depth:</span>
-                    <span className="font-bold text-[#0a0a0a]">{isSavedSnapshot ? 'N/A' : formatCompactUSD(inspectorNode.totalInflowUSD || 0)}</span>
+                    <span className="font-bold text-[#0a0a0a]">{isSavedSnapshot ? 'N/A' : inspectorNode.totalInflowUSD === null || inspectorNode.totalInflowUSD === undefined ? 'Unavailable' : formatCompactUSD(inspectorNode.totalInflowUSD)}</span>
                   </div>
                 </>
               ) : (

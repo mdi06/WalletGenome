@@ -18,6 +18,7 @@ import {
   logScanRequest,
   type ScanRequestTelemetry,
 } from '@/lib/api/requestTelemetry';
+import { authentication } from '@/lib/supabase/requireUser';
 
 export const maxDuration = 300;
 export const runtime = 'nodejs';
@@ -139,6 +140,17 @@ export async function POST(request: NextRequest) {
   let workStarted = false;
 
   try {
+    if (!await authentication.getAuthenticatedUser()) {
+      logScanRequest(telemetry, {
+        outcome: 'rejected',
+        statusCode: 401,
+        failureCodes: ['authentication_required'],
+      });
+      return NextResponse.json(
+        { error: 'Sign in with Google to run a live scan.', code: 'authentication_required' },
+        { status: 401, headers: { 'Cache-Control': 'no-store', 'X-Request-ID': telemetry.requestId } },
+      );
+    }
     const body = await parseJsonBody(request, 'scan');
     const { address, chainIds, refresh = false } = validateScanRequest(body);
     enforceRequestRateLimit(request, 'scan');

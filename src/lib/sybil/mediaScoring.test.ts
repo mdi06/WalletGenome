@@ -42,6 +42,54 @@ describe('MEDIA Sybil Model & API Data Flow Tests', () => {
     assert.strictEqual(score.diversity, 15);
   });
 
+  it('uses the recorded analysis time for wallet age thresholds', () => {
+    const firstActivity = Math.floor(Date.UTC(2024, 0, 1) / 1_000);
+    const transaction: ProcessedTransaction = {
+      hash: '0xage',
+      timestamp: firstActivity,
+      date: '2024-01-01',
+      from: dummyAddress,
+      to: '0x0000000000000000000000000000000000000001',
+      value: '0',
+      valueFormatted: 0,
+      valueUSD: 0,
+      valueUSDProvenance: 'historical',
+      gasUsed: 21_000,
+      gasPrice: 1,
+      gasCostETH: 0,
+      gasCostUSD: 0,
+      gasCostUSDProvenance: 'historical',
+      isError: false,
+      methodId: '',
+      functionName: '',
+      category: 'transfer',
+      chainId: 1,
+    };
+    const scoreBeforeThreshold = computeMediaScore({
+      address: dummyAddress,
+      transactions: [transaction],
+      tokenTransfers: [],
+      uniqueContractCount: 0,
+      activeChainsCount: 1,
+      totalVolumeUSD: 0,
+      totalGasUSD: 0,
+      analysisTime: (firstActivity + 364 * 24 * 3600) * 1_000,
+    });
+    const scoreAtThreshold = computeMediaScore({
+      address: dummyAddress,
+      transactions: [transaction],
+      tokenTransfers: [],
+      uniqueContractCount: 0,
+      activeChainsCount: 1,
+      totalVolumeUSD: 0,
+      totalGasUSD: 0,
+      analysisTime: (firstActivity + 365 * 24 * 3600) * 1_000,
+    });
+
+    assert.equal(scoreBeforeThreshold.age, 80);
+    assert.equal(scoreAtThreshold.age, 95);
+  });
+
   it('should correctly evaluate category diversity and lifespan with full ProcessedTransaction history', () => {
     // 20 transactions spread across 4 months and multiple categories
     const now = Math.floor(Date.now() / 1000);

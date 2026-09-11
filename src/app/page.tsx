@@ -15,6 +15,15 @@ import { getIndexingStatus, shouldShowDemoSnapshotNotice } from '@/lib/indexingS
 import SiteHeader from '@/components/SiteHeader';
 import LoadedScanSummary from '@/components/LoadedScanSummary';
 import { CLUSTER_SAMPLE_ADDRESSES, CLUSTER_SAMPLE_SNAPSHOT } from '@/lib/clusterDemoSnapshot';
+import BetaUpdatesCard from '@/components/auth/BetaUpdatesCard';
+import LiveScanSignInDialog from '@/components/auth/LiveScanSignInDialog';
+import { useAuth } from '@/components/auth/AuthProvider';
+import {
+  PENDING_LIVE_SCAN_KEY,
+  parsePendingLiveScan,
+  serializePendingLiveScan,
+  type PendingLiveScan,
+} from '@/lib/auth/pendingLiveScan';
 
 const Dashboard = dynamic(() => import('@/components/Dashboard'), {
   loading: () => (
@@ -37,6 +46,7 @@ const BulkDashboard = dynamic(() => import('@/components/BulkDashboard'), {
 const SCAN_MODES = ['single', 'cluster'] as const;
 
 export default function Home() {
+  const { user, isLoading: isAuthLoading, signInWithGoogle } = useAuth();
   const {
     scanMode,
     setScanMode,
@@ -59,8 +69,13 @@ export default function Home() {
     handleClusterScan,
     handleClusterDemoSnapshot,
     handleClusterInputChange,
-  } = useWalletScanner();
+  } = useWalletScanner({ canRunLiveScans: Boolean(user) });
   const [isScanEditorOpen, setIsScanEditorOpen] = React.useState(false);
+  const [isSignInDialogOpen, setIsSignInDialogOpen] = React.useState(false);
+  const [pendingLiveScan, setPendingLiveScan] = React.useState<PendingLiveScan | null>(null);
+  const [isAuthStarting, setIsAuthStarting] = React.useState(false);
+  const [authStartError, setAuthStartError] = React.useState<string | null>(null);
+  const returnFocusRef = React.useRef<HTMLElement | null>(null);
 
   const indexingStatus = getIndexingStatus({
     scanMode,
@@ -71,10 +86,90 @@ export default function Home() {
     hasError: Boolean(error),
     isLoading,
   });
+  const openSignInDialog = (scan: PendingLiveScan, trigger?: HTMLElement) => {
+    if (isAuthStarting) return;
+    returnFocusRef.current = trigger ?? (document.activeElement instanceof HTMLElement ? document.activeElement : null);
+    setPendingLiveScan(scan);
+    setAuthStartError(isAuthLoading ? 'Checking your sign-in status. Please try again in a moment.' : null);
+    setIsSignInDialogOpen(true);
+  };
+
+  const closeSignInDialog = React.useCallback(() => {
+    try {
+      window.localStorage.removeItem(PENDING_LIVE_SCAN_KEY);
+    } catch {
+      // Storage may be unavailable; closing still preserves the in-memory form state.
+    }
+    setPendingLiveScan(null);
+    setAuthStartError(null);
+    setIsSignInDialogOpen(false);
+    setIsAuthStarting(false);
+  }, []);
+
+  const continueWithGoogle = React.useCallback(async () => {
+    if (!pendingLiveScan || isAuthStarting) return;
+    if (isAuthLoading) {
+      setAuthStartError('Checking your sign-in status. Please try again in a moment.');
+      return;
+    }
+
+    setIsAuthStarting(true);
+    setAuthStartError(null);
+    try {
+      window.localStorage.setItem(PENDING_LIVE_SCAN_KEY, serializePendingLiveScan(pendingLiveScan));
+      const message = await signInWithGoogle(`${window.location.pathname}${window.location.search}`);
+      if (message) {
+        setAuthStartError('Google sign-in could not start. Please try again, or cancel and return to your scan.');
+        return;
+      }
+      setIsSignInDialogOpen(false);
+      setPendingLiveScan(null);
+    } catch {
+      setAuthStartError('Google sign-in could not start. Please try again, or cancel and return to your scan.');
+    } finally {
+      setIsAuthStarting(false);
+    }
+  }, [isAuthLoading, isAuthStarting, pendingLiveScan, signInWithGoogle]);
+
+  const requestSingleScan = (
+    address: string,
+    chainIds: number[],
+    options: { forceRefresh?: boolean } = {},
+    trigger?: HTMLElement,
+  ) => {
+    if (user) {
+      void handleSingleScan(address, chainIds, options);
+      return;
+    }
+    openSignInDialog({ mode: 'single', address, chainIds, forceRefresh: options.forceRefresh }, trigger);
+  };
+
+  const requestClusterScan = (addresses: string[], chainIds: number[], trigger?: HTMLElement) => {
+    if (user) {
+      void handleClusterScan(addresses, chainIds);
+      return;
+    }
+    openSignInDialog({ mode: 'cluster', addresses, chainIds }, trigger);
+  };
+
+  React.useEffect(() => {
+    if (!user || isAuthLoading) return;
+    const serialized = window.localStorage.getItem(PENDING_LIVE_SCAN_KEY);
+    if (!serialized) return;
+    window.localStorage.removeItem(PENDING_LIVE_SCAN_KEY);
+    const pendingScan = parsePendingLiveScan(serialized);
+    if (!pendingScan) return;
+    if (pendingScan.mode === 'single') {
+      void handleSingleScan(pendingScan.address, pendingScan.chainIds, { forceRefresh: pendingScan.forceRefresh });
+    } else {
+      void handleClusterScan(pendingScan.addresses, pendingScan.chainIds);
+    }
+  }, [handleClusterScan, handleSingleScan, isAuthLoading, user]);
+
   const handleInspectFromCluster = (address: string) => {
     setIsScanEditorOpen(false);
     setCurrentAddress(address);
-    handleSingleScan(address, [...SUPPORTED_CHAIN_IDS]);
+    requestSingleScan(address, [...SUPPORTED_CHAIN_IDS]);
   };
 
   const handleSetScanMode = (mode: 'single' | 'cluster') => {
@@ -82,9 +177,9 @@ export default function Home() {
     setScanMode(mode);
   };
 
-  const handleSingleScanFromForm = (address: string, chainIds: number[]) => {
-    setIsScanEditorOpen(false);
-    void handleSingleScan(address, chainIds);
+  const handleSingleScanFromForm = (address: string, chainIds: number[], trigger?: HTMLElement) => {
+    if (user) setIsScanEditorOpen(false);
+    requestSingleScan(address, chainIds, {}, trigger);
   };
 
   const handleScanModeKeyDown = (event: React.KeyboardEvent<HTMLButtonElement>) => {
@@ -100,7 +195,6 @@ export default function Home() {
     <main className="min-w-0 overflow-x-clip max-w-[1400px] mx-auto p-4 sm:p-6 lg:p-8 space-y-5 sm:space-y-6 lg:space-y-5">
       <SiteHeader
         activePage="scanner"
-        indexingStatus={indexingStatus}
         onBrandClick={showGuide ? undefined : () => setShowGuide(true)}
         contextAction={(singleResult || clusterResult) ? (
           <button
@@ -202,7 +296,7 @@ export default function Home() {
               evidenceMode={indexingStatus}
               data={singleResult}
               isLoading={isLoading}
-              onRefresh={() => void handleSingleScan(currentAddress || singleResult.address, singleChainIds, { forceRefresh: true })}
+              onRefresh={() => requestSingleScan(currentAddress || singleResult.address, singleChainIds, { forceRefresh: true })}
               onEdit={() => setIsScanEditorOpen(true)}
             />
           ) : (
@@ -223,7 +317,7 @@ export default function Home() {
         >
           {scanMode === 'cluster' && (
             <BulkScanInput
-              onScanCluster={handleClusterScan}
+              onScanCluster={requestClusterScan}
               onLoadSavedClusterSnapshot={handleClusterDemoSnapshot}
               onClusterInputChange={handleClusterInputChange}
               isLoading={isLoading}
@@ -248,6 +342,14 @@ export default function Home() {
         </div>
       )}
 
+      <div className="min-h-5" aria-live="polite">
+        {!user && !isAuthLoading && (
+          <p className="text-xs font-bold text-[#4b5563]">
+            Google sign-in is required for live scans. Saved demos remain available without signing in.
+          </p>
+        )}
+      </div>
+
       {shouldShowDemoSnapshotNotice({
         scanMode,
         activeDemoSnapshot: Boolean(activeDemoSnapshot),
@@ -257,9 +359,9 @@ export default function Home() {
           demo={activeDemoSnapshot}
           isLoading={isLoading}
           data={singleResult ?? undefined}
-          onRunFreshScan={() => {
+          onRunFreshScan={trigger => {
             setIsScanEditorOpen(false);
-            void handleSingleScan(activeDemoSnapshot.address, [...SUPPORTED_CHAIN_IDS]);
+            requestSingleScan(activeDemoSnapshot.address, [...SUPPORTED_CHAIN_IDS], {}, trigger);
           }}
         />
       )}
@@ -280,11 +382,22 @@ export default function Home() {
               data={clusterResult}
               onInspectWallet={handleInspectFromCluster}
               snapshotGeneratedAt={activeClusterSnapshot?.generatedAt}
-              onRunFreshScan={() => void handleClusterScan([...CLUSTER_SAMPLE_ADDRESSES], [...CLUSTER_SAMPLE_SNAPSHOT.chainIds])}
+              onRunFreshScan={() => requestClusterScan([...CLUSTER_SAMPLE_ADDRESSES], [...CLUSTER_SAMPLE_SNAPSHOT.chainIds])}
             />
           )}
         </>
       )}
+
+      {user && !isAuthLoading && !isLoading && <BetaUpdatesCard />}
+
+      <LiveScanSignInDialog
+        open={isSignInDialogOpen && !user}
+        isStarting={isAuthStarting}
+        error={authStartError}
+        onContinue={() => void continueWithGoogle()}
+        onClose={closeSignInDialog}
+        returnFocusRef={returnFocusRef}
+      />
     </main>
   );
 }

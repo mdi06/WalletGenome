@@ -166,4 +166,25 @@ describe('Approval exposure analysis', () => {
     assert.strictEqual(summary.totalExposureUSD, 0);
     assert.strictEqual(summary.exposureStatus, 'complete');
   });
+
+  it('does not reduce exposure for self-transfers and counts duplicate logs once', () => {
+    const inbound = transfer(usdc, spender, wallet, '100000000');
+    const duplicateInbound = { ...inbound };
+    const selfTransfer = transfer(usdc, wallet, wallet, '100000000');
+    const summary = analyzeApprovals([
+      approval(usdc, (BigInt(1) << BigInt(256)) - BigInt(1), 100),
+    ], [inbound, duplicateInbound, selfTransfer], wallet, 1);
+
+    assert.strictEqual(summary.activeApprovals[0]?.estimatedTokenBalance, 100);
+    assert.strictEqual(summary.activeApprovals[0]?.estimatedExposureUSD, 100);
+  });
+
+  it('preserves a valid zero-decimal token balance', () => {
+    const summary = analyzeApprovals([
+      approval(unknownToken, (BigInt(1) << BigInt(256)) - BigInt(1), 100),
+    ], [transfer(unknownToken, spender, wallet, '100', 'ZERO', '0')], wallet, 1);
+
+    assert.strictEqual(summary.activeApprovals[0]?.estimatedTokenBalance, 100);
+    assert.strictEqual(summary.activeApprovals[0]?.estimatedExposureUSD, null);
+  });
 });

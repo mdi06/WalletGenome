@@ -11,9 +11,9 @@ import {
   PriceProvenanceSummary,
   RiskGrade,
 } from './types';
-import { getChainConfig, STABLECOINS } from './chains';
+import { getChainConfig } from './chains';
 import { isDEXAddress, isBridgeAddress, getAddressLabel } from './labels';
-import { getCachedPriceQuote, resolveCoingeckoId } from './prices';
+import { getCachedPriceQuote } from './prices';
 import { analyzeGasFees } from './analysis/gasFees';
 import { analyzeTransfers } from './analysis/transfers';
 import { analyzeApprovals } from './analysis/approvals';
@@ -22,6 +22,7 @@ import { computeRiskScore } from './analysis/riskScore';
 import { buildReportingMetrics } from './reportingContract';
 import { analyzeActivityProfile } from './analysis/activityHeatmap';
 import { analyzeInteractions } from './analysis/interactions';
+import { formatTokenUnits, parseTokenDecimals } from './tokenUnits';
 
 const WEI = 1e18;
 
@@ -124,20 +125,7 @@ function categorizeTransaction(tx: EtherscanTransaction): TransactionCategory {
 
 export function formatSafeUnits(valueRaw: string | number, decimals = 18): number {
   try {
-    const str = String(valueRaw || '0').trim();
-    if (!str || str === '0') return 0;
-    if (!/^\d+$/.test(str)) {
-      const num = parseFloat(str);
-      return isNaN(num) ? 0 : num;
-    }
-    if (decimals === 0) return Number(str);
-    if (str.length <= decimals) {
-      const padded = str.padStart(decimals, '0');
-      return parseFloat(`0.${padded}`) || 0;
-    }
-    const whole = str.slice(0, str.length - decimals);
-    const frac = str.slice(str.length - decimals);
-    return parseFloat(`${whole}.${frac}`) || 0;
+    return formatTokenUnits(valueRaw, decimals);
   } catch {
     return (parseFloat(String(valueRaw)) || 0) / Math.pow(10, decimals) || 0;
   }
@@ -146,7 +134,8 @@ export function formatSafeUnits(valueRaw: string | number, decimals = 18): numbe
 export function processTransactions(
   rawTxs: EtherscanTransaction[] = [],
   chainId: number,
-  knownWallets: Record<string, string> = {}
+  knownWallets: Record<string, string> = {},
+  analysisTime = Date.now(),
 ): ProcessedTransaction[] {
   const chain = getChainConfig(chainId);
   return rawTxs.map(tx => {
@@ -154,10 +143,10 @@ export function processTransactions(
     const gasPrice = Number(tx.gasPrice || '0') || 0;
     const gasCostWei = gasUsed * gasPrice;
     const gasCostETH = gasCostWei / WEI;
-    const timestamp = parseInt(tx.timeStamp || '0') || Math.floor(Date.now() / 1000);
+    const timestamp = parseInt(tx.timeStamp || '0') || Math.floor(analysisTime / 1000);
     const valueFormatted = formatSafeUnits(tx.value || '0', chain.nativeToken.decimals);
 
-    const ethQuote = getCachedPriceQuote(chain.nativeToken.coingeckoId, timestamp);
+    const ethQuote = getCachedPriceQuote({ chainId }, timestamp);
     const ethPrice = ethQuote.priceUSD;
 
     return {
@@ -170,12 +159,12 @@ export function processTransactions(
       toLabel: getAddressLabel(tx.to, knownWallets),
       value: tx.value || '0',
       valueFormatted,
-      valueUSD: (ethPrice && isFinite(valueFormatted * ethPrice) && valueFormatted * ethPrice < 1e11) ? valueFormatted * ethPrice : null,
+      valueUSD: (ethPrice !== null && isFinite(valueFormatted * ethPrice) && valueFormatted * ethPrice < 1e11) ? valueFormatted * ethPrice : null,
       valueUSDProvenance: ethQuote.provenance,
       gasUsed,
       gasPrice,
       gasCostETH,
-      gasCostUSD: ethPrice ? gasCostETH * ethPrice : null,
+      gasCostUSD: ethPrice !== null ? gasCostETH * ethPrice : null,
       gasCostUSDProvenance: ethQuote.provenance,
       isError: tx.isError === '1' || tx.txreceipt_status === '0',
       methodId: tx.methodId || '',
@@ -191,14 +180,15 @@ export function processTokenTransfers(
   rawTransfers: EtherscanTokenTransfer[] = [],
   walletAddress: string,
   chainId: number,
-  knownWallets: Record<string, string> = {}
+  knownWallets: Record<string, string> = {},
+  analysisTime = Date.now(),
 ): ProcessedTokenTransfer[] {
   const lower = (walletAddress || '').toLowerCase();
 
   return rawTransfers.map(t => {
-    const decimals = parseInt(t.tokenDecimal || '18') || 18;
+    const decimals = parseTokenDecimals(t.tokenDecimal);
     const valueFormatted = formatSafeUnits(t.value || '0', decimals);
-    const timestamp = parseInt(t.timeStamp || '0') || Math.floor(Date.now() / 1000);
+    const timestamp = parseInt(t.timeStamp || '0') || Math.floor(analysisTime / 1000);
     const fromAddr = (t.from || '').toLowerCase();
     const direction = fromAddr === lower ? 'out' : 'in';
 
@@ -206,23 +196,12 @@ export function processTokenTransfers(
     const tokenSym = t.tokenSymbol || '???';
     const tokenNm = t.tokenName || 'Unknown Token';
 
-    const coingeckoId = resolveCoingeckoId(tokenContract);
-    let valueUSD: number | null = null;
-    let valueUSDProvenance: PriceProvenance = 'unpriced';
-
-    if (coingeckoId) {
-      const quote = getCachedPriceQuote(coingeckoId, timestamp);
-      const price = quote.priceUSD;
-      valueUSDProvenance = quote.provenance;
-      if (price && isFinite(valueFormatted * price) && valueFormatted * price < 1e11) {
-        valueUSD = valueFormatted * price;
-      }
-    }
-
-    if (STABLECOINS[tokenContract] && valueFormatted < 1e11) {
-      valueUSD = valueFormatted;
-      valueUSDProvenance = 'stablecoin_assumption';
-    }
+    const quote = getCachedPriceQuote({ chainId, contractAddress: tokenContract }, timestamp);
+    const price = quote.priceUSD;
+    const valueUSD = price !== null && isFinite(valueFormatted * price) && valueFormatted * price < 1e11
+      ? valueFormatted * price
+      : null;
+    const valueUSDProvenance: PriceProvenance = quote.provenance;
 
     return {
       hash: t.hash || '',
@@ -251,14 +230,15 @@ export function processInternalTransactions(
   rawInternals: EtherscanInternalTransaction[] = [],
   walletAddress: string,
   chainId: number,
-  knownWallets: Record<string, string> = {}
+  knownWallets: Record<string, string> = {},
+  analysisTime = Date.now(),
 ): ProcessedTransaction[] {
   const chain = getChainConfig(chainId);
 
   return rawInternals.map(itx => {
-    const timestamp = parseInt(itx.timeStamp || '0') || Math.floor(Date.now() / 1000);
+    const timestamp = parseInt(itx.timeStamp || '0') || Math.floor(analysisTime / 1000);
     const valueFormatted = formatSafeUnits(itx.value || '0', chain.nativeToken.decimals);
-    const ethQuote = getCachedPriceQuote(chain.nativeToken.coingeckoId, timestamp);
+    const ethQuote = getCachedPriceQuote({ chainId }, timestamp);
     const ethPrice = ethQuote.priceUSD;
 
     return {
@@ -291,33 +271,32 @@ export function processInternalTransactions(
 export function collectPriceRequests(
   rawTxs: EtherscanTransaction[] = [],
   rawTokenTransfers: EtherscanTokenTransfer[] = [],
-  chainId: number
-): Array<{ coingeckoId: string; timestamp: number }> {
-  const chain = getChainConfig(chainId);
-  const requests: Array<{ coingeckoId: string; timestamp: number }> = [];
+  chainId: number,
+  rawInternalTxs: EtherscanInternalTransaction[] = [],
+  analysisTime = Date.now(),
+): Array<{ chainId: number; contractAddress?: string; timestamp: number }> {
+  const requests: Array<{ chainId: number; contractAddress?: string; timestamp: number }> = [];
   const seen = new Set<string>();
 
-  for (const tx of rawTxs) {
-    const ts = parseInt(tx.timeStamp || '0') || Math.floor(Date.now() / 1000);
+  for (const tx of [...rawTxs, ...rawInternalTxs]) {
+    const ts = parseInt(tx.timeStamp || '0') || Math.floor(analysisTime / 1000);
     const dateKey = timestampToDate(ts);
-    const key = `${chain.nativeToken.coingeckoId}-${dateKey}`;
+    const key = `native:${chainId}-${dateKey}`;
     if (!seen.has(key)) {
       seen.add(key);
-      requests.push({ coingeckoId: chain.nativeToken.coingeckoId, timestamp: ts });
+      requests.push({ chainId, timestamp: ts });
     }
   }
 
   for (const t of rawTokenTransfers) {
-    const coingeckoId = resolveCoingeckoId(t.contractAddress);
-    if (!coingeckoId) continue;
-    if (['tether', 'usd-coin', 'dai', 'true-usd', 'frax'].includes(coingeckoId.toLowerCase())) continue;
-
-    const ts = parseInt(t.timeStamp || '0') || Math.floor(Date.now() / 1000);
+    const ts = parseInt(t.timeStamp || '0') || Math.floor(analysisTime / 1000);
     const dateKey = timestampToDate(ts);
-    const key = `${coingeckoId}-${dateKey}`;
+    const contractAddress = (t.contractAddress || '').toLowerCase();
+    if (!/^0x[a-f0-9]{40}$/.test(contractAddress)) continue;
+    const key = `token:${chainId}:${contractAddress}-${dateKey}`;
     if (!seen.has(key)) {
       seen.add(key);
-      requests.push({ coingeckoId, timestamp: ts });
+      requests.push({ chainId, contractAddress, timestamp: ts });
     }
   }
 
@@ -330,14 +309,15 @@ export async function runAnalysis(
   walletAddress: string,
   chainId: number,
   knownWallets: Record<string, string> = {},
-  rawInternalTxs: EtherscanInternalTransaction[] = []
+  rawInternalTxs: EtherscanInternalTransaction[] = [],
+  analysisTime = Date.now(),
 ): Promise<ScanResult> {
   const chain = getChainConfig(chainId);
   const lower = (walletAddress || '').toLowerCase();
 
-  const processedTxs = processTransactions(rawTxs, chainId, knownWallets);
-  const processedTransfers = processTokenTransfers(rawTokenTransfers, walletAddress, chainId, knownWallets);
-  const processedInternals = processInternalTransactions(rawInternalTxs, walletAddress, chainId, knownWallets);
+  const processedTxs = processTransactions(rawTxs, chainId, knownWallets, analysisTime);
+  const processedTransfers = processTokenTransfers(rawTokenTransfers, walletAddress, chainId, knownWallets, analysisTime);
+  const processedInternals = processInternalTransactions(rawInternalTxs, walletAddress, chainId, knownWallets, analysisTime);
 
   // Combine external normal transactions and smart contract internal transfers for cashflow & counterparties
   const allTxs = [...processedTxs, ...processedInternals];
@@ -358,12 +338,12 @@ export async function runAnalysis(
     gasSummary,
     transferSummary,
     approvalSummary,
-    fingerprint: analyzeBehavioralFingerprint(processedTxs, processedTransfers, walletAddress),
-    riskAssessment: computeRiskScore(approvalSummary, gasSummary, processedTxs),
+    fingerprint: analyzeBehavioralFingerprint(processedTxs, processedTransfers, walletAddress, analysisTime),
+    riskAssessment: computeRiskScore(approvalSummary, gasSummary, processedTxs, analysisTime),
     activityProfile: analyzeActivityProfile(processedTxs),
     interactionsSummary: analyzeInteractions(allTxs, processedTransfers, walletAddress, chainId, knownWallets),
     priceProvenance,
-    scannedAt: Date.now(),
+    scannedAt: analysisTime,
     transactionCount: rawTxs.length,
     tokenTransferCount: rawTokenTransfers.length,
   };

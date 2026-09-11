@@ -7,7 +7,7 @@ import { MAX_BATCH_WALLETS } from '@/lib/api/constants';
 import { CLUSTER_SAMPLE_ADDRESSES } from '@/lib/clusterDemoSnapshot';
 
 interface Props {
-  onScanCluster: (addresses: string[], chainIds: number[]) => void;
+  onScanCluster: (addresses: string[], chainIds: number[], trigger?: HTMLElement) => void;
   onLoadSavedClusterSnapshot: () => void;
   onClusterInputChange?: () => void;
   isLoading: boolean;
@@ -69,7 +69,7 @@ export default function BulkScanInput({ onScanCluster, onLoadSavedClusterSnapsho
     if (error) setError(null);
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = (event?: React.SyntheticEvent<HTMLElement>) => {
     if (hasRejectedEntries) {
       setError('Remove invalid or duplicate wallet entries before scanning.');
       return;
@@ -83,7 +83,11 @@ export default function BulkScanInput({ onScanCluster, onLoadSavedClusterSnapsho
       return;
     }
     setError(null);
-    onScanCluster(parsedInput.validAddresses, selectedChains);
+    onScanCluster(
+      parsedInput.validAddresses,
+      selectedChains,
+      event?.currentTarget instanceof HTMLElement ? event.currentTarget : undefined,
+    );
   };
 
   return (

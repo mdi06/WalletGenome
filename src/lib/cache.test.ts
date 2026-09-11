@@ -37,6 +37,23 @@ test('MemoryCache & RateLimiter Core Tests', async (t) => {
     assert.equal(cache.get('c'), 3);
   });
 
+  await t.test('limits total bytes and rejects oversized individual items', () => {
+    const cache = new MemoryCache<string>(10, 60, { maxBytes: 12, maxItemBytes: 8 });
+    cache.set('first', '123456');
+    cache.set('second', 'abcdef');
+
+    const stats = cache.getStats();
+    assert.equal(cache.get('first'), null);
+    assert.equal(cache.get('second'), 'abcdef');
+    assert.equal(stats.items, 1);
+    assert.ok(stats.bytes <= 12);
+    assert.equal(stats.evictions, 1);
+
+    cache.set('too-large', '123456789');
+    assert.equal(cache.get('too-large'), null);
+    assert.equal(cache.getStats().items, 1);
+  });
+
   await t.test('should rate limit requests using DomainRateLimiter', async () => {
     const limiter = new DomainRateLimiter(5); // 5 req/sec
     const start = Date.now();

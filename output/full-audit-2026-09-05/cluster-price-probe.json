@@ -1,0 +1,21 @@
+{
+  "single": {
+    "history": "complete",
+    "prices": "unavailable",
+    "inflowUSD": null,
+    "coverage": {
+      "verifiedLegs": 0,
+      "totalLegs": 1,
+      "excludedSpotEstimateLegs": 0,
+      "unpricedLegs": 1,
+      "coveragePercent": 0,
+      "status": "unavailable"
+    }
+  },
+  "cluster": {
+    "status": "complete",
+    "totalInflowUSD": 0,
+    "walletInflowUSD": 0,
+    "priceProvenancePresent": false
+  }
+}

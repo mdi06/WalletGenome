@@ -1,0 +1,7 @@
+import {writeFileSync} from 'node:fs';
+const base='http://127.0.0.1:3015';
+const cases=[['known-wallet-write','/api/known-wallets',405,{}],['malformed','/api/scan',400,'{'],['oversized','/api/scan',413,' '.repeat(9000)],['invalid-target','/api/scan',400,{address:'invalid',chainIds:[1]}],['client-key','/api/scan',400,{address:'0x'+'1'.repeat(40),chainIds:[1],apiKey:'test'}],['unsupported-chain','/api/scan',400,{address:'0x'+'1'.repeat(40),chainIds:[999]}],['duplicate-batch','/api/batch-scan',400,{addresses:['0x'+'1'.repeat(40),'0x'+'1'.repeat(40)],chainIds:[1]}],['oversized-batch','/api/batch-scan',400,{addresses:Array.from({length:11},(_,i)=>'0x'+(i+1).toString(16).padStart(40,'0')),chainIds:[1]}],['telemetry-invalid','/api/web-vitals',400,{wallet:'private-test'}]];
+const results=[];
+for(const [name,path,expected,payload] of cases){const r=await fetch(base+path,{method:'POST',headers:{'Content-Type':'application/json'},body:typeof payload==='string'?payload:JSON.stringify(payload)});results.push({name,expected,status:r.status,pass:r.status===expected,body:await r.text()});}
+for(const path of ['/does-not-exist-audit','/api/scan-jobs']){const r=await fetch(base+path);results.push({name:path,expected:404,status:r.status,pass:r.status===404});await r.text();}
+writeFileSync('output/full-audit-2026-09-05/api-smoke.json',JSON.stringify(results,null,2)+'\n');console.log(results);if(results.some(r=>!r.pass))process.exitCode=1;

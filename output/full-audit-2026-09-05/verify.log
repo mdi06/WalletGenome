@@ -1,0 +1,2715 @@
+
+> wallet-analytics@0.1.0 verify
+> npm run lint && npm run typecheck && npm test && npm run build
+
+
+> wallet-analytics@0.1.0 lint
+> eslint .
+
+
+> wallet-analytics@0.1.0 typecheck
+> next typegen && tsc --noEmit
+
+Generating route types...
+✓ Types generated successfully
+
+> wallet-analytics@0.1.0 test
+> node --import tsx --test 'src/**/*.test.ts'
+
+TAP version 13
+# {"timestamp":"2026-09-05T05:44:31.479Z","event":"wallet_scan_request","requestId":"a37531c1-1e46-434b-9aef-94da718da5c8","route":"scan","durationMs":182,"outcome":"completed","statusCode":200,"targetCount":1,"chainCount":1,"resultStatus":"complete","availabilityCounts":{"complete":4,"partial":0,"unavailable":0},"failureCodes":[]}
+# {"timestamp":"2026-09-05T05:44:31.481Z","event":"wallet_scan_request","requestId":"b6c4b5f2-779f-4610-9acf-40ea5cc3c575","route":"scan","durationMs":0,"outcome":"rejected","statusCode":400,"failureCodes":["invalid_target"]}
+# {"timestamp":"2026-09-05T05:44:31.483Z","event":"wallet_scan_request","requestId":"45f9f1b9-2c29-4dd9-91b8-c24003063623","route":"batch-scan","durationMs":1,"outcome":"rejected","statusCode":400,"failureCodes":["invalid_addresses"]}
+# {"timestamp":"2026-09-05T05:44:31.483Z","event":"wallet_scan_request","requestId":"f3cf90ff-d34b-4ecf-aec1-3cb42a4c7e65","route":"batch-scan","durationMs":0,"outcome":"rejected","statusCode":400,"failureCodes":["unsupported_chain"]}
+# {"timestamp":"2026-09-05T05:44:31.485Z","event":"wallet_scan_request","requestId":"e400990d-cf63-46c4-9811-2d81561b9a78","route":"scan","durationMs":1,"outcome":"rejected","statusCode":400,"failureCodes":["malformed_json"]}
+# {"timestamp":"2026-09-05T05:44:31.486Z","event":"wallet_scan_request","requestId":"222cb50c-6be6-457c-b9dc-2d355f83bf7d","route":"batch-scan","durationMs":0,"outcome":"rejected","statusCode":400,"failureCodes":["invalid_target"]}
+# {"timestamp":"2026-09-05T05:44:31.486Z","event":"wallet_scan_request","requestId":"c6e6e52b-bc0c-48cb-91c1-a0d912d73e15","route":"scan","durationMs":0,"outcome":"rejected","statusCode":400,"failureCodes":["unsupported_field"]}
+# Subtest: ENS Resolution & API Route Integration Tests
+    # Subtest: should correctly resolve ENS domains to 0x hex addresses
+    ok 1 - should correctly resolve ENS domains to 0x hex addresses
+      ---
+      duration_ms: 29.823625
+      type: 'test'
+      ...
+    # Subtest: should resolve ENS domain in POST /api/scan without returning 400
+    ok 2 - should resolve ENS domain in POST /api/scan without returning 400
+      ---
+      duration_ms: 185.069125
+      type: 'test'
+      ...
+    # Subtest: should return 400 for completely invalid address in POST /api/scan
+    ok 3 - should return 400 for completely invalid address in POST /api/scan
+      ---
+      duration_ms: 1.160416
+      type: 'test'
+      ...
+    # Subtest: should handle batch-scan validation with empty array
+    ok 4 - should handle batch-scan validation with empty array
+      ---
+      duration_ms: 0.9935
+      type: 'test'
+      ...
+    # Subtest: rejects unsupported chains before any batch provider work
+    ok 5 - rejects unsupported chains before any batch provider work
+      ---
+      duration_ms: 0.4675
+      type: 'test'
+      ...
+    # Subtest: rejects malformed JSON, non-string batch entries, and client API keys
+    ok 6 - rejects malformed JSON, non-string batch entries, and client API keys
+      ---
+      duration_ms: 2.993083
+      type: 'test'
+      ...
+    # Subtest: rejects a valid known-wallet write attempt
+    ok 7 - rejects a valid known-wallet write attempt
+      ---
+      duration_ms: 0.993542
+      type: 'test'
+      ...
+    # Subtest: rejects label injection attempts without creating wallet records
+    ok 8 - rejects label injection attempts without creating wallet records
+      ---
+      duration_ms: 0.517708
+      type: 'test'
+      ...
+# {"timestamp":"2026-09-05T05:44:32.353Z","event":"wallet_scan_request","requestId":"45c3e4ce-b5b3-4662-bab1-7f8075123bce","route":"scan","durationMs":865,"outcome":"completed","statusCode":200,"targetCount":1,"chainCount":1,"resultStatus":"complete","availabilityCounts":{"complete":4,"partial":0,"unavailable":0},"failureCodes":[]}
+# {"timestamp":"2026-09-05T05:44:32.552Z","event":"wallet_scan_request","requestId":"f71fdce6-02fb-4bdd-924c-32d58fbbecfa","route":"scan","durationMs":199,"outcome":"completed","statusCode":200,"targetCount":1,"chainCount":1,"resultStatus":"complete","availabilityCounts":{"complete":4,"partial":0,"unavailable":0},"failureCodes":[]}
+# {"timestamp":"2026-09-05T05:44:32.801Z","event":"wallet_scan_request","requestId":"102216cb-c7c9-4c25-a79b-4f579c6774fa","route":"scan","durationMs":248,"outcome":"completed","statusCode":200,"targetCount":1,"chainCount":1,"resultStatus":"complete","availabilityCounts":{"complete":4,"partial":0,"unavailable":0},"failureCodes":[]}
+# {"timestamp":"2026-09-05T05:44:33.051Z","event":"wallet_scan_request","requestId":"169ec300-b1d1-46f0-8abf-2bb3851d6857","route":"scan","durationMs":249,"outcome":"completed","statusCode":200,"targetCount":1,"chainCount":1,"resultStatus":"complete","availabilityCounts":{"complete":4,"partial":0,"unavailable":0},"failureCodes":[]}
+# {"timestamp":"2026-09-05T05:44:33.301Z","event":"wallet_scan_request","requestId":"667a2247-dcd0-4f8d-b597-f07e1922ebe8","route":"scan","durationMs":250,"outcome":"completed","statusCode":200,"targetCount":1,"chainCount":1,"resultStatus":"complete","availabilityCounts":{"complete":4,"partial":0,"unavailable":0},"failureCodes":[]}
+# {"timestamp":"2026-09-05T05:44:33.602Z","event":"wallet_scan_request","requestId":"477896d0-2d51-4888-a233-84e48099ccb0","route":"scan","durationMs":300,"outcome":"completed","statusCode":200,"targetCount":1,"chainCount":1,"resultStatus":"complete","availabilityCounts":{"complete":4,"partial":0,"unavailable":0},"failureCodes":[]}
+# {"timestamp":"2026-09-05T05:44:33.801Z","event":"wallet_scan_request","requestId":"edc2bb67-c9cd-45cd-aa99-d3a8f6f45586","route":"scan","durationMs":198,"outcome":"completed","statusCode":200,"targetCount":1,"chainCount":1,"resultStatus":"complete","availabilityCounts":{"complete":4,"partial":0,"unavailable":0},"failureCodes":[]}
+# {"timestamp":"2026-09-05T05:44:34.051Z","event":"wallet_scan_request","requestId":"db585bdd-9fa1-4790-ad2b-712763835335","route":"scan","durationMs":249,"outcome":"completed","statusCode":200,"targetCount":1,"chainCount":1,"resultStatus":"complete","availabilityCounts":{"complete":4,"partial":0,"unavailable":0},"failureCodes":[]}
+# {"timestamp":"2026-09-05T05:44:34.303Z","event":"wallet_scan_request","requestId":"40e9b42f-a700-4422-b8b3-7299e2e3f520","route":"scan","durationMs":252,"outcome":"completed","statusCode":200,"targetCount":1,"chainCount":1,"resultStatus":"complete","availabilityCounts":{"complete":4,"partial":0,"unavailable":0},"failureCodes":[]}
+# {"timestamp":"2026-09-05T05:44:34.551Z","event":"wallet_scan_request","requestId":"ad38b327-796f-4758-b0e2-75032e6096fd","route":"scan","durationMs":247,"outcome":"completed","statusCode":200,"targetCount":1,"chainCount":1,"resultStatus":"complete","availabilityCounts":{"complete":4,"partial":0,"unavailable":0},"failureCodes":[]}
+# {"timestamp":"2026-09-05T05:44:34.800Z","event":"wallet_scan_request","requestId":"5181f1c0-54d3-4eed-8539-32cad3839f70","route":"scan","durationMs":248,"outcome":"completed","statusCode":200,"targetCount":1,"chainCount":1,"resultStatus":"complete","availabilityCounts":{"complete":4,"partial":0,"unavailable":0},"failureCodes":[]}
+# {"timestamp":"2026-09-05T05:44:35.051Z","event":"wallet_scan_request","requestId":"f834e8f1-268d-4b44-bc3e-a67bb39494f5","route":"scan","durationMs":251,"outcome":"completed","statusCode":200,"targetCount":1,"chainCount":1,"resultStatus":"complete","availabilityCounts":{"complete":4,"partial":0,"unavailable":0},"failureCodes":[]}
+# {"timestamp":"2026-09-05T05:44:35.051Z","event":"wallet_scan_request","requestId":"af9a40ac-a487-4c60-8f4c-1d641ebf9ae3","route":"scan","durationMs":0,"outcome":"rejected","statusCode":429,"failureCodes":["rate_limited"]}
+    # Subtest: returns 429 after the deterministic single-scan request limit
+    ok 9 - returns 429 after the deterministic single-scan request limit
+      ---
+      duration_ms: 3562.95425
+      type: 'test'
+      ...
+# {"timestamp":"2026-09-05T05:44:36.052Z","event":"wallet_scan_request","requestId":"373a5c49-f92e-413d-89df-58443dfb880d","route":"scan","durationMs":1001,"outcome":"completed","statusCode":200,"targetCount":1,"chainCount":1,"resultStatus":"complete","availabilityCounts":{"complete":4,"partial":0,"unavailable":0},"failureCodes":[]}
+    # Subtest: streams truthful single-scan progress and the final report in one request
+    ok 10 - streams truthful single-scan progress and the final report in one request
+      ---
+      duration_ms: 1001.334542
+      type: 'test'
+      ...
+# {"timestamp":"2026-09-05T05:44:36.064Z","event":"wallet_scan_request","requestId":"242fa16c-dda9-4b3c-9d4d-ac058837bc7c","route":"scan","durationMs":11,"outcome":"cancelled","statusCode":499,"failureCodes":["client_disconnect"]}
+    # Subtest: returns a disconnect status without leaving in-flight scan rejection unhandled
+    ok 11 - returns a disconnect status without leaving in-flight scan rejection unhandled
+      ---
+      duration_ms: 11.932709
+      type: 'test'
+      ...
+    1..11
+ok 1 - ENS Resolution & API Route Integration Tests
+  ---
+  duration_ms: 4799.749458
+  type: 'suite'
+  ...
+# Subtest: POST /api/web-vitals
+    # Subtest: writes only the privacy-safe event to the approved structured-log sink
+    ok 1 - writes only the privacy-safe event to the approved structured-log sink
+      ---
+      duration_ms: 52.419208
+      type: 'test'
+      ...
+    # Subtest: rejects malformed, expanded, and oversized payloads without logging them
+    ok 2 - rejects malformed, expanded, and oversized payloads without logging them
+      ---
+      duration_ms: 1.462458
+      type: 'test'
+      ...
+    1..2
+ok 2 - POST /api/web-vitals
+  ---
+  duration_ms: 54.684208
+  type: 'suite'
+  ...
+# Subtest: documentation topic filtering
+    # Subtest: matches topic title, category, and file path while preserving order
+    ok 1 - matches topic title, category, and file path while preserving order
+      ---
+      duration_ms: 2.037375
+      type: 'test'
+      ...
+    # Subtest: selects the first match only when the active topic is outside the results
+    ok 2 - selects the first match only when the active topic is outside the results
+      ---
+      duration_ms: 0.107875
+      type: 'test'
+      ...
+    # Subtest: returns no active replacement for a no-results query
+    ok 3 - returns no active replacement for a no-results query
+      ---
+      duration_ms: 0.148916
+      type: 'test'
+      ...
+    1..3
+ok 3 - documentation topic filtering
+  ---
+  duration_ms: 3.041916
+  type: 'suite'
+  ...
+# Subtest: keeps page scrolling native and limits motion to explicit navigation
+ok 4 - keeps page scrolling native and limits motion to explicit navigation
+  ---
+  duration_ms: 2.248625
+  type: 'test'
+  ...
+# Subtest: brand contrast tokens
+    # Subtest: defines contrast-safe orange text, badges, focus outlines, and live indicators
+    ok 1 - defines contrast-safe orange text, badges, focus outlines, and live indicators
+      ---
+      duration_ms: 1.40275
+      type: 'test'
+      ...
+    1..1
+ok 5 - brand contrast tokens
+  ---
+  duration_ms: 1.606292
+  type: 'suite'
+  ...
+# Subtest: collapses the loaded single-wallet form while keeping edit values available
+ok 6 - collapses the loaded single-wallet form while keeping edit values available
+  ---
+  duration_ms: 0.932791
+  type: 'test'
+  ...
+# Subtest: clears single-wallet state when switching into cluster mode
+ok 7 - clears single-wallet state when switching into cluster mode
+  ---
+  duration_ms: 0.162209
+  type: 'test'
+  ...
+# Subtest: branded not-found recovery exposes scanner and methodology actions
+ok 8 - branded not-found recovery exposes scanner and methodology actions
+  ---
+  duration_ms: 46.464667
+  type: 'test'
+  ...
+# Subtest: R10 public route and security contracts
+    # Subtest: generates the seven public sitemap URLs from one HTTPS origin
+    ok 1 - generates the seven public sitemap URLs from one HTTPS origin
+      ---
+      duration_ms: 1.511167
+      type: 'test'
+      ...
+    # Subtest: keeps docs metadata distinct and canonical to /docs
+    ok 2 - keeps docs metadata distinct and canonical to /docs
+      ---
+      duration_ms: 0.538417
+      type: 'test'
+      ...
+    # Subtest: describes rate-limit resilience without guaranteeing retrieval
+    ok 3 - describes rate-limit resilience without guaranteeing retrieval
+      ---
+      duration_ms: 1.640166
+      type: 'test'
+      ...
+    # Subtest: declares the required response headers and disables powered-by disclosure
+    ok 4 - declares the required response headers and disables powered-by disclosure
+      ---
+      duration_ms: 0.14425
+      type: 'test'
+      ...
+    1..4
+ok 9 - R10 public route and security contracts
+  ---
+  duration_ms: 7.813959
+  type: 'suite'
+  ...
+# Subtest: SEO landing route fallback behavior
+    # Subtest: renders unknown slugs through the explicit not-found branch
+    ok 1 - renders unknown slugs through the explicit not-found branch
+      ---
+      duration_ms: 1.23325
+      type: 'test'
+      ...
+    1..1
+ok 10 - SEO landing route fallback behavior
+  ---
+  duration_ms: 2.475417
+  type: 'suite'
+  ...
+# Subtest: does not render a hidden table that can create phantom scroll height
+ok 11 - does not render a hidden table that can create phantom scroll height
+  ---
+  duration_ms: 14.912166
+  type: 'test'
+  ...
+# Subtest: Approval exposure reporting
+    # Subtest: separates USD exposure, high-risk counts, unlimited counts, and provenance
+    ok 1 - separates USD exposure, high-risk counts, unlimited counts, and provenance
+      ---
+      duration_ms: 40.979375
+      type: 'test'
+      ...
+    # Subtest: does not present repeated approval rows as a spender count
+    ok 2 - does not present repeated approval rows as a spender count
+      ---
+      duration_ms: 116.978417
+      type: 'test'
+      ...
+    # Subtest: keeps repeated spenders as approval rows across one and multiple chains
+    ok 3 - keeps repeated spenders as approval rows across one and multiple chains
+      ---
+      duration_ms: 6.767375
+      type: 'test'
+      ...
+    # Subtest: limits the approvals table to one paginated page
+    ok 4 - limits the approvals table to one paginated page
+      ---
+      duration_ms: 105.010458
+      type: 'test'
+      ...
+    # Subtest: does not render unavailable exposure as zero dollars
+    ok 5 - does not render unavailable exposure as zero dollars
+      ---
+      duration_ms: 2.921667
+      type: 'test'
+      ...
+    # Subtest: keeps approval summary metrics compact and grouped on small screens
+    ok 6 - keeps approval summary metrics compact and grouped on small screens
+      ---
+      duration_ms: 0.219333
+      type: 'test'
+      ...
+    # Subtest: keeps unknown tokens distinguishable and links each contract independently
+    ok 7 - keeps unknown tokens distinguishable and links each contract independently
+      ---
+      duration_ms: 3.775458
+      type: 'test'
+      ...
+    # Subtest: names the token copy action with the full address and reports clipboard success
+    ok 8 - names the token copy action with the full address and reports clipboard success
+      ---
+      duration_ms: 5.701542
+      type: 'test'
+      ...
+    1..8
+ok 12 - Approval exposure reporting
+  ---
+  duration_ms: 283.584375
+  type: 'suite'
+  ...
+# Subtest: Cluster dashboard provider availability messaging
+    # Subtest: withholds aggregate conclusions for incomplete clusters
+    ok 1 - withholds aggregate conclusions for incomplete clusters
+      ---
+      duration_ms: 0.648875
+      type: 'test'
+      ...
+    # Subtest: renders failed wallets instead of complete-cluster conclusions
+    ok 2 - renders failed wallets instead of complete-cluster conclusions
+      ---
+      duration_ms: 33.591791
+      type: 'test'
+      ...
+    # Subtest: explains when a contract account is not eligible for wallet-cluster analysis
+    ok 3 - explains when a contract account is not eligible for wallet-cluster analysis
+      ---
+      duration_ms: 3.604
+      type: 'test'
+      ...
+    # Subtest: derives direct-transfer narrative only from evidence-backed linkage fields
+    ok 4 - derives direct-transfer narrative only from evidence-backed linkage fields
+      ---
+      duration_ms: 26.789459
+      type: 'test'
+      ...
+    # Subtest: labels saved-cluster shared-counterparty gaps as excluded evidence
+    ok 5 - labels saved-cluster shared-counterparty gaps as excluded evidence
+      ---
+      duration_ms: 26.686
+      type: 'test'
+      ...
+    1..5
+ok 13 - Cluster dashboard provider availability messaging
+  ---
+  duration_ms: 92.397334
+  type: 'suite'
+  ...
+# Subtest: cluster wallet input validation
+    # Subtest: keeps unique valid wallets while reporting duplicate and invalid entries
+    ok 1 - keeps unique valid wallets while reporting duplicate and invalid entries
+      ---
+      duration_ms: 3.244666
+      type: 'test'
+      ...
+    # Subtest: shows rejected entries before enabling a cluster scan
+    ok 2 - shows rejected entries before enabling a cluster scan
+      ---
+      duration_ms: 0.4845
+      type: 'test'
+      ...
+    # Subtest: separates filling sample addresses from loading the saved cluster example
+    ok 3 - separates filling sample addresses from loading the saved cluster example
+      ---
+      duration_ms: 0.260292
+      type: 'test'
+      ...
+    1..3
+ok 14 - cluster wallet input validation
+  ---
+  duration_ms: 5.112541
+  type: 'suite'
+  ...
+# Subtest: labels missing transfer prices as unavailable instead of presenting zero
+ok 15 - labels missing transfer prices as unavailable instead of presenting zero
+  ---
+  duration_ms: 6.327917
+  type: 'test'
+  ...
+# Subtest: uses an explicit network label for protocol graph nodes
+ok 16 - uses an explicit network label for protocol graph nodes
+  ---
+  duration_ms: 0.104916
+  type: 'test'
+  ...
+# Subtest: lays out zero to eight protocol nodes without horizontal box overlap
+ok 17 - lays out zero to eight protocol nodes without horizontal box overlap
+  ---
+  duration_ms: 2.059959
+  type: 'test'
+  ...
+# Subtest: keeps the dense 23-node fixture in separate lanes and inside the viewBox
+ok 18 - keeps the dense 23-node fixture in separate lanes and inside the viewBox
+  ---
+  duration_ms: 0.752709
+  type: 'test'
+  ...
+# Subtest: applies fifty moves at the latest position once per frame
+ok 19 - applies fifty moves at the latest position once per frame
+  ---
+  duration_ms: 3.205375
+  type: 'test'
+  ...
+# Subtest: does not pan for vertical touch movement
+ok 20 - does not pan for vertical touch movement
+  ---
+  duration_ms: 0.590375
+  type: 'test'
+  ...
+# Subtest: pans for horizontal touch movement and preserves its final position
+ok 21 - pans for horizontal touch movement and preserves its final position
+  ---
+  duration_ms: 0.37225
+  type: 'test'
+  ...
+# Subtest: keeps mouse drag and its final pointerup position working
+ok 22 - keeps mouse drag and its final pointerup position working
+  ---
+  duration_ms: 0.481
+  type: 'test'
+  ...
+# Subtest: cancels pending pan on pointer cancellation and lost capture
+ok 23 - cancels pending pan on pointer cancellation and lost capture
+  ---
+  duration_ms: 0.23675
+  type: 'test'
+  ...
+# Subtest: cancels pending pan when the interaction is disposed
+ok 24 - cancels pending pan when the interaction is disposed
+  ---
+  duration_ms: 0.0945
+  type: 'test'
+  ...
+# Subtest: keeps ordinary wheel and vertical touch scrolling native
+ok 25 - keeps ordinary wheel and vertical touch scrolling native
+  ---
+  duration_ms: 0.17575
+  type: 'test'
+  ...
+# Subtest: keeps zoom and reset behavior working
+ok 26 - keeps zoom and reset behavior working
+  ---
+  duration_ms: 0.198583
+  type: 'test'
+  ...
+# Subtest: keeps graph inspection available through explicit keyboard-reachable controls
+ok 27 - keeps graph inspection available through explicit keyboard-reachable controls
+  ---
+  duration_ms: 0.399542
+  type: 'test'
+  ...
+# Subtest: Protocol Identity Badges Genuine Extraction Tests
+    # Subtest: should return empty badges array for clean or new wallets with 0 protocol interactions
+    ok 1 - should return empty badges array for clean or new wallets with 0 protocol interactions
+      ---
+      duration_ms: 3.892834
+      type: 'test'
+      ...
+    # Subtest: should NOT award OP_DELEGATOR simply because multiple chains were scanned
+    ok 2 - should NOT award OP_DELEGATOR simply because multiple chains were scanned
+      ---
+      duration_ms: 5.053125
+      type: 'test'
+      ...
+    # Subtest: should award genuine badges when actual protocols are interacted with
+    ok 3 - should award genuine badges when actual protocols are interacted with
+      ---
+      duration_ms: 0.338
+      type: 'test'
+      ...
+    1..3
+ok 28 - Protocol Identity Badges Genuine Extraction Tests
+  ---
+  duration_ms: 13.241667
+  type: 'suite'
+  ...
+# Subtest: Dashboard Currency & Capital Flow Formatter Tests
+    # Subtest: should format small dollar amounts (e.g. 3.692471) to exactly 2 decimal places ($3.69)
+    ok 1 - should format small dollar amounts (e.g. 3.692471) to exactly 2 decimal places ($3.69)
+      ---
+      duration_ms: 0.257375
+      type: 'test'
+      ...
+    # Subtest: should format thousands ($X.XXK)
+    ok 2 - should format thousands ($X.XXK)
+      ---
+      duration_ms: 0.119208
+      type: 'test'
+      ...
+    # Subtest: should format millions ($X.XXM)
+    ok 3 - should format millions ($X.XXM)
+      ---
+      duration_ms: 0.049625
+      type: 'test'
+      ...
+    # Subtest: should format billions ($X.XXB)
+    ok 4 - should format billions ($X.XXB)
+      ---
+      duration_ms: 0.167917
+      type: 'test'
+      ...
+    # Subtest: should format trillions ($X.XXT)
+    ok 5 - should format trillions ($X.XXT)
+      ---
+      duration_ms: 0.231959
+      type: 'test'
+      ...
+    # Subtest: should handle zero, null, undefined and invalid strings gracefully
+    ok 6 - should handle zero, null, undefined and invalid strings gracefully
+      ---
+      duration_ms: 0.1695
+      type: 'test'
+      ...
+    1..6
+ok 29 - Dashboard Currency & Capital Flow Formatter Tests
+  ---
+  duration_ms: 1.316708
+  type: 'suite'
+  ...
+# Subtest: Dashboard provider availability messaging
+    # Subtest: renders a complete mock result as the normal analytics dashboard
+    ok 1 - renders a complete mock result as the normal analytics dashboard
+      ---
+      duration_ms: 44.593125
+      type: 'test'
+      ...
+    # Subtest: withholds definitive analytics for partial and unavailable scans
+    ok 2 - withholds definitive analytics for partial and unavailable scans
+      ---
+      duration_ms: 0.15025
+      type: 'test'
+      ...
+    # Subtest: renders canonical worst-chain risk without trust-score inversion or hardcoded aggression
+    ok 3 - renders canonical worst-chain risk without trust-score inversion or hardcoded aggression
+      ---
+      duration_ms: 10.341166
+      type: 'test'
+      ...
+    # Subtest: renders dataset-level failures instead of the normal clean dashboard
+    ok 4 - renders dataset-level failures instead of the normal clean dashboard
+      ---
+      duration_ms: 1.30575
+      type: 'test'
+      ...
+    # Subtest: keeps successfully returned analytics visible under a partial-data warning
+    ok 5 - keeps successfully returned analytics visible under a partial-data warning
+      ---
+      duration_ms: 4.2025
+      type: 'test'
+      ...
+    # Subtest: consolidates chain warnings into one expandable provider summary
+    ok 6 - consolidates chain warnings into one expandable provider summary
+      ---
+      duration_ms: 6.051375
+      type: 'test'
+      ...
+    # Subtest: does not promote partial capital flow as a Behavioral DNA headline
+    ok 7 - does not promote partial capital flow as a Behavioral DNA headline
+      ---
+      duration_ms: 11.680833
+      type: 'test'
+      ...
+    # Subtest: shows a complete per-chain transaction distribution beside lifetime gas
+    ok 8 - shows a complete per-chain transaction distribution beside lifetime gas
+      ---
+      duration_ms: 8.354583
+      type: 'test'
+      ...
+    # Subtest: does not present incomplete chain history as zero activity
+    ok 9 - does not present incomplete chain history as zero activity
+      ---
+      duration_ms: 7.662
+      type: 'test'
+      ...
+    # Subtest: keeps blacklist detection visible when behavioral Sybil scoring is gated
+    ok 10 - keeps blacklist detection visible when behavioral Sybil scoring is gated
+      ---
+      duration_ms: 6.755333
+      type: 'test'
+      ...
+    # Subtest: keeps horizontally scrolled dashboard tabs discoverable and operable
+    ok 11 - keeps horizontally scrolled dashboard tabs discoverable and operable
+      ---
+      duration_ms: 0.301792
+      type: 'test'
+      ...
+    1..11
+ok 30 - Dashboard provider availability messaging
+  ---
+  duration_ms: 101.679917
+  type: 'suite'
+  ...
+# Subtest: keeps an unavailable provider result explicit in the dashboard UI
+ok 31 - keeps an unavailable provider result explicit in the dashboard UI
+  ---
+  duration_ms: 9.701167
+  type: 'test'
+  ...
+# Subtest: demo snapshot notice states that saved data is dated and not live
+ok 32 - demo snapshot notice states that saved data is dated and not live
+  ---
+  duration_ms: 20.515458
+  type: 'test'
+  ...
+# Subtest: combines saved snapshot and data-quality evidence in one disclosure region
+ok 33 - combines saved snapshot and data-quality evidence in one disclosure region
+  ---
+  duration_ms: 2.956583
+  type: 'test'
+  ...
+# Subtest: uses a restrained warning frame while keeping the top-level history status visible
+ok 34 - uses a restrained warning frame while keeping the top-level history status visible
+  ---
+  duration_ms: 0.977042
+  type: 'test'
+  ...
+# Subtest: FilterDropdown
+    # Subtest: renders a design-system trigger and accessible listbox instead of a native select
+    ok 1 - renders a design-system trigger and accessible listbox instead of a native select
+      ---
+      duration_ms: 11.942209
+      type: 'test'
+      ...
+    1..1
+ok 35 - FilterDropdown
+  ---
+  duration_ms: 12.611416
+  type: 'suite'
+  ...
+# Subtest: gas summary precision
+    # Subtest: keeps non-zero network gas visible when its USD value is non-zero
+    ok 1 - keeps non-zero network gas visible when its USD value is non-zero
+      ---
+      duration_ms: 36.273959
+      type: 'test'
+      ...
+    1..1
+ok 36 - gas summary precision
+  ---
+  duration_ms: 36.954417
+  type: 'suite'
+  ...
+# Subtest: IdentityCard account type display
+    # Subtest: hides the classification section for a regular wallet on every checked chain
+    ok 1 - hides the classification section for a regular wallet on every checked chain
+      ---
+      duration_ms: 8.154292
+      type: 'test'
+      ...
+    # Subtest: shows compact contract and smart-wallet labels
+    ok 2 - shows compact contract and smart-wallet labels
+      ---
+      duration_ms: 2.787208
+      type: 'test'
+      ...
+    # Subtest: puts different network types behind a native details disclosure
+    ok 3 - puts different network types behind a native details disclosure
+      ---
+      duration_ms: 0.856792
+      type: 'test'
+      ...
+    # Subtest: puts failed checks and only their affected networks behind details
+    ok 4 - puts failed checks and only their affected networks behind details
+      ---
+      duration_ms: 0.6305
+      type: 'test'
+      ...
+    1..4
+ok 37 - IdentityCard account type display
+  ---
+  duration_ms: 13.201625
+  type: 'suite'
+  ...
+# Subtest: Protocol interaction network rendering
+    # Subtest: keeps same-named protocols separate and renders the Base explorer
+    ok 1 - keeps same-named protocols separate and renders the Base explorer
+      ---
+      duration_ms: 69.578375
+      type: 'test'
+      ...
+    # Subtest: renders tiny non-zero protocol gas without displaying zero
+    ok 2 - renders tiny non-zero protocol gas without displaying zero
+      ---
+      duration_ms: 2.416167
+      type: 'test'
+      ...
+    # Subtest: turns an Other protocol result into an actionable unclassified breakdown
+    ok 3 - turns an Other protocol result into an actionable unclassified breakdown
+      ---
+      duration_ms: 1.91375
+      type: 'test'
+      ...
+    1..3
+ok 38 - Protocol interaction network rendering
+  ---
+  duration_ms: 74.654792
+  type: 'suite'
+  ...
+# Subtest: renders the loaded wallet target, selected networks, evidence mode, and edit action
+ok 39 - renders the loaded wallet target, selected networks, evidence mode, and edit action
+  ---
+  duration_ms: 8.280791
+  type: 'test'
+  ...
+# Subtest: shows cached fetch time, history reuse, and refresh action
+ok 40 - shows cached fetch time, history reuse, and refresh action
+  ---
+  duration_ms: 28.92175
+  type: 'test'
+  ...
+# Subtest: scan progress panel
+    # Subtest: shows honest live scan evidence for only the selected chains
+    ok 1 - shows honest live scan evidence for only the selected chains
+      ---
+      duration_ms: 27.755917
+      type: 'test'
+      ...
+    1..1
+ok 41 - scan progress panel
+  ---
+  duration_ms: 28.6905
+  type: 'suite'
+  ...
+# Subtest: renders the logo as a home link when no guide action is provided
+ok 42 - renders the logo as a home link when no guide action is provided
+  ---
+  duration_ms: 11.643291
+  type: 'test'
+  ...
+# Subtest: keeps the logo guide action available for a loaded dashboard
+ok 43 - keeps the logo guide action available for a loaded dashboard
+  ---
+  duration_ms: 1.146959
+  type: 'test'
+  ...
+# Subtest: renders a single mobile navigation disclosure with status outside the closed region
+ok 44 - renders a single mobile navigation disclosure with status outside the closed region
+  ---
+  duration_ms: 1.682458
+  type: 'test'
+  ...
+# Subtest: Sybil and blacklist precedence
+    # Subtest: lets a positive blacklist match override an organic behavioral headline
+    ok 1 - lets a positive blacklist match override an organic behavioral headline
+      ---
+      duration_ms: 7.923834
+      type: 'test'
+      ...
+    # Subtest: shows blacklist checks while marking the gated behavioral model unavailable
+    ok 2 - shows blacklist checks while marking the gated behavioral model unavailable
+      ---
+      duration_ms: 1.106709
+      type: 'test'
+      ...
+    1..2
+ok 45 - Sybil and blacklist precedence
+  ---
+  duration_ms: 10.737542
+  type: 'suite'
+  ...
+# Subtest: renders one row for duplicate transfer events
+ok 46 - renders one row for duplicate transfer events
+  ---
+  duration_ms: 45.746875
+  type: 'test'
+  ...
+# Subtest: searches transfer token, hash, counterparty, and label fields
+ok 47 - searches transfer token, hash, counterparty, and label fields
+  ---
+  duration_ms: 0.273125
+  type: 'test'
+  ...
+# Subtest: combines direction and chain filters before pagination
+ok 48 - combines direction and chain filters before pagination
+  ---
+  duration_ms: 2.101458
+  type: 'test'
+  ...
+# Subtest: clamps page boundaries and reports accurate visible ranges
+ok 49 - clamps page boundaries and reports accurate visible ranges
+  ---
+  duration_ms: 1.047666
+  type: 'test'
+  ...
+# Subtest: renders a 50-row page with live count and operable pagination controls
+ok 50 - renders a 50-row page with live count and operable pagination controls
+  ---
+  duration_ms: 43.89875
+  type: 'test'
+  ...
+# Subtest: labels the transfer table scope and excludes native transfer rows
+ok 51 - labels the transfer table scope and excludes native transfer rows
+  ---
+  duration_ms: 13.940958
+  type: 'test'
+  ...
+# Subtest: shows token identity and suppresses legacy ticker-only USD values
+ok 52 - shows token identity and suppresses legacy ticker-only USD values
+  ---
+  duration_ms: 4.2425
+  type: 'test'
+  ...
+# Subtest: uses compact desktop row padding without removing token identity or explorer actions
+ok 53 - uses compact desktop row padding without removing token identity or explorer actions
+  ---
+  duration_ms: 2.895416
+  type: 'test'
+  ...
+# Subtest: hardens the reported saved Vitalik snapshot row
+ok 54 - hardens the reported saved Vitalik snapshot row
+  ---
+  duration_ms: 39.55175
+  type: 'test'
+  ...
+# Subtest: Web Vitals integration
+    # Subtest: sends sampled metrics to the first-party privacy-safe endpoint
+    ok 1 - sends sampled metrics to the first-party privacy-safe endpoint
+      ---
+      duration_ms: 0.570875
+      type: 'test'
+      ...
+    1..1
+ok 55 - Web Vitals integration
+  ---
+  duration_ms: 3.529
+  type: 'suite'
+  ...
+# Subtest: WelcomeGuide saved demo hierarchy
+    # Subtest: keeps saved-card typography on the main font without monospace overrides
+    ok 1 - keeps saved-card typography on the main font without monospace overrides
+      ---
+      duration_ms: 27.19275
+      type: 'test'
+      ...
+    # Subtest: renders all saved demos in the existing uniform grid with the original card treatment
+    ok 2 - renders all saved demos in the existing uniform grid with the original card treatment
+      ---
+      duration_ms: 8.232209
+      type: 'test'
+      ...
+    # Subtest: preserves the earlier card copy inside every saved card
+    ok 3 - preserves the earlier card copy inside every saved card
+      ---
+      duration_ms: 9.91425
+      type: 'test'
+      ...
+    # Subtest: keeps every saved demo selectable with its date and non-live disclosure
+    ok 4 - keeps every saved demo selectable with its date and non-live disclosure
+      ---
+      duration_ms: 10.732
+      type: 'test'
+      ...
+    1..4
+ok 56 - WelcomeGuide saved demo hierarchy
+  ---
+  duration_ms: 57.905792
+  type: 'suite'
+  ...
+# Subtest: keeps secondary controls compact on desktop while preserving mobile targets
+ok 57 - keeps secondary controls compact on desktop while preserving mobile targets
+  ---
+  duration_ms: 1.31275
+  type: 'test'
+  ...
+# Subtest: compacts transfer rows on desktop while preserving token identity and neutral elevation
+ok 58 - compacts transfer rows on desktop while preserving token identity and neutral elevation
+  ---
+  duration_ms: 3.033625
+  type: 'test'
+  ...
+# Subtest: keeps loaded evidence concise and snapshot warnings restrained
+ok 59 - keeps loaded evidence concise and snapshot warnings restrained
+  ---
+  duration_ms: 0.2705
+  type: 'test'
+  ...
+# Subtest: P1 design-audit contracts
+    # Subtest: gives every input and search field a visible focus treatment
+    ok 1 - gives every input and search field a visible focus treatment
+      ---
+      duration_ms: 2.263916
+      type: 'test'
+      ...
+    # Subtest: jumps to the first matching documentation topic and restores focus when cleared
+    ok 2 - jumps to the first matching documentation topic and restores focus when cleared
+      ---
+      duration_ms: 0.777417
+      type: 'test'
+      ...
+    # Subtest: keeps the canonical contract linkable and qualifies unbenchmarked figures
+    ok 3 - keeps the canonical contract linkable and qualifies unbenchmarked figures
+      ---
+      duration_ms: 0.284333
+      type: 'test'
+      ...
+    1..3
+ok 60 - P1 design-audit contracts
+  ---
+  duration_ms: 4.024833
+  type: 'suite'
+  ...
+# Subtest: P3 accessibility contracts
+    # Subtest: implements complete landing, dashboard, and cluster tab semantics
+    ok 1 - implements complete landing, dashboard, and cluster tab semantics
+      ---
+      duration_ms: 1.271709
+      type: 'test'
+      ...
+    # Subtest: uses a button inside each sortable cluster header and exposes sort state
+    ok 2 - uses a button inside each sortable cluster header and exposes sort state
+      ---
+      duration_ms: 0.899375
+      type: 'test'
+      ...
+    # Subtest: keeps the demo list as keyboard-accessible actions
+    ok 3 - keeps the demo list as keyboard-accessible actions
+      ---
+      duration_ms: 0.192917
+      type: 'test'
+      ...
+    # Subtest: renders the original saved-demo cards only once
+    ok 4 - renders the original saved-demo cards only once
+      ---
+      duration_ms: 0.185166
+      type: 'test'
+      ...
+    # Subtest: keeps single-wallet demo notices scoped to single-wallet mode
+    ok 5 - keeps single-wallet demo notices scoped to single-wallet mode
+      ---
+      duration_ms: 0.099458
+      type: 'test'
+      ...
+    # Subtest: renders a state-aware top-level indexing status
+    ok 6 - renders a state-aware top-level indexing status
+      ---
+      duration_ms: 0.17175
+      type: 'test'
+      ...
+    # Subtest: uses one standardized primary header on scanner and docs
+    ok 7 - uses one standardized primary header on scanner and docs
+      ---
+      duration_ms: 0.401541
+      type: 'test'
+      ...
+    # Subtest: keeps navigation, footer links, and compact actions near 44px tap targets
+    ok 8 - keeps navigation, footer links, and compact actions near 44px tap targets
+      ---
+      duration_ms: 0.732625
+      type: 'test'
+      ...
+    # Subtest: documents the four supported EVM networks
+    ok 9 - documents the four supported EVM networks
+      ---
+      duration_ms: 0.603375
+      type: 'test'
+      ...
+    # Subtest: uses one compact mobile documentation index and keeps the full desktop index
+    ok 10 - uses one compact mobile documentation index and keeps the full desktop index
+      ---
+      duration_ms: 0.541917
+      type: 'test'
+      ...
+    # Subtest: provides a mobile jump control that returns focus to the native topic index
+    ok 11 - provides a mobile jump control that returns focus to the native topic index
+      ---
+      duration_ms: 0.291667
+      type: 'test'
+      ...
+    # Subtest: uses framed dashboard modules with dividers inside dense groups
+    ok 12 - uses framed dashboard modules with dividers inside dense groups
+      ---
+      duration_ms: 0.382292
+      type: 'test'
+      ...
+    # Subtest: groups flow and gas summaries into readable cards
+    ok 13 - groups flow and gas summaries into readable cards
+      ---
+      duration_ms: 0.202542
+      type: 'test'
+      ...
+    # Subtest: keeps the flow graph prominent and labels unavailable values explicitly
+    ok 14 - keeps the flow graph prominent and labels unavailable values explicitly
+      ---
+      duration_ms: 0.172042
+      type: 'test'
+      ...
+    # Subtest: consolidates provider warnings behind one native disclosure summary
+    ok 15 - consolidates provider warnings behind one native disclosure summary
+      ---
+      duration_ms: 0.132208
+      type: 'test'
+      ...
+    # Subtest: provides non-visual chart and heatmap summaries
+    ok 16 - provides non-visual chart and heatmap summaries
+      ---
+      duration_ms: 0.962
+      type: 'test'
+      ...
+    # Subtest: names icon-only explorer and graph controls
+    ok 17 - names icon-only explorer and graph controls
+      ---
+      duration_ms: 0.563417
+      type: 'test'
+      ...
+    # Subtest: renders transfer chain provenance and deduplicates rows before rendering
+    ok 18 - renders transfer chain provenance and deduplicates rows before rendering
+      ---
+      duration_ms: 0.127458
+      type: 'test'
+      ...
+    # Subtest: keeps the approvals table searchable, filterable, and paginated
+    ok 19 - keeps the approvals table searchable, filterable, and paginated
+      ---
+      duration_ms: 0.162333
+      type: 'test'
+      ...
+    # Subtest: describes direct and shared-counterparty graph connections without undefined counts
+    ok 20 - describes direct and shared-counterparty graph connections without undefined counts
+      ---
+      duration_ms: 0.09225
+      type: 'test'
+      ...
+    1..20
+ok 61 - P3 accessibility contracts
+  ---
+  duration_ms: 10.505834
+  type: 'suite'
+  ...
+# Subtest: P3 mobile layout contracts
+    # Subtest: keeps the page shell and header from widening narrow viewports
+    ok 1 - keeps the page shell and header from widening narrow viewports
+      ---
+      duration_ms: 0.850125
+      type: 'test'
+      ...
+    # Subtest: keeps the primary wallet scan action full-width on small screens
+    ok 2 - keeps the primary wallet scan action full-width on small screens
+      ---
+      duration_ms: 9.046542
+      type: 'test'
+      ...
+    # Subtest: keeps scan modes equal-width on mobile and hides decorative cluster metadata
+    ok 3 - keeps scan modes equal-width on mobile and hides decorative cluster metadata
+      ---
+      duration_ms: 0.253125
+      type: 'test'
+      ...
+    # Subtest: renders the wallet search input empty by default
+    ok 4 - renders the wallet search input empty by default
+      ---
+      duration_ms: 1.014584
+      type: 'test'
+      ...
+    # Subtest: keeps the bounded product promise above the wallet search console
+    ok 5 - keeps the bounded product promise above the wallet search console
+      ---
+      duration_ms: 0.176625
+      type: 'test'
+      ...
+    # Subtest: labels deliberate horizontal scroll regions and makes them keyboard-scrollable
+    ok 6 - labels deliberate horizontal scroll regions and makes them keyboard-scrollable
+      ---
+      duration_ms: 0.283875
+      type: 'test'
+      ...
+    # Subtest: renders the full wallet address as copyable without forcing it into the layout
+    ok 7 - renders the full wallet address as copyable without forcing it into the layout
+      ---
+      duration_ms: 0.900709
+      type: 'test'
+      ...
+    # Subtest: uses one identity hierarchy and an equal-width connected-account grid
+    ok 8 - uses one identity hierarchy and an equal-width connected-account grid
+      ---
+      duration_ms: 1.959
+      type: 'test'
+      ...
+    1..8
+ok 62 - P3 mobile layout contracts
+  ---
+  duration_ms: 15.333208
+  type: 'suite'
+  ...
+# Subtest: R02 product promise and coverage copy
+    # Subtest: bounds the home promise to observable activity on the four supported EVM networks
+    ok 1 - bounds the home promise to observable activity on the four supported EVM networks
+      ---
+      duration_ms: 3.195292
+      type: 'test'
+      ...
+    # Subtest: keeps public metadata and documentation aligned with the bounded promise
+    ok 2 - keeps public metadata and documentation aligned with the bounded promise
+      ---
+      duration_ms: 1.819167
+      type: 'test'
+      ...
+    # Subtest: retains explicit partial and unavailable result-state caveats
+    ok 3 - retains explicit partial and unavailable result-state caveats
+      ---
+      duration_ms: 0.144375
+      type: 'test'
+      ...
+    1..3
+ok 63 - R02 product promise and coverage copy
+  ---
+  duration_ms: 5.883708
+  type: 'suite'
+  ...
+# Subtest: R03 accessibility and contrast contracts
+    # Subtest: uses visible, high-contrast wallet field guidance
+    ok 1 - uses visible, high-contrast wallet field guidance
+      ---
+      duration_ms: 0.730625
+      type: 'test'
+      ...
+    # Subtest: keeps important gas provenance readable
+    ok 2 - keeps important gas provenance readable
+      ---
+      duration_ms: 0.292791
+      type: 'test'
+      ...
+    # Subtest: publishes selected state for transfer direction and network filters
+    ok 3 - publishes selected state for transfer direction and network filters
+      ---
+      duration_ms: 0.11875
+      type: 'test'
+      ...
+    # Subtest: keeps exactly one stable panel target per scan mode
+    ok 4 - keeps exactly one stable panel target per scan mode
+      ---
+      duration_ms: 0.356083
+      type: 'test'
+      ...
+    # Subtest: keeps the full-address disclosure target in the DOM while collapsed
+    ok 5 - keeps the full-address disclosure target in the DOM while collapsed
+      ---
+      duration_ms: 8.362167
+      type: 'test'
+      ...
+    # Subtest: keeps the decorative graph free of hidden keyboard controls
+    ok 6 - keeps the decorative graph free of hidden keyboard controls
+      ---
+      duration_ms: 0.365125
+      type: 'test'
+      ...
+    1..6
+ok 64 - R03 accessibility and contrast contracts
+  ---
+  duration_ms: 11.030166
+  type: 'suite'
+  ...
+# Subtest: decorative UI effect runtime contracts
+    # Subtest: only permits loops when motion is allowed and the page is visible
+    ok 1 - only permits loops when motion is allowed and the page is visible
+      ---
+      duration_ms: 0.743708
+      type: 'test'
+      ...
+    # Subtest: enables the cursor for fine or hybrid pointers but not touch-only pointers
+    ok 2 - enables the cursor for fine or hybrid pointers but not touch-only pointers
+      ---
+      duration_ms: 1.64275
+      type: 'test'
+      ...
+    # Subtest: settles cursor motion using a small distance threshold
+    ok 3 - settles cursor motion using a small distance threshold
+      ---
+      duration_ms: 0.104084
+      type: 'test'
+      ...
+    # Subtest: bounds long pauses and caps background draws at 30 FPS
+    ok 4 - bounds long pauses and caps background draws at 30 FPS
+      ---
+      duration_ms: 0.125167
+      type: 'test'
+      ...
+    1..4
+ok 65 - decorative UI effect runtime contracts
+  ---
+  duration_ms: 3.8475
+  type: 'suite'
+  ...
+# Subtest: UI effect performance contracts
+    # Subtest: starts cursor work from fine-pointer movement and stops settled loops
+    ok 1 - starts cursor work from fine-pointer movement and stops settled loops
+      ---
+      duration_ms: 1.986125
+      type: 'test'
+      ...
+    # Subtest: handles background reduced motion, visibility, resize, and time-based drawing
+    ok 2 - handles background reduced motion, visibility, resize, and time-based drawing
+      ---
+      duration_ms: 0.179458
+      type: 'test'
+      ...
+    # Subtest: pauses graph line animation when hidden or outside the viewport
+    ok 3 - pauses graph line animation when hidden or outside the viewport
+      ---
+      duration_ms: 0.279292
+      type: 'test'
+      ...
+    1..3
+ok 66 - UI effect performance contracts
+  ---
+  duration_ms: 3.16525
+  type: 'suite'
+  ...
+# Subtest: cluster scan client
+    # Subtest: sends the bounded cluster request and returns its report
+    ok 1 - sends the bounded cluster request and returns its report
+      ---
+      duration_ms: 29.508666
+      type: 'test'
+      ...
+    # Subtest: surfaces a structured API failure
+    ok 2 - surfaces a structured API failure
+      ---
+      duration_ms: 0.452708
+      type: 'test'
+      ...
+    # Subtest: falls back to the HTTP status for a non-JSON failure
+    ok 3 - falls back to the HTTP status for a non-JSON failure
+      ---
+      duration_ms: 0.342209
+      type: 'test'
+      ...
+    1..3
+ok 67 - cluster scan client
+  ---
+  duration_ms: 31.034834
+  type: 'suite'
+  ...
+# Subtest: loads a demo through its static snapshot path without calling the scan API
+ok 68 - loads a demo through its static snapshot path without calling the scan API
+  ---
+  duration_ms: 32.155125
+  type: 'test'
+  ...
+# Subtest: rejects a snapshot for a different wallet
+ok 69 - rejects a snapshot for a different wallet
+  ---
+  duration_ms: 0.380166
+  type: 'test'
+  ...
+# Subtest: unsuccessful scan response errors
+    # Subtest: preserves a structured API error
+    ok 1 - preserves a structured API error
+      ---
+      duration_ms: 35.287042
+      type: 'test'
+      ...
+    # Subtest: uses the HTTP status when the response is not JSON
+    ok 2 - uses the HTTP status when the response is not JSON
+      ---
+      duration_ms: 0.361291
+      type: 'test'
+      ...
+    1..2
+ok 70 - unsuccessful scan response errors
+  ---
+  duration_ms: 38.97225
+  type: 'suite'
+  ...
+# Subtest: single-wallet scan stream client
+    # Subtest: reports streamed progress and returns the completed result
+    ok 1 - reports streamed progress and returns the completed result
+      ---
+      duration_ms: 31.582
+      type: 'test'
+      ...
+    # Subtest: surfaces a streamed scan failure
+    ok 2 - surfaces a streamed scan failure
+      ---
+      duration_ms: 1.6725
+      type: 'test'
+      ...
+    # Subtest: surfaces a structured HTTP failure before reading the stream
+    ok 3 - surfaces a structured HTTP failure before reading the stream
+      ---
+      duration_ms: 1.102875
+      type: 'test'
+      ...
+    # Subtest: sends an explicit refresh request when asked
+    ok 4 - sends an explicit refresh request when asked
+      ---
+      duration_ms: 0.330875
+      type: 'test'
+      ...
+    # Subtest: rejects a truncated stream without a final report
+    ok 5 - rejects a truncated stream without a final report
+      ---
+      duration_ms: 0.393
+      type: 'test'
+      ...
+    # Subtest: preserves cancellation as an AbortError
+    ok 6 - preserves cancellation as an AbortError
+      ---
+      duration_ms: 0.229542
+      type: 'test'
+      ...
+    1..6
+ok 71 - single-wallet scan stream client
+  ---
+  duration_ms: 36.634334
+  type: 'suite'
+  ...
+# Subtest: reads valid address and legacy wallet URL targets
+ok 72 - reads valid address and legacy wallet URL targets
+  ---
+  duration_ms: 1.367375
+  type: 'test'
+  ...
+# Subtest: rejects malformed URL targets before auto-scan starts
+ok 73 - rejects malformed URL targets before auto-scan starts
+  ---
+  duration_ms: 0.174708
+  type: 'test'
+  ...
+# Subtest: keyboard tab navigation
+    # Subtest: wraps arrow navigation and supports Home and End
+    ok 1 - wraps arrow navigation and supports Home and End
+      ---
+      duration_ms: 0.538708
+      type: 'test'
+      ...
+    # Subtest: ignores unrelated keys and empty tab lists
+    ok 2 - ignores unrelated keys and empty tab lists
+      ---
+      duration_ms: 0.06925
+      type: 'test'
+      ...
+    1..2
+ok 74 - keyboard tab navigation
+  ---
+  duration_ms: 1.444166
+  type: 'suite'
+  ...
+# Subtest: shared wallet account classifier
+    # Subtest: classifies empty deployed code as a verified EOA
+    ok 1 - classifies empty deployed code as a verified EOA
+      ---
+      duration_ms: 44.443958
+      type: 'test'
+      ...
+    # Subtest: recognizes EIP-7702 delegated EOAs from delegation bytecode
+    ok 2 - recognizes EIP-7702 delegated EOAs from delegation bytecode
+      ---
+      duration_ms: 1.8505
+      type: 'test'
+      ...
+    # Subtest: recognizes a minimal proxy as multisig or proxy
+    ok 3 - recognizes a minimal proxy as multisig or proxy
+      ---
+      duration_ms: 3.168875
+      type: 'test'
+      ...
+    # Subtest: recognizes Safe-compatible multisig threshold responses
+    ok 4 - recognizes Safe-compatible multisig threshold responses
+      ---
+      duration_ms: 2.431416
+      type: 'test'
+      ...
+    # Subtest: recognizes smart-account interface markers and ordinary contracts separately
+    ok 5 - recognizes smart-account interface markers and ordinary contracts separately
+      ---
+      duration_ms: 0.719292
+      type: 'test'
+      ...
+    # Subtest: returns unknown when no RPC can verify the account code
+    ok 6 - returns unknown when no RPC can verify the account code
+      ---
+      duration_ms: 0.205167
+      type: 'test'
+      ...
+    1..6
+ok 75 - shared wallet account classifier
+  ---
+  duration_ms: 53.980958
+  type: 'suite'
+  ...
+# Subtest: Cross-chain UTC activity aggregation
+    # Subtest: unions dates and derives peaks and streaks from the merged distribution
+    ok 1 - unions dates and derives peaks and streaks from the merged distribution
+      ---
+      duration_ms: 2.756666
+      type: 'test'
+      ...
+    # Subtest: returns an explicit empty profile when no chain has activity
+    ok 2 - returns an explicit empty profile when no chain has activity
+      ---
+      duration_ms: 0.143209
+      type: 'test'
+      ...
+    1..2
+ok 76 - Cross-chain UTC activity aggregation
+  ---
+  duration_ms: 3.851458
+  type: 'suite'
+  ...
+# Subtest: Approval exposure analysis
+    # Subtest: lets a newer revoke suppress an older unlimited approval
+    ok 1 - lets a newer revoke suppress an older unlimited approval
+      ---
+      duration_ms: 1.391125
+      type: 'test'
+      ...
+    # Subtest: caps finite approval exposure at the decoded allowance
+    ok 2 - caps finite approval exposure at the decoded allowance
+      ---
+      duration_ms: 0.225416
+      type: 'test'
+      ...
+    # Subtest: uses the priced positive balance for an unlimited approval
+    ok 3 - uses the priced positive balance for an unlimited approval
+      ---
+      duration_ms: 0.099125
+      type: 'test'
+      ...
+    # Subtest: uses the current spot quote instead of a transfer-time historical quote
+    ok 4 - uses the current spot quote instead of a transfer-time historical quote
+      ---
+      duration_ms: 31.327292
+      type: 'test'
+      ...
+    # Subtest: keeps unpriced positive balances unavailable instead of zero
+    ok 5 - keeps unpriced positive balances unavailable instead of zero
+      ---
+      duration_ms: 0.431458
+      type: 'test'
+      ...
+    # Subtest: reports an active approval with a zero balance separately from unavailable pricing
+    ok 6 - reports an active approval with a zero balance separately from unavailable pricing
+      ---
+      duration_ms: 0.168
+      type: 'test'
+      ...
+    1..6
+ok 77 - Approval exposure analysis
+  ---
+  duration_ms: 34.595416
+  type: 'suite'
+  ...
+# Subtest: Behavioral fingerprint high-volume history
+    # Subtest: computes timestamp bounds without overflowing the JavaScript call stack
+    ok 1 - computes timestamp bounds without overflowing the JavaScript call stack
+      ---
+      duration_ms: 372.404541
+      type: 'test'
+      ...
+    1..1
+ok 78 - Behavioral fingerprint high-volume history
+  ---
+  duration_ms: 373.307958
+  type: 'suite'
+  ...
+# Subtest: Protocol interaction attribution
+    # Subtest: attributes priced ERC-20-only swap legs by transaction hash and called contract
+    ok 1 - attributes priced ERC-20-only swap legs by transaction hash and called contract
+      ---
+      duration_ms: 2.526042
+      type: 'test'
+      ...
+    # Subtest: preserves Base network and native-token metadata
+    ok 2 - preserves Base network and native-token metadata
+      ---
+      duration_ms: 0.234
+      type: 'test'
+      ...
+    1..2
+ok 79 - Protocol interaction attribution
+  ---
+  duration_ms: 3.868709
+  type: 'suite'
+  ...
+# Subtest: Counterparty transaction counts
+    # Subtest: counts one outgoing transaction when native and multiple token legs share a hash
+    ok 1 - counts one outgoing transaction when native and multiple token legs share a hash
+      ---
+      duration_ms: 0.583625
+      type: 'test'
+      ...
+    # Subtest: counts distinct outgoing transaction hashes separately for the same recipient
+    ok 2 - counts distinct outgoing transaction hashes separately for the same recipient
+      ---
+      duration_ms: 0.190916
+      type: 'test'
+      ...
+    1..2
+ok 80 - Counterparty transaction counts
+  ---
+  duration_ms: 0.934583
+  type: 'suite'
+  ...
+# Subtest: Canonical risk model
+    # Subtest: locks the implemented factor caps and thresholds
+    ok 1 - locks the implemented factor caps and thresholds
+      ---
+      duration_ms: 1.261334
+      type: 'test'
+      ...
+    # Subtest: uses the documented grade boundaries
+    ok 2 - uses the documented grade boundaries
+      ---
+      duration_ms: 0.178417
+      type: 'test'
+      ...
+    1..2
+ok 81 - Canonical risk model
+  ---
+  duration_ms: 2.294709
+  type: 'suite'
+  ...
+# Subtest: Verified capital flow
+    # Subtest: deduplicates repeated token events without collapsing distinct legs in one transaction
+    ok 1 - deduplicates repeated token events without collapsing distinct legs in one transaction
+      ---
+      duration_ms: 0.572709
+      type: 'test'
+      ...
+    # Subtest: deduplicates token events before ranking and coverage totals
+    ok 2 - deduplicates token events before ranking and coverage totals
+      ---
+      duration_ms: 0.519125
+      type: 'test'
+      ...
+    # Subtest: includes historical and stablecoin values while excluding spot estimates and unpriced legs
+    ok 3 - includes historical and stablecoin values while excluding spot estimates and unpriced legs
+      ---
+      duration_ms: 0.965833
+      type: 'test'
+      ...
+    1..3
+ok 82 - Verified capital flow
+  ---
+  duration_ms: 2.854208
+  type: 'suite'
+  ...
+# Subtest: API request policy
+    # Subtest: validates supported single-scan input and rejects arbitrary fields
+    ok 1 - validates supported single-scan input and rejects arbitrary fields
+      ---
+      duration_ms: 7.221292
+      type: 'test'
+      ...
+    # Subtest: rejects malformed batch entries, duplicates, unsupported chains, and oversized batches
+    ok 2 - rejects malformed batch entries, duplicates, unsupported chains, and oversized batches
+      ---
+      duration_ms: 0.770875
+      type: 'test'
+      ...
+    # Subtest: rate-limits repeated callers deterministically
+    ok 3 - rate-limits repeated callers deterministically
+      ---
+      duration_ms: 43.979708
+      type: 'test'
+      ...
+    # Subtest: rate-limits forced refreshes separately from ordinary scans
+    ok 4 - rate-limits forced refreshes separately from ordinary scans
+      ---
+      duration_ms: 1.296583
+      type: 'test'
+      ...
+    # Subtest: bounds active route work until each task actually settles
+    ok 5 - bounds active route work until each task actually settles
+      ---
+      duration_ms: 0.132291
+      type: 'test'
+      ...
+    # Subtest: aborts timed-out work while waiting for the underlying operation to settle
+    ok 6 - aborts timed-out work while waiting for the underlying operation to settle
+      ---
+      duration_ms: 27.503125
+      type: 'test'
+      ...
+    # Subtest: propagates a disconnected request to cancellable work
+    ok 7 - propagates a disconnected request to cancellable work
+      ---
+      duration_ms: 4.944833
+      type: 'test'
+      ...
+    # Subtest: stops claiming new mapper items after cancellation
+    ok 8 - stops claiming new mapper items after cancellation
+      ---
+      duration_ms: 0.387875
+      type: 'test'
+      ...
+    # Subtest: enforces bounded mapper concurrency
+    ok 9 - enforces bounded mapper concurrency
+      ---
+      duration_ms: 10.93925
+      type: 'test'
+      ...
+    1..9
+ok 83 - API request policy
+  ---
+  duration_ms: 98.976042
+  type: 'suite'
+  ...
+# Subtest: scan request telemetry
+    # Subtest: accepts a safe request id and records aggregate operational fields only
+    ok 1 - accepts a safe request id and records aggregate operational fields only
+      ---
+      duration_ms: 35.263042
+      type: 'test'
+      ...
+    # Subtest: replaces unsafe client-supplied request ids
+    ok 2 - replaces unsafe client-supplied request ids
+      ---
+      duration_ms: 0.518125
+      type: 'test'
+      ...
+    1..2
+ok 84 - scan request telemetry
+  ---
+  duration_ms: 38.264917
+  type: 'suite'
+  ...
+# Subtest: MemoryCache & RateLimiter Core Tests
+    # Subtest: should store and retrieve cached items within TTL
+    ok 1 - should store and retrieve cached items within TTL
+      ---
+      duration_ms: 0.549542
+      type: 'test'
+      ...
+    # Subtest: should expire items after TTL
+    ok 2 - should expire items after TTL
+      ---
+      duration_ms: 151.231541
+      type: 'test'
+      ...
+    # Subtest: should enforce LRU capacity eviction
+    ok 3 - should enforce LRU capacity eviction
+      ---
+      duration_ms: 0.197708
+      type: 'test'
+      ...
+    # Subtest: should rate limit requests using DomainRateLimiter
+    ok 4 - should rate limit requests using DomainRateLimiter
+      ---
+      duration_ms: 201.4955
+      type: 'test'
+      ...
+    # Subtest: uses the configured shared Redis REST cache across cache instances
+    ok 5 - uses the configured shared Redis REST cache across cache instances
+      ---
+      duration_ms: 34.79875
+      type: 'test'
+      ...
+    # Subtest: preserves the remaining TTL when a Redis hit is copied locally
+    ok 6 - preserves the remaining TTL when a Redis hit is copied locally
+      ---
+      duration_ms: 1.135208
+      type: 'test'
+      ...
+    # Subtest: does not overwrite a complete local cache entry after cancellation
+    ok 7 - does not overwrite a complete local cache entry after cancellation
+      ---
+      duration_ms: 0.35125
+      type: 'test'
+      ...
+    1..7
+ok 85 - MemoryCache & RateLimiter Core Tests
+  ---
+  duration_ms: 391.790792
+  type: 'test'
+  ...
+# Subtest: Supported-chain display and explorer contracts
+    # Subtest: defines native-token labels for every supported chain
+    ok 1 - defines native-token labels for every supported chain
+      ---
+      duration_ms: 0.660208
+      type: 'test'
+      ...
+    # Subtest: builds chain-specific transaction and address links
+    ok 2 - builds chain-specific transaction and address links
+      ---
+      duration_ms: 0.101083
+      type: 'test'
+      ...
+    1..2
+ok 86 - Supported-chain display and explorer contracts
+  ---
+  duration_ms: 1.58475
+  type: 'suite'
+  ...
+# Subtest: Cluster linkage analysis
+    # Subtest: creates one evidence-backed linkage for a known inter-wallet transfer
+    ok 1 - creates one evidence-backed linkage for a known inter-wallet transfer
+      ---
+      duration_ms: 1.349625
+      type: 'test'
+      ...
+    # Subtest: does not invent a linkage when submitted wallets never transfer to each other
+    ok 2 - does not invent a linkage when submitted wallets never transfer to each other
+      ---
+      duration_ms: 0.089708
+      type: 'test'
+      ...
+    # Subtest: aggregates multiple transactions and withholds incomplete USD volume
+    ok 3 - aggregates multiple transactions and withholds incomplete USD volume
+      ---
+      duration_ms: 0.152125
+      type: 'test'
+      ...
+    # Subtest: finds a shared hub beyond the first 40 counterparties
+    ok 4 - finds a shared hub beyond the first 40 counterparties
+      ---
+      duration_ms: 0.274167
+      type: 'test'
+      ...
+    1..4
+ok 87 - Cluster linkage analysis
+  ---
+  duration_ms: 2.685292
+  type: 'suite'
+  ...
+# Subtest: defines a dated provider-free cluster example without live evidence claims
+ok 88 - defines a dated provider-free cluster example without live evidence claims
+  ---
+  duration_ms: 16.726167
+  type: 'test'
+  ...
+# Subtest: recognizes only the explicit cluster sample URL state
+ok 89 - recognizes only the explicit cluster sample URL state
+  ---
+  duration_ms: 0.232167
+  type: 'test'
+  ...
+# Subtest: curated demo wallet catalog has unique stable identities
+ok 90 - curated demo wallet catalog has unique stable identities
+  ---
+  duration_ms: 0.855
+  type: 'test'
+  ...
+# Subtest: each catalog entry points to a matching versioned snapshot
+ok 91 - each catalog entry points to a matching versioned snapshot
+  ---
+  duration_ms: 26.998292
+  type: 'test'
+  ...
+# Subtest: Explorer data availability
+    # Subtest: classifies a successful provider response as complete
+    ok 1 - classifies a successful provider response as complete
+      ---
+      duration_ms: 29.669458
+      type: 'test'
+      ...
+    # Subtest: distinguishes a verified empty response from provider failure
+    ok 2 - distinguishes a verified empty response from provider failure
+      ---
+      duration_ms: 0.402167
+      type: 'test'
+      ...
+    # Subtest: marks a provider that cannot prove exhaustion within the allowed page budget as partial
+    ok 3 - marks a provider that cannot prove exhaustion within the allowed page budget as partial
+      ---
+      duration_ms: 0.435209
+      type: 'test'
+      ...
+    # Subtest: surfaces timeouts as unavailable instead of verified empty
+    ok 4 - surfaces timeouts as unavailable instead of verified empty
+      ---
+      duration_ms: 304.43725
+      type: 'test'
+      ...
+    # Subtest: does not schedule another provider request after the request is cancelled
+    ok 5 - does not schedule another provider request after the request is cancelled
+      ---
+      duration_ms: 334.165917
+      type: 'test'
+      ...
+    # Subtest: paginates until exhaustion and deduplicates overlapping records
+    ok 6 - paginates until exhaustion and deduplicates overlapping records
+      ---
+      duration_ms: 998.238834
+      type: 'test'
+      ...
+    # Subtest: fails over to the next provider when the first one cannot prove exhaustion
+    ok 7 - fails over to the next provider when the first one cannot prove exhaustion
+      ---
+      duration_ms: 1.318792
+      type: 'test'
+      ...
+    # Subtest: retries rate-limited pages before succeeding
+    ok 8 - retries rate-limited pages before succeeding
+      ---
+      duration_ms: 666.222041
+      type: 'test'
+      ...
+    # Subtest: accepts Blockscout status 2 array payloads as valid pages
+    ok 9 - accepts Blockscout status 2 array payloads as valid pages
+      ---
+      duration_ms: 0.505666
+      type: 'test'
+      ...
+    # Subtest: uses the keyed Blockscout multichain API for Base
+    ok 10 - uses the keyed Blockscout multichain API for Base
+      ---
+      duration_ms: 0.786917
+      type: 'test'
+      ...
+    # Subtest: falls back to Blockscout REST v2 when the legacy Base endpoint returns 500
+    ok 11 - falls back to Blockscout REST v2 when the legacy Base endpoint returns 500
+      ---
+      duration_ms: 3004.242333
+      type: 'test'
+      ...
+    # Subtest: normalizes Blockscout REST v2 token and internal transfer datasets
+    ok 12 - normalizes Blockscout REST v2 token and internal transfer datasets
+      ---
+      duration_ms: 4004.125833
+      type: 'test'
+      ...
+    # Subtest: retries transient non-JSON public Blockscout responses before failing over
+    ok 13 - retries transient non-JSON public Blockscout responses before failing over
+      ---
+      duration_ms: 2001.39025
+      type: 'test'
+      ...
+    # Subtest: marks chains without an explorer configuration as unavailable
+    ok 14 - marks chains without an explorer configuration as unavailable
+      ---
+      duration_ms: 0.291459
+      type: 'test'
+      ...
+    # Subtest: paginates across multiple pages until the provider proves exhaustion
+    ok 15 - paginates across multiple pages until the provider proves exhaustion
+      ---
+      duration_ms: 25.030708
+      type: 'test'
+      ...
+    # Subtest: accepts blockscout-style status 2 arrays as usable data
+    ok 16 - accepts blockscout-style status 2 arrays as usable data
+      ---
+      duration_ms: 0.429792
+      type: 'test'
+      ...
+    # Subtest: returns the best partial provider data when no candidate proves full exhaustion
+    ok 17 - returns the best partial provider data when no candidate proves full exhaustion
+      ---
+      duration_ms: 1007.985417
+      type: 'test'
+      ...
+    # Subtest: bisects block ranges so provider page ceilings do not truncate full history
+    ok 18 - bisects block ranges so provider page ceilings do not truncate full history
+      ---
+      duration_ms: 2668.806583
+      type: 'test'
+      ...
+    # Subtest: uses ordinary page pagination for public Blockscout histories
+    ok 19 - uses ordinary page pagination for public Blockscout histories
+      ---
+      duration_ms: 1004.948167
+      type: 'test'
+      ...
+    # Subtest: continues Blockscout histories beyond 10,000 records without requesting a forbidden page
+    ok 20 - continues Blockscout histories beyond 10,000 records without requesting a forbidden page
+      ---
+      duration_ms: 766.388959
+      type: 'test'
+      ...
+    1..20
+ok 92 - Explorer data availability
+  ---
+  duration_ms: 16824.773208
+  type: 'suite'
+  ...
+# Subtest: indexing status presentation
+    # Subtest: reports a ready state when the selected mode has no result yet
+    ok 1 - reports a ready state when the selected mode has no result yet
+      ---
+      duration_ms: 0.643459
+      type: 'test'
+      ...
+    # Subtest: labels an active single-wallet demo as a saved snapshot
+    ok 2 - labels an active single-wallet demo as a saved snapshot
+      ---
+      duration_ms: 0.153667
+      type: 'test'
+      ...
+    # Subtest: does not carry the single-wallet demo label into cluster mode
+    ok 3 - does not carry the single-wallet demo label into cluster mode
+      ---
+      duration_ms: 0.073625
+      type: 'test'
+      ...
+    # Subtest: labels the saved cluster example as a saved snapshot
+    ok 4 - labels the saved cluster example as a saved snapshot
+      ---
+      duration_ms: 0.05625
+      type: 'test'
+      ...
+    # Subtest: hides the single-wallet demo notice after switching to cluster mode
+    ok 5 - hides the single-wallet demo notice after switching to cluster mode
+      ---
+      duration_ms: 0.06775
+      type: 'test'
+      ...
+    # Subtest: does not show a saved snapshot notice while the guide is open
+    ok 6 - does not show a saved snapshot notice while the guide is open
+      ---
+      duration_ms: 0.051042
+      type: 'test'
+      ...
+    # Subtest: uses the selected mode result status and ignores the other mode
+    ok 7 - uses the selected mode result status and ignores the other mode
+      ---
+      duration_ms: 0.115625
+      type: 'test'
+      ...
+    # Subtest: reports an unavailable state when the selected scan fails before returning a result
+    ok 8 - reports an unavailable state when the selected scan fails before returning a result
+      ---
+      duration_ms: 0.3355
+      type: 'test'
+      ...
+    1..8
+ok 93 - indexing status presentation
+  ---
+  duration_ms: 2.438
+  type: 'suite'
+  ...
+# Subtest: Moralis dataset fallbacks
+    # Subtest: uses the low-cost normal-transaction endpoint and paginates to exhaustion
+    ok 1 - uses the low-cost normal-transaction endpoint and paginates to exhaustion
+      ---
+      duration_ms: 30.715084
+      type: 'test'
+      ...
+    # Subtest: uses the ERC-20 endpoint only for token-transfer fallback data
+    ok 2 - uses the ERC-20 endpoint only for token-transfer fallback data
+      ---
+      duration_ms: 0.634958
+      type: 'test'
+      ...
+    # Subtest: uses verbose transactions only when internal traces are requested
+    ok 3 - uses verbose transactions only when internal traces are requested
+      ---
+      duration_ms: 0.5535
+      type: 'test'
+      ...
+    # Subtest: stops pagination before exceeding the per-scan CU budget
+    ok 4 - stops pagination before exceeding the per-scan CU budget
+      ---
+      duration_ms: 227.92875
+      type: 'test'
+      ...
+    # Subtest: does not classify unrelated token-only activity as a normal transaction
+    ok 5 - does not classify unrelated token-only activity as a normal transaction
+      ---
+      duration_ms: 242.201417
+      type: 'test'
+      ...
+    # Subtest: blocks subsequent fallback requests after Moralis reports exhausted account quota
+    ok 6 - blocks subsequent fallback requests after Moralis reports exhausted account quota
+      ---
+      duration_ms: 250.678708
+      type: 'test'
+      ...
+    # Subtest: disables fallback across dataset budgets after the first confirmed 401
+    ok 7 - disables fallback across dataset budgets after the first confirmed 401
+      ---
+      duration_ms: 249.134166
+      type: 'test'
+      ...
+    # Subtest: ignores placeholder API keys
+    ok 8 - ignores placeholder API keys
+      ---
+      duration_ms: 0.229125
+      type: 'test'
+      ...
+    # Subtest: keeps environment-backed Moralis fallback disabled unless explicitly enabled
+    ok 9 - keeps environment-backed Moralis fallback disabled unless explicitly enabled
+      ---
+      duration_ms: 0.255542
+      type: 'test'
+      ...
+    # Subtest: stops pagination when the request signal is cancelled
+    ok 10 - stops pagination when the request signal is cancelled
+      ---
+      duration_ms: 249.351375
+      type: 'test'
+      ...
+    1..10
+ok 94 - Moralis dataset fallbacks
+  ---
+  duration_ms: 1252.983459
+  type: 'suite'
+  ...
+# Subtest: Multi-Chain Aggregation & Currency Differentiation Tests
+    # Subtest: should correctly evaluate worst risk grade across multiple chains (e.g. Ethereum Clean A + Arbitrum Drainers F -> Grade F)
+    ok 1 - should correctly evaluate worst risk grade across multiple chains (e.g. Ethereum Clean A + Arbitrum Drainers F -> Grade F)
+      ---
+      duration_ms: 2.88775
+      type: 'test'
+      ...
+    # Subtest: should sum multiple ETH L2 chains into totalGasETH correctly
+    ok 2 - should sum multiple ETH L2 chains into totalGasETH correctly
+      ---
+      duration_ms: 0.248416
+      type: 'test'
+      ...
+    1..2
+ok 95 - Multi-Chain Aggregation & Currency Differentiation Tests
+  ---
+  duration_ms: 4.50425
+  type: 'suite'
+  ...
+# Subtest: performance telemetry contract
+    # Subtest: normalizes paths without carrying query strings or user targets
+    ok 1 - normalizes paths without carrying query strings or user targets
+      ---
+      duration_ms: 0.582625
+      type: 'test'
+      ...
+    # Subtest: accepts only the allowlisted aggregate metric shape
+    ok 2 - accepts only the allowlisted aggregate metric shape
+      ---
+      duration_ms: 0.867542
+      type: 'test'
+      ...
+    # Subtest: rejects target-bearing, expanded, and out-of-range payloads
+    ok 3 - rejects target-bearing, expanded, and out-of-range payloads
+      ---
+      duration_ms: 0.210125
+      type: 'test'
+      ...
+    1..3
+ok 96 - performance telemetry contract
+  ---
+  duration_ms: 2.473917
+  type: 'suite'
+  ...
+# Subtest: declares the runtime as stateless and treats caches as optional optimizations
+ok 97 - declares the runtime as stateless and treats caches as optional optimizations
+  ---
+  duration_ms: 0.7835
+  type: 'test'
+  ...
+# Subtest: production application code has no filesystem module dependency
+ok 98 - production application code has no filesystem module dependency
+  ---
+  duration_ms: 6.947834
+  type: 'test'
+  ...
+# Subtest: Historical price provenance
+    # Subtest: requires a trusted token contract instead of pricing from a ticker
+    ok 1 - requires a trusted token contract instead of pricing from a ticker
+      ---
+      duration_ms: 0.764875
+      type: 'test'
+      ...
+    # Subtest: returns stablecoins with an explicit $1 assumption
+    ok 2 - returns stablecoins with an explicit $1 assumption
+      ---
+      duration_ms: 0.764917
+      type: 'test'
+      ...
+    # Subtest: returns unpriced instead of a zero USD value when no price exists
+    ok 3 - returns unpriced instead of a zero USD value when no price exists
+      ---
+      duration_ms: 0.095417
+      type: 'test'
+      ...
+    # Subtest: marks a current-price fallback as a spot estimate
+    ok 4 - marks a current-price fallback as a spot estimate
+      ---
+      duration_ms: 27.297084
+      type: 'test'
+      ...
+    # Subtest: prefers a timestamp-matched daily price over the current spot price
+    ok 5 - prefers a timestamp-matched daily price over the current spot price
+      ---
+      duration_ms: 1.096417
+      type: 'test'
+      ...
+    # Subtest: batches duplicate asset-days into one DefiLlama historical request
+    ok 6 - batches duplicate asset-days into one DefiLlama historical request
+      ---
+      duration_ms: 175.637708
+      type: 'test'
+      ...
+    # Subtest: limits CoinGecko fallback to the two highest-impact unresolved tokens
+    ok 7 - limits CoinGecko fallback to the two highest-impact unresolved tokens
+      ---
+      duration_ms: 400.137209
+      type: 'test'
+      ...
+    # Subtest: requests only the historical date range needed by the scan
+    ok 8 - requests only the historical date range needed by the scan
+      ---
+      duration_ms: 398.871
+      type: 'test'
+      ...
+    # Subtest: deduplicates nearby required dates into one bounded historical request
+    ok 9 - deduplicates nearby required dates into one bounded historical request
+      ---
+      duration_ms: 400.281375
+      type: 'test'
+      ...
+    # Subtest: splits distant activity into small historical windows
+    ok 10 - splits distant activity into small historical windows
+      ---
+      duration_ms: 401.20125
+      type: 'test'
+      ...
+    1..10
+ok 99 - Historical price provenance
+  ---
+  duration_ms: 1808.698917
+  type: 'suite'
+  ...
+# Subtest: release verification configuration
+    # Subtest: uses one deterministic local verification command on Node.js 22
+    ok 1 - uses one deterministic local verification command on Node.js 22
+      ---
+      duration_ms: 0.857292
+      type: 'test'
+      ...
+    # Subtest: runs the same verification command in CI and Vercel
+    ok 2 - runs the same verification command in CI and Vercel
+      ---
+      duration_ms: 0.372667
+      type: 'test'
+      ...
+    # Subtest: does not configure lint or TypeScript build bypasses
+    ok 3 - does not configure lint or TypeScript build bypasses
+      ---
+      duration_ms: 0.158
+      type: 'test'
+      ...
+    # Subtest: excludes generated Playwright traces from the lint input
+    ok 4 - excludes generated Playwright traces from the lint input
+      ---
+      duration_ms: 0.166625
+      type: 'test'
+      ...
+    # Subtest: applies baseline security headers without disabling static rendering
+    ok 5 - applies baseline security headers without disabling static rendering
+      ---
+      duration_ms: 0.098042
+      type: 'test'
+      ...
+    # Subtest: declares every API route on the intended Node.js runtime
+    ok 6 - declares every API route on the intended Node.js runtime
+      ---
+      duration_ms: 0.183042
+      type: 'test'
+      ...
+    1..6
+ok 100 - release verification configuration
+  ---
+  duration_ms: 3.836959
+  type: 'suite'
+  ...
+# Subtest: Canonical reporting contract
+    # Subtest: publishes one definition for every typed public metric
+    ok 1 - publishes one definition for every typed public metric
+      ---
+      duration_ms: 1.4935
+      type: 'test'
+      ...
+    # Subtest: builds portfolio metrics with explicit aggregation semantics
+    ok 2 - builds portfolio metrics with explicit aggregation semantics
+      ---
+      duration_ms: 0.419208
+      type: 'test'
+      ...
+    # Subtest: withholds definitive metrics when required scan data is incomplete
+    ok 3 - withholds definitive metrics when required scan data is incomplete
+      ---
+      duration_ms: 0.087417
+      type: 'test'
+      ...
+    # Subtest: keeps non-price metrics available when only historical pricing is incomplete
+    ok 4 - keeps non-price metrics available when only historical pricing is incomplete
+      ---
+      duration_ms: 0.087291
+      type: 'test'
+      ...
+    # Subtest: publishes verified partial capital flow and excludes unresolved legs
+    ok 5 - publishes verified partial capital flow and excludes unresolved legs
+      ---
+      duration_ms: 0.084
+      type: 'test'
+      ...
+    1..5
+ok 101 - Canonical reporting contract
+  ---
+  duration_ms: 2.973667
+  type: 'suite'
+  ...
+# Subtest: System Robustness & Precision Tests
+    # Subtest: should resolve chain-specific explorer API keys correctly
+    ok 1 - should resolve chain-specific explorer API keys correctly
+      ---
+      duration_ms: 0.72875
+      type: 'test'
+      ...
+    # Subtest: should reject the legacy placeholder API key
+    ok 2 - should reject the legacy placeholder API key
+      ---
+      duration_ms: 0.0765
+      type: 'test'
+      ...
+    # Subtest: should format EVM wei and token units safely without float precision loss
+    ok 3 - should format EVM wei and token units safely without float precision loss
+      ---
+      duration_ms: 0.1245
+      type: 'test'
+      ...
+    # Subtest: should accurately price stablecoins at $1.00
+    ok 4 - should accurately price stablecoins at $1.00
+      ---
+      duration_ms: 0.812875
+      type: 'test'
+      ...
+    # Subtest: should process normal and internal transactions with safe unit math
+    ok 5 - should process normal and internal transactions with safe unit math
+      ---
+      duration_ms: 0.372042
+      type: 'test'
+      ...
+    # Subtest: should flag OFAC sanctioned addresses even on offline cold-start baseline cache
+    ok 6 - should flag OFAC sanctioned addresses even on offline cold-start baseline cache
+      ---
+      duration_ms: 48.758375
+      type: 'test'
+      ...
+    # Subtest: should not give maximum identity score to low-effort dust bot across multiple chains
+    ok 7 - should not give maximum identity score to low-effort dust bot across multiple chains
+      ---
+      duration_ms: 0.272667
+      type: 'test'
+      ...
+    # Subtest: should return null for unresolvable non-stablecoin assets without fallback corruption
+    ok 8 - should return null for unresolvable non-stablecoin assets without fallback corruption
+      ---
+      duration_ms: 0.135916
+      type: 'test'
+      ...
+    1..8
+ok 102 - System Robustness & Precision Tests
+  ---
+  duration_ms: 52.171583
+  type: 'suite'
+  ...
+# Subtest: RPC chain-head failover
+    # Subtest: uses the first endpoint that identifies the requested chain
+    ok 1 - uses the first endpoint that identifies the requested chain
+      ---
+      duration_ms: 26.911209
+      type: 'test'
+      ...
+    # Subtest: returns null when every RPC is unavailable
+    ok 2 - returns null when every RPC is unavailable
+      ---
+      duration_ms: 0.321125
+      type: 'test'
+      ...
+    # Subtest: distinguishes deployed contract code from an externally owned account
+    ok 3 - distinguishes deployed contract code from an externally owned account
+      ---
+      duration_ms: 0.944291
+      type: 'test'
+      ...
+    # Subtest: returns false when the canonical RPC reports empty account code
+    ok 4 - returns false when the canonical RPC reports empty account code
+      ---
+      duration_ms: 0.521416
+      type: 'test'
+      ...
+    1..4
+ok 103 - RPC chain-head failover
+  ---
+  duration_ms: 29.531334
+  type: 'suite'
+  ...
+# Subtest: SEO route configuration
+    # Subtest: defines unique, lookup-safe landing page slugs
+    ok 1 - defines unique, lookup-safe landing page slugs
+      ---
+      duration_ms: 0.687042
+      type: 'test'
+      ...
+    # Subtest: builds a self-referencing canonical URL for every landing page
+    ok 2 - builds a self-referencing canonical URL for every landing page
+      ---
+      duration_ms: 1.00775
+      type: 'test'
+      ...
+    # Subtest: normalizes configured domains and rejects invalid URLs
+    ok 3 - normalizes configured domains and rejects invalid URLs
+      ---
+      duration_ms: 0.204416
+      type: 'test'
+      ...
+    1..3
+ok 104 - SEO route configuration
+  ---
+  duration_ms: 2.609959
+  type: 'suite'
+  ...
+# Subtest: Cluster scan eligibility
+    # Subtest: classifies every selected chain before cluster history is fetched
+    ok 1 - classifies every selected chain before cluster history is fetched
+      ---
+      duration_ms: 1.282208
+      type: 'test'
+      ...
+    # Subtest: rejects unsupported account classes before starting the expensive wallet scan
+    ok 2 - rejects unsupported account classes before starting the expensive wallet scan
+      ---
+      duration_ms: 0.8725
+      type: 'test'
+      ...
+    # Subtest: accepts complete wallet history when prices are incomplete
+    ok 3 - accepts complete wallet history when prices are incomplete
+      ---
+      duration_ms: 0.123166
+      type: 'test'
+      ...
+    # Subtest: rejects incomplete wallet history without presenting price gaps as the cause
+    ok 4 - rejects incomplete wallet history without presenting price gaps as the cause
+      ---
+      duration_ms: 0.147792
+      type: 'test'
+      ...
+    1..4
+ok 105 - Cluster scan eligibility
+  ---
+  duration_ms: 3.130666
+  type: 'suite'
+  ...
+# Subtest: verifies token recipients per chain and preserves failed checks as unknown
+ok 106 - verifies token recipients per chain and preserves failed checks as unknown
+  ---
+  duration_ms: 1.886708
+  type: 'test'
+  ...
+# Subtest: Scan availability aggregation
+    # Subtest: prefixes provider errors with the exact chain and dataset
+    ok 1 - prefixes provider errors with the exact chain and dataset
+      ---
+      duration_ms: 1.313459
+      type: 'test'
+      ...
+    # Subtest: counts only history-bearing chains as active
+    ok 2 - counts only history-bearing chains as active
+      ---
+      duration_ms: 0.099167
+      type: 'test'
+      ...
+    # Subtest: keeps verified empty or populated complete datasets complete
+    ok 3 - keeps verified empty or populated complete datasets complete
+      ---
+      duration_ms: 0.091584
+      type: 'test'
+      ...
+    # Subtest: marks one incomplete dataset as partial
+    ok 4 - marks one incomplete dataset as partial
+      ---
+      duration_ms: 0.053083
+      type: 'test'
+      ...
+    # Subtest: keeps core history complete when only historical prices are partial
+    ok 5 - keeps core history complete when only historical prices are partial
+      ---
+      duration_ms: 0.050792
+      type: 'test'
+      ...
+    # Subtest: partitions the scan-level Moralis budget across fallback chains
+    ok 6 - partitions the scan-level Moralis budget across fallback chains
+      ---
+      duration_ms: 0.107792
+      type: 'test'
+      ...
+    # Subtest: marks a scan unavailable when every explorer dataset is unavailable
+    ok 7 - marks a scan unavailable when every explorer dataset is unavailable
+      ---
+      duration_ms: 0.047042
+      type: 'test'
+      ...
+    # Subtest: preserves verified empty explorer results as a complete scan
+    ok 8 - preserves verified empty explorer results as a complete scan
+      ---
+      duration_ms: 2060.312834
+      type: 'test'
+      ...
+    # Subtest: reuses complete single-wallet history datasets during cluster scans
+    ok 9 - reuses complete single-wallet history datasets during cluster scans
+      ---
+      duration_ms: 984.491333
+      type: 'test'
+      ...
+    # Subtest: withholds risk conclusions when explorer data is unavailable
+    ok 10 - withholds risk conclusions when explorer data is unavailable
+      ---
+      duration_ms: 2.237
+      type: 'test'
+      ...
+    # Subtest: withholds historical USD metrics without degrading complete history
+    ok 11 - withholds historical USD metrics without degrading complete history
+      ---
+      duration_ms: 8.883708
+      type: 'test'
+      ...
+    # Subtest: isolates historical price completeness by chain
+    ok 12 - isolates historical price completeness by chain
+      ---
+      duration_ms: 2249.446
+      type: 'test'
+      ...
+    # Subtest: coalesces simultaneous identical scans into one provider operation
+    ok 13 - coalesces simultaneous identical scans into one provider operation
+      ---
+      duration_ms: 2.511208
+      type: 'test'
+      ...
+    # Subtest: marks a reused report with its original fetch time
+    ok 14 - marks a reused report with its original fetch time
+      ---
+      duration_ms: 2503.644375
+      type: 'test'
+      ...
+    # Subtest: bypasses cached history datasets during a forced refresh
+    ok 15 - bypasses cached history datasets during a forced refresh
+      ---
+      duration_ms: 6009.562583
+      type: 'test'
+      ...
+    # Subtest: uses refreshed explorer history after the report cache expires
+    ok 16 - uses refreshed explorer history after the report cache expires
+      ---
+      duration_ms: 1007.451459
+      type: 'test'
+      ...
+    # Subtest: does not extend a report when it is copied from shared cache locally
+    ok 17 - does not extend a report when it is copied from shared cache locally
+      ---
+      duration_ms: 12082.656625
+      type: 'test'
+      ...
+    1..17
+ok 107 - Scan availability aggregation
+  ---
+  duration_ms: 26914.724708
+  type: 'suite'
+  ...
+# Subtest: wallet-history provider orchestration
+    # Subtest: never calls Moralis when every explorer dataset is complete
+    ok 1 - never calls Moralis when every explorer dataset is complete
+      ---
+      duration_ms: 0.852167
+      type: 'test'
+      ...
+    # Subtest: calls only the Moralis dataset whose explorer result is incomplete
+    ok 2 - calls only the Moralis dataset whose explorer result is incomplete
+      ---
+      duration_ms: 1.137125
+      type: 'test'
+      ...
+    # Subtest: merges and deduplicates partial explorer and Moralis evidence truthfully
+    ok 3 - merges and deduplicates partial explorer and Moralis evidence truthfully
+      ---
+      duration_ms: 0.227709
+      type: 'test'
+      ...
+    # Subtest: runs Moralis fallbacks sequentially in transaction, token, then internal priority order
+    ok 4 - runs Moralis fallbacks sequentially in transaction, token, then internal priority order
+      ---
+      duration_ms: 7.585792
+      type: 'test'
+      ...
+    # Subtest: reuses each complete explorer dataset independently
+    ok 5 - reuses each complete explorer dataset independently
+      ---
+      duration_ms: 26.15175
+      type: 'test'
+      ...
+    # Subtest: replaces all explorer dataset caches on refresh and preserves them after a failed refresh
+    ok 6 - replaces all explorer dataset caches on refresh and preserves them after a failed refresh
+      ---
+      duration_ms: 20020.7635
+      type: 'test'
+      ...
+    # Subtest: replaces all Moralis fallback dataset caches on refresh
+    ok 7 - replaces all Moralis fallback dataset caches on refresh
+      ---
+      duration_ms: 0.7975
+      type: 'test'
+      ...
+    1..7
+ok 108 - wallet-history provider orchestration
+  ---
+  duration_ms: 20058.321875
+  type: 'suite'
+  ...
+# Subtest: loads sharing-image font bytes from the selected family rather than a fixed font
+ok 109 - loads sharing-image font bytes from the selected family rather than a fixed font
+  ---
+  duration_ms: 26.115
+  type: 'test'
+  ...
+# Subtest: reports stylesheet failures instead of silently rendering a different font
+ok 110 - reports stylesheet failures instead of silently rendering a different font
+  ---
+  duration_ms: 0.816667
+  type: 'test'
+  ...
+# Subtest: rejects unsupported font files and unexpected asset hosts
+ok 111 - rejects unsupported font files and unexpected asset hosts
+  ---
+  duration_ms: 1.169209
+  type: 'test'
+  ...
+# Subtest: reports font-download failures instead of passing invalid bytes to the renderer
+ok 112 - reports font-download failures instead of passing invalid bytes to the renderer
+  ---
+  duration_ms: 0.500542
+  type: 'test'
+  ...
+# Subtest: MEDIA Sybil Model & API Data Flow Tests
+    # Subtest: should return high risk when transaction history is empty
+    ok 1 - should return high risk when transaction history is empty
+      ---
+      duration_ms: 0.5685
+      type: 'test'
+      ...
+    # Subtest: does not invent contract diversity when the detected contract count is zero
+    ok 2 - does not invent contract diversity when the detected contract count is zero
+      ---
+      duration_ms: 0.102708
+      type: 'test'
+      ...
+    # Subtest: should correctly evaluate category diversity and lifespan with full ProcessedTransaction history
+    ok 3 - should correctly evaluate category diversity and lifespan with full ProcessedTransaction history
+      ---
+      duration_ms: 0.354125
+      type: 'test'
+      ...
+    # Subtest: should detect bot burstiness when transactions happen in < 48 hours
+    ok 4 - should detect bot burstiness when transactions happen in < 48 hours
+      ---
+      duration_ms: 0.11975
+      type: 'test'
+      ...
+    # Subtest: should verify processTransactions and processTokenTransfers integration
+    ok 5 - should verify processTransactions and processTokenTransfers integration
+      ---
+      duration_ms: 0.485375
+      type: 'test'
+      ...
+    1..5
+ok 113 - MEDIA Sybil Model & API Data Flow Tests
+  ---
+  duration_ms: 2.38925
+  type: 'suite'
+  ...
+# Subtest: Arbitrum Foundation Sybil samples
+    # Subtest: flags all four published sample addresses with their published clusters
+    ok 1 - flags all four published sample addresses with their published clusters
+      ---
+      duration_ms: 25.119959
+      type: 'test'
+      ...
+    # Subtest: keeps the Cluster 3316 match independent from behavioral scoring
+    ok 2 - keeps the Cluster 3316 match independent from behavioral scoring
+      ---
+      duration_ms: 0.096375
+      type: 'test'
+      ...
+    1..2
+ok 114 - Arbitrum Foundation Sybil samples
+  ---
+  duration_ms: 25.908542
+  type: 'suite'
+  ...
+# Subtest: category label formatter
+    # Subtest: humanizes internal transaction category names
+    ok 1 - humanizes internal transaction category names
+      ---
+      duration_ms: 0.478125
+      type: 'test'
+      ...
+    1..1
+ok 115 - category label formatter
+  ---
+  duration_ms: 1.26625
+  type: 'suite'
+  ...
+# Subtest: fiat formatter
+    # Subtest: does not round a non-zero sub-cent amount down to zero
+    ok 1 - does not round a non-zero sub-cent amount down to zero
+      ---
+      duration_ms: 13.128416
+      type: 'test'
+      ...
+    # Subtest: keeps detailed cent formatting for ordinary amounts
+    ok 2 - keeps detailed cent formatting for ordinary amounts
+      ---
+      duration_ms: 0.124458
+      type: 'test'
+      ...
+    # Subtest: marks invalid fiat values as unavailable
+    ok 3 - marks invalid fiat values as unavailable
+      ---
+      duration_ms: 0.166041
+      type: 'test'
+      ...
+    1..3
+ok 116 - fiat formatter
+  ---
+  duration_ms: 13.518375
+  type: 'suite'
+  ...
+# Subtest: adaptive native token formatter
+    # Subtest: preserves exact zero and uses the requested token symbol
+    ok 1 - preserves exact zero and uses the requested token symbol
+      ---
+      duration_ms: 0.1945
+      type: 'test'
+      ...
+    # Subtest: does not round a positive dust value down to zero
+    ok 2 - does not round a positive dust value down to zero
+      ---
+      duration_ms: 0.160084
+      type: 'test'
+      ...
+    # Subtest: keeps useful precision for ordinary and large values
+    ok 3 - keeps useful precision for ordinary and large values
+      ---
+      duration_ms: 0.214625
+      type: 'test'
+      ...
+    # Subtest: does not invent a zero for missing or invalid values
+    ok 4 - does not invent a zero for missing or invalid values
+      ---
+      duration_ms: 0.137541
+      type: 'test'
+      ...
+    1..4
+ok 117 - adaptive native token formatter
+  ---
+  duration_ms: 0.811125
+  type: 'suite'
+  ...
+# Subtest: builds stable single-wallet presentation values outside the renderer
+ok 118 - builds stable single-wallet presentation values outside the renderer
+  ---
+  duration_ms: 2.276208
+  type: 'test'
+  ...
+# Subtest: keeps partial and unavailable chain activity explicit
+ok 119 - keeps partial and unavailable chain activity explicit
+  ---
+  duration_ms: 0.418667
+  type: 'test'
+  ...
+# Subtest: builds evidence-based cluster summary and deterministic sorting
+ok 120 - builds evidence-based cluster summary and deterministic sorting
+  ---
+  duration_ms: 0.957041
+  type: 'test'
+  ...
+# Subtest: does not turn a saved no-link example into an independence claim
+ok 121 - does not turn a saved no-link example into an independence claim
+  ---
+  duration_ms: 0.200791
+  type: 'test'
+  ...
+1..121
+# tests 364
+# suites 62
+# pass 364
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 31104.211167
+
+> wallet-analytics@0.1.0 build
+> next build --webpack
+
+▲ Next.js 16.3.1 (webpack)
+- Environments: .env.local, .env
+✓ Running next.config.ts took 77ms
+- Experiments (use with caution):
+  · optimizePackageImports
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 2.9s
+  Running TypeScript ...
+  Finished TypeScript in 1770ms ...
+  Collecting page data using 7 workers ...
+  Generating static pages using 7 workers (0/18) ...
+  Generating static pages using 7 workers (4/18) 
+  Generating static pages using 7 workers (8/18) 
+  Generating static pages using 7 workers (13/18) 
+✓ Generating static pages using 7 workers (18/18) in 831ms
+  Finalizing page optimization ...
+  Collecting build traces ...
+
+Route (app)
+┌ ○ /
+├ ○ /_not-found
+├   /[slug]
+│ ├ ● /evm-wallet-analytics
+│ ├ ● /crypto-wallet-risk-checker
+│ ├ ● /token-approval-checker
+│ └ ● [+2 more paths]
+├ ƒ /api/batch-scan
+├ ƒ /api/known-wallets
+├ ƒ /api/scan
+├ ƒ /api/web-vitals
+├ ○ /docs
+├ ○ /opengraph-image
+├ ○ /robots.txt
+├ ○ /sitemap.xml
+└ ○ /twitter-image
+
+
+○  (Static)   prerendered as static content
+●  (SSG)      prerendered as static HTML (uses generateStaticParams)
+ƒ  (Dynamic)  server-rendered on demand
+

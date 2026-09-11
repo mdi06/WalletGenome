@@ -4,57 +4,21 @@ import React from 'react';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { BookOpen, Menu, Search, X } from 'lucide-react';
-import type { IndexingStatus } from '@/lib/indexingStatus';
+import AuthActions from '@/components/auth/AuthActions';
 
 interface SiteHeaderProps {
   activePage?: 'scanner' | 'docs' | string;
-  indexingStatus: IndexingStatus;
-  showIndexingStatus?: boolean;
   onBrandClick?: () => void;
   contextAction?: React.ReactNode;
 }
 
-const STATUS_PRESENTATION: Record<IndexingStatus, {
-  label: string;
-  dotClassName: string;
-  badgeClassName: string;
-}> = {
-  ready: {
-    label: 'Ready',
-    dotClassName: 'w-2 h-2 rounded-full bg-[#6b7280]',
-    badgeClassName: 'bg-[#e5e5e5] text-[#4b5563]',
-  },
-  scanning: {
-    label: 'Scanning',
-    dotClassName: 'led-warn animate-pulse',
-    badgeClassName: 'badge-brand-orange',
-  },
-  completed: {
-    label: 'Live scan',
-    dotClassName: 'led-live',
-    badgeClassName: 'bg-[#ff5500] text-[#0a0a0a]',
-  },
-  saved: {
-    label: 'Saved snapshot',
-    dotClassName: 'led-clean',
-    badgeClassName: 'bg-[#059669] text-white',
-  },
-  partial: {
-    label: 'Partial data',
-    dotClassName: 'led-warn',
-    badgeClassName: 'bg-[#f59e0b] text-[#0a0a0a]',
-  },
-  unavailable: {
-    label: 'Unavailable',
-    dotClassName: 'h-2 w-2 border border-white/80 bg-[#dc2626] shadow-[0_0_6px_#dc2626]',
-    badgeClassName: 'bg-[#dc2626] text-white',
-  },
-};
-
 function Brand({ onClick }: { onClick?: () => void }) {
   const label = (
-    <span className="text-xl font-black uppercase tracking-tight text-black sm:text-2xl">
-      WALLET<span className="text-[#ff5500]">.</span>GENOME
+    <span className="inline-flex items-center gap-1.5">
+      <span className="text-xl font-black uppercase tracking-tight text-black sm:text-2xl">
+        WALLET<span className="text-[#ff5500]">.</span>GENOME
+      </span>
+      <span className="border border-[#ff5500] bg-[#fff2eb] px-1 py-0.5 text-[8px] font-black uppercase tracking-[0.14em] text-orange-ink">Beta</span>
     </span>
   );
 
@@ -84,14 +48,11 @@ function Brand({ onClick }: { onClick?: () => void }) {
 
 export default function SiteHeader({
   activePage,
-  indexingStatus,
-  showIndexingStatus = true,
   onBrandClick,
   contextAction,
 }: SiteHeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuToggleRef = useRef<HTMLButtonElement>(null);
-  const status = STATUS_PRESENTATION[indexingStatus];
 
   useEffect(() => {
     if (!isMenuOpen) return;
@@ -132,17 +93,8 @@ export default function SiteHeader({
         </button>
       </div>
 
-      <div className={`${!isMenuOpen && !showIndexingStatus ? 'hidden md:flex' : 'flex'} w-full min-w-0 flex-col gap-2 md:w-auto md:flex-row md:items-center md:justify-end md:gap-2`}>
-        {showIndexingStatus && (
-          <span
-            className={`badge-3d order-first inline-flex min-h-11 items-center gap-1.5 px-3 py-1.5 text-[11px] font-bold uppercase tracking-wider ${status.badgeClassName} md:order-last md:min-h-9 md:py-1`}
-            role="status"
-            aria-label={`Indexing status: ${status.label}`}
-          >
-            <span aria-hidden="true" className={status.dotClassName} />
-            <span>{status.label}</span>
-          </span>
-        )}
+      <div className="flex w-full min-w-0 flex-col gap-2 md:w-auto md:flex-row md:items-center md:justify-end md:gap-2">
+        <AuthActions />
 
         <div
           id="primary-navigation-menu"

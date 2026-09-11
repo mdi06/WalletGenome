@@ -8,6 +8,7 @@ import {
   enforceRequestRateLimit,
   enforceRefreshRateLimit,
   mapWithConcurrency,
+  parseJsonBody,
   resetRequestPolicyForTests,
   runWithTimeout,
   validateBatchRequest,
@@ -94,6 +95,10 @@ describe('API request policy', () => {
       () => validateBatchRequest({ addresses: ['vitalik.eth'], chainIds: [56] }),
       (error: unknown) => error instanceof RequestPolicyError && error.code === 'unsupported_chain',
     );
+    assert.throws(
+      () => validateBatchRequest({ addresses: ['vitalik.eth'], chainIds: [1] }),
+      (error: unknown) => error instanceof RequestPolicyError && error.code === 'invalid_target',
+    );
     const boundedBatch = validateBatchRequest({
       addresses: Array.from({ length: MAX_BATCH_WALLETS }, (_, index) =>
         `0x${(index + 1).toString(16).padStart(40, '0')}`),
@@ -119,6 +124,62 @@ describe('API request policy', () => {
     assert.throws(
       () => enforceRequestRateLimit(request, 'batch'),
       (error: unknown) => error instanceof RequestPolicyError && error.status === 429,
+    );
+    resetRequestPolicyForTests();
+  });
+
+  it('cancels a streamed body as soon as it exceeds the route limit', async () => {
+    let cancelCalled = false;
+    const chunk = new Uint8Array(4_096);
+    const body = new ReadableStream<Uint8Array>({
+      pull(controller) {
+        controller.enqueue(chunk);
+      },
+      cancel() {
+        cancelCalled = true;
+      },
+    });
+
+    await assert.rejects(
+      parseJsonBody(new Request('http://localhost/api/scan', {
+        method: 'POST',
+        body,
+        duplex: 'half',
+      } as RequestInit & { duplex: 'half' }), 'scan'),
+      (error: unknown) => error instanceof RequestPolicyError
+        && error.status === 413
+        && error.code === 'body_too_large',
+    );
+    await new Promise<void>(resolve => setImmediate(resolve));
+    assert.equal(cancelCalled, true);
+  });
+
+  it('rejects invalid caller identity headers instead of creating unbounded keys', () => {
+    resetRequestPolicyForTests();
+    const request = new Request('http://localhost/api/scan', {
+      headers: { 'x-forwarded-for': 'not a trusted identity' },
+    });
+
+    assert.throws(
+      () => enforceRequestRateLimit(request, 'scan'),
+      (error: unknown) => error instanceof RequestPolicyError
+        && error.code === 'invalid_caller_identity',
+    );
+    resetRequestPolicyForTests();
+  });
+
+  it('applies a separate bounded request limit to telemetry callers', () => {
+    resetRequestPolicyForTests();
+    const request = new Request('http://localhost/api/web-vitals', {
+      headers: { 'x-forwarded-for': '203.0.113.12' },
+    });
+    for (let attempt = 0; attempt < 60; attempt++) enforceRequestRateLimit(request, 'telemetry');
+
+    assert.throws(
+      () => enforceRequestRateLimit(request, 'telemetry'),
+      (error: unknown) => error instanceof RequestPolicyError
+        && error.status === 429
+        && error.code === 'rate_limited',
     );
     resetRequestPolicyForTests();
   });

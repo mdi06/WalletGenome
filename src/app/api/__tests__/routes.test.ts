@@ -7,8 +7,39 @@ import { resolveEnsOrAddress } from '@/lib/ens';
 import { loadKnownWallets } from '@/lib/knownWalletsServer';
 import { NextRequest } from 'next/server';
 import { resetRequestPolicyForTests } from '@/lib/api/requestPolicy';
+import { authentication } from '@/lib/supabase/requireUser';
+
+const authenticatedUser = async () => ({ id: '00000000-0000-4000-8000-000000000001', email: 'tester@example.com' });
+const authMock = mock.method(authentication, 'getAuthenticatedUser', authenticatedUser);
 
 describe('ENS Resolution & API Route Integration Tests', () => {
+  it('requires Google authentication before a live scan can begin', async () => {
+    authMock.mock.mockImplementation(async () => null);
+    try {
+      const response = await scanPOST(new NextRequest('http://localhost/api/scan', {
+        method: 'POST',
+        body: JSON.stringify({ address: '0x3333333333333333333333333333333333333333', chainIds: [1] }),
+      }));
+      assert.strictEqual(response.status, 401);
+      assert.strictEqual((await response.json()).code, 'authentication_required');
+    } finally {
+      authMock.mock.mockImplementation(authenticatedUser);
+    }
+  });
+
+  it('requires Google authentication before a live cluster scan can begin', async () => {
+    authMock.mock.mockImplementation(async () => null);
+    try {
+      const response = await batchScanPOST(new NextRequest('http://localhost/api/batch-scan', {
+        method: 'POST',
+        body: JSON.stringify({ addresses: ['0x3333333333333333333333333333333333333333'], chainIds: [1] }),
+      }));
+      assert.strictEqual(response.status, 401);
+      assert.strictEqual((await response.json()).code, 'authentication_required');
+    } finally {
+      authMock.mock.mockImplementation(authenticatedUser);
+    }
+  });
   it('should correctly resolve ENS domains to 0x hex addresses', async () => {
     // 1. Valid 0x address passes through
     const directHex = '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045';

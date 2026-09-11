@@ -1,0 +1,38 @@
+{
+  "approvalSelfTransfer": {
+    "expectedBalance": 100,
+    "actualBalance": 0,
+    "exposureStatus": "zero_balance",
+    "exposureUSD": 0
+  },
+  "zeroDecimalBalance": {
+    "expected": 100,
+    "actual": 1e-16,
+    "note": "Synthetic token metadata isolates decimal parsing, not a claim about USDC decimals."
+  },
+  "bodyLimit": {
+    "configuredBytes": 8192,
+    "bytesProducedBeforeRejection": 65536,
+    "code": "body_too_large"
+  },
+  "forwardedIdentity": {
+    "accepted": 24,
+    "scope": "Direct helper reproduction; deployed proxy header trust unverified"
+  },
+  "batchEns": {
+    "validatorAccepted": [
+      "vitalik.eth"
+    ],
+    "failure": {
+      "target": "vitalik.eth",
+      "status": "unavailable",
+      "reasons": [
+        {
+          "source": "scan",
+          "code": "unsupported_target",
+          "message": "Could not verify the account type for vitalik.eth on Ethereum (chain 1); Cluster Scan requires a verified EOA or EIP-7702 delegated EOA."
+        }
+      ]
+    }
+  }
+}

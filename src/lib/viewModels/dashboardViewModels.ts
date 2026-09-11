@@ -156,7 +156,7 @@ export function sortClusterWallets(
   sortField: ClusterSortField,
   ascending: boolean,
 ): BulkWrappedWallet[] {
-  const value = (wallet: BulkWrappedWallet): number => {
+  const value = (wallet: BulkWrappedWallet): number | null => {
     switch (sortField) {
       case 'gas': return wallet.totalGasUSD;
       case 'inflow': return wallet.totalInflowUSD;
@@ -165,7 +165,12 @@ export function sortClusterWallets(
       case 'txs': return wallet.transactionCount;
     }
   };
-  return [...wallets].sort((left, right) => (
-    ascending ? value(left) - value(right) : value(right) - value(left)
-  ));
+  return [...wallets].sort((left, right) => {
+    const leftValue = value(left);
+    const rightValue = value(right);
+    if (leftValue === null && rightValue === null) return 0;
+    if (leftValue === null) return 1;
+    if (rightValue === null) return -1;
+    return ascending ? leftValue - rightValue : rightValue - leftValue;
+  });
 }

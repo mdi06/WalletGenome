@@ -9,6 +9,7 @@ interface MediaInput {
   totalVolumeUSD: number;
   totalGasUSD: number;
   includeMonetary?: boolean;
+  analysisTime?: number;
 }
 
 export function computeMediaScore(input: MediaInput): MediaScoreBreakdown {
@@ -20,6 +21,7 @@ export function computeMediaScore(input: MediaInput): MediaScoreBreakdown {
     totalVolumeUSD,
     totalGasUSD,
     includeMonetary = true,
+    analysisTime = Date.now(),
   } = input;
 
   const totalTxCount = transactions.length;
@@ -108,7 +110,7 @@ export function computeMediaScore(input: MediaInput): MediaScoreBreakdown {
   let ageScore = 20;
   if (timestamps.length > 0) {
     const earliestTime = timestamps[0];
-    const ageDays = (Date.now() / 1000 - earliestTime) / (24 * 3600);
+    const ageDays = (analysisTime / 1000 - earliestTime) / (24 * 3600);
 
     if (ageDays >= 365) ageScore = 95;
     else if (ageDays >= 180) ageScore = 80;

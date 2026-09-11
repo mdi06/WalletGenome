@@ -9,7 +9,11 @@ import { loadDemoSnapshot } from './demoSnapshotClient';
 import { getDemoWalletFromSearch, type DemoWallet } from '@/lib/demoWallets';
 import { CLUSTER_SAMPLE_SNAPSHOT, isClusterSampleSearch } from '@/lib/clusterDemoSnapshot';
 
-export function useWalletScanner() {
+type WalletScannerOptions = {
+  canRunLiveScans?: boolean;
+};
+
+export function useWalletScanner({ canRunLiveScans = true }: WalletScannerOptions = {}) {
   const autoScanStarted = useRef(false);
   const activeSingleScanId = useRef(0);
   const activeSingleScanController = useRef<AbortController | null>(null);
@@ -277,12 +281,13 @@ export function useWalletScanner() {
 
     const urlTarget = getUrlScanTarget(window.location.search);
     if (!urlTarget || autoScanStarted.current) return;
+    if (!canRunLiveScans) return;
     autoScanStarted.current = true;
     const timeoutId = window.setTimeout(() => {
       void handleSingleScan(urlTarget, [...SUPPORTED_CHAIN_IDS]);
     }, 0);
     return () => window.clearTimeout(timeoutId);
-  }, [handleClusterDemoSnapshot, handleDemoSnapshot, handleSingleScan]);
+  }, [canRunLiveScans, handleClusterDemoSnapshot, handleDemoSnapshot, handleSingleScan]);
 
   useEffect(() => () => {
     activeSingleScanId.current += 1;

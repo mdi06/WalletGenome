@@ -137,9 +137,10 @@ Every single-wallet API response exposes a typed `metrics` object. The methodolo
 
 Capital Flow also publishes `capitalFlowCoverage`: verified transfer legs, total eligible legs, excluded current-price estimates, unpriced legs, coverage percentage, and `complete`/`partial`/`unavailable` status. When wallet history is complete, partial price coverage is presented as a verified lower bound with count coverage. When wallet history itself is incomplete, the canonical metrics remain unavailable, but the Flow Graph may show an observed priced lower bound calculated only from returned historical or stablecoin-priced legs. Missing history, current-price estimates, and unpriced values are excluded and called out explicitly. Other USD metrics continue to follow their own completeness contracts.
 
-### Public scan request policy
+### Live scan request policy
 
-- Scans remain public and unauthenticated; provider credentials are server-side environment variables and are never accepted from request bodies.
+- Saved demos, documentation, and methodology pages remain public. Live single-wallet and cluster scans require a verified Google session through Supabase; provider credentials remain server-side environment variables and are never accepted from request bodies.
+- Google account email is used for authentication. Beta-update subscriptions are optional, stored separately, and may be turned off from the scanner.
 - Single and batch routes validate exact allowed fields, EVM/ENS targets, and supported chain IDs before provider work.
 - Single-wallet browser scans request an NDJSON stream from `POST /api/scan`. The same request emits scan phases, provider-response counts, cumulative history records, and the final report, so progress does not depend on process-local job storage or cross-instance polling.
 - Batch scans accept at most 10 unique wallets and process at most 3 wallet scans concurrently.
@@ -196,6 +197,7 @@ MORALIS_MAX_PAGES_PER_DATASET=100
 ETHERSCAN_ENABLE_PAID_CHAINS=false
 BLOCKSCOUT_API_KEY=your_blockscout_pro_api_key
 COINGECKO_API_KEY=your_coingecko_demo_key
+COINGECKO_API_PLAN=demo
 UPSTASH_REDIS_REST_URL=https://your-upstash-endpoint.upstash.io
 UPSTASH_REDIS_REST_TOKEN=your_upstash_rest_token
 SHARED_SCAN_DAILY_LIMIT=500

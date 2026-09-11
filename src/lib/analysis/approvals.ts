@@ -1,7 +1,8 @@
 import { ProcessedTransaction, TokenApproval, ApprovalSummary, RiskLevel, EtherscanTokenTransfer, PriceProvenance, PriceProvenanceSummary } from '../types';
 import { getAddressLabel, isDEXAddress, isBridgeAddress } from '../labels';
-import { STABLECOINS } from '../chains';
-import { resolveCoingeckoId, getCachedCurrentPriceQuote } from '../prices';
+import { isStablecoinContract } from '../chains';
+import { getCachedCurrentPriceQuote } from '../prices';
+import { formatTokenUnits, parseTokenDecimals } from '../tokenUnits';
 
 const APPROVE_METHOD_ID = '0x095ea7b3';
 
@@ -16,11 +17,15 @@ export function analyzeApprovals(
 
   // Calculate approximate token balances from transfer history to estimate exposure
   const tokenBalances = new Map<string, { balance: number; currentPriceUSD: number | null; provenance: PriceProvenance; symbol: string; name: string; decimals: number }>();
+  const seenTransferIds = new Set<string>();
   for (const t of tokenTransfers) {
     if (!t.contractAddress) continue;
+    const transferId = rawTokenTransferIdentity(t, chainId);
+    if (seenTransferIds.has(transferId)) continue;
+    seenTransferIds.add(transferId);
     const cAddr = t.contractAddress.toLowerCase();
-    const decimals = parseInt(t.tokenDecimal || '18') || 18;
-    const amt = parseFloat(t.value || '0') / Math.pow(10, decimals);
+    const decimals = parseTokenDecimals(t.tokenDecimal);
+    const amt = formatTokenUnits(t.value || '0', decimals);
     const existing = tokenBalances.get(cAddr) || {
       balance: 0,
       currentPriceUSD: null,
@@ -30,23 +35,22 @@ export function analyzeApprovals(
       decimals,
     };
 
-    if ((t.from || '').toLowerCase() === lower) {
+    const isFromWallet = (t.from || '').toLowerCase() === lower;
+    const isToWallet = (t.to || '').toLowerCase() === lower;
+    if (isFromWallet && !isToWallet) {
       existing.balance -= amt;
-    } else if ((t.to || '').toLowerCase() === lower) {
+    } else if (isToWallet && !isFromWallet) {
       existing.balance += amt;
     }
 
     if (existing.currentPriceUSD === null) {
-      if (STABLECOINS[cAddr]) {
+      if (isStablecoinContract(chainId, cAddr)) {
         existing.currentPriceUSD = 1.0;
         existing.provenance = 'stablecoin_assumption';
       } else {
-        const coingeckoId = resolveCoingeckoId(cAddr);
-        if (coingeckoId) {
-          const quote = getCachedCurrentPriceQuote(coingeckoId);
-          existing.currentPriceUSD = quote.priceUSD;
-          existing.provenance = quote.provenance;
-        }
+        const quote = getCachedCurrentPriceQuote({ chainId, contractAddress: cAddr });
+        existing.currentPriceUSD = quote.priceUSD;
+        existing.provenance = quote.provenance;
       }
     }
 
@@ -194,11 +198,23 @@ export function analyzeApprovals(
 }
 
 function toDecimalAmount(rawAmount: bigint, decimals: number): number {
-  if (decimals <= 0) return Number(rawAmount);
-  const digits = rawAmount.toString().padStart(decimals + 1, '0');
-  const whole = digits.slice(0, -decimals);
-  const fraction = digits.slice(-decimals).replace(/0+$/, '');
-  return Number(fraction ? `${whole}.${fraction}` : whole);
+  return formatTokenUnits(rawAmount, decimals);
+}
+
+function rawTokenTransferIdentity(transfer: EtherscanTokenTransfer, chainId: number): string {
+  const hash = transfer.hash.trim().toLowerCase();
+  const logIndex = transfer.logIndex?.trim();
+  if (hash && logIndex) return `${chainId}:${hash}:log:${logIndex}`;
+
+  return [
+    chainId,
+    hash,
+    transfer.transactionIndex.trim(),
+    transfer.contractAddress.trim().toLowerCase(),
+    transfer.from.trim().toLowerCase(),
+    transfer.to.trim().toLowerCase(),
+    transfer.value.trim(),
+  ].join(':');
 }
 
 function findTokenInfo(

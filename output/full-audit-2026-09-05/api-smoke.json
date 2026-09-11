@@ -1,0 +1,77 @@
+[
+  {
+    "name": "known-wallet-write",
+    "expected": 405,
+    "status": 405,
+    "pass": true,
+    "body": "{\"error\":\"Known-wallet labels are read-only configuration and cannot be changed through the API.\"}"
+  },
+  {
+    "name": "malformed",
+    "expected": 400,
+    "status": 400,
+    "pass": true,
+    "body": "{\"error\":\"Request body must be valid JSON.\",\"code\":\"malformed_json\"}"
+  },
+  {
+    "name": "oversized",
+    "expected": 413,
+    "status": 413,
+    "pass": true,
+    "body": "{\"error\":\"Request body is too large.\",\"code\":\"body_too_large\"}"
+  },
+  {
+    "name": "invalid-target",
+    "expected": 400,
+    "status": 400,
+    "pass": true,
+    "body": "{\"error\":\"address must be a complete EVM address or ENS-style name.\",\"code\":\"invalid_target\"}"
+  },
+  {
+    "name": "client-key",
+    "expected": 400,
+    "status": 400,
+    "pass": true,
+    "body": "{\"error\":\"Unsupported request field: apiKey.\",\"code\":\"unsupported_field\"}"
+  },
+  {
+    "name": "unsupported-chain",
+    "expected": 400,
+    "status": 400,
+    "pass": true,
+    "body": "{\"error\":\"chainIds contains an unsupported chain ID.\",\"code\":\"unsupported_chain\"}"
+  },
+  {
+    "name": "duplicate-batch",
+    "expected": 400,
+    "status": 400,
+    "pass": true,
+    "body": "{\"error\":\"addresses must not contain duplicates.\",\"code\":\"duplicate_wallet\"}"
+  },
+  {
+    "name": "oversized-batch",
+    "expected": 400,
+    "status": 400,
+    "pass": true,
+    "body": "{\"error\":\"addresses must contain at most 10 wallets.\",\"code\":\"too_many_wallets\"}"
+  },
+  {
+    "name": "telemetry-invalid",
+    "expected": 400,
+    "status": 400,
+    "pass": true,
+    "body": "{\"error\":\"Performance telemetry payload is invalid.\"}"
+  },
+  {
+    "name": "/does-not-exist-audit",
+    "expected": 404,
+    "status": 404,
+    "pass": true
+  },
+  {
+    "name": "/api/scan-jobs",
+    "expected": 404,
+    "status": 404,
+    "pass": true
+  }
+]

@@ -36,6 +36,11 @@
   /* Physics Spring Easing */
   --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
   --ease-out-quad: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Shared overlay stack: backdrop < dialog < toast. */
+  --z-backdrop: 550;
+  --z-dialog: 600;
+  --z-toast: 900;
 }
 
 @keyframes dropdownOpen {

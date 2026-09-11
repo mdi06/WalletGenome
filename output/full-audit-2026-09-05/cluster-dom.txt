@@ -1,0 +1,177 @@
+- main:
+  - button "Open WalletGenome guide":
+    - generic: WALLET.GENOME
+  - button "Open navigation":
+  - 'status "Indexing status: Saved snapshot"':
+    - generic: Saved snapshot
+  - region "Wallet Forensics Console":
+    - tablist "Forensics Scan Mode":
+      - tab "Single wallet":
+        - generic: Single wallet
+      - tab "Cluster scan" [selected]:
+        - generic: Cluster scan
+    - tabpanel "Cluster scan":
+      - generic: MULTI-WALLET CLUSTER MATRIX SCANNER
+      - generic: BATCH MODE
+      - button "Fill Sample Addresses (4)":
+        - generic: Fill Sample Addresses (4)
+      - button "Load Saved Cluster Example" [active]:
+        - generic: Load Saved Cluster Example
+      - generic: Paste EVM addresses separated by new lines, commas, or spaces
+      - textbox "Paste EVM addresses to scan":
+        - /placeholder: "Paste EVM addresses separated by new lines, commas, or spaces:\n0x2e21f5d34208a3d5483f9829f2709e9005bf15f2\n0x163473950fbcfcfc31ac7ad0eec26f5fe549046c"
+      - generic: 0 addresses
+      - group "Select target EVM networks for cluster":
+        - generic: "Networks:"
+        - button "Toggle Ethereum network" [pressed]:
+          - generic: ETH
+        - button "Toggle Base network" [pressed]:
+          - generic: BASE
+        - button "Toggle Arbitrum network" [pressed]:
+          - generic: ARB
+        - button "Toggle Optimism network":
+          - generic: OP
+      - button "SCAN CLUSTER (0)" [disabled]:
+        - generic: SCAN CLUSTER (0)
+  - region "Cluster snapshot status":
+    - paragraph: Saved cluster example · Non-live
+    - paragraph: Fixed provider-free example updated Sep 1, 2026. It contains no modeled activity or connection evidence and does not spend provider API quota.
+    - button "Run fresh cluster scan"
+  - generic: WALLETS SCANNED
+  - generic: 4 Wallets
+  - generic: Not modeled in example
+  - generic: COMBINED LIFETIME GAS
+  - generic: N/A
+  - generic: No live values in example
+  - generic: COMBINED INFLOWS
+  - generic: N/A
+  - generic: No live values in example
+  - generic: AVG BEHAVIORAL SYBIL RISK
+  - generic: N/A
+  - generic: No live scoring in example
+  - generic: Local heuristic · not a live Trusta score
+  - generic: HIGH-RISK APPROVALS
+  - generic: N/A
+  - generic: No live approval data in example
+  - generic: CLUSTER FORENSIC EXECUTIVE SUMMARY
+  - text: Automated multi-wallet behavioral intelligence & correlation analysis
+  - generic: SAVED EXAMPLE
+  - paragraph: This saved cluster example contains no modeled connection evidence. It is a non-live fixture, not evidence that the submitted wallets are independent.
+  - text: INTER-WALLET LINKAGE
+  - generic: No Modeled Connections
+  - generic: No connection evidence included in saved example
+  - text: CENTRAL HUB OVERLAP
+  - generic: N/A
+  - generic: No shared hubs modeled
+  - text: DOMINANT ARCHETYPE
+  - generic: N/A
+  - generic: No live behavior data in example
+  - tablist "Cluster dashboard sections; scroll horizontally for more tabs":
+    - tab "CLUSTER LEADERBOARD 4" [selected]:
+      - generic: CLUSTER LEADERBOARD
+      - generic: "4"
+    - tab "INTER-WALLET FLOW GRAPH ALL WALLETS":
+      - generic: INTER-WALLET FLOW GRAPH
+      - generic: ALL WALLETS
+  - tabpanel "CLUSTER LEADERBOARD 4":
+    - text: DIRECT INTER-WALLET TRANSFERS
+    - generic: 0 TRANSACTIONS
+    - paragraph: No connection evidence is included in this saved example.
+    - generic: TOP SHARED COUNTERPARTIES & HUBS
+    - generic: 0 HUBS
+    - paragraph: No shared-counterparty evidence is included in this saved example.
+    - generic: CLUSTER WALLET AUDIT LEADERBOARD
+    - text: Click column headers to sort · Click "Inspect" for full single-wallet forensic breakdown
+    - button "EXPORT CSV":
+      - generic: EXPORT CSV
+    - region "Cluster wallet leaderboard; scroll horizontally for all columns":
+      - table:
+        - rowgroup:
+          - row "# WALLET IDENTITY PERSONA RISK GRADE BEHAVIORAL RISK LIFETIME GAS ▼ NET INFLOW TRANSACTIONS ACTION":
+            - columnheader "#"
+            - columnheader "WALLET IDENTITY"
+            - columnheader "PERSONA"
+            - columnheader "RISK GRADE":
+              - button "RISK GRADE"
+            - columnheader "BEHAVIORAL RISK":
+              - button "BEHAVIORAL RISK"
+            - columnheader "LIFETIME GAS ▼":
+              - button "LIFETIME GAS ▼"
+            - columnheader "NET INFLOW":
+              - button "NET INFLOW"
+            - columnheader "TRANSACTIONS":
+              - button "TRANSACTIONS"
+            - columnheader "ACTION"
+        - rowgroup:
+          - row "1 stani.eth 0x2e21f5d34208a3d5483f9829f2709e9005bf15f2 Saved example N/A N/A N/A N/A Not modeled Inspect →":
+            - cell "1"
+            - cell "stani.eth 0x2e21f5d34208a3d5483f9829f2709e9005bf15f2":
+              - generic: stani.eth
+              - generic: "0x2e21f5d34208a3d5483f9829f2709e9005bf15f2"
+            - cell "Saved example"
+            - cell "N/A"
+            - cell "N/A"
+            - cell "N/A"
+            - cell "N/A"
+            - cell "Not modeled"
+            - cell "Inspect →":
+              - button "Inspect →"
+          - row "2 danno.eth 0x163473950fbcfcfc31ac7ad0eec26f5fe549046c Saved example N/A N/A N/A N/A Not modeled Inspect →":
+            - cell "2"
+            - cell "danno.eth 0x163473950fbcfcfc31ac7ad0eec26f5fe549046c":
+              - generic: danno.eth
+              - generic: "0x163473950fbcfcfc31ac7ad0eec26f5fe549046c"
+            - cell "Saved example"
+            - cell "N/A"
+            - cell "N/A"
+            - cell "N/A"
+            - cell "N/A"
+            - cell "Not modeled"
+            - cell "Inspect →":
+              - button "Inspect →"
+          - row "3 ricburton.eth 0x99e52ddb9e2c65febe07ddbe47432720d297a780 Saved example N/A N/A N/A N/A Not modeled Inspect →":
+            - cell "3"
+            - cell "ricburton.eth 0x99e52ddb9e2c65febe07ddbe47432720d297a780":
+              - generic: ricburton.eth
+              - generic: "0x99e52ddb9e2c65febe07ddbe47432720d297a780"
+            - cell "Saved example"
+            - cell "N/A"
+            - cell "N/A"
+            - cell "N/A"
+            - cell "N/A"
+            - cell "Not modeled"
+            - cell "Inspect →":
+              - button "Inspect →"
+          - row "4 nick.eth 0xb8c2c29ee19d8307cb7255e1cd9cbde883a267d5 Saved example N/A N/A N/A N/A Not modeled Inspect →":
+            - cell "4"
+            - cell "nick.eth 0xb8c2c29ee19d8307cb7255e1cd9cbde883a267d5":
+              - generic: nick.eth
+              - generic: "0xb8c2c29ee19d8307cb7255e1cd9cbde883a267d5"
+            - cell "Saved example"
+            - cell "N/A"
+            - cell "N/A"
+            - cell "N/A"
+            - cell "N/A"
+            - cell "Not modeled"
+            - cell "Inspect →":
+              - button "Inspect →"
+- contentinfo:
+  - paragraph: WalletGenome
+  - paragraph: Read-only, evidence-aware EVM wallet analytics. No wallet connection or signature required.
+  - link "WalletGenome on X":
+    - /url: https://x.com/wallet_genome
+    - generic: "@wallet_genome"
+  - navigation "Wallet analytics topics":
+    - link "Methodology":
+      - /url: /docs
+    - link "EVM Wallet Analytics":
+      - /url: /evm-wallet-analytics
+    - link "Crypto Wallet Risk Checker":
+      - /url: /crypto-wallet-risk-checker
+    - link "Token Approval Checker":
+      - /url: /token-approval-checker
+    - link "Sybil Wallet Analysis":
+      - /url: /sybil-wallet-analysis
+    - link "Multi-Chain Wallet Forensics":
+      - /url: /multi-chain-wallet-forensics
+- alert

@@ -4,7 +4,7 @@ import { getAvailabilityMessage } from './status/DashboardStatusPanel';
 
 interface DemoSnapshotNoticeProps {
   demo: DemoWallet;
-  onRunFreshScan: () => void;
+  onRunFreshScan: (trigger?: HTMLElement) => void;
   isLoading: boolean;
   data?: MultiChainScanResult;
 }
@@ -39,7 +39,7 @@ export default function DemoSnapshotNotice({
         </div>
         <button
           type="button"
-          onClick={onRunFreshScan}
+          onClick={event => onRunFreshScan(event.currentTarget)}
           disabled={isLoading}
           className="btn-3d-black min-h-11 shrink-0 px-4 py-2 text-xs font-black uppercase tracking-wider text-white disabled:cursor-not-allowed disabled:opacity-50"
         >

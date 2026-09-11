@@ -9,7 +9,7 @@ export const TRANSFER_TABLE_PAGE_SIZE = 50;
 export function normalizeTransferTablePricing(transfer: TransferTableRow): TransferTableRow {
   // Saved snapshots can contain prices produced before contract-aware pricing
   // was enforced. Never carry a legacy ticker-only value into the UI.
-  if (isTrustedTokenContract(transfer.contractAddress)) return transfer;
+  if (isTrustedTokenContract(transfer.chainId, transfer.contractAddress)) return transfer;
 
   return {
     ...transfer,

@@ -25,6 +25,9 @@ export default function SiteFooter() {
           <Link href="/docs" className="inline-flex min-h-11 w-full items-center justify-start font-bold text-[#0a0a0a] hover:text-orange-ink md:min-h-9 md:w-auto">
             Methodology
           </Link>
+          <Link href="/privacy" className="inline-flex min-h-11 w-full items-center justify-start font-bold text-[#0a0a0a] hover:text-orange-ink md:min-h-9 md:w-auto">
+            Privacy
+          </Link>
           {SEO_LANDING_PAGES.map(page => (
             <Link
               key={page.slug}

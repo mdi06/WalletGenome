@@ -8,6 +8,7 @@ import type {
   BulkWrappedWallet,
   ClusterScanResult,
   DataAvailabilityError,
+  PriceProvenanceSummary,
   WalletAccountClassification,
   WalletScanResponse,
 } from '@/lib/types';
@@ -28,6 +29,34 @@ type TargetAccountClassifier = (
   address: string,
   options?: { signal?: AbortSignal },
 ) => Promise<WalletAccountClassification>;
+
+function emptyPriceProvenance(): PriceProvenanceSummary {
+  return { historical: 0, spotEstimate: 0, stablecoinAssumption: 0, unpriced: 0, status: 'complete' };
+}
+
+function mergePriceProvenance(
+  summaries: readonly (PriceProvenanceSummary | undefined)[],
+): PriceProvenanceSummary {
+  const statusRank: Record<PriceProvenanceSummary['status'], number> = {
+    complete: 0,
+    partial: 1,
+    unavailable: 2,
+  };
+  return summaries.reduce<PriceProvenanceSummary>((total, summary) => {
+    if (!summary) return total;
+    total.historical += summary.historical;
+    total.spotEstimate += summary.spotEstimate;
+    total.stablecoinAssumption += summary.stablecoinAssumption;
+    total.unpriced += summary.unpriced;
+    if (statusRank[summary.status] > statusRank[total.status]) total.status = summary.status;
+    return total;
+  }, emptyPriceProvenance());
+}
+
+function sumKnown(values: readonly (number | null)[]): number | null {
+  if (values.length === 0 || values.every(value => value === null)) return null;
+  return values.reduce<number>((sum, value) => sum + (value ?? 0), 0);
+}
 
 export async function classifyTargetAccounts(
   address: string,
@@ -163,6 +192,9 @@ export async function processBatchScan(
           });
         });
 
+        const gasPriceProvenance = mergePriceProvenance(
+          validResults.map(chain => chain.gasSummary.priceProvenance),
+        );
         const item: BulkWrappedWallet = {
           address,
           primaryName: identityReport?.primaryName || undefined,
@@ -174,9 +206,11 @@ export async function processBatchScan(
           isFlagged: sybilReport?.isFlagged ?? false,
           flaggedDatabases: flaggedDBs,
           totalGasETH: aggregated.totalGasETH,
-          totalGasUSD: aggregated.totalGasUSD,
-          totalInflowUSD: metrics.inflowUSD ?? 0,
-          totalOutflowUSD: metrics.outflowUSD ?? 0,
+          totalGasUSD: gasPriceProvenance.status === 'unavailable' ? null : aggregated.totalGasUSD,
+          gasPriceProvenance,
+          totalInflowUSD: metrics.inflowUSD,
+          totalOutflowUSD: metrics.outflowUSD,
+          priceProvenance: metrics.priceProvenance,
           transactionCount: aggregated.totalTransactions,
           highRiskApprovalsCount: aggregated.totalHighRiskApprovals,
           unlimitedApprovalsCount: metrics.totalUnlimitedApprovals ?? 0,
@@ -213,20 +247,21 @@ export async function processBatchScan(
     .map(result => result.failure);
 
   let totalTransactions = 0;
-  let totalGasUSD = 0;
-  let totalInflowUSD = 0;
   let totalSybilProbability = 0;
   let flaggedCount = 0;
   let totalHighRiskApprovals = 0;
 
   successfulWallets.forEach(wallet => {
     totalTransactions += wallet.transactionCount;
-    totalGasUSD += wallet.totalGasUSD;
-    totalInflowUSD += wallet.totalInflowUSD;
     totalSybilProbability += wallet.sybilProbability;
     if (wallet.isFlagged) flaggedCount++;
     totalHighRiskApprovals += wallet.highRiskApprovalsCount;
   });
+
+  const priceProvenance = mergePriceProvenance(successfulWallets.map(wallet => wallet.priceProvenance));
+  const gasPriceProvenance = mergePriceProvenance(successfulWallets.map(wallet => wallet.gasPriceProvenance));
+  const totalGasUSD = sumKnown(successfulWallets.map(wallet => wallet.totalGasUSD));
+  const totalInflowUSD = sumKnown(successfulWallets.map(wallet => wallet.totalInflowUSD));
 
   return {
     source: 'live',
@@ -235,7 +270,9 @@ export async function processBatchScan(
     requestedWallets: addresses.length,
     totalTransactions,
     totalGasUSD,
+    gasPriceProvenance,
     totalInflowUSD,
+    priceProvenance,
     avgSybilProbability: successfulWallets.length > 0 ? totalSybilProbability / successfulWallets.length : 0,
     flaggedCount,
     totalHighRiskApprovals,

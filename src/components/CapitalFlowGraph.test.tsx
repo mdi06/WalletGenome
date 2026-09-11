@@ -33,7 +33,20 @@ function outboundRecipient(address: string, label: string, outboundCount: number
   };
 }
 
+function emptyRecipient(address: string, label: string): AddressInteraction {
+  return outboundRecipient(address, label, 0, 0);
+}
+
 describe('Capital Flow Graph verified summary', () => {
+  it('does not draw a direction with zero transfers even when the volume filter is zero', () => {
+    const markup = renderWithOutboundRecipients([
+      emptyRecipient('0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', 'Empty Recipient'),
+    ]);
+
+    assert.doesNotMatch(markup, /Empty Recipient/);
+    assert.doesNotMatch(markup, /0 txs/);
+  });
+
   it('keeps a one-transaction recipient in the table without showing the trophy card', () => {
     const markup = renderWithOutboundRecipients([
       outboundRecipient('0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', 'Single Recipient', 1, 100),

@@ -66,6 +66,7 @@ test('keeps partial and unavailable chain activity explicit', () => {
 
 test('builds evidence-based cluster summary and deterministic sorting', () => {
   const wallets = [wallet('0x2', 80, 20), wallet('0x1', 10, 100)];
+  wallets[0].totalInflowUSD = null;
   const data: ClusterScanResult = {
     status: 'complete', totalWallets: 2, requestedWallets: 2, totalTransactions: 20,
     totalGasUSD: 120, totalInflowUSD: 200, avgSybilProbability: 20, flaggedCount: 0,
@@ -75,6 +76,8 @@ test('builds evidence-based cluster summary and deterministic sorting', () => {
   assert.equal(buildClusterSummary(data).coordinationLevel, 'INDEPENDENT PORTFOLIO');
   assert.deepEqual(sortClusterWallets(wallets, 'risk', false).map(item => item.address), ['0x2', '0x1']);
   assert.deepEqual(sortClusterWallets(wallets, 'gas', true).map(item => item.address), ['0x2', '0x1']);
+  assert.deepEqual(sortClusterWallets(wallets, 'inflow', true).map(item => item.address), ['0x1', '0x2']);
+  assert.deepEqual(sortClusterWallets(wallets, 'inflow', false).map(item => item.address), ['0x1', '0x2']);
 });
 
 test('does not turn a saved no-link example into an independence claim', () => {

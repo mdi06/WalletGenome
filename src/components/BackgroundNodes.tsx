@@ -8,6 +8,44 @@ import {
   shouldRunDecorativeLoop,
 } from './uiEffectRuntime';
 
+export interface ParticlePosition {
+  x: number;
+  y: number;
+}
+
+export interface CanvasSize {
+  width: number;
+  height: number;
+}
+
+function normalizeDimension(value: number): number {
+  return Number.isFinite(value) ? Math.max(0, value) : 0;
+}
+
+function clampCoordinate(value: number, bound: number): number {
+  const safeValue = Number.isFinite(value) ? value : 0;
+  return Math.min(bound, Math.max(0, safeValue));
+}
+
+export function remapParticlePosition(
+  position: ParticlePosition,
+  previousSize: CanvasSize,
+  nextSize: CanvasSize,
+): ParticlePosition {
+  const previousWidth = normalizeDimension(previousSize.width);
+  const previousHeight = normalizeDimension(previousSize.height);
+  const nextWidth = normalizeDimension(nextSize.width);
+  const nextHeight = normalizeDimension(nextSize.height);
+
+  const nextX = previousWidth === 0 ? 0 : position.x * nextWidth / previousWidth;
+  const nextY = previousHeight === 0 ? 0 : position.y * nextHeight / previousHeight;
+
+  return {
+    x: clampCoordinate(nextX, nextWidth),
+    y: clampCoordinate(nextY, nextHeight),
+  };
+}
+
 export default function BackgroundNodes() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -21,6 +59,7 @@ export default function BackgroundNodes() {
     let width = 0;
     let height = 0;
     let animationFrameId: number | null = null;
+    let resizeFrameId: number | null = null;
     let lastDrawAt: number | null = null;
     let reducedMotion = false;
     let documentHidden = false;
@@ -67,12 +106,20 @@ export default function BackgroundNodes() {
     }
 
     const resize = () => {
-      width = canvas.width = window.innerWidth;
-      height = canvas.height = window.innerHeight;
+      const previousSize = { width, height };
+      const renderedSize = canvas.getBoundingClientRect();
+      const nextSize = {
+        width: Math.round(renderedSize.width),
+        height: Math.round(renderedSize.height),
+      };
+
+      width = canvas.width = normalizeDimension(nextSize.width);
+      height = canvas.height = normalizeDimension(nextSize.height);
 
       for (const particle of particles) {
-        particle.x = Math.min(width, Math.max(0, particle.x));
-        particle.y = Math.min(height, Math.max(0, particle.y));
+        const nextPosition = remapParticlePosition(particle, previousSize, { width, height });
+        particle.x = nextPosition.x;
+        particle.y = nextPosition.y;
       }
     };
 
@@ -144,6 +191,21 @@ export default function BackgroundNodes() {
       animationFrameId = requestAnimationFrame(animate);
     };
 
+    const scheduleResize = () => {
+      if (resizeFrameId !== null) return;
+
+      resizeFrameId = requestAnimationFrame(() => {
+        resizeFrameId = null;
+        resize();
+        drawFrame(0);
+      });
+    };
+
+    const resizeObserver = typeof ResizeObserver === 'undefined'
+      ? null
+      : new ResizeObserver(scheduleResize);
+    resizeObserver?.observe(canvas);
+
     const reducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
     reducedMotion = reducedMotionQuery.matches;
     documentHidden = document.hidden;
@@ -169,8 +231,7 @@ export default function BackgroundNodes() {
     };
 
     const handleResize = () => {
-      resize();
-      drawFrame(0);
+      scheduleResize();
     };
 
     window.addEventListener('resize', handleResize);
@@ -185,6 +246,11 @@ export default function BackgroundNodes() {
       window.removeEventListener('resize', handleResize);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       reducedMotionQuery.removeEventListener('change', handleReducedMotionChange);
+      resizeObserver?.disconnect();
+      if (resizeFrameId !== null) {
+        cancelAnimationFrame(resizeFrameId);
+        resizeFrameId = null;
+      }
       cancelAnimation();
     };
   }, []);
@@ -193,6 +259,7 @@ export default function BackgroundNodes() {
     <canvas
       ref={canvasRef}
       className="fixed inset-0 pointer-events-none -z-10"
+      style={{ width: '100vw', height: '100vh' }}
       aria-hidden="true"
     />
   );

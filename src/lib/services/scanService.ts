@@ -1,4 +1,5 @@
 import { batchFetchPrices } from '@/lib/prices';
+import type { PriceAvailabilityResult } from '@/lib/prices';
 import { collectPriceRequests, runAnalysis, processInternalTransactions, processTransactions, processTokenTransfers } from '@/lib/scanner';
 import { getChainConfig } from '@/lib/chains';
 import { loadKnownWallets } from '@/lib/knownWalletsServer';
@@ -37,7 +38,7 @@ import {
 } from '@/lib/types';
 import type { HistoryDatasetName } from '@/lib/services/walletHistoryService';
 import type { ScanProgressDataset, ScanProgressDetail } from '@/lib/scanProgress';
-import { throwIfAborted } from '@/lib/cancellation';
+import { RequestCancellationError, throwIfAborted } from '@/lib/cancellation';
 
 // Keep only a small number of chains in flight. Per-provider domain limiters
 // in the explorer/RPC clients enforce the actual upstream request budgets.
@@ -54,7 +55,68 @@ interface ProcessWalletScanOptions {
 }
 
 const HISTORY_DATASETS = ['transactions', 'tokenTransfers', 'internalTransactions'] as const satisfies readonly HistoryDatasetName[];
-const inFlightScans = new Map<string, Promise<WalletScanResponse>>();
+
+interface SharedScanWork {
+  controller: AbortController;
+  promise: Promise<WalletScanResponse>;
+  subscribers: Map<symbol, ((progress: ProcessWalletScanProgress) => void) | undefined>;
+  settled: boolean;
+}
+
+const inFlightScans = new Map<string, SharedScanWork>();
+
+function notifySharedProgress(
+  work: SharedScanWork,
+  progress: ProcessWalletScanProgress,
+): void {
+  for (const onProgress of work.subscribers.values()) onProgress?.(progress);
+}
+
+function subscribeToSharedScan(
+  work: SharedScanWork,
+  signal: AbortSignal | undefined,
+  onProgress: ((progress: ProcessWalletScanProgress) => void) | undefined,
+): Promise<WalletScanResponse> {
+  const subscriberId = Symbol('scan-subscriber');
+  work.subscribers.set(subscriberId, onProgress);
+
+  return new Promise<WalletScanResponse>((resolve, reject) => {
+    let released = false;
+    const release = (): void => {
+      if (released) return;
+      released = true;
+      work.subscribers.delete(subscriberId);
+      if (work.subscribers.size === 0 && !work.settled && !work.controller.signal.aborted) {
+        work.controller.abort(new RequestCancellationError('disconnect'));
+      }
+    };
+    const onAbort = (): void => {
+      release();
+      reject(signal?.reason instanceof RequestCancellationError
+        ? signal.reason
+        : new RequestCancellationError('disconnect'));
+    };
+
+    if (signal?.aborted) {
+      onAbort();
+    } else {
+      signal?.addEventListener('abort', onAbort, { once: true });
+    }
+
+    void work.promise.then(
+      result => {
+        signal?.removeEventListener('abort', onAbort);
+        release();
+        resolve(result);
+      },
+      error => {
+        signal?.removeEventListener('abort', onAbort);
+        release();
+        reject(error);
+      },
+    );
+  });
+}
 
 function reportCacheKey(address: string, chains: readonly number[]): string {
   return `wallet-analytics:report:v3:${address.toLowerCase()}:${[...chains].sort((a, b) => a - b).join(',')}`;
@@ -173,6 +235,7 @@ async function runWalletScan(
   const coingeckoKey = process.env.COINGECKO_API_KEY || '';
 
   const knownWallets = loadKnownWallets();
+  const analysisTime = Date.now();
   throwIfAborted(options.signal);
 
   // Fetch wallet identity in parallel with chain data
@@ -354,25 +417,46 @@ async function runWalletScan(
   const allPriceRequests = rawChainsData.flatMap(chain => (
     chain.transactions.status === 'unavailable' && chain.tokenTransfers.status === 'unavailable'
       ? []
-      : collectPriceRequests(chain.transactions.data, chain.tokenTransfers.data, chain.chainId)
+      : collectPriceRequests(
+        chain.transactions.data,
+        chain.tokenTransfers.data,
+        chain.chainId,
+        chain.internalTransactions.data,
+        analysisTime,
+      )
   ));
-  await batchFetchPrices(allPriceRequests, coingeckoKey, { signal: options.signal }).catch(() => {
+  let priceResult: PriceAvailabilityResult;
+  try {
+    priceResult = await batchFetchPrices(allPriceRequests, coingeckoKey, { signal: options.signal });
+  } catch (error) {
     throwIfAborted(options.signal);
-    return undefined;
-  });
+    priceResult = {
+      status: 'unavailable',
+      historicalStatus: 'unavailable',
+      currentStatus: 'unavailable',
+      errors: [{
+        code: 'provider_error',
+        message: error instanceof Error ? error.message : 'Pricing failed before a result was available.',
+        provider: 'pricing',
+      }],
+      byChain: [],
+    };
+  }
 
   const availability: ChainDataAvailability[] = rawChainsData.map(chain => {
+    const chainPriceAvailability = priceResult.byChain.find(item => item.chainId === chain.chainId);
     return {
       chainId: chain.chainId,
       chainName: chain.chainName,
       transactions: chain.transactions.status,
       tokenTransfers: chain.tokenTransfers.status,
       internalTransactions: chain.internalTransactions.status,
-      prices: 'complete' as const,
+      prices: chainPriceAvailability?.historicalStatus ?? 'complete',
       errors: [
         ...sourceErrors('transactions', chain.transactions.errors, chain.chainId, chain.chainName),
         ...sourceErrors('tokenTransfers', chain.tokenTransfers.errors, chain.chainId, chain.chainName),
         ...sourceErrors('internalTransactions', chain.internalTransactions.errors, chain.chainId, chain.chainName),
+        ...sourceErrors('prices', chainPriceAvailability?.errors ?? [], chain.chainId, chain.chainName),
       ],
     };
   });
@@ -394,10 +478,10 @@ async function runWalletScan(
       const normalTxs = transactions.data;
       const internalTxs = internalTransactions.data;
       const rawTokenTransfers = tokenTransfers.data;
-      const analysis = await runAnalysis(normalTxs, rawTokenTransfers, address, chainId, knownWallets, internalTxs);
-      const processedTxs = processTransactions(normalTxs, chainId, knownWallets);
-      const processedTransfers = processTokenTransfers(rawTokenTransfers, address, chainId, knownWallets);
-      const processedInternals = processInternalTransactions(internalTxs, address, chainId, knownWallets);
+      const analysis = await runAnalysis(normalTxs, rawTokenTransfers, address, chainId, knownWallets, internalTxs, analysisTime);
+      const processedTxs = processTransactions(normalTxs, chainId, knownWallets, analysisTime);
+      const processedTransfers = processTokenTransfers(rawTokenTransfers, address, chainId, knownWallets, analysisTime);
+      const processedInternals = processInternalTransactions(internalTxs, address, chainId, knownWallets, analysisTime);
       return { analysis, processedTxs, processedInternals, processedTransfers };
     },
     { signal: options.signal },
@@ -410,19 +494,20 @@ async function runWalletScan(
   const allInternalTransactions = validChainData.flatMap(r => r.processedInternals);
   const allTokenTransfers = validChainData.flatMap(r => r.processedTransfers);
 
-  const availabilityRank: Record<DataAvailabilityStatus, number> = {
-    complete: 0,
-    partial: 1,
-    unavailable: 2,
-  };
   for (const result of validResults) {
     const chainAvailability = availability.find(item => item.chainId === result.chainId);
     if (!chainAvailability) continue;
-    chainAvailability.prices = result.priceProvenance.status;
+    // Historical availability is the initial status, but analysis may also
+    // use bounded spot estimates. Keep a usable scan at partial rather than
+    // leaving it marked unavailable when only date-specific prices are absent.
+    if (result.priceProvenance.status !== 'complete') {
+      chainAvailability.prices = result.priceProvenance.status;
+    }
     if (result.priceProvenance.spotEstimate > 0) {
       chainAvailability.errors.push({
         source: 'prices',
         code: 'spot_estimate',
+        count: result.priceProvenance.spotEstimate,
         message: `${result.priceProvenance.spotEstimate} transaction or transfer valuations used current token prices because date-specific prices were unavailable. These estimates are excluded from verified historical capital flow and definitive historical USD metrics.`,
       });
     }
@@ -430,6 +515,7 @@ async function runWalletScan(
       chainAvailability.errors.push({
         source: 'prices',
         code: 'unpriced',
+        count: result.priceProvenance.unpriced,
         message: `${result.priceProvenance.unpriced} values could not be priced and remain unavailable.`,
       });
     }
@@ -450,7 +536,18 @@ async function runWalletScan(
       chainName: item.chainName,
       message: `${item.chainName} has incomplete historical prices. Verified capital flow includes historically priced legs only; excluded values and coverage are shown separately. Other price-dependent USD metrics may remain unavailable.`,
     }));
-  const chainWarnings = [...historyWarnings, ...priceWarnings];
+  const currentPriceWarnings = priceResult.byChain
+    .filter(item => item.currentStatus !== 'complete')
+    .map(item => {
+      const chainName = availability.find(availabilityItem => availabilityItem.chainId === item.chainId)?.chainName
+        ?? `Chain ${item.chainId}`;
+      return {
+        chainId: item.chainId,
+        chainName,
+        message: `${chainName} has incomplete current spot prices. Current-price-dependent views remain unavailable where no quote was returned; this does not replace verified historical USD values.`,
+      };
+    });
+  const chainWarnings = [...historyWarnings, ...priceWarnings, ...currentPriceWarnings];
 
   const GRADE_ORDER: Record<string, number> = { F: 5, D: 4, C: 3, B: 2, A: 1 };
   const worstRiskGrade = validResults.reduce<RiskGrade>((worst, r) => {
@@ -466,6 +563,11 @@ async function runWalletScan(
     }
   });
 
+  const availabilityRank: Record<DataAvailabilityStatus, number> = {
+    complete: 0,
+    partial: 1,
+    unavailable: 2,
+  };
   const priceProvenance = validResults.reduce<PriceProvenanceSummary>((summary, result) => {
     summary.historical += result.priceProvenance.historical;
     summary.spotEstimate += result.priceProvenance.spotEstimate;
@@ -511,6 +613,7 @@ async function runWalletScan(
         activeChainsCount,
         totalVolumeUSD,
         totalGasUSD: aggregated.totalGasUSD,
+        analysisTime,
         includeMonetary: priceProvenance.status === 'complete',
       })
     : undefined;
@@ -585,15 +688,8 @@ export async function processWalletScan(
   }
 
   const chains: number[] = (chainIds && chainIds.length > 0) ? chainIds : [1];
-  const accountClassifications = options.accountClassifications
-    ?? await classifyWalletAccounts(address, chains, { signal: options.signal });
   const canUseReportCache = !customApiKey && !includeClusterEvidence;
   const canUseHistoryCache = !customApiKey;
-  const historyCacheOptions: WalletHistoryCacheOptions = {
-    cacheReadEnabled: canUseHistoryCache && !options.forceRefresh,
-    cacheWriteEnabled: canUseHistoryCache,
-    signal: options.signal,
-  };
   const cacheKey = reportCacheKey(address, chains);
   const coalescingKey = `${cacheKey}:cluster=${includeClusterEvidence ? '1' : '0'}:custom=${customApiKey ? '1' : '0'}:refresh=${options.forceRefresh ? '1' : '0'}`;
 
@@ -603,7 +699,7 @@ export async function processWalletScan(
       throwIfAborted(options.signal);
       const fetchedAt = localCached.cacheMetadata?.fetchedAt;
       if (typeof fetchedAt === 'number' && remainingReportTtlSeconds(localCached, fetchedAt) > 0) {
-        return withCachedMetadata({ ...localCached, accountClassifications }, 'memory', fetchedAt);
+        return withCachedMetadata(localCached, 'memory', fetchedAt);
       }
       scanResultCache.delete(cacheKey);
     }
@@ -616,43 +712,67 @@ export async function processWalletScan(
     if (sharedCached) {
       throwIfAborted(options.signal);
       if (cacheReportLocally(cacheKey, sharedCached.value, sharedCached.fetchedAt)) {
-        return withCachedMetadata({ ...sharedCached.value, accountClassifications }, sharedCached.source, sharedCached.fetchedAt);
+        return withCachedMetadata(sharedCached.value, sharedCached.source, sharedCached.fetchedAt);
       }
     }
   }
 
-  const existing = options.signal ? undefined : inFlightScans.get(coalescingKey);
-  if (existing) return existing;
+  const existing = inFlightScans.get(coalescingKey);
+  if (existing) return subscribeToSharedScan(existing, options.signal, options.onProgress);
 
-  const scanWork = (async () => {
-    if (canUseReportCache) await enforceSharedQuota('scan', 1, options.signal);
-    throwIfAborted(options.signal);
+  const controller = new AbortController();
+  const work = {} as SharedScanWork;
+  work.controller = controller;
+  work.subscribers = new Map();
+  work.settled = false;
+  work.promise = (async () => {
+    if (canUseReportCache) await enforceSharedQuota('scan', 1, controller.signal);
+    throwIfAborted(controller.signal);
+    const accountClassifications = options.accountClassifications
+      ?? await classifyWalletAccounts(address, chains, { signal: controller.signal });
+    const historyCacheOptions: WalletHistoryCacheOptions = {
+      cacheReadEnabled: canUseHistoryCache && !options.forceRefresh,
+      cacheWriteEnabled: canUseHistoryCache,
+      signal: controller.signal,
+    };
+    const sharedOptions: ProcessWalletScanOptions = {
+      ...options,
+      signal: controller.signal,
+      onProgress: progress => notifySharedProgress(work, progress),
+    };
     const result = await runWalletScan(
       address,
       chains,
       customApiKey,
       includeClusterEvidence,
       accountClassifications,
-      options,
+      sharedOptions,
       historyCacheOptions,
     );
 
     // Complete history is the cacheability boundary. Price warnings remain in
     // the cached payload, so a missing quote never causes history to download
     // again just to reconstruct the same truthful partial-price report.
-    throwIfAborted(options.signal);
+    throwIfAborted(controller.signal);
     if (canUseReportCache && result.status === 'complete') {
       const fetchedAt = result.cacheMetadata?.fetchedAt ?? Date.now();
       cacheReportLocally(cacheKey, result, fetchedAt);
-      await sharedCache.set(cacheKey, result, PERSISTENCE_POLICY.caches.scanTtlSeconds, fetchedAt, options.signal);
+      await sharedCache.set(cacheKey, result, PERSISTENCE_POLICY.caches.scanTtlSeconds, fetchedAt, controller.signal);
     }
     return result;
   })();
 
-  if (!options.signal) inFlightScans.set(coalescingKey, scanWork);
-  try {
-    return await scanWork;
-  } finally {
-    if (!options.signal && inFlightScans.get(coalescingKey) === scanWork) inFlightScans.delete(coalescingKey);
-  }
+  inFlightScans.set(coalescingKey, work);
+  void work.promise.then(
+    () => {
+      work.settled = true;
+      if (inFlightScans.get(coalescingKey) === work) inFlightScans.delete(coalescingKey);
+    },
+    () => {
+      work.settled = true;
+      if (inFlightScans.get(coalescingKey) === work) inFlightScans.delete(coalescingKey);
+    },
+  );
+
+  return subscribeToSharedScan(work, options.signal, options.onProgress);
 }

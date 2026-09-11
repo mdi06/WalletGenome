@@ -51,7 +51,8 @@ function timestampBounds(timestamps: number[]): { first: number; last: number } 
 export function analyzeBehavioralFingerprint(
   transactions: ProcessedTransaction[],
   tokenTransfers: ProcessedTokenTransfer[],
-  walletAddress: string
+  walletAddress: string,
+  analysisTime = Date.now(),
 ): WalletFingerprint {
   const lower = walletAddress.toLowerCase();
   const allTxs = transactions.filter(tx => (tx.from || '').toLowerCase() === lower);
@@ -63,7 +64,7 @@ export function analyzeBehavioralFingerprint(
   ].filter(t => t > 0);
 
   const bounds = timestampBounds(allTimestamps);
-  const firstTs = bounds?.first ?? Math.floor(Date.now() / 1000);
+  const firstTs = bounds?.first ?? Math.floor(analysisTime / 1000);
   const lastTs = bounds?.last ?? firstTs;
   const walletAgeMonths = Math.max(1, Math.floor((lastTs - firstTs) / (30 * 24 * 3600)));
   const firstDate = new Date(firstTs * 1000).toISOString().split('T')[0];

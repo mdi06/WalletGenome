@@ -14,6 +14,7 @@ import ClusterStatusPanel, { getClusterAvailabilityMessage } from './status/Clus
 import { getNextTabIndex } from '@/lib/accessibility/tabs';
 import { formatClusterSnapshotDate } from '@/lib/clusterDemoSnapshot';
 import { formatWalletAccountType } from '@/lib/accountClassification';
+import { buildClusterCsv } from '@/lib/clusterCsv';
 
 interface Props {
   data: ClusterScanResult;
@@ -24,6 +25,24 @@ interface Props {
 
 type BulkTabId = 'leaderboard' | 'flow';
 const BULK_TABS = ['leaderboard', 'flow'] as const;
+
+function formatClusterUSD(value: number | null): string {
+  return value === null ? 'Unavailable' : formatCompactUSD(value);
+}
+
+function clusterPriceCoverageMessage(data: ClusterScanResult): string | null {
+  if (data.source === 'saved' || !data.priceProvenance || data.priceProvenance.status === 'complete') return null;
+  return data.priceProvenance.status === 'unavailable'
+    ? 'USD inflows are unavailable because no required price quotes were returned.'
+    : 'USD inflows are a verified subtotal; some transfer legs or wallets remain unpriced.';
+}
+
+function gasPriceCoverageLabel(data: ClusterScanResult): string {
+  const coverage = data.gasPriceProvenance;
+  if (!coverage || coverage.status === 'complete') return 'Across active chains';
+  if (coverage.status === 'unavailable') return 'Gas prices unavailable';
+  return 'Partial gas-price estimate';
+}
 
 export default function BulkDashboard({ data, onInspectWallet, snapshotGeneratedAt, onRunFreshScan }: Props) {
   const [activeTab, setActiveTab] = useState<BulkTabId>('leaderboard');
@@ -60,33 +79,23 @@ export default function BulkDashboard({ data, onInspectWallet, snapshotGenerated
   };
 
   const handleExportCSV = () => {
-    const headers = ['Address', 'Primary Name', 'Persona', 'Risk Grade', 'Behavioral Sybil Risk (%)', 'Lifetime Gas (USD)', 'Total Inflow (USD)', 'Transactions', 'High Risk Approvals'];
-    const rows = sortedWallets.map(w => [
-      w.address,
-      w.primaryName || '',
-      w.persona,
-      w.riskGrade,
-      w.sybilProbability,
-      w.totalGasUSD.toFixed(2),
-      w.totalInflowUSD.toFixed(2),
-      w.transactionCount,
-      w.highRiskApprovalsCount,
-    ]);
-
-    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
-    const encodedUri = encodeURI(csvContent);
+    const blob = new Blob([buildClusterCsv(data, sortedWallets)], { type: 'text/csv;charset=utf-8' });
+    const objectUrl = URL.createObjectURL(blob);
     const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
+    link.setAttribute('href', objectUrl);
     link.setAttribute('download', `walletgenome_cluster_report_${Date.now()}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(objectUrl);
   };
 
   const availabilityMessage = getClusterAvailabilityMessage(data.status);
   if (availabilityMessage) {
     return <ClusterStatusPanel data={data} />;
   }
+
+  const priceCoverageMessage = clusterPriceCoverageMessage(data);
 
   return (
     <div className="min-w-0 space-y-6 md:space-y-5 animate-fade-in-up">
@@ -115,6 +124,20 @@ export default function BulkDashboard({ data, onInspectWallet, snapshotGenerated
           </div>
         </section>
       )}
+
+      {priceCoverageMessage && data.priceProvenance && (
+        <section
+          aria-label="Cluster price coverage"
+          className="overflow-hidden border border-[#d6b48f] border-l-4 border-l-[#b33c00] bg-[#fff7ed] shadow-none"
+        >
+          <div className="p-3 text-xs font-medium text-[#4b5563]">
+            <p className="font-black uppercase tracking-wider text-[#0a0a0a]">
+              Price coverage · {data.priceProvenance.status}
+            </p>
+            <p className="mt-0.5">{priceCoverageMessage} Coverage: {data.priceProvenance.historical} historical, {data.priceProvenance.stablecoinAssumption} stablecoin assumptions, {data.priceProvenance.spotEstimate} spot estimates, {data.priceProvenance.unpriced} unpriced.</p>
+          </div>
+        </section>
+      )}
       
       {/* ── 1. Top Cluster Metric KPI Strip ── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
@@ -138,10 +161,10 @@ export default function BulkDashboard({ data, onInspectWallet, snapshotGenerated
             COMBINED LIFETIME GAS
           </div>
           <div className="text-2xl font-black font-mono text-orange-ink">
-            {data.source === 'saved' ? 'N/A' : formatCompactUSD(data.totalGasUSD)}
+            {data.source === 'saved' ? 'N/A' : formatClusterUSD(data.totalGasUSD)}
           </div>
           <div className="text-[11px] font-bold text-[#4b5563] font-mono">
-            {data.source === 'saved' ? 'No live values in example' : 'Across active chains'}
+            {data.source === 'saved' ? 'No live values in example' : gasPriceCoverageLabel(data)}
           </div>
         </div>
 
@@ -151,7 +174,7 @@ export default function BulkDashboard({ data, onInspectWallet, snapshotGenerated
             COMBINED INFLOWS
           </div>
           <div className="text-2xl font-black font-mono text-[#0a0a0a]">
-            {data.source === 'saved' ? 'N/A' : formatCompactUSD(data.totalInflowUSD)}
+            {data.source === 'saved' ? 'N/A' : formatClusterUSD(data.totalInflowUSD)}
           </div>
           <div className="text-[11px] font-bold text-[#4b5563] font-mono">
             {data.source === 'saved' ? 'No live values in example' : 'Aggregate capital depth'}
@@ -552,12 +575,12 @@ export default function BulkDashboard({ data, onInspectWallet, snapshotGenerated
 
                       {/* Lifetime Gas */}
                       <td className="py-3.5 px-4 text-right font-mono font-black text-orange-ink">
-                        {data.source === 'saved' ? 'N/A' : formatCompactUSD(w.totalGasUSD)}
+                        {data.source === 'saved' ? 'N/A' : formatClusterUSD(w.totalGasUSD)}
                       </td>
 
                       {/* Inflow */}
                       <td className="py-3.5 px-4 text-right font-mono font-bold text-[#0a0a0a]">
-                        {data.source === 'saved' ? 'N/A' : formatCompactUSD(w.totalInflowUSD)}
+                        {data.source === 'saved' ? 'N/A' : formatClusterUSD(w.totalInflowUSD)}
                       </td>
 
                       {/* Transactions */}

@@ -5,7 +5,7 @@ import { Search, ArrowRight, Loader2 } from 'lucide-react';
 import { CHAINS, SUPPORTED_CHAIN_IDS } from '@/lib/chains';
 
 interface Props {
-  onScan: (address: string, chainIds: number[]) => void;
+  onScan: (address: string, chainIds: number[], trigger?: HTMLElement) => void;
   isLoading: boolean;
   initialAddress?: string;
   initialChainIds?: readonly number[];
@@ -26,7 +26,7 @@ export default function WalletInput({ onScan, isLoading, initialAddress, initial
     );
   };
 
-  const handleScan = (addrToScan?: string) => {
+  const handleScan = (event?: React.SyntheticEvent<HTMLElement>, addrToScan?: string) => {
     const target = (addrToScan || inputAddress).trim();
     if (!target) {
       setError('Please enter an EVM address or ENS domain.');
@@ -37,7 +37,7 @@ export default function WalletInput({ onScan, isLoading, initialAddress, initial
       return;
     }
     setError(null);
-    onScan(target, selectedChains);
+    onScan(target, selectedChains, event?.currentTarget instanceof HTMLElement ? event.currentTarget : undefined);
   };
 
   return (
@@ -65,7 +65,7 @@ export default function WalletInput({ onScan, isLoading, initialAddress, initial
                 setInputAddress(e.target.value);
                 if (error) setError(null);
               }}
-              onKeyDown={e => e.key === 'Enter' && !isLoading && handleScan()}
+              onKeyDown={e => e.key === 'Enter' && !isLoading && handleScan(e)}
               placeholder="Enter EVM address (0x...) or ENS name (vitalik.eth)"
               className="w-full bg-transparent border-none text-[#0a0a0a] font-mono text-sm sm:text-base font-bold focus:outline-none placeholder:text-[#4b5563] placeholder:font-sans"
             />
@@ -100,7 +100,7 @@ export default function WalletInput({ onScan, isLoading, initialAddress, initial
             type="button"
             aria-label="Scan wallet address"
             aria-busy={isLoading}
-            onClick={() => handleScan()}
+            onClick={event => handleScan(event)}
             disabled={isLoading}
             className={`w-full md:w-auto md:ml-1.5 min-h-11 justify-center font-mono font-black text-xs px-5 py-2.5 flex items-center gap-2 cursor-pointer select-none ${isLoading
                 ? 'btn-3d-orange animate-pulse-glow'
