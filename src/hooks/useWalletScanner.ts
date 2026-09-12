@@ -8,12 +8,15 @@ import type { LiveScanProgress } from '@/lib/scanProgress';
 import { loadDemoSnapshot } from './demoSnapshotClient';
 import { getDemoWalletFromSearch, type DemoWallet } from '@/lib/demoWallets';
 import { CLUSTER_SAMPLE_SNAPSHOT, isClusterSampleSearch } from '@/lib/clusterDemoSnapshot';
+import { isSuccessfulLiveScan } from '@/lib/auth/updateSubscriptions';
 
 type WalletScannerOptions = {
   canRunLiveScans?: boolean;
+  onScanStart?: () => void;
+  onLiveScanSuccess?: () => void;
 };
 
-export function useWalletScanner({ canRunLiveScans = true }: WalletScannerOptions = {}) {
+export function useWalletScanner({ canRunLiveScans = true, onScanStart, onLiveScanSuccess }: WalletScannerOptions = {}) {
   const autoScanStarted = useRef(false);
   const activeSingleScanId = useRef(0);
   const activeSingleScanController = useRef<AbortController | null>(null);
@@ -54,6 +57,7 @@ export function useWalletScanner({ canRunLiveScans = true }: WalletScannerOption
     chainIds: number[],
     options: { forceRefresh?: boolean } = {},
   ) => {
+    onScanStart?.();
     const scanId = ++activeSingleScanId.current;
     activeSingleScanController.current?.abort();
     const controller = new AbortController();
@@ -116,6 +120,7 @@ export function useWalletScanner({ canRunLiveScans = true }: WalletScannerOption
       if (activeSingleScanId.current !== scanId) return;
       setProgressPercent(100);
       setSingleResult(result);
+      if (isSuccessfulLiveScan(result.status)) onLiveScanSuccess?.();
     } catch (err) {
       if (err instanceof Error && err.name === 'AbortError') {
         return;
@@ -131,9 +136,10 @@ export function useWalletScanner({ canRunLiveScans = true }: WalletScannerOption
         setProgressPercent(undefined);
       }
     }
-  }, [setScanMode]);
+  }, [onLiveScanSuccess, onScanStart, setScanMode]);
 
   const handleDemoSnapshot = useCallback(async (demo: DemoWallet) => {
+    onScanStart?.();
     const scanId = ++activeSingleScanId.current;
     activeSingleScanController.current?.abort();
     const controller = new AbortController();
@@ -179,9 +185,10 @@ export function useWalletScanner({ canRunLiveScans = true }: WalletScannerOption
         setProgressPercent(undefined);
       }
     }
-  }, [setScanMode]);
+  }, [onScanStart, setScanMode]);
 
   const handleClusterScan = async (addresses: string[], chainIds: number[]) => {
+    onScanStart?.();
     setScanMode('cluster');
     setIsLoading(true);
     setError(null);
@@ -215,6 +222,7 @@ export function useWalletScanner({ canRunLiveScans = true }: WalletScannerOption
     try {
       const data = await runClusterScanRequest({ addresses, chainIds });
       setClusterResult({ ...data, source: 'live' });
+      if (isSuccessfulLiveScan(data.status)) onLiveScanSuccess?.();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Cluster scan execution failed.');
     } finally {
@@ -225,6 +233,7 @@ export function useWalletScanner({ canRunLiveScans = true }: WalletScannerOption
   };
 
   const handleClusterDemoSnapshot = useCallback(() => {
+    onScanStart?.();
     activeSingleScanId.current += 1;
     activeSingleScanController.current?.abort();
     activeSingleScanController.current = null;
@@ -247,7 +256,7 @@ export function useWalletScanner({ canRunLiveScans = true }: WalletScannerOption
       url.searchParams.set('cluster', 'sample');
       window.history.pushState({}, '', url.toString());
     }
-  }, [setScanMode]);
+  }, [onScanStart, setScanMode]);
 
   const handleClusterInputChange = useCallback(() => {
     setClusterResult(null);

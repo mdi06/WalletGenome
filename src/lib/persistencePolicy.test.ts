@@ -15,10 +15,13 @@ function productionTypeScriptFiles(directory: string): string[] {
 
 test('declares the runtime as stateless and treats caches as optional optimizations', () => {
   assert.equal(PERSISTENCE_POLICY.mode, 'stateless');
-  assert.equal(PERSISTENCE_POLICY.durableStorage, false);
+  assert.equal(PERSISTENCE_POLICY.durableStorage, true);
+  assert.equal(PERSISTENCE_POLICY.durableStorageScope, 'optional-update-subscription-preferences-only');
   assert.equal(PERSISTENCE_POLICY.runtimeFilesystemWrites, false);
   assert.equal(PERSISTENCE_POLICY.reports.saved, false);
   assert.equal(PERSISTENCE_POLICY.reports.comparableHistory, false);
+  assert.equal(PERSISTENCE_POLICY.subscriptions.userOptInRequired, true);
+  assert.match(PERSISTENCE_POLICY.subscriptions.retention, /withdrawal audit/);
   assert.equal(PERSISTENCE_POLICY.curatedDemoSnapshots.storage, 'versioned-static-assets');
   assert.equal(PERSISTENCE_POLICY.curatedDemoSnapshots.userGenerated, false);
   assert.equal(PERSISTENCE_POLICY.curatedDemoSnapshots.liveProviderCallsOnLoad, false);

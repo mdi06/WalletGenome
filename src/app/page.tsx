@@ -16,8 +16,11 @@ import SiteHeader from '@/components/SiteHeader';
 import LoadedScanSummary from '@/components/LoadedScanSummary';
 import { CLUSTER_SAMPLE_ADDRESSES, CLUSTER_SAMPLE_SNAPSHOT } from '@/lib/clusterDemoSnapshot';
 import BetaUpdatesCard from '@/components/auth/BetaUpdatesCard';
+import GoogleUpdatesPrompt from '@/components/auth/GoogleUpdatesPrompt';
+import WalletUpdatesPrompt from '@/components/auth/WalletUpdatesPrompt';
 import LiveScanSignInDialog from '@/components/auth/LiveScanSignInDialog';
 import { useAuth } from '@/components/auth/AuthProvider';
+import { shouldOfferGoogleUpdatesPrompt, shouldOfferWalletUpdatesPrompt } from '@/lib/auth/updateSubscriptions';
 import {
   PENDING_LIVE_SCAN_KEY,
   parsePendingLiveScan,
@@ -47,6 +50,16 @@ const SCAN_MODES = ['single', 'cluster'] as const;
 
 export default function Home() {
   const { user, isLoading: isAuthLoading, signInWithGoogle } = useAuth();
+  const [liveScanUserId, setLiveScanUserId] = React.useState<string | null>(null);
+  const previousUserIdRef = React.useRef<string | null>(null);
+  const pageMainRef = React.useRef<HTMLElement | null>(null);
+  const handleLiveScanSuccess = React.useCallback(() => {
+    const authenticatedUser = user;
+    if (authenticatedUser) setLiveScanUserId(authenticatedUser.id);
+  }, [user]);
+  const clearLiveScanPromptEligibility = React.useCallback(() => {
+    setLiveScanUserId(null);
+  }, []);
   const {
     scanMode,
     setScanMode,
@@ -69,13 +82,24 @@ export default function Home() {
     handleClusterScan,
     handleClusterDemoSnapshot,
     handleClusterInputChange,
-  } = useWalletScanner({ canRunLiveScans: Boolean(user) });
+  } = useWalletScanner({
+    canRunLiveScans: Boolean(user),
+    onScanStart: clearLiveScanPromptEligibility,
+    onLiveScanSuccess: handleLiveScanSuccess,
+  });
   const [isScanEditorOpen, setIsScanEditorOpen] = React.useState(false);
   const [isSignInDialogOpen, setIsSignInDialogOpen] = React.useState(false);
   const [pendingLiveScan, setPendingLiveScan] = React.useState<PendingLiveScan | null>(null);
   const [isAuthStarting, setIsAuthStarting] = React.useState(false);
   const [authStartError, setAuthStartError] = React.useState<string | null>(null);
   const returnFocusRef = React.useRef<HTMLElement | null>(null);
+
+  React.useEffect(() => {
+    const userId = user?.id ?? null;
+    if (previousUserIdRef.current === userId) return;
+    previousUserIdRef.current = userId;
+    setLiveScanUserId(null);
+  }, [user?.id]);
 
   const indexingStatus = getIndexingStatus({
     scanMode,
@@ -192,7 +216,7 @@ export default function Home() {
   };
 
   return (
-    <main className="min-w-0 overflow-x-clip max-w-[1400px] mx-auto p-4 sm:p-6 lg:p-8 space-y-5 sm:space-y-6 lg:space-y-5">
+    <main className="min-w-0 overflow-x-clip max-w-[1400px] mx-auto p-4 sm:p-6 lg:p-8 space-y-5 sm:space-y-6 lg:space-y-5" ref={pageMainRef} tabIndex={-1}>
       <SiteHeader
         activePage="scanner"
         onBrandClick={showGuide ? undefined : () => setShowGuide(true)}
@@ -345,7 +369,7 @@ export default function Home() {
       <div className="min-h-5" aria-live="polite">
         {!user && !isAuthLoading && (
           <p className="text-xs font-bold text-[#4b5563]">
-            Google sign-in is required for live scans. Saved demos remain available without signing in.
+            Google or Ethereum wallet sign-in is required for live scans. Saved demos remain available without signing in.
           </p>
         )}
       </div>
@@ -389,6 +413,16 @@ export default function Home() {
       )}
 
       {user && !isAuthLoading && !isLoading && <BetaUpdatesCard />}
+
+      <GoogleUpdatesPrompt
+        eligible={shouldOfferGoogleUpdatesPrompt(user, liveScanUserId, isAuthLoading, isLoading)}
+        returnFocusRef={pageMainRef}
+      />
+
+      <WalletUpdatesPrompt
+        eligible={shouldOfferWalletUpdatesPrompt(user, liveScanUserId, isAuthLoading, isLoading)}
+        returnFocusRef={pageMainRef}
+      />
 
       <LiveScanSignInDialog
         open={isSignInDialogOpen && !user}

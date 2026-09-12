@@ -7,7 +7,7 @@ export default function SiteFooter() {
       <div className="flex flex-col gap-3 border-t border-[#c8c8c8] pt-5 text-xs text-[#4b5563] md:flex-row md:items-start md:justify-between">
         <div className="max-w-md space-y-2">
           <p className="font-black uppercase tracking-wider text-[#0a0a0a]">WalletGenome</p>
-          <p>Read-only, evidence-aware EVM wallet analytics. No wallet connection or signature required.</p>
+          <p>Read-only, evidence-aware EVM wallet analytics. Wallet sign-in uses a login message only; no transaction or private key.</p>
           <a
             href="https://x.com/wallet_genome"
             target="_blank"

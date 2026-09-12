@@ -1,11 +1,17 @@
 export const PERSISTENCE_POLICY = {
   mode: 'stateless',
-  durableStorage: false,
+  durableStorage: true,
+  durableStorageScope: 'optional-update-subscription-preferences-only',
   runtimeFilesystemWrites: false,
   reports: {
     saved: false,
     comparableHistory: false,
     retention: 'request-only',
+  },
+  subscriptions: {
+    storage: 'public.update_subscriptions',
+    userOptInRequired: true,
+    retention: 'Retained while needed for the update list; unsubscribed rows preserve consent and withdrawal audit fields; account deletion cascades the row.',
   },
   curatedDemoSnapshots: {
     enabled: true,

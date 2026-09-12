@@ -100,7 +100,7 @@ export const SEO_LANDING_PAGES = [
       {
         question: 'Do I need to connect a wallet?',
         answer:
-          'No. WalletGenome only needs a public address or ENS name and does not request signatures, private keys, or wallet permissions.',
+          'No wallet connection is required if you use Google sign-in. Fresh live scans require an authenticated session; Ethereum wallet sign-in uses a login message only and never requests a transaction or private key.',
       },
       {
         question: 'Which networks are supported?',
@@ -215,7 +215,7 @@ export const SEO_LANDING_PAGES = [
       {
         question: 'Does WalletGenome revoke approvals?',
         answer:
-          'No. WalletGenome is read-only and does not request signatures or submit transactions.',
+          'No. WalletGenome is read-only and does not submit transactions. Ethereum wallet authentication, when used, is a login message rather than a transaction.',
       },
     ],
     keywords: ['token approval checker', 'ERC-20 allowance checker', 'unlimited token approvals'],

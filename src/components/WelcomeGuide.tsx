@@ -83,7 +83,7 @@ export default function WelcomeGuide({ onSelectDemo }: Props) {
               Multi-Chain Scan
             </h3>
             <p className="text-xs text-[#4b5563] leading-relaxed text-pretty">
-              Enter an EVM 0x address or ENS domain. We query Ethereum, Base, Arbitrum, and Optimism simultaneously—without requiring you to connect a wallet or install extensions.
+              Enter an EVM 0x address or ENS domain. We query Ethereum, Base, Arbitrum, and Optimism simultaneously. Live access uses Google or an Ethereum wallet login message; it never requests a transaction or private key.
             </p>
           </div>
 
@@ -235,7 +235,7 @@ export default function WelcomeGuide({ onSelectDemo }: Props) {
         <div className="flex items-center gap-2">
           <Lock size={15} className="text-[#059669]" />
           <span className="text-[#0a0a0a]">100% Read-Only & Safe:</span>
-          <span>We never ask for wallet signatures or private keys.</span>
+          <span>Wallet sign-in uses a login message only; no transaction or private key.</span>
         </div>
         <div className="flex items-center gap-2">
           <span className="text-[#0a0a0a]">Supported Networks:</span>

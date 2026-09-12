@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { describe, it } from 'node:test';
 import { join } from 'node:path';
-import nextConfig from '../../next.config';
+import nextConfig, { buildContentSecurityPolicy } from '../../next.config';
 import { metadata as docsMetadata } from './docs/layout';
 import robots from './robots';
 import sitemap from './sitemap';
@@ -65,5 +65,13 @@ describe('R10 public route and security contracts', () => {
     assert.equal(headers.get('Referrer-Policy'), 'strict-origin-when-cross-origin');
     assert.match(headers.get('Permissions-Policy') ?? '', /camera=\(\)/);
     assert.equal(headers.has('X-Powered-By'), false);
+  });
+
+  it('allows browser connections to only the configured Supabase origin', () => {
+    const policy = buildContentSecurityPolicy('https://project-ref.supabase.co/auth/v1');
+
+    assert.match(policy, /connect-src 'self' https:\/\/project-ref\.supabase\.co/);
+    assert.doesNotMatch(policy, /\/auth\/v1/);
+    assert.equal(buildContentSecurityPolicy('not a URL').includes('not a URL'), false);
   });
 });

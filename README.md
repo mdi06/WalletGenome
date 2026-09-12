@@ -139,8 +139,8 @@ Capital Flow also publishes `capitalFlowCoverage`: verified transfer legs, total
 
 ### Live scan request policy
 
-- Saved demos, documentation, and methodology pages remain public. Live single-wallet and cluster scans require a verified Google session through Supabase; provider credentials remain server-side environment variables and are never accepted from request bodies.
-- Google account email is used for authentication. Beta-update subscriptions are optional, stored separately, and may be turned off from the scanner.
+- Saved demos, documentation, and methodology pages remain public. Live single-wallet and cluster scans require a verified Google or Ethereum wallet-authenticated session through Supabase; provider credentials remain server-side environment variables and are never accepted from request bodies.
+- Google account email is used for authentication. Ethereum wallet authentication provides only a wallet identity; it never asks for an email during connection or inside the EIP-4361 message. After a successful live scan, wallet users may optionally request product updates with a separate email address. Wallet-entered addresses remain pending until a server-owned, single-use confirmation link is used; no email is turned into a login identity. Consent, prompt state, confirmation, and withdrawal timestamps are retained as preference-audit fields. Email delivery requires a server-only Supabase secret, `SITE_URL`, a Resend API key, and a verified `EMAIL_FROM` domain; without those settings, the address is not subscribed.
 - Single and batch routes validate exact allowed fields, EVM/ENS targets, and supported chain IDs before provider work.
 - Single-wallet browser scans request an NDJSON stream from `POST /api/scan`. The same request emits scan phases, provider-response counts, cumulative history records, and the final report, so progress does not depend on process-local job storage or cross-instance polling.
 - Batch scans accept at most 10 unique wallets and process at most 3 wallet scans concurrently.
@@ -150,7 +150,7 @@ Capital Flow also publishes `capitalFlowCoverage`: verified transfer legs, total
 ### Stateless persistence policy
 
 - The application is intentionally stateless: each scan is a point-in-time, provider-dependent report and is not saved as durable history.
-- Scanned wallet addresses and generated reports are retained only for the active request. There are no saved-wallet, saved-report, account, or historical-comparison features.
+- Scanned wallet addresses and generated reports are retained only for the active request. There are no saved-wallet, saved-report, or historical-comparison features. The only durable user-related record is the optional update-subscription preference described on `/privacy`.
 - Identity, price, blacklist, rate-limit, and concurrency caches remain process-local, best-effort optimizations. Report and successful history-dataset caches use the optional shared Upstash Redis adapter, with process memory as a fallback when it is not configured.
 - Complete-history single-wallet reports may be reused for five minutes and are marked `cached`; their original fetch time, history-cache sources, and all missing-data warnings are retained. Complete transaction, token-transfer, and internal-transaction datasets are cached independently for one hour, so a missing historical price does not force another history download.
 - A forced refresh skips reads from the report and history caches, fetches from providers, and replaces each successfully complete transaction, token-transfer, or internal-transaction dataset with a new one-hour entry. Partial or failed refresh responses do not overwrite the previous complete dataset; the fresh report is then cached for five minutes and retains provider failure warnings. Refreshes are limited to once every five minutes per caller.

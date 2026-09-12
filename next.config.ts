@@ -1,19 +1,40 @@
 import type { NextConfig } from "next";
 
 const isDevelopment = process.env.NODE_ENV === 'development';
-const contentSecurityPolicy = [
-  "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${isDevelopment ? " 'unsafe-eval'" : ''}`,
-  "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' blob: data: https:",
-  "font-src 'self' data:",
-  "connect-src 'self'",
-  "object-src 'none'",
-  "base-uri 'self'",
-  "form-action 'self'",
-  "frame-ancestors 'none'",
-  ...(isDevelopment ? [] : ['upgrade-insecure-requests']),
-].join('; ');
+
+function configuredSupabaseOrigin(configuredUrl: string | undefined): string | null {
+  if (!configuredUrl) return null;
+
+  try {
+    const url = new URL(configuredUrl);
+    const isSecure = url.protocol === 'https:';
+    const isLocal = url.protocol === 'http:' && (url.hostname === 'localhost' || url.hostname === '127.0.0.1');
+    return isSecure || isLocal ? url.origin : null;
+  } catch {
+    return null;
+  }
+}
+
+export function buildContentSecurityPolicy(supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL): string {
+  const supabaseOrigin = configuredSupabaseOrigin(supabaseUrl);
+  const connectSources = ["'self'", supabaseOrigin].filter((source): source is string => Boolean(source));
+
+  return [
+    "default-src 'self'",
+    `script-src 'self' 'unsafe-inline'${isDevelopment ? " 'unsafe-eval'" : ''}`,
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' blob: data: https:",
+    "font-src 'self' data:",
+    `connect-src ${connectSources.join(' ')}`,
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+    "frame-ancestors 'none'",
+    ...(isDevelopment ? [] : ['upgrade-insecure-requests']),
+  ].join('; ');
+}
+
+const contentSecurityPolicy = buildContentSecurityPolicy();
 
 const securityHeaders = [
   { key: 'Content-Security-Policy', value: contentSecurityPolicy },

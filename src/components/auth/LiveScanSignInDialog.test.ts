@@ -7,7 +7,7 @@ import LiveScanSignInDialog from './LiveScanSignInDialog';
 
 const returnFocusRef = createRef<HTMLElement>();
 
-test('renders the live-scan sign-in dialog with accessible labeling and separated consent copy', () => {
+test('renders the live-scan sign-in dialog with accessible labeling and wallet safety copy', () => {
   const markup = renderToStaticMarkup(createElement(LiveScanSignInDialog, {
     open: true,
     isStarting: false,
@@ -22,10 +22,11 @@ test('renders the live-scan sign-in dialog with accessible labeling and separate
   assert.match(markup, /aria-labelledby="live-scan-sign-in-title"/);
   assert.match(markup, /aria-describedby="live-scan-sign-in-description"/);
   assert.match(markup, /Sign in to run a live scan/);
-  assert.match(markup, /Continue with Google to run this scan\. Your wallet entry and selected networks will be preserved\./);
+  assert.match(markup, /Choose Google or an injected Ethereum wallet\. Your scan target and selected networks stay preserved\./);
   assert.match(markup, />Continue with Google</);
+  assert.match(markup, />Sign in with wallet</);
   assert.match(markup, />Cancel</);
-  assert.match(markup, /Signing in does not subscribe you to product updates\./);
+  assert.match(markup, /Wallet authentication signs a login message only\. It does not create a transaction, cost gas or grant access to funds\./);
   assert.match(markup, /aria-label="Close sign-in dialog"/);
   assert.match(markup, /class="[^"]*animate-fade-in-up/);
   assert.doesNotMatch(markup, /Sign in to subscribe/i);

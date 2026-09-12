@@ -4,10 +4,11 @@ import test from 'node:test';
 
 const pageSource = readFileSync(new URL('./page.tsx', import.meta.url), 'utf8');
 const betaSource = readFileSync(new URL('../components/auth/BetaUpdatesCard.tsx', import.meta.url), 'utf8');
+const walletPromptSource = readFileSync(new URL('../components/auth/WalletUpdatesPrompt.tsx', import.meta.url), 'utf8');
 
 test('signed-out single and cluster submits open the app-owned dialog before OAuth', () => {
   const singleRequest = pageSource.slice(pageSource.indexOf('const requestSingleScan'), pageSource.indexOf('const requestClusterScan'));
-  const clusterRequest = pageSource.slice(pageSource.indexOf('const requestClusterScan'), pageSource.indexOf('React.useEffect'));
+  const clusterRequest = pageSource.slice(pageSource.indexOf('const requestClusterScan'), pageSource.indexOf('const handleInspectFromCluster'));
 
   assert.match(singleRequest, /openSignInDialog\(\{ mode: 'single'/);
   assert.doesNotMatch(singleRequest, /signInWithGoogle/);
@@ -26,15 +27,26 @@ test('continue writes the pending request and the authenticated effect resumes i
 
 test('cancel path clears only pending storage and the signed-out guidance is compact', () => {
   assert.match(pageSource, /localStorage\.removeItem\(PENDING_LIVE_SCAN_KEY\)/);
-  assert.match(pageSource, /Google sign-in is required for live scans\. Saved demos remain available without signing in\./);
+  assert.match(pageSource, /Google or Ethereum wallet sign-in is required for live scans\. Saved demos remain available without signing in\./);
   assert.match(pageSource, /!user && !isAuthLoading/);
   assert.match(pageSource, /if \(user\) setIsScanEditorOpen\(false\);/);
   assert.match(pageSource, /onSelectDemo=\{demo => void handleDemoSnapshot\(demo\)\}/);
 });
 
 test('beta updates are authenticated-only and remain an explicit opt-in action', () => {
-  assert.match(betaSource, /if \(!user \|\| !isConfigured\) return null/);
   assert.doesNotMatch(betaSource, /signInWithGoogle/);
-  assert.match(betaSource, /updateSubscription\(!subscribed\)/);
+  assert.match(betaSource, /updateGoogleSubscription\(!subscribed\)/);
   assert.match(pageSource, /user && !isAuthLoading && !isLoading && <BetaUpdatesCard \/>/);
+});
+
+test('wallet email capture is separate from wallet authentication and follows a live scan', () => {
+  assert.match(walletPromptSource, /Wallets do not provide an email address/);
+  assert.match(walletPromptSource, /type="email"/);
+  assert.match(walletPromptSource, /Email me updates/);
+  assert.match(walletPromptSource, /Not now/);
+  assert.match(walletPromptSource, /recordWalletUpdatesPromptShown/);
+  assert.match(walletPromptSource, /dismissWalletUpdatesPrompt/);
+  assert.match(walletPromptSource, /api\/updates\/request-confirmation/);
+  assert.doesNotMatch(walletPromptSource, /updateUser\(/);
+  assert.match(pageSource, /shouldOfferWalletUpdatesPrompt/);
 });
