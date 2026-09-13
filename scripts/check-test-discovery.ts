@@ -1,5 +1,13 @@
 import { execFileSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
+
+function scanFiles(directory: string): string[] {
+  return readdirSync(directory, { withFileTypes: true }).flatMap(entry => {
+    const file = `${directory}/${entry.name}`;
+    if (entry.isDirectory()) return scanFiles(file);
+    return entry.isFile() ? [file] : [];
+  });
+}
 
 function listedFiles(command: string, args: string[]): string[] {
   return execFileSync(command, args, { encoding: 'utf8' })
@@ -14,7 +22,7 @@ const packageJson = JSON.parse(readFileSync('package.json', 'utf8')) as {
 const testCommand = packageJson.scripts?.test ?? '';
 const trackedTestFiles = listedFiles('git', ['ls-files', 'src'])
   .filter(file => /\.test\.tsx?$/.test(file));
-const discoveredTestFiles = listedFiles('rg', ['--files', 'src'])
+const discoveredTestFiles = scanFiles('src')
   .filter(file => /\.test\.tsx?$/.test(file));
 const missingFromDiscovery = trackedTestFiles.filter(file => !discoveredTestFiles.includes(file));
 const commandCoversFile = (file: string): boolean => file.endsWith('.test.tsx')
