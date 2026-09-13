@@ -103,7 +103,8 @@ function configureEmailProviderForTest(): () => void {
   process.env.EMAIL_PROVIDER = 'resend';
   process.env.RESEND_API_KEY = 're_test_key';
   process.env.EMAIL_FROM = 'WalletGenome <updates@example.com>';
-  process.env.SITE_URL = 'http://localhost:3000';
+  // The fixture must also pass the HTTPS requirement under NODE_ENV=production.
+  process.env.SITE_URL = 'https://wallet.example';
   process.env.SUPABASE_SECRET_KEY = 'test-server-secret';
   return () => {
     for (const key of keys) {

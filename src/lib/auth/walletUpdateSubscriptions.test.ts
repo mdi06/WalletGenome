@@ -47,6 +47,21 @@ test('provider configuration is explicit and safe to test without sending mail',
   assert.equal(configured.configured, true);
 });
 
+test('production email configuration requires HTTPS confirmation links', () => {
+  const env: NodeJS.ProcessEnv = {
+    NODE_ENV: 'production',
+    RESEND_API_KEY: 're_test_key',
+    EMAIL_FROM: 'WalletGenome <updates@example.com>',
+  };
+  const insecure = getEmailProviderConfig({ ...env, SITE_URL: 'http://localhost:3000' });
+  assert.equal(insecure.configured, false);
+  if (!insecure.configured) {
+    assert.deepEqual(insecure.missing, ['SITE_URL using the canonical HTTPS application URL']);
+  }
+  const secure = getEmailProviderConfig({ ...env, SITE_URL: 'https://wallet.example' });
+  assert.equal(secure.configured, true);
+});
+
 test('confirmation email uses the server provider and includes scoped unsubscribe headers', async () => {
   let requestUrl = '';
   let requestInit: RequestInit | undefined;
