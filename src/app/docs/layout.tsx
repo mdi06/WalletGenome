@@ -9,10 +9,10 @@ const description =
 export const metadata: Metadata = {
   title,
   description,
-  alternates: { canonical: '/docs' },
+  alternates: { canonical: absoluteUrl('/docs') },
   openGraph: {
     type: 'article',
-    url: '/docs',
+    url: absoluteUrl('/docs'),
     siteName: SITE_NAME,
     title: `${title} | ${SITE_NAME}`,
     description,

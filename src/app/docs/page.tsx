@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { REPORTING_METRIC_DEFINITIONS } from '@/lib/reportingContract';
 import { RISK_GRADE_BANDS, RISK_MODEL } from '@/lib/analysis/riskModel';
+import { SEO_LANDING_PAGES } from '@/lib/seo';
 import { filterDocumentationTopics, getFirstMatchingDocumentationTopicId, shouldShowMobileTopicJump } from './docsNavigation';
 import SiteHeader from '@/components/SiteHeader';
 
@@ -55,7 +56,7 @@ const SECTIONS: DocSection[] = [
     category: '1. Architecture & Ingestion',
     title: 'Multi-Chain Pipeline & Rate-Resilient Data Gateway',
     badge: 'INGESTION ENGINE',
-    summary: 'Blockscout Open REST + Etherscan V2 multi-chain failover, concurrent batching, daily OHLC pricing, and anti-spoofing.',
+    summary: 'Blockscout Open REST + Etherscan V2 multi-chain failover, concurrent batching, daily OHLC pricing, and contract-label controls.',
     icon: Database,
     filePath: 'src/lib/etherscan.ts · src/lib/prices.ts · src/lib/scanner.ts',
   },
@@ -134,7 +135,7 @@ const SECTIONS: DocSection[] = [
   {
     id: 'complexity-matrix',
     category: '10. Technical Specifications',
-    title: 'Algorithmic Complexity & Execution Guarantees',
+    title: 'Algorithmic Complexity & Cache Policy',
     badge: 'BIG-O SPECIFICATION',
     summary: 'Summary table of time complexity, space complexity, execution runtime, and caching strategies.',
     icon: Cpu,
@@ -317,6 +318,18 @@ export default function DocsPage() {
           <Search size={14} aria-hidden="true" />
           <span>Open Live Scanner</span>
         </Link>
+
+        <div className="max-w-4xl text-xs leading-relaxed text-[#4b5563]">
+          <span className="font-bold text-[#0a0a0a]">Focused guides: </span>
+          {SEO_LANDING_PAGES.map((page, index) => (
+            <React.Fragment key={page.slug}>
+              {index > 0 && <span aria-hidden="true"> · </span>}
+              <Link href={`/${page.slug}`} className="font-bold text-orange-ink underline underline-offset-2">
+                {page.title}
+              </Link>
+            </React.Fragment>
+          ))}
+        </div>
 
         {/* Live Search & Filter */}
         <div className="pt-4 max-w-xl w-full text-center">
@@ -542,7 +555,7 @@ export default function DocsPage() {
       │
       ▼
 ┌─────────────────────────────────────────────────────────────┐
-│ Priority 1: Open Blockscout REST APIs (Zero-Auth, Fast)     │
+│ Priority 1: Open Blockscout REST APIs (No API Key)          │
 │             eth.blockscout.com / base.blockscout.com        │
 │             arbitrum.blockscout.com / optimism.blockscout   │
 └──────────────────────────────┬──────────────────────────────┘
@@ -557,7 +570,7 @@ export default function DocsPage() {
 ┌─────────────────────────────────────────────────────────────┐
 │ Parallel Enrichment Pipeline:                               │
 │ • Daily Price + Explicit Spot-Estimate Provenance           │
-│ • Anti-Spoofing Verified Contract Mapping                   │
+│ • Recognized Contract Labels + Price Provenance             │
 │ • Web3.bio Identity Graph Resolution (Async non-blocking)   │
 └─────────────────────────────────────────────────────────────┘`}
               </div>
@@ -571,9 +584,9 @@ export default function DocsPage() {
                 </p>
               </div>
               <div className="card-3d p-4 space-y-1.5">
-                <div className="font-black text-[#0a0a0a] uppercase">Anti-Spoofing</div>
+                <div className="font-black text-[#0a0a0a] uppercase">Contract & price controls</div>
                 <p className="text-[#4b5563] leading-relaxed text-[11px] text-pretty">
-                  Contract allowlists and known symbols limit pricing inputs. Every calculated USD value carries historical, spot-estimate, stablecoin-assumption, or unpriced provenance.
+                  Known contract labels and token-asset allowlists limit attribution and pricing inputs. Every calculated USD value carries historical, spot-estimate, stablecoin-assumption, or unpriced provenance.
                 </p>
               </div>
             </div>
@@ -820,7 +833,7 @@ export default function DocsPage() {
             </div>
 
             <p className="text-xs sm:text-sm text-[#374151] leading-relaxed text-pretty">
-              The risk engine scores vulnerabilities from <strong>0 (Safe) to 100 (Critical)</strong>, mapping them to security grades A through F based on key risk factors.
+              The risk engine produces a <strong>0–100 heuristic score</strong>, mapping observed configured factors to grades A, B, C, D, or F. It is a screening signal, not proof that a wallet is safe or compromised.
             </p>
 
             {/* Risk Factor Breakdown Table */}
@@ -903,7 +916,7 @@ export default function DocsPage() {
             </div>
 
             <p className="text-xs sm:text-sm text-[#374151] leading-relaxed text-pretty">
-              Sybil defense checks an illustrative 800K+ blacklist-cache scale and computes a local MEDIA-style behavioral heuristic to identify bot-like behavior.
+              Sybil defense checks configured list snapshots and computes a local MEDIA-style behavioral heuristic to surface patterns sometimes associated with scripted activity.
               This behavioral risk score is not a live Trusta score. A positive non-behavioral blacklist match overrides the overall clean/organic headline; the behavioral score remains a separate secondary heuristic.
             </p>
 
@@ -915,7 +928,7 @@ export default function DocsPage() {
                   <span className="badge-3d text-[9px] bg-black text-white px-2 py-0.5 whitespace-nowrap">~800K+ ADDR · illustrative</span>
                 </div>
                 <p className="text-[11px] text-[#4b5563] text-pretty">
-                  Official community bounty hunter reports and algorithmic script execution loops.
+                  Published community reports and algorithmic script-execution signals.
                 </p>
               </div>
               <div className="card-3d p-4 space-y-1.5">
@@ -968,7 +981,7 @@ export default function DocsPage() {
                   <strong>D (Diversity):</strong> 20% weight. Unique smart contract depth + multi-category breadth.
                 </div>
                 <div className="card-3d p-2.5">
-                  <strong>I (Identity):</strong> 15% weight. Multi-chain footprint (1 to 5 chains) + counterparty diversity.
+                  <strong>I (Identity):</strong> 15% weight. Multi-chain footprint (1 to 4 supported chains) + counterparty diversity.
                 </div>
                 <div className="card-3d p-2.5">
                   <strong>A (Age):</strong> 15% weight. Lifespan maturity from genesis block (30d to 365d+).
@@ -1154,7 +1167,7 @@ export default function DocsPage() {
             </div>
 
             <p className="text-xs sm:text-sm text-[#374151] leading-relaxed text-pretty">
-              Web3 identities (like ENS, Farcaster) are resolved using Web3.bio, picking the most trusted handle based on our priority matrix.
+              Available Web3 identities (like ENS and Farcaster) are resolved using Web3.bio, with the primary label selected by the configured platform priority order.
             </p>
 
             <div className="well-recessed-light overflow-hidden overflow-x-auto">
@@ -1260,7 +1273,7 @@ export default function DocsPage() {
                   SECTION 10 · TECHNICAL SPECIFICATIONS
                 </span>
                 <h2 className="text-xl sm:text-2xl font-black uppercase text-[#0a0a0a] pt-1">
-                  Algorithmic Complexity & Execution Guarantees
+                  Algorithmic Complexity & Cache Policy
                 </h2>
               </div>
               <button

@@ -14,6 +14,10 @@ describe('R02 product promise and coverage copy', () => {
     assert.doesNotMatch(pageSource, /complete story behind any crypto wallet/i);
     assert.doesNotMatch(guideSource, /WHAT YOU CAN UNCOVER ON ANY WALLET/);
     assert.doesNotMatch(guideSource, /Universal Social Identities/);
+    assert.doesNotMatch(guideSource, /filters out spoofed\/scam meme tokens/i);
+    assert.doesNotMatch(guideSource, /Protects assets by/i);
+    assert.match(guideSource, /not proof of safety, ownership, or intent/);
+    assert.match(guideSource, /FOCUSED ANALYSIS GUIDES/);
     assert.match(guideSource, /four supported networks/);
   });
 

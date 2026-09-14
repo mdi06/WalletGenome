@@ -1,8 +1,38 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import SiteHeader from '@/components/SiteHeader';
+import { absoluteUrl, SITE_NAME } from '@/lib/seo';
 
-export const metadata: Metadata = { title: 'Update email status' };
+const title = 'Update email status';
+const description = 'Confirmation and unsubscribe status for optional WalletGenome product updates.';
+
+export const metadata: Metadata = {
+  title,
+  description,
+  alternates: { canonical: absoluteUrl('/updates/confirmation') },
+  openGraph: {
+    type: 'website',
+    url: absoluteUrl('/updates/confirmation'),
+    siteName: SITE_NAME,
+    title: `${title} | ${SITE_NAME}`,
+    description,
+    images: [],
+  },
+  twitter: {
+    card: 'summary',
+    title: `${title} | ${SITE_NAME}`,
+    description,
+    images: [],
+  },
+  robots: {
+    index: false,
+    follow: false,
+    googleBot: {
+      index: false,
+      follow: false,
+    },
+  },
+};
 
 type ConfirmationStatus = 'confirmed' | 'expired' | 'unsubscribed' | 'configuration' | 'invalid';
 

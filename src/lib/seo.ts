@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import type { JsonLdObject } from '@/components/JsonLd';
 
 export const SITE_NAME = 'WalletGenome';
 export const SITE_DESCRIPTION =
@@ -42,28 +43,33 @@ export function absoluteUrl(path = '/'): string {
 
 export interface SeoLandingPage {
   slug: string;
+  primaryIntent: string;
   title: string;
   metaDescription: string;
   eyebrow: string;
   heading: string;
   intro: string;
+  scopeNote: string;
   capabilities: readonly { title: string; description: string }[];
   usefulFor: readonly string[];
   limitations: readonly string[];
   faqs: readonly { question: string; answer: string }[];
-  keywords: readonly string[];
+  relatedSlugs: readonly string[];
 }
 
 export const SEO_LANDING_PAGES = [
   {
     slug: 'evm-wallet-analytics',
+    primaryIntent: 'Understand a wallet’s observable behavior across supported EVM networks.',
     title: 'EVM Wallet Analytics',
     metaDescription:
-      'Analyze observable EVM wallet activity, counterparties, gas usage, protocol interactions, identities, and behavioral patterns across Ethereum, Base, Arbitrum, and Optimism.',
+      'Analyze a wallet’s observable behavior across Ethereum, Base, Arbitrum, and Optimism, including activity cadence, counterparties, protocol use, gas, and public identity context.',
     eyebrow: 'MULTI-CHAIN WALLET INTELLIGENCE',
-    heading: 'EVM Wallet Analytics Across Four Supported Networks',
+    heading: 'Analyze EVM Wallet Behavior Across Four Networks',
     intro:
-      'WalletGenome converts public transaction history into an evidence-backed view of how an address operates across Ethereum, Base, Arbitrum, and Optimism.',
+      'Use WalletGenome to turn returned public transactions, transfers, contract calls, and identity records into a readable cross-chain behavior profile. It is an analytics report, not a trading service.',
+    scopeNote:
+      'Scope: public indexed activity only. Off-chain actions and wallet control are not visible, and incomplete provider history remains partial or unavailable.',
     capabilities: [
       {
         title: 'Behavioral fingerprinting',
@@ -93,9 +99,9 @@ export const SEO_LANDING_PAGES = [
     ],
     faqs: [
       {
-        question: 'What is EVM wallet analytics?',
+        question: 'What does an EVM wallet analytics report include?',
         answer:
-          'EVM wallet analytics examines public address activity on Ethereum-compatible networks, including transactions, token transfers, contract interactions, gas usage, and counterparties.',
+          'It summarizes returned public transactions, token transfers, contract interactions, gas usage, counterparties, activity cadence, and available identity records on the supported networks.',
       },
       {
         question: 'Do I need to connect a wallet?',
@@ -103,22 +109,25 @@ export const SEO_LANDING_PAGES = [
           'No wallet connection is required if you use Google sign-in. Fresh live scans require an authenticated session; Ethereum wallet sign-in uses a login message only and never requests a transaction or private key.',
       },
       {
-        question: 'Which networks are supported?',
+        question: 'Which networks does WalletGenome support?',
         answer:
           'The current scanner supports Ethereum, Base, Arbitrum, and Optimism.',
       },
     ],
-    keywords: ['EVM wallet analytics', 'Ethereum wallet analytics', 'on-chain wallet analysis'],
+    relatedSlugs: ['multi-chain-wallet-forensics', 'crypto-wallet-risk-checker'],
   },
   {
     slug: 'crypto-wallet-risk-checker',
+    primaryIntent: 'Screen an EVM address for configured on-chain security risk signals.',
     title: 'Crypto Wallet Risk Checker',
     metaDescription:
-      'Review explainable wallet risk factors, blacklist availability, failed transactions, approvals, and unknown-contract interactions across supported EVM chains.',
+      'Screen an EVM address for observable security signals from approvals, failed transactions, stale approvals, and unidentified contract interactions across four supported networks.',
     eyebrow: 'EXPLAINABLE SECURITY REVIEW',
-    heading: 'Check an EVM Wallet for Observable Risk Signals',
+    heading: 'Screen an EVM Wallet for Observable Security Signals',
     intro:
-      'WalletGenome summarizes public, observable risk indicators and shows the factors behind its score instead of presenting an unexplained safety verdict.',
+      'Use WalletGenome to review the configured factors behind an address’s risk score without turning a heuristic into a safety verdict. The tool is read-only and does not trade or submit transactions.',
+    scopeNote:
+      'A score is a screening signal, not proof of safety, compromise, malicious intent, or ownership.',
     capabilities: [
       {
         title: 'Explainable risk factors',
@@ -126,9 +135,9 @@ export const SEO_LANDING_PAGES = [
           'Inspect the recorded contribution of approval, failure-rate, stale-approval, and unknown-contract heuristics.',
       },
       {
-        title: 'Blacklist status',
+        title: 'Data completeness',
         description:
-          'Keep non-behavioral blacklist checks distinct from behavioral scoring, including explicit unavailable states.',
+          'See when the risk headline is withheld because required wallet history is partial or unavailable instead of treating missing records as clean activity.',
       },
       {
         title: 'Worst-chain summary',
@@ -153,9 +162,9 @@ export const SEO_LANDING_PAGES = [
           'No. It can surface observable on-chain warning signs, but it cannot prove safety or predict every compromise.',
       },
       {
-        question: 'How is the WalletGenome risk score calculated?',
+        question: 'Which factors can affect the risk score?',
         answer:
-          'The score combines documented factors such as risky approvals, failed transaction ratio, stale approvals, and interaction with unknown contracts. The methodology page lists the current rules.',
+          'The score combines documented factors such as observed high-risk approvals, failed transaction ratio, stale approvals, and unidentified contract interactions. The methodology page lists the current rules.',
       },
       {
         question: 'What happens when wallet history is incomplete?',
@@ -163,17 +172,20 @@ export const SEO_LANDING_PAGES = [
           'WalletGenome labels the affected datasets and withholds definitive risk conclusions instead of interpreting missing records as clean activity.',
       },
     ],
-    keywords: ['crypto wallet risk checker', 'wallet security checker', 'EVM address risk'],
+    relatedSlugs: ['token-approval-checker', 'sybil-wallet-analysis'],
   },
   {
     slug: 'token-approval-checker',
+    primaryIntent: 'Inspect observed ERC-20 allowance approvals and their estimated exposure.',
     title: 'Token Approval Checker',
     metaDescription:
-      'Inspect observable ERC-20 approval activity, unlimited allowances, spender addresses, stale approvals, and available exposure estimates for an EVM wallet.',
+      'Review observed ERC-20 approvals for an EVM address, including spender, allowance size, approval age, and exposure estimates based on returned history and available prices.',
     eyebrow: 'ERC-20 ALLOWANCE AUDIT',
-    heading: 'Inspect Token Approvals and Unlimited Allowance Signals',
+    heading: 'Check Observed ERC-20 Approvals and Allowance Exposure',
     intro:
-      'WalletGenome decodes observable ERC-20 approval transactions and organizes allowance-related warning signs by supported chain and spender.',
+      'Use WalletGenome to review the latest approval states it can reconstruct from returned transaction history. It does not query a live allowance or revoke anything.',
+    scopeNote:
+      'An approval row is historical evidence. Confirm the current allowance on-chain before acting, and treat unavailable balance or price data as unavailable—not zero.',
     capabilities: [
       {
         title: 'Approval decoding',
@@ -181,14 +193,14 @@ export const SEO_LANDING_PAGES = [
           'Decode ERC-20 approve calls to identify spender addresses and distinguish finite from unlimited allowance values.',
       },
       {
-        title: 'Stale approval review',
+        title: 'Spender and age context',
         description:
-          'Surface older approvals and interactions with unknown contracts as review signals rather than automatic proof of compromise.',
+          'Review spender labels, approval age, and observed non-revoked state without treating an old approval as proof that an allowance is still active.',
       },
       {
-        title: 'Exposure completeness',
+        title: 'Exposure estimates',
         description:
-          'Keep unknown balances or prices unavailable instead of silently converting missing exposure data to zero dollars.',
+          'Estimate exposure from reconstructed positive balances and available current prices; unknown balances or prices remain unavailable.',
       },
     ],
     usefulFor: [
@@ -208,7 +220,7 @@ export const SEO_LANDING_PAGES = [
           'It is an ERC-20 allowance that authorizes a spender to transfer a very large maximum amount, often used so an application does not need approval before every transaction.',
       },
       {
-        question: 'Does an old approve transaction mean the allowance is still active?',
+        question: 'Does an old approval prove the allowance is still active?',
         answer:
           'Not necessarily. A later transaction may have changed or revoked it, so approval history should be reviewed with current chain state when making a security decision.',
       },
@@ -218,32 +230,35 @@ export const SEO_LANDING_PAGES = [
           'No. WalletGenome is read-only and does not submit transactions. Ethereum wallet authentication, when used, is a login message rather than a transaction.',
       },
     ],
-    keywords: ['token approval checker', 'ERC-20 allowance checker', 'unlimited token approvals'],
+    relatedSlugs: ['crypto-wallet-risk-checker', 'multi-chain-wallet-forensics'],
   },
   {
     slug: 'sybil-wallet-analysis',
+    primaryIntent: 'Review configured Sybil and blacklist signals for an EVM address.',
     title: 'Sybil Wallet Analysis',
     metaDescription:
-      'Review behavioral Sybil signals and available public blacklist matches while keeping heuristics, source coverage, and confirmed matches clearly separated.',
+      'Review configured Sybil, sanctions, and blacklist signals for an EVM address, with behavioral heuristics and source availability kept separate.',
     eyebrow: 'BEHAVIORAL AND LIST-BASED SIGNALS',
-    heading: 'Analyze Observable Sybil Signals Without Hiding Uncertainty',
+    heading: 'Review Sybil and Blacklist Signals for an EVM Address',
     intro:
-      'WalletGenome separates behavioral probability from non-behavioral blacklist matches so each conclusion can be traced to the kind of evidence that produced it.',
+      'WalletGenome compares returned wallet behavior with configured public-list snapshots and a local MEDIA-style heuristic. These outputs prioritize review; they do not establish common ownership or wrongdoing.',
+    scopeNote:
+      'A positive match reflects a configured source record, while a clear or unavailable result does not prove the absence of Sybil activity.',
     capabilities: [
       {
-        title: 'Behavioral probability',
+        title: 'Behavioral heuristic',
         description:
-          'Summarize supported transaction, timing, diversity, and funding behavior as a heuristic rather than a definitive identity judgment.',
+          'Summarize activity duration, cadence, diversity, cross-chain breadth, and available value signals as a heuristic rather than a definitive identity judgment.',
       },
       {
-        title: 'Public-list checks',
+        title: 'Source-specific matches',
         description:
-          'Report available matches from configured public Sybil and sanctions sources with source-specific status.',
+          'Report positive matches from configured public Sybil, sanctions, and blacklist sources with each source’s status kept visible.',
       },
       {
-        title: 'Evidence precedence',
+        title: 'Separate evidence states',
         description:
-          'Keep a confirmed list match visible even when behavioral scoring is unavailable or produces a different signal.',
+          'Keep list matches, behavioral scores, and unavailable checks separate so one signal does not masquerade as another kind of evidence.',
       },
     ],
     usefulFor: [
@@ -268,22 +283,25 @@ export const SEO_LANDING_PAGES = [
           'No. Similar timing, funding, or protocol activity can support further investigation but does not prove that addresses share an owner.',
       },
       {
-        question: 'Are blacklist matches and behavioral scores the same?',
+        question: 'Are blacklist matches and behavioral scores the same thing?',
         answer:
           'No. WalletGenome reports direct public-list matches separately from its behavioral probability model.',
       },
     ],
-    keywords: ['Sybil wallet analysis', 'Sybil checker', 'crypto address blacklist check'],
+    relatedSlugs: ['multi-chain-wallet-forensics', 'crypto-wallet-risk-checker'],
   },
   {
     slug: 'multi-chain-wallet-forensics',
+    primaryIntent: 'Investigate cross-chain transfers, counterparties, and evidence coverage.',
     title: 'Multi-Chain Wallet Forensics',
     metaDescription:
-      'Investigate wallet activity, capital-flow evidence, counterparties, gas usage, approvals, and data completeness across supported EVM networks.',
+      'Investigate cross-chain EVM wallet activity, transfer paths, counterparties, gas, approvals, and evidence coverage across Ethereum, Base, Arbitrum, and Optimism.',
     eyebrow: 'CROSS-NETWORK INVESTIGATION',
-    heading: 'Multi-Chain Wallet Forensics With Explicit Data Coverage',
+    heading: 'Investigate Cross-Chain Wallet Activity With Evidence Coverage',
     intro:
-      'WalletGenome brings supported EVM activity into one report while preserving chain provenance and showing where provider or pricing coverage is incomplete.',
+      'Use WalletGenome to assemble a chain-aware view of returned transactions, transfers, counterparties, protocol labels, gas, approvals, and identity records. It is for investigation, not trading or portfolio custody.',
+    scopeNote:
+      'Coverage is limited to four EVM networks and returned provider data; flow totals and prices stay labelled when history or pricing is incomplete.',
     capabilities: [
       {
         title: 'Chain-aware evidence',
@@ -291,9 +309,9 @@ export const SEO_LANDING_PAGES = [
           'Keep transactions, contracts, gas units, and protocol attribution tied to the network where the activity occurred.',
       },
       {
-        title: 'Capital-flow topology',
+        title: 'Transfer-flow evidence',
         description:
-          'Explore verified transfer legs, recurring counterparties, and supported protocol interactions through an interactive flow view.',
+          'Explore returned transfer legs, recurring counterparties, and supported protocol interactions through an interactive flow view.',
       },
       {
         title: 'Coverage reporting',
@@ -318,7 +336,7 @@ export const SEO_LANDING_PAGES = [
           'It combines public transaction, transfer, contract, counterparty, gas, approval, and identity evidence from multiple networks into a chain-aware investigation view.',
       },
       {
-        question: 'Does WalletGenome calculate total portfolio value?',
+        question: 'Does WalletGenome calculate current portfolio value?',
         answer:
           'No. Its verified inflow, outflow, and protocol-volume metrics describe supported historical transfer evidence and should not be interpreted as current portfolio value.',
       },
@@ -328,7 +346,7 @@ export const SEO_LANDING_PAGES = [
           'Missing historical values remain estimated or unpriced with explicit provenance; they are not silently presented as exact historical dollars or zero.',
       },
     ],
-    keywords: ['multi-chain wallet forensics', 'blockchain forensics tool', 'EVM wallet investigation'],
+    relatedSlugs: ['evm-wallet-analytics', 'sybil-wallet-analysis'],
   },
 ] as const satisfies readonly SeoLandingPage[];
 
@@ -344,17 +362,16 @@ export function buildPageMetadata(page: SeoLandingPage): Metadata {
   return {
     title: page.title,
     description: page.metaDescription,
-    keywords: [...page.keywords],
-    alternates: { canonical: path },
+    alternates: { canonical: absoluteUrl(path) },
     openGraph: {
       type: 'website',
-      url: path,
+      url: absoluteUrl(path),
       siteName: SITE_NAME,
       title: `${page.title} | ${SITE_NAME}`,
       description: page.metaDescription,
       images: [
         {
-          url: '/opengraph-image',
+          url: absoluteUrl('/opengraph-image'),
           width: 1200,
           height: 630,
           alt: 'WalletGenome — EVM Wallet Analytics & Forensics',
@@ -365,7 +382,55 @@ export function buildPageMetadata(page: SeoLandingPage): Metadata {
       card: 'summary_large_image',
       title: `${page.title} | ${SITE_NAME}`,
       description: page.metaDescription,
-      images: ['/twitter-image'],
+      images: [absoluteUrl('/twitter-image')],
     },
   };
+}
+
+export function buildLandingStructuredData(page: SeoLandingPage): JsonLdObject[] {
+  return [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'WebPage',
+      '@id': absoluteUrl(`/${page.slug}#webpage`),
+      name: page.heading,
+      description: page.metaDescription,
+      url: absoluteUrl(`/${page.slug}`),
+      isPartOf: {
+        '@type': 'WebSite',
+        name: SITE_NAME,
+        url: absoluteUrl('/'),
+      },
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: page.faqs.map(faq => ({
+        '@type': 'Question',
+        name: faq.question,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: faq.answer,
+        },
+      })),
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        {
+          '@type': 'ListItem',
+          position: 1,
+          name: 'WalletGenome',
+          item: absoluteUrl('/'),
+        },
+        {
+          '@type': 'ListItem',
+          position: 2,
+          name: page.title,
+          item: absoluteUrl(`/${page.slug}`),
+        },
+      ],
+    },
+  ];
 }

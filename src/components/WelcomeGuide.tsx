@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { ArrowRight, ShieldCheck, Dna, GitFork, UserCheck, Lock, Layers, Activity, HelpCircle, BookOpen } from 'lucide-react';
 import { DEMO_WALLETS, formatDemoSnapshotDate, type DemoWallet } from '@/lib/demoWallets';
+import { SEO_LANDING_PAGES } from '@/lib/seo';
 
 interface Props {
   onSelectDemo: (demo: DemoWallet) => void;
@@ -96,7 +97,7 @@ export default function WelcomeGuide({ onSelectDemo }: Props) {
               Forensic Processing
             </h3>
             <p className="text-xs text-[#4b5563] leading-relaxed text-pretty">
-              Our indexing engine filters out spoofed/scam meme tokens, verifies legitimate protocol contracts, audits 5 public Sybil databases, and resolves verified social profiles (Web3.bio).
+              The scanner labels recognized protocol contracts, keeps price provenance, checks configured Sybil and sanctions sources, and resolves available public identity links when the identity provider returns them.
             </p>
           </div>
 
@@ -106,10 +107,10 @@ export default function WelcomeGuide({ onSelectDemo }: Props) {
               03
             </div>
             <h3 className="text-base font-black uppercase text-[#0a0a0a]">
-              Actionable Intelligence
+              Evidence Summary
             </h3>
             <p className="text-xs text-[#4b5563] leading-relaxed text-pretty">
-              Synthesizes a 6-axis Behavioral Radar, assigns a quantified Persona archetype, renders an interactive money flow graph, and flags observed unlimited approval states.
+              Summarizes six behavior dimensions, configured risk factors, a local Sybil heuristic, transfer-flow evidence, and observed approval states. These signals support review; they are not proof of safety, ownership, or intent.
             </p>
           </div>
 
@@ -156,12 +157,12 @@ export default function WelcomeGuide({ onSelectDemo }: Props) {
                   Interactive Capital Flow Topology
                 </h3>
                 <span className="text-[10px] font-bold text-[#4b5563]">
-                  Follow where the capital really travels
+                  Review observed transfer paths
                 </span>
               </div>
             </div>
             <p className="text-xs text-[#374151] leading-relaxed text-pretty">
-              Visualize inflows from exchanges, DeFi protocol interactions, and outbound destinations in an interactive particle-flow canvas. Surfaces repeated recipient addresses once at least two distinct outbound transactions support the pattern, and labels ties.
+              Review returned transfer legs, protocol interactions, and repeated counterparties in an interactive flow view. It preserves evidence and completeness labels instead of presenting every transfer as a complete account history.
             </p>
           </div>
 
@@ -201,10 +202,35 @@ export default function WelcomeGuide({ onSelectDemo }: Props) {
               </div>
             </div>
             <p className="text-xs text-[#374151] leading-relaxed text-pretty">
-              Protects assets by highlighting observed unlimited approval transactions to unverified contracts, calculating dead zero-liquidity tokens, and checking against LayerZero, Hop, and OFAC sanctions lists.
+              Highlights observed unlimited approvals, separates known from unknown contract labels, and reports configured blacklist status. It does not revoke approvals, submit transactions, or provide a trading service.
             </p>
           </div>
 
+        </div>
+      </section>
+
+      {/* ── 4. Focused public guides ── */}
+      <section aria-labelledby="focused-guides-heading" className="space-y-4 border-b border-[#c8c8c8] pb-6">
+        <div className="space-y-1">
+          <h2 id="focused-guides-heading" className="text-xs font-extrabold text-[#4b5563] uppercase tracking-wider flex items-center gap-1.5">
+            <BookOpen size={14} className="text-orange-ink" />
+            <span>FOCUSED ANALYSIS GUIDES</span>
+          </h2>
+          <p className="text-xs text-[#4b5563] leading-relaxed text-pretty">
+            Choose the guide that matches the question you are trying to answer, then use the scanner for a public address.
+          </p>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {SEO_LANDING_PAGES.map(page => (
+            <Link
+              key={page.slug}
+              href={`/${page.slug}`}
+              className="card-3d-interactive min-h-11 p-4 text-[#0a0a0a]"
+            >
+              <span className="block text-xs font-black uppercase">{page.title}</span>
+              <span className="mt-1 block text-xs leading-relaxed text-[#4b5563]">{page.primaryIntent}</span>
+            </Link>
+          ))}
         </div>
       </section>
 
@@ -234,7 +260,7 @@ export default function WelcomeGuide({ onSelectDemo }: Props) {
       <div className="border-y border-[#c8c8c8] py-5 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-bold text-[#4b5563]">
         <div className="flex items-center gap-2">
           <Lock size={15} className="text-[#059669]" />
-          <span className="text-[#0a0a0a]">100% Read-Only & Safe:</span>
+          <span className="text-[#0a0a0a]">Read-only access:</span>
           <span>Wallet sign-in uses a login message only; no transaction or private key.</span>
         </div>
         <div className="flex items-center gap-2">

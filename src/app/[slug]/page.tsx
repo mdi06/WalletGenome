@@ -3,11 +3,10 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import JsonLd, { type JsonLdObject } from '@/components/JsonLd';
 import {
-  absoluteUrl,
+  buildLandingStructuredData,
   buildPageMetadata,
   getSeoLandingPage,
   SEO_LANDING_PAGES,
-  SITE_NAME,
 } from '@/lib/seo';
 import SiteHeader from '@/components/SiteHeader';
 
@@ -35,54 +34,10 @@ export default async function SeoLandingPage({ params }: LandingPageProps) {
   const page = getSeoLandingPage(slug);
   if (!page) notFound();
 
-  const pageJsonLd: JsonLdObject[] = [
-    {
-      '@context': 'https://schema.org',
-      '@type': 'WebPage',
-      '@id': absoluteUrl(`/${page.slug}#webpage`),
-      name: page.heading,
-      description: page.metaDescription,
-      url: absoluteUrl(`/${page.slug}`),
-      isPartOf: {
-        '@type': 'WebSite',
-        name: SITE_NAME,
-        url: absoluteUrl('/'),
-      },
-      about: [...page.keywords],
-    },
-    {
-      '@context': 'https://schema.org',
-      '@type': 'FAQPage',
-      mainEntity: page.faqs.map(faq => ({
-        '@type': 'Question',
-        name: faq.question,
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: faq.answer,
-        },
-      })),
-    },
-    {
-      '@context': 'https://schema.org',
-      '@type': 'BreadcrumbList',
-      itemListElement: [
-        {
-          '@type': 'ListItem',
-          position: 1,
-          name: 'WalletGenome',
-          item: absoluteUrl('/'),
-        },
-        {
-          '@type': 'ListItem',
-          position: 2,
-          name: page.title,
-          item: absoluteUrl(`/${page.slug}`),
-        },
-      ],
-    },
-  ];
-
-  const relatedPages = SEO_LANDING_PAGES.filter(item => item.slug !== page.slug);
+  const pageJsonLd: JsonLdObject[] = buildLandingStructuredData(page);
+  const relatedPages = page.relatedSlugs
+    .map(slug => getSeoLandingPage(slug))
+    .filter((item): item is typeof page => Boolean(item));
 
   return (
     <main className="max-w-[1120px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
@@ -99,9 +54,12 @@ export default async function SeoLandingPage({ params }: LandingPageProps) {
           <p className="max-w-3xl text-sm sm:text-base leading-relaxed font-medium text-[#374151]">
             {page.intro}
           </p>
+          <p className="max-w-3xl border-l-2 border-[#ff5500] pl-3 text-xs leading-relaxed text-[#4b5563]">
+            {page.scopeNote}
+          </p>
           <div className="flex flex-wrap gap-3 pt-2">
             <Link href="/" className="btn-3d-orange inline-flex min-h-11 items-center px-5 py-2.5 text-xs font-black text-[#0a0a0a]">
-              ANALYZE A PUBLIC WALLET
+              OPEN WALLET SCANNER
             </Link>
             <Link href="/docs" className="btn-3d-neutral inline-flex min-h-11 items-center px-5 py-2.5 text-xs font-black text-[#0a0a0a]">
               REVIEW THE METHODOLOGY
@@ -167,16 +125,17 @@ export default async function SeoLandingPage({ params }: LandingPageProps) {
 
         <aside aria-labelledby="related-heading" className="bg-[#121318] p-6 space-y-4">
           <h2 id="related-heading" className="text-sm font-black uppercase tracking-wider text-white">
-            Related wallet-analysis topics
+            Continue with a focused guide
           </h2>
-          <div className="flex flex-wrap gap-2">
+          <div className="grid gap-3 sm:grid-cols-2">
             {relatedPages.map(item => (
               <Link
                 key={item.slug}
                 href={`/${item.slug}`}
-                className="inline-flex min-h-11 items-center border border-[#4b5563] px-3 py-2 text-xs font-bold text-white hover:border-[#ff5500] hover:text-[#ff5500]"
+                className="border border-[#4b5563] p-3 text-white hover:border-[#ff5500]"
               >
-                {item.title}
+                <span className="block text-xs font-black uppercase text-white">{item.title}</span>
+                <span className="mt-1 block text-xs leading-relaxed text-[#d1d5db]">{item.primaryIntent}</span>
               </Link>
             ))}
           </div>
