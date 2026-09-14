@@ -21,8 +21,8 @@ test('renders the live-scan sign-in dialog with accessible labeling and wallet s
   assert.match(markup, /aria-modal="true"/);
   assert.match(markup, /aria-labelledby="live-scan-sign-in-title"/);
   assert.match(markup, /aria-describedby="live-scan-sign-in-description"/);
-  assert.match(markup, /Sign in to run a live scan/);
-  assert.match(markup, /Choose Google or an injected Ethereum wallet\. Your scan target and selected networks stay preserved\./);
+  assert.match(markup, /Sign in to WalletGenome/);
+  assert.match(markup, /Choose Google or an injected Ethereum wallet\. Your current page and scanner inputs stay preserved\./);
   assert.match(markup, />Continue with Google</);
   assert.match(markup, />Sign in with wallet</);
   assert.match(markup, />Cancel</);

@@ -29,6 +29,7 @@ interface LiveScanSignInDialogProps {
   onWalletAuthenticated?: () => void;
   onClose: () => void;
   returnFocusRef: React.RefObject<HTMLElement | null>;
+  returnFocusFallbackRef?: React.RefObject<HTMLElement | null>;
 }
 
 const WALLET_STATUS_COPY: Partial<Record<WalletUiState, string>> = {
@@ -37,7 +38,7 @@ const WALLET_STATUS_COPY: Partial<Record<WalletUiState, string>> = {
   connection_pending: 'Connection request pending. Approve the connection in your wallet.',
   signature_pending: 'Signature pending. Approve the WalletGenome sign-in message in your wallet.',
   verifying: 'Verifying the signed message with Supabase…',
-  success: 'Wallet authenticated. Resuming your scan…',
+  success: 'Wallet authenticated.',
   no_wallet: 'No compatible injected Ethereum wallet was found in this browser.',
   connection_rejected: 'Connection rejected. No signature was requested.',
   signature_rejected: 'Signature rejected. No transaction or chain change was requested.',
@@ -73,6 +74,7 @@ export default function LiveScanSignInDialog({
   onWalletAuthenticated = () => {},
   onClose,
   returnFocusRef,
+  returnFocusFallbackRef,
 }: LiveScanSignInDialogProps) {
   const { discoverEthereumWallets, signInWithEthereum } = useAuth();
   const continueButtonRef = useRef<HTMLButtonElement>(null);
@@ -178,16 +180,17 @@ export default function LiveScanSignInDialog({
       descriptionId="live-scan-sign-in-description"
       initialFocusRef={continueButtonRef}
       returnFocusRef={returnFocusRef}
+      returnFocusFallbackRef={returnFocusFallbackRef}
     >
       <div className="space-y-5">
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0 space-y-1.5">
             <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.16em] text-orange-ink">
               <ShieldCheck size={14} aria-hidden="true" />
-              <span>Live scan access</span>
+              <span>Authentication</span>
             </div>
             <h2 id="live-scan-sign-in-title" className="text-xl font-black leading-tight text-[#0a0a0a]">
-              Sign in to run a live scan
+              Sign in to WalletGenome
             </h2>
           </div>
           <button
@@ -202,7 +205,7 @@ export default function LiveScanSignInDialog({
         </div>
 
         <p id="live-scan-sign-in-description" className="text-sm font-medium leading-relaxed text-[#4b5563]">
-          Choose Google or an injected Ethereum wallet. Your scan target and selected networks stay preserved.
+          Choose Google or an injected Ethereum wallet. Your current page and scanner inputs stay preserved.
         </p>
 
         {error && (

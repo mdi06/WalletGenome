@@ -1,17 +1,23 @@
 'use client';
 
 import { LogIn, LogOut } from 'lucide-react';
-import { useState } from 'react';
+import { useRef, type RefObject } from 'react';
 import { useAuth } from './AuthProvider';
+import { useAuthDialog } from './AuthDialogProvider';
 
-export default function AuthActions() {
-  const { user, isLoading, isConfigured, signInWithGoogle, signOut } = useAuth();
-  const [error, setError] = useState<string | null>(null);
+interface AuthActionsProps {
+  onSignIn?: () => void;
+  returnFocusFallbackRef?: RefObject<HTMLElement | null>;
+}
 
-  const handleSignIn = async () => {
-    setError(null);
-    const message = await signInWithGoogle(`${window.location.pathname}${window.location.search}`);
-    if (message) setError(message);
+export default function AuthActions({ onSignIn, returnFocusFallbackRef }: AuthActionsProps) {
+  const { user, isLoading, isConfigured, signOut } = useAuth();
+  const { openSignInDialog } = useAuthDialog();
+  const signInButtonRef = useRef<HTMLButtonElement>(null);
+
+  const handleSignIn = () => {
+    openSignInDialog({ returnFocusFallbackRef }, signInButtonRef.current);
+    onSignIn?.();
   };
 
   if (isLoading) return null;
@@ -27,11 +33,10 @@ export default function AuthActions() {
           </button>
         </div>
       ) : (
-        <button type="button" onClick={() => void handleSignIn()} className="btn-3d-black inline-flex min-h-11 w-full items-center justify-start gap-1.5 px-3 py-1.5 text-xs font-bold uppercase text-white md:min-h-9 md:w-auto md:py-1" aria-label="Sign in with Google">
+        <button ref={signInButtonRef} type="button" onClick={handleSignIn} className="btn-3d-black inline-flex min-h-11 w-full items-center justify-start gap-1.5 px-3 py-1.5 text-xs font-bold uppercase text-white md:min-h-9 md:w-auto md:py-1" aria-label="Sign in">
           <LogIn size={12} className="text-[#ff5500]" aria-hidden="true" /> Sign in
         </button>
       )}
-      {error && <p role="alert" className="max-w-52 text-right text-[10px] font-bold text-[#991b1b]">{error}</p>}
     </div>
   );
 }

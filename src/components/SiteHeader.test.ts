@@ -42,11 +42,11 @@ test('renders a single mobile navigation disclosure without a header state indic
 test('keeps authentication inside the responsive navigation disclosure', () => {
   const source = readSource('./SiteHeader.tsx');
   const disclosureStart = source.indexOf('id="primary-navigation-menu"');
-  const authStart = source.indexOf('<AuthActions />');
+  const authStart = source.indexOf('<AuthActions ');
 
   assert.ok(disclosureStart >= 0);
   assert.ok(authStart > disclosureStart, 'auth should render inside the disclosure');
-  assert.doesNotMatch(source.slice(0, disclosureStart), /<AuthActions \/>/);
+  assert.doesNotMatch(source.slice(0, disclosureStart), /<AuthActions /);
 });
 
 test('keeps mobile auth and navigation controls visually aligned', () => {

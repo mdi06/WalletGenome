@@ -9,6 +9,7 @@ import VercelAnalytics from "@/components/VercelAnalytics";
 import BackgroundNodes from "@/components/BackgroundNodes";
 import CursorGlow from "@/components/CursorGlow";
 import { AuthProvider } from "@/components/auth/AuthProvider";
+import { AuthDialogProvider } from "@/components/auth/AuthDialogProvider";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -90,15 +91,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={`${mainFont.variable} ${monoFont.variable}`}>
       <body className="bg-[#ebebeb] text-[#0a0a0a] antialiased font-sans selection:bg-[#ff5500] selection:text-[#0a0a0a]">
         <AuthProvider>
-          <div data-app-shell>
-            <WebVitals />
-            <VercelAnalytics />
-            <JsonLd data={applicationJsonLd} />
-            <BackgroundNodes />
-            <CursorGlow />
-            {children}
-            <SiteFooter />
-          </div>
+          <AuthDialogProvider>
+            <div data-app-shell>
+              <WebVitals />
+              <VercelAnalytics />
+              <JsonLd data={applicationJsonLd} />
+              <BackgroundNodes />
+              <CursorGlow />
+              {children}
+              <SiteFooter />
+            </div>
+          </AuthDialogProvider>
         </AuthProvider>
       </body>
     </html>

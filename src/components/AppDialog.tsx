@@ -10,6 +10,7 @@ interface AppDialogProps {
   descriptionId?: string;
   initialFocusRef?: React.RefObject<HTMLElement | null>;
   returnFocusRef?: React.RefObject<HTMLElement | null>;
+  returnFocusFallbackRef?: React.RefObject<HTMLElement | null>;
   children: React.ReactNode;
 }
 
@@ -39,6 +40,7 @@ export default function AppDialog({
   descriptionId,
   initialFocusRef,
   returnFocusRef,
+  returnFocusFallbackRef,
   children,
 }: AppDialogProps) {
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -52,6 +54,7 @@ export default function AppDialog({
     const previousAriaHidden = appShell ? appShell.getAttribute('aria-hidden') : null;
     const previousBodyOverflow = document.body.style.overflow;
     const focusReturnTarget = returnFocusRef?.current;
+    const focusFallbackTarget = returnFocusFallbackRef?.current;
 
     if (appShell) {
       appShell.inert = true;
@@ -73,9 +76,15 @@ export default function AppDialog({
         else appShell.setAttribute('aria-hidden', previousAriaHidden);
       }
       document.body.style.overflow = previousBodyOverflow;
-      focusReturnTarget?.focus();
+      const canRestoreFocus = (target: HTMLElement | null | undefined) => {
+        if (!target || !document.contains(target)) return false;
+        if (target.hasAttribute('disabled') || target.getAttribute('aria-hidden') === 'true') return false;
+        return target.getClientRects().length > 0;
+      };
+      if (canRestoreFocus(focusReturnTarget)) focusReturnTarget?.focus();
+      else if (canRestoreFocus(focusFallbackTarget)) focusFallbackTarget?.focus();
     };
-  }, [initialFocusRef, open, returnFocusRef]);
+  }, [initialFocusRef, open, returnFocusFallbackRef, returnFocusRef]);
 
   if (!open) return null;
 

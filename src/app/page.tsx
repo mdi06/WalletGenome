@@ -18,8 +18,8 @@ import { CLUSTER_SAMPLE_ADDRESSES, CLUSTER_SAMPLE_SNAPSHOT } from '@/lib/cluster
 import BetaUpdatesCard from '@/components/auth/BetaUpdatesCard';
 import GoogleUpdatesPrompt from '@/components/auth/GoogleUpdatesPrompt';
 import WalletUpdatesPrompt from '@/components/auth/WalletUpdatesPrompt';
-import LiveScanSignInDialog from '@/components/auth/LiveScanSignInDialog';
 import { useAuth } from '@/components/auth/AuthProvider';
+import { useAuthDialog } from '@/components/auth/AuthDialogProvider';
 import { shouldOfferGoogleUpdatesPrompt, shouldOfferWalletUpdatesPrompt } from '@/lib/auth/updateSubscriptions';
 import {
   PENDING_LIVE_SCAN_KEY,
@@ -50,6 +50,7 @@ const SCAN_MODES = ['single', 'cluster'] as const;
 
 export default function Home() {
   const { user, isLoading: isAuthLoading, signInWithGoogle } = useAuth();
+  const { openSignInDialog } = useAuthDialog();
   const [liveScanUserId, setLiveScanUserId] = React.useState<string | null>(null);
   const previousUserIdRef = React.useRef<string | null>(null);
   const pageMainRef = React.useRef<HTMLElement | null>(null);
@@ -88,11 +89,6 @@ export default function Home() {
     onLiveScanSuccess: handleLiveScanSuccess,
   });
   const [isScanEditorOpen, setIsScanEditorOpen] = React.useState(false);
-  const [isSignInDialogOpen, setIsSignInDialogOpen] = React.useState(false);
-  const [pendingLiveScan, setPendingLiveScan] = React.useState<PendingLiveScan | null>(null);
-  const [isAuthStarting, setIsAuthStarting] = React.useState(false);
-  const [authStartError, setAuthStartError] = React.useState<string | null>(null);
-  const returnFocusRef = React.useRef<HTMLElement | null>(null);
 
   React.useEffect(() => {
     const userId = user?.id ?? null;
@@ -110,50 +106,40 @@ export default function Home() {
     hasError: Boolean(error),
     isLoading,
   });
-  const openSignInDialog = (scan: PendingLiveScan, trigger?: HTMLElement) => {
-    if (isAuthStarting) return;
-    returnFocusRef.current = trigger ?? (document.activeElement instanceof HTMLElement ? document.activeElement : null);
-    setPendingLiveScan(scan);
-    setAuthStartError(isAuthLoading ? 'Checking your sign-in status. Please try again in a moment.' : null);
-    setIsSignInDialogOpen(true);
-  };
+  const continueWithGoogle = React.useCallback(async (pendingScan: PendingLiveScan) => {
+    if (isAuthLoading) return 'Checking your sign-in status. Please try again in a moment.';
+    try {
+      window.localStorage.setItem(PENDING_LIVE_SCAN_KEY, serializePendingLiveScan(pendingScan));
+      const message = await signInWithGoogle(`${window.location.pathname}${window.location.search}`);
+      return message ? 'Google sign-in could not start. Please try again, or cancel and return to your scan.' : null;
+    } catch {
+      return 'Google sign-in could not start. Please try again, or cancel and return to your scan.';
+    }
+  }, [isAuthLoading, signInWithGoogle]);
 
-  const closeSignInDialog = React.useCallback(() => {
+  const resumeWalletScan = React.useCallback((pendingScan: PendingLiveScan) => {
+    if (pendingScan.mode === 'single') {
+      void handleSingleScan(pendingScan.address, pendingScan.chainIds, { forceRefresh: pendingScan.forceRefresh });
+    } else {
+      void handleClusterScan(pendingScan.addresses, pendingScan.chainIds);
+    }
+  }, [handleClusterScan, handleSingleScan]);
+
+  const clearPendingLiveScan = React.useCallback(() => {
     try {
       window.localStorage.removeItem(PENDING_LIVE_SCAN_KEY);
     } catch {
       // Storage may be unavailable; closing still preserves the in-memory form state.
     }
-    setPendingLiveScan(null);
-    setAuthStartError(null);
-    setIsSignInDialogOpen(false);
-    setIsAuthStarting(false);
   }, []);
 
-  const continueWithGoogle = React.useCallback(async () => {
-    if (!pendingLiveScan || isAuthStarting) return;
-    if (isAuthLoading) {
-      setAuthStartError('Checking your sign-in status. Please try again in a moment.');
-      return;
-    }
-
-    setIsAuthStarting(true);
-    setAuthStartError(null);
-    try {
-      window.localStorage.setItem(PENDING_LIVE_SCAN_KEY, serializePendingLiveScan(pendingLiveScan));
-      const message = await signInWithGoogle(`${window.location.pathname}${window.location.search}`);
-      if (message) {
-        setAuthStartError('Google sign-in could not start. Please try again, or cancel and return to your scan.');
-        return;
-      }
-      setIsSignInDialogOpen(false);
-      setPendingLiveScan(null);
-    } catch {
-      setAuthStartError('Google sign-in could not start. Please try again, or cancel and return to your scan.');
-    } finally {
-      setIsAuthStarting(false);
-    }
-  }, [isAuthLoading, isAuthStarting, pendingLiveScan, signInWithGoogle]);
+  const openScanSignInDialog = React.useCallback((pendingScan: PendingLiveScan, trigger?: HTMLElement) => {
+    openSignInDialog({
+      onGoogleContinue: () => continueWithGoogle(pendingScan),
+      onWalletAuthenticated: () => resumeWalletScan(pendingScan),
+      onClose: clearPendingLiveScan,
+    }, trigger);
+  }, [clearPendingLiveScan, continueWithGoogle, openSignInDialog, resumeWalletScan]);
 
   const requestSingleScan = (
     address: string,
@@ -165,7 +151,7 @@ export default function Home() {
       void handleSingleScan(address, chainIds, options);
       return;
     }
-    openSignInDialog({ mode: 'single', address, chainIds, forceRefresh: options.forceRefresh }, trigger);
+    openScanSignInDialog({ mode: 'single', address, chainIds, forceRefresh: options.forceRefresh }, trigger);
   };
 
   const requestClusterScan = (addresses: string[], chainIds: number[], trigger?: HTMLElement) => {
@@ -173,7 +159,7 @@ export default function Home() {
       void handleClusterScan(addresses, chainIds);
       return;
     }
-    openSignInDialog({ mode: 'cluster', addresses, chainIds }, trigger);
+    openScanSignInDialog({ mode: 'cluster', addresses, chainIds }, trigger);
   };
 
   React.useEffect(() => {
@@ -424,14 +410,6 @@ export default function Home() {
         returnFocusRef={pageMainRef}
       />
 
-      <LiveScanSignInDialog
-        open={isSignInDialogOpen && !user}
-        isStarting={isAuthStarting}
-        error={authStartError}
-        onContinue={() => void continueWithGoogle()}
-        onClose={closeSignInDialog}
-        returnFocusRef={returnFocusRef}
-      />
     </main>
   );
 }

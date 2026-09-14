@@ -10,15 +10,15 @@ test('signed-out single and cluster submits open the app-owned dialog before OAu
   const singleRequest = pageSource.slice(pageSource.indexOf('const requestSingleScan'), pageSource.indexOf('const requestClusterScan'));
   const clusterRequest = pageSource.slice(pageSource.indexOf('const requestClusterScan'), pageSource.indexOf('const handleInspectFromCluster'));
 
-  assert.match(singleRequest, /openSignInDialog\(\{ mode: 'single'/);
+  assert.match(singleRequest, /openScanSignInDialog\(\{ mode: 'single'/);
   assert.doesNotMatch(singleRequest, /signInWithGoogle/);
-  assert.match(clusterRequest, /openSignInDialog\(\{ mode: 'cluster'/);
+  assert.match(clusterRequest, /openScanSignInDialog\(\{ mode: 'cluster'/);
   assert.doesNotMatch(clusterRequest, /signInWithGoogle/);
-  assert.match(pageSource, /setIsSignInDialogOpen\(true\)/);
+  assert.match(pageSource, /openSignInDialog\(/);
 });
 
 test('continue writes the pending request and the authenticated effect resumes it', () => {
-  assert.match(pageSource, /localStorage\.setItem\(PENDING_LIVE_SCAN_KEY, serializePendingLiveScan\(pendingLiveScan\)\)/);
+  assert.match(pageSource, /localStorage\.setItem\(PENDING_LIVE_SCAN_KEY, serializePendingLiveScan\(pendingScan\)\)/);
   assert.match(pageSource, /signInWithGoogle\(\`\$\{window\.location\.pathname\}/);
   assert.match(pageSource, /parsePendingLiveScan\(serialized\)/);
   assert.match(pageSource, /handleSingleScan\(pendingScan\.address, pendingScan\.chainIds/);

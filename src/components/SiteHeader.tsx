@@ -101,7 +101,7 @@ export default function SiteHeader({
           data-open={isMenuOpen}
           className={`${isMenuOpen ? 'flex' : 'hidden'} mobile-navigation-disclosure w-full flex-col gap-2 md:flex md:w-auto md:flex-row md:items-center md:gap-2`}
         >
-          <AuthActions />
+          <AuthActions onSignIn={closeMenu} returnFocusFallbackRef={menuToggleRef} />
 
           {contextAction && (
             <div className="w-full md:w-auto" onClick={closeMenu}>
