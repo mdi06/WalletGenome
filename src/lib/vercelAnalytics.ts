@@ -5,10 +5,10 @@ const URL_BASE = 'https://walletgenome.invalid';
 
 export function redactAnalyticsUrl(rawUrl: string): string {
   try {
-    const parsedUrl = new URL(rawUrl, URL_BASE);
-    return parsedUrl.pathname.replace(EVM_ADDRESS_IN_PATH_PATTERN, '[wallet]');
+    const parsedUrl = new URL(rawUrl, typeof window === 'undefined' ? URL_BASE : window.location.origin);
+    return `${parsedUrl.origin}${parsedUrl.pathname.replace(EVM_ADDRESS_IN_PATH_PATTERN, '[wallet]')}`;
   } catch {
-    return rawUrl.split(/[?#]/, 1)[0];
+    return URL_BASE;
   }
 }
 
