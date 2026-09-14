@@ -98,11 +98,12 @@ function createFakeAdmin(initialRow: FakeRow | null, identities: FakeIdentity[] 
 }
 
 function configureEmailProviderForTest(): () => void {
-  const keys = ['EMAIL_PROVIDER', 'RESEND_API_KEY', 'EMAIL_FROM', 'SITE_URL', 'SUPABASE_SECRET_KEY'] as const;
+  const keys = ['EMAIL_PROVIDER', 'RESEND_API_KEY', 'EMAIL_FROM', 'RESEND_CONFIRMATION_TEMPLATE_ID', 'SITE_URL', 'SUPABASE_SECRET_KEY'] as const;
   const previous = new Map<string, string | undefined>(keys.map(key => [key, process.env[key]]));
   process.env.EMAIL_PROVIDER = 'resend';
   process.env.RESEND_API_KEY = 're_test_key';
   process.env.EMAIL_FROM = 'WalletGenome <updates@example.com>';
+  process.env.RESEND_CONFIRMATION_TEMPLATE_ID = 'wallet-confirmation';
   // The fixture must also pass the HTTPS requirement under NODE_ENV=production.
   process.env.SITE_URL = 'https://wallet.example';
   process.env.SUPABASE_SECRET_KEY = 'test-server-secret';

@@ -42,6 +42,7 @@ test('provider configuration is explicit and safe to test without sending mail',
     NODE_ENV: 'development',
     RESEND_API_KEY: 're_test_key',
     EMAIL_FROM: 'WalletGenome <updates@example.com>',
+    RESEND_CONFIRMATION_TEMPLATE_ID: 'wallet-confirmation',
     SITE_URL: 'http://localhost:3000',
   });
   assert.equal(configured.configured, true);
@@ -52,6 +53,7 @@ test('production email configuration requires HTTPS confirmation links', () => {
     NODE_ENV: 'production',
     RESEND_API_KEY: 're_test_key',
     EMAIL_FROM: 'WalletGenome <updates@example.com>',
+    RESEND_CONFIRMATION_TEMPLATE_ID: 'wallet-confirmation',
   };
   const insecure = getEmailProviderConfig({ ...env, SITE_URL: 'http://localhost:3000' });
   assert.equal(insecure.configured, false);
@@ -76,6 +78,7 @@ test('confirmation email uses the server provider and includes scoped unsubscrib
       provider: 'resend',
       apiKey: 're_test_key',
       from: 'WalletGenome <updates@example.com>',
+      confirmationTemplateId: 'wallet-confirmation',
       siteUrl: new URL('http://localhost:3000/'),
     },
     'Alice@example.com',
@@ -87,11 +90,26 @@ test('confirmation email uses the server provider and includes scoped unsubscrib
   assert.equal(delivered, true);
   assert.equal(requestUrl, 'https://api.resend.com/emails');
   assert.equal(requestInit?.method, 'POST');
-  const body = JSON.parse(String(requestInit?.body)) as { to: string[]; headers: Record<string, string>; html: string };
+  const body = JSON.parse(String(requestInit?.body)) as {
+    to: string[];
+    headers: Record<string, string>;
+    template: { id: string; variables: Record<string, string> };
+    html?: string;
+    text?: string;
+  };
   assert.deepEqual(body.to, ['Alice@example.com']);
   assert.equal(body.headers['List-Unsubscribe-Post'], 'List-Unsubscribe=One-Click');
   assert.match(body.headers['List-Unsubscribe'], /unsubscribe-token/);
-  assert.doesNotMatch(body.html, /<script/);
+  assert.deepEqual(body.template, {
+    id: 'wallet-confirmation',
+    variables: {
+      first_name: 'there',
+      company_name: 'WalletGenome',
+      confirmation_url: 'http://localhost:3000/api/updates/confirm?token=confirm-token',
+    },
+  });
+  assert.equal(body.html, undefined);
+  assert.equal(body.text, undefined);
 });
 
 test('the shared consent constants identify the wallet source and copy version', () => {

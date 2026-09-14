@@ -29,6 +29,7 @@ export type EmailProviderConfig = {
   provider: 'resend';
   apiKey: string;
   from: string;
+  confirmationTemplateId: string;
   siteUrl: URL;
 };
 
@@ -42,12 +43,13 @@ export function getEmailProviderConfig(env: NodeJS.ProcessEnv = process.env): Em
   if (provider !== 'resend') missing.push('EMAIL_PROVIDER=resend');
   if (!env.RESEND_API_KEY?.trim()) missing.push('RESEND_API_KEY');
   if (!env.EMAIL_FROM?.trim()) missing.push('EMAIL_FROM on a verified sending domain');
+  if (!env.RESEND_CONFIRMATION_TEMPLATE_ID?.trim()) missing.push('RESEND_CONFIRMATION_TEMPLATE_ID for a published Resend template');
   const siteUrl = normalizeSiteUrl(env.SITE_URL);
   if (!siteUrl || (env.NODE_ENV === 'production' && siteUrl.protocol !== 'https:')) {
     missing.push('SITE_URL using the canonical HTTPS application URL');
   }
 
-  if (missing.length > 0 || !env.RESEND_API_KEY?.trim() || !env.EMAIL_FROM?.trim() || !siteUrl) {
+  if (missing.length > 0 || !env.RESEND_API_KEY?.trim() || !env.EMAIL_FROM?.trim() || !env.RESEND_CONFIRMATION_TEMPLATE_ID?.trim() || !siteUrl) {
     return { configured: false, missing };
   }
 
@@ -57,6 +59,7 @@ export function getEmailProviderConfig(env: NodeJS.ProcessEnv = process.env): Em
       provider: 'resend',
       apiKey: env.RESEND_API_KEY.trim(),
       from: env.EMAIL_FROM.trim(),
+      confirmationTemplateId: env.RESEND_CONFIRMATION_TEMPLATE_ID.trim(),
       siteUrl,
     },
   };
@@ -126,9 +129,6 @@ export async function sendConfirmationEmail(
   unsubscribeLink: string,
   fetchImpl: typeof fetch = fetch,
 ): Promise<boolean> {
-  const safeEmail = escapeHtml(email);
-  const safeConfirmationLink = escapeHtml(confirmationLink);
-  const safeUnsubscribeLink = escapeHtml(unsubscribeLink);
   const response = await fetchImpl('https://api.resend.com/emails', {
     method: 'POST',
     headers: {
@@ -139,8 +139,14 @@ export async function sendConfirmationEmail(
       from: config.from,
       to: [email],
       subject: 'Confirm your WalletGenome updates',
-      html: `<p>Confirm WalletGenome updates for ${safeEmail}.</p><p><a href="${safeConfirmationLink}">Confirm email and updates</a></p><p>This confirms your request for occasional beta and product updates. If you did not request this, no action is needed.</p><p><a href="${safeUnsubscribeLink}">Unsubscribe</a></p>`,
-      text: `Confirm WalletGenome updates: ${confirmationLink}\n\nThis confirms your request for occasional beta and product updates. If you did not request this, no action is needed.\n\nUnsubscribe: ${unsubscribeLink}`,
+      template: {
+        id: config.confirmationTemplateId,
+        variables: {
+          first_name: 'there',
+          company_name: 'WalletGenome',
+          confirmation_url: confirmationLink,
+        },
+      },
       headers: {
         'List-Unsubscribe': `<${unsubscribeLink}>`,
         'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
@@ -153,14 +159,4 @@ export async function sendConfirmationEmail(
 export function validateAndNormalizeEmail(value: unknown) {
   const result = validateEmailAddress(value);
   return result.ok ? { ok: true as const, email: normalizeEmailAddress(result.email) } : result;
-}
-
-function escapeHtml(value: string): string {
-  return value.replace(/[&<>'"]/g, character => ({
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    "'": '&#39;',
-    '"': '&quot;',
-  })[character] ?? character);
 }
