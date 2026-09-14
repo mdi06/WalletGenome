@@ -1,6 +1,6 @@
 import assert from 'node:assert';
 import { describe, it } from 'node:test';
-import { filterDocumentationTopics, getFirstMatchingDocumentationTopicId, shouldShowMobileTopicJump } from './docsNavigation';
+import { filterDocumentationTopics, getFirstMatchingDocumentationTopicId } from './docsNavigation';
 
 const topics = [
   {
@@ -51,21 +51,6 @@ describe('documentation topic filtering', () => {
     assert.strictEqual(
       getFirstMatchingDocumentationTopicId(topics, 'does-not-exist', 'pipeline-architecture'),
       null,
-    );
-  });
-
-  it('shows the mobile topic jump only after the contents index has passed above the viewport', () => {
-    assert.strictEqual(
-      shouldShowMobileTopicJump({ isIntersecting: false, boundingClientRect: { bottom: 1 } }),
-      false,
-    );
-    assert.strictEqual(
-      shouldShowMobileTopicJump({ isIntersecting: true, boundingClientRect: { bottom: 200 } }),
-      false,
-    );
-    assert.strictEqual(
-      shouldShowMobileTopicJump({ isIntersecting: false, boundingClientRect: { bottom: -1 } }),
-      true,
     );
   });
 });

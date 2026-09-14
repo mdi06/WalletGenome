@@ -117,18 +117,20 @@ describe('P3 accessibility contracts', () => {
     assert.match(docsSource, /<aside className="hidden lg:col-span-4/);
   });
 
-  it('provides a mobile jump control that returns focus to the native topic index', () => {
+  it('provides in-flow mobile topic returns without obscuring reading content', () => {
     const docsSource = readSource('../app/docs/page.tsx');
     assert.match(docsSource, /IntersectionObserver/);
     assert.match(docsSource, /id="mobile-docs-index" ref=\{mobileDocsIndexRef\}/);
-    assert.match(docsSource, /aria-label="Jump to documentation topics"/);
+    assert.match(docsSource, /aria-label="Return to documentation topics"/);
+    assert.match(docsSource, /function MobileTopicReturn/);
+    assert.match(docsSource, /<MobileTopicReturn onJumpToTopic=\{handleJumpToTopic\}/);
     assert.match(docsSource, /mobileDocsIndex\.open = true/);
     assert.match(docsSource, /mobileDocsIndex\.scrollIntoView/);
     assert.match(docsSource, /mobileDocsIndexSummaryRef\.current\?\.focus\(\)/);
     assert.match(docsSource, /href=\{`#\$\{s\.id\}`\}/);
     assert.match(docsSource, /addEventListener\('hashchange', syncActiveSectionFromHash\)/);
     assert.match(docsSource, /removeEventListener\('hashchange', syncActiveSectionFromHash\)/);
-    assert.match(docsSource, /safe-area-inset-bottom/);
+    assert.doesNotMatch(docsSource, /fixed inset-x-4/);
     assert.match(docsSource, /lg:pb-6/);
     assert.match(docsSource, /line-clamp-2 whitespace-normal break-words/);
     assert.match(docsSource, /setActiveSection\(visibleSection\.target\.id\)/);

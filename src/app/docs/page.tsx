@@ -28,7 +28,7 @@ import {
 import { REPORTING_METRIC_DEFINITIONS } from '@/lib/reportingContract';
 import { RISK_GRADE_BANDS, RISK_MODEL } from '@/lib/analysis/riskModel';
 import { SEO_LANDING_PAGES } from '@/lib/seo';
-import { filterDocumentationTopics, getFirstMatchingDocumentationTopicId, shouldShowMobileTopicJump } from './docsNavigation';
+import { filterDocumentationTopics, getFirstMatchingDocumentationTopicId } from './docsNavigation';
 import SiteHeader from '@/components/SiteHeader';
 
 interface DocSection {
@@ -143,12 +143,30 @@ const SECTIONS: DocSection[] = [
   },
 ];
 
+function MobileTopicReturn({ onJumpToTopic, topicTitle }: { onJumpToTopic: () => void; topicTitle: string }) {
+  return (
+    <div className="pt-1 lg:hidden">
+      <button
+        type="button"
+        onClick={onJumpToTopic}
+        aria-label="Return to documentation topics"
+        className="card-3d-interactive inline-flex min-h-11 max-w-full items-center gap-2 px-3 py-2 text-left text-xs font-black uppercase tracking-wider text-[#0a0a0a]"
+      >
+        <Compass size={14} className="shrink-0 text-orange-ink" aria-hidden="true" />
+        <span>Back to topics</span>
+        <span className="min-w-0 max-w-[12rem] flex-1 truncate border-l border-[#c8c8c8] pl-2 text-[10px] font-mono font-bold normal-case tracking-normal text-[#4b5563]">
+          {topicTitle}
+        </span>
+      </button>
+    </div>
+  );
+}
+
 export default function DocsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeSection, setActiveSection] = useState('pipeline-architecture');
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [copyStatus, setCopyStatus] = useState<string>('');
-  const [showMobileTopicJump, setShowMobileTopicJump] = useState(false);
   const docsSearchInputRef = useRef<HTMLInputElement>(null);
   const mobileDocsIndexRef = useRef<HTMLDetailsElement>(null);
   const mobileDocsIndexSummaryRef = useRef<HTMLElement>(null);
@@ -160,29 +178,6 @@ export default function DocsPage() {
 
   const activeSectionDefinition =
     SECTIONS.find(section => section.id === activeSection) ?? SECTIONS[0];
-
-  useEffect(() => {
-    const mobileDocsIndex = mobileDocsIndexRef.current;
-    if (!mobileDocsIndex || typeof IntersectionObserver === 'undefined') return;
-
-    const updateMobileTopicJump = () => {
-      const shouldShow = mobileDocsIndex.getBoundingClientRect().bottom <= 0;
-      setShowMobileTopicJump(current => current === shouldShow ? current : shouldShow);
-    };
-
-    const observer = new IntersectionObserver(([entry]) => {
-      if (entry) setShowMobileTopicJump(shouldShowMobileTopicJump(entry));
-      updateMobileTopicJump();
-    }, { threshold: 0 });
-    observer.observe(mobileDocsIndex);
-    window.addEventListener('scroll', updateMobileTopicJump, { passive: true });
-    updateMobileTopicJump();
-
-    return () => {
-      observer.disconnect();
-      window.removeEventListener('scroll', updateMobileTopicJump);
-    };
-  }, []);
 
   useEffect(() => {
     const syncActiveSectionFromHash = () => {
@@ -286,7 +281,7 @@ export default function DocsPage() {
   };
 
   return (
-    <main className="max-w-[1400px] mx-auto space-y-4 p-4 pb-[calc(8rem+env(safe-area-inset-bottom))] sm:space-y-8 sm:p-6 lg:space-y-8 lg:p-8 lg:pb-6">
+    <main className="max-w-[1400px] mx-auto space-y-4 p-4 pb-6 sm:space-y-8 sm:p-6 lg:space-y-8 lg:p-8 lg:pb-6">
       <SiteHeader activePage="docs" />
       <div aria-live="polite" className="sr-only" role="status">{copyStatus}</div>
 
@@ -424,23 +419,6 @@ export default function DocsPage() {
           </div>
         </nav>
       </details>
-
-      {showMobileTopicJump && (
-        <div className="pointer-events-none fixed inset-x-4 bottom-[calc(1rem+env(safe-area-inset-bottom))] z-30 flex justify-end lg:hidden">
-          <button
-            type="button"
-            onClick={handleJumpToTopic}
-            aria-label="Jump to documentation topics"
-            className="pointer-events-auto card-3d-interactive inline-flex min-h-11 max-w-full items-center gap-2 px-3 py-2 text-left text-xs font-black uppercase tracking-wider text-[#0a0a0a]"
-          >
-            <Compass size={14} className="shrink-0 text-orange-ink" aria-hidden="true" />
-            <span className="truncate">Jump to topic</span>
-            <span className="max-w-[9rem] truncate border-l border-[#c8c8c8] pl-2 text-[10px] font-mono font-bold normal-case tracking-normal text-[#4b5563]">
-              {activeSectionDefinition.title}
-            </span>
-          </button>
-        </div>
-      )}
 
       {/* ── Main Layout: Sidebar Navigation + Content ── */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-0 items-start">
@@ -590,6 +568,7 @@ export default function DocsPage() {
                 </p>
               </div>
             </div>
+            <MobileTopicReturn onJumpToTopic={handleJumpToTopic} topicTitle={activeSectionDefinition.title} />
           </section>
 
           {/* ========================================================================= */}
@@ -682,6 +661,7 @@ export default function DocsPage() {
                 Timestamp-matched daily prices are requested in DefiLlama batches, with bounded CoinGecko ranges as fallback. Missing daily prices remain unavailable or are explicitly marked as current-price estimates; they never appear as exact historical values.
               </p>
             </div>
+            <MobileTopicReturn onJumpToTopic={handleJumpToTopic} topicTitle={activeSectionDefinition.title} />
           </section>
 
           {/* ========================================================================= */}
@@ -808,6 +788,7 @@ export default function DocsPage() {
                 </div>
               </div>
             </div>
+            <MobileTopicReturn onJumpToTopic={handleJumpToTopic} topicTitle={activeSectionDefinition.title} />
           </section>
 
           {/* ========================================================================= */}
@@ -891,6 +872,7 @@ export default function DocsPage() {
                 </div>
               ))}
             </div>
+            <MobileTopicReturn onJumpToTopic={handleJumpToTopic} topicTitle={activeSectionDefinition.title} />
           </section>
 
           {/* ========================================================================= */}
@@ -988,6 +970,7 @@ export default function DocsPage() {
                 </div>
               </div>
             </div>
+            <MobileTopicReturn onJumpToTopic={handleJumpToTopic} topicTitle={activeSectionDefinition.title} />
           </section>
 
           {/* ========================================================================= */}
@@ -1043,6 +1026,7 @@ export default function DocsPage() {
                 </div>
               </div>
             </div>
+            <MobileTopicReturn onJumpToTopic={handleJumpToTopic} topicTitle={activeSectionDefinition.title} />
           </section>
 
           {/* ========================================================================= */}
@@ -1089,6 +1073,7 @@ export default function DocsPage() {
                 </p>
               </div>
             </div>
+            <MobileTopicReturn onJumpToTopic={handleJumpToTopic} topicTitle={activeSectionDefinition.title} />
           </section>
 
           {/* ========================================================================= */}
@@ -1142,6 +1127,7 @@ export default function DocsPage() {
                 </div>
               </div>
             </div>
+            <MobileTopicReturn onJumpToTopic={handleJumpToTopic} topicTitle={activeSectionDefinition.title} />
           </section>
 
           {/* ========================================================================= */}
@@ -1208,6 +1194,7 @@ export default function DocsPage() {
                 </tbody>
               </table>
             </div>
+            <MobileTopicReturn onJumpToTopic={handleJumpToTopic} topicTitle={activeSectionDefinition.title} />
           </section>
 
           {/* ========================================================================= */}
@@ -1261,6 +1248,7 @@ export default function DocsPage() {
                 </tbody>
               </table>
             </div>
+            <MobileTopicReturn onJumpToTopic={handleJumpToTopic} topicTitle={activeSectionDefinition.title} />
           </section>
 
           {/* ========================================================================= */}
@@ -1364,6 +1352,7 @@ export default function DocsPage() {
                 BACK TO TOP ↑
               </button>
             </div>
+            <MobileTopicReturn onJumpToTopic={handleJumpToTopic} topicTitle={activeSectionDefinition.title} />
           </section>
 
         </div>

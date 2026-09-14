@@ -13,65 +13,121 @@ import DashboardStatusPanel, { getAvailabilityMessage } from './status/Dashboard
 import { getNextTabIndex } from '@/lib/accessibility/tabs';
 import { formatNativeTokenValue } from '@/lib/utils/dashboardUtils';
 
+type RegisterDashboardLoadingState = (id: string, message: string) => () => void;
+
+const DashboardLoadingContext = React.createContext<RegisterDashboardLoadingState | null>(null);
+
+function DashboardLoadingState({ message, className }: { message: string; className: string }) {
+  const registerLoadingState = React.useContext(DashboardLoadingContext);
+  const loadingStateId = React.useId();
+
+  React.useEffect(() => {
+    if (!registerLoadingState) return undefined;
+    return registerLoadingState(loadingStateId, message);
+  }, [loadingStateId, message, registerLoadingState]);
+
+  return (
+    <div aria-hidden="true" className={className}>
+      {message}
+    </div>
+  );
+}
+
+function DashboardLoadingProvider({ children }: { children: React.ReactNode }) {
+  const [activeLoadingStates, setActiveLoadingStates] = React.useState<Record<string, string>>({});
+  const registerLoadingState = React.useCallback<RegisterDashboardLoadingState>((id, message) => {
+    setActiveLoadingStates(current => current[id] === message
+      ? current
+      : { ...current, [id]: message });
+
+    return () => {
+      setActiveLoadingStates(current => {
+        if (!(id in current)) return current;
+        const next = { ...current };
+        delete next[id];
+        return next;
+      });
+    };
+  }, []);
+
+  const activeAnnouncement = Object.values(activeLoadingStates)[0] ?? '';
+
+  return (
+    <DashboardLoadingContext.Provider value={registerLoadingState}>
+      {children}
+      <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+        {activeAnnouncement}
+      </div>
+    </DashboardLoadingContext.Provider>
+  );
+}
+
 const BehavioralRadarChart = dynamic(() => import('./BehavioralRadarChart'), {
   loading: () => (
-    <div className="w-full h-52 flex items-center justify-center text-xs font-mono font-bold text-gray-400 uppercase tracking-wider animate-pulse">
-      Rendering Radar...
-    </div>
+    <DashboardLoadingState
+      message="Rendering behavioral radar"
+      className="flex h-52 w-full items-center justify-center text-xs font-mono font-bold uppercase tracking-wider text-gray-400 animate-pulse"
+    />
   ),
   ssr: false,
 });
 
 const CapitalFlowGraph = dynamic(() => import('./CapitalFlowGraph'), {
   loading: () => (
-    <div className="p-12 text-center text-xs font-mono font-bold text-gray-500 uppercase tracking-wider animate-pulse">
-      Rendering Capital Flow Topology Graph...
-    </div>
+    <DashboardLoadingState
+      message="Rendering capital flow topology graph"
+      className="p-12 text-center text-xs font-mono font-bold uppercase tracking-wider text-gray-500 animate-pulse"
+    />
   ),
   ssr: false,
 });
 
 const ActivityHeatmap = dynamic(() => import('./ActivityHeatmap'), {
   loading: () => (
-    <div className="p-8 text-center text-xs font-mono font-bold text-gray-500 uppercase tracking-wider animate-pulse">
-      Rendering Activity Heatmap...
-    </div>
+    <DashboardLoadingState
+      message="Rendering activity heatmap"
+      className="p-8 text-center text-xs font-mono font-bold uppercase tracking-wider text-gray-500 animate-pulse"
+    />
   ),
   ssr: false,
 });
 
 const InteractionsPanel = dynamic(() => import('./InteractionsPanel'), {
   loading: () => (
-    <div className="p-8 text-center text-xs font-mono font-bold text-gray-500 uppercase tracking-wider animate-pulse">
-      Loading Protocols...
-    </div>
+    <DashboardLoadingState
+      message="Loading protocol interactions"
+      className="p-8 text-center text-xs font-mono font-bold uppercase tracking-wider text-gray-500 animate-pulse"
+    />
   ),
   ssr: false,
 });
 
 const GasSummaryPanel = dynamic(() => import('./GasSummaryPanel'), {
   loading: () => (
-    <div className="p-8 text-center text-xs font-mono font-bold text-gray-500 uppercase tracking-wider animate-pulse">
-      Loading Gas Fees...
-    </div>
+    <DashboardLoadingState
+      message="Loading gas fees"
+      className="p-8 text-center text-xs font-mono font-bold uppercase tracking-wider text-gray-500 animate-pulse"
+    />
   ),
   ssr: false,
 });
 
 const TransferTable = dynamic(() => import('./TransferTable'), {
   loading: () => (
-    <div className="p-8 text-center text-xs font-mono font-bold text-gray-500 uppercase tracking-wider animate-pulse">
-      Loading Top Token Transfers...
-    </div>
+    <DashboardLoadingState
+      message="Loading top token transfers"
+      className="p-8 text-center text-xs font-mono font-bold uppercase tracking-wider text-gray-500 animate-pulse"
+    />
   ),
   ssr: false,
 });
 
 const ApprovalAudit = dynamic(() => import('./ApprovalAudit'), {
   loading: () => (
-    <div className="p-8 text-center text-xs font-mono font-bold text-gray-500 uppercase tracking-wider animate-pulse">
-      Loading Approvals...
-    </div>
+    <DashboardLoadingState
+      message="Loading approval audit"
+      className="p-8 text-center text-xs font-mono font-bold uppercase tracking-wider text-gray-500 animate-pulse"
+    />
   ),
   ssr: false,
 });
@@ -157,7 +213,8 @@ export default function Dashboard({ data, showStatusPanel = true }: DashboardPro
     scrollDashboardTabIntoView(nextTab);
   };
   return (
-    <div className="min-w-0 space-y-4 md:space-y-5 animate-fade-in-up">
+    <DashboardLoadingProvider>
+      <div className="min-w-0 space-y-4 md:space-y-5 animate-fade-in-up">
       {showStatusPanel && hasProviderWarnings && <DashboardStatusPanel data={data} />}
 
       {/* ── Tab Navigation Bar & Export Action ── */}
@@ -517,7 +574,8 @@ export default function Dashboard({ data, showStatusPanel = true }: DashboardPro
           <ApprovalAudit results={data.chains} />
         </div>
       )}
-    </div>
+      </div>
+    </DashboardLoadingProvider>
   );
 }
 // Force recompile

@@ -55,8 +55,14 @@ export default function IdentityCard({ identity, address, persona, accountClassi
     domain => !linkedSocialHandles.has(domain.identity.replace(/^@/, '').toLowerCase()),
   );
   const [copyStatus, setCopyStatus] = useState('');
+  const [avatarFailed, setAvatarFailed] = useState(false);
   const [isExpanded, setIsExpanded] = useState(true);
   const classificationDisplay = getAccountClassificationDisplay(accountClassifications);
+
+  React.useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setAvatarFailed(false);
+  }, [identity?.primaryAvatar]);
 
   React.useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -78,7 +84,7 @@ export default function IdentityCard({ identity, address, persona, accountClassi
       {/* Identity summary */}
       <div className="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-4 sm:grid-cols-[auto_minmax(0,1fr)_auto]">
         <div className="w-14 h-14 btn-3d-orange flex items-center justify-center text-[#0a0a0a] font-black flex-shrink-0 overflow-hidden">
-          {identity?.primaryAvatar ? (
+          {identity?.primaryAvatar && !avatarFailed ? (
             <Image
               src={identity.primaryAvatar}
               alt={identity.primaryName || address}
@@ -87,12 +93,10 @@ export default function IdentityCard({ identity, address, persona, accountClassi
               unoptimized
               loading="eager"
               className="w-full h-full object-cover"
-              onError={(e) => {
-                (e.target as HTMLElement).style.display = 'none';
-              }}
+              onError={() => setAvatarFailed(true)}
             />
           ) : (
-            <span className="text-xl">🪪</span>
+            <span aria-hidden="true" className="text-xl">🪪</span>
           )}
         </div>
 

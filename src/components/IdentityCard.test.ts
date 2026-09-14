@@ -1,9 +1,12 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { describe, it } from 'node:test';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import IdentityCard from './IdentityCard';
 import type { WalletAccountClassification } from '@/lib/types';
+
+const identityCardSource = readFileSync(new URL('./IdentityCard.tsx', import.meta.url), 'utf8');
 
 const address = '0x1234567890123456789012345678901234567890';
 
@@ -67,5 +70,14 @@ describe('IdentityCard account type display', () => {
     assert.match(markup, /Arbitrum/);
     assert.doesNotMatch(markup, /Check failed[^<]*Ethereum/);
     assert.doesNotMatch(markup, /RPC evidence|confidence|Classification is derived/);
+  });
+
+  it('restores the reserved avatar fallback after a failed image and resets it for a new source', () => {
+    assert.match(identityCardSource, /const \[avatarFailed, setAvatarFailed\] = useState\(false\)/);
+    assert.match(identityCardSource, /setAvatarFailed\(false\)/);
+    assert.match(identityCardSource, /\}, \[identity\?\.primaryAvatar\]\)/);
+    assert.match(identityCardSource, /identity\?\.primaryAvatar && !avatarFailed/);
+    assert.match(identityCardSource, /onError=\{\(\) => setAvatarFailed\(true\)\}/);
+    assert.match(identityCardSource, /aria-hidden="true" className="text-xl"/);
   });
 });

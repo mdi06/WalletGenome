@@ -495,4 +495,13 @@ describe('Dashboard provider availability messaging', () => {
     assert.match(source, /className="dashboard-tab relative/);
     assert.match(source, /data-active=\{isActive\}/);
   });
+
+  it('coordinates deferred-module loading announcements through one live region', () => {
+    const source = readDashboardSource();
+
+    assert.match(source, /DashboardLoadingContext/);
+    assert.match(source, /aria-hidden="true"/);
+    assert.match(source, /role="status" aria-live="polite" aria-atomic="true"/);
+    assert.match(source, /DashboardLoadingProvider/);
+  });
 });

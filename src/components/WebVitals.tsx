@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 import { useReportWebVitals } from 'next/web-vitals';
 import {
@@ -53,18 +53,17 @@ function sendPerformanceMetric(event: PerformanceMetricEvent): void {
 
 export function WebVitals() {
   const pathname = usePathname();
-  const pathnameRef = useRef(pathname);
-
-  useEffect(() => {
-    pathnameRef.current = pathname;
-  }, [pathname]);
+  // Web Vitals callbacks can arrive after a soft navigation. Keep document-level
+  // metrics attached to the route that loaded the document instead of the latest
+  // client-side pathname. A restored document captures its current route on mount.
+  const documentRouteRef = useRef(pathname);
 
   const reportWebVitals = useCallback<ReportWebVitalsCallback>((metric: WebVitalsMetric) => {
     if (Math.random() > PERFORMANCE_SAMPLE_RATE) return;
 
     const event = parsePerformanceMetricEvent({
       eventId: createAnonymousEventId(metric.id),
-      routeTemplate: normalizePerformanceRoute(pathnameRef.current),
+      routeTemplate: normalizePerformanceRoute(documentRouteRef.current),
       deviceCategory: getDeviceCategory(),
       metricName: metric.name,
       value: metric.value,

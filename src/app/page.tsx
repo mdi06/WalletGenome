@@ -30,7 +30,12 @@ import {
 
 const Dashboard = dynamic(() => import('@/components/Dashboard'), {
   loading: () => (
-    <div className="p-12 text-center text-xs font-mono font-bold text-gray-500 uppercase tracking-wider animate-pulse">
+    <div
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+      className="p-12 text-center text-xs font-mono font-bold text-gray-500 uppercase tracking-wider animate-pulse"
+    >
       Rendering Multi-Chain Forensic Dashboard...
     </div>
   ),
@@ -39,7 +44,12 @@ const Dashboard = dynamic(() => import('@/components/Dashboard'), {
 
 const BulkDashboard = dynamic(() => import('@/components/BulkDashboard'), {
   loading: () => (
-    <div className="p-12 text-center text-xs font-mono font-bold text-gray-500 uppercase tracking-wider animate-pulse">
+    <div
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+      className="p-12 text-center text-xs font-mono font-bold text-gray-500 uppercase tracking-wider animate-pulse"
+    >
       Rendering Cluster Intelligence Matrix...
     </div>
   ),
