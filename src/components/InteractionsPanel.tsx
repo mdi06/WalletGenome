@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import { AddressInteraction, ScanResult, ProtocolInteraction } from '@/lib/types';
 import { getExplorerAddressUrl } from '@/lib/chains';
-import { ExternalLink, ChevronDown, ChevronRight, Search } from 'lucide-react';
+import { ChevronDown, ChevronRight, ExternalLink, Search, X } from 'lucide-react';
 import { formatCategoryLabel, formatFiatUSD, formatNativeTokenValue } from '@/lib/utils/dashboardUtils';
 
 interface Props {
@@ -26,6 +26,7 @@ export default function InteractionsPanel({ results }: Props) {
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [expandedProtocols, setExpandedProtocols] = useState<Set<string>>(new Set());
   const [searchQuery, setSearchQuery] = useState('');
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   const protocols = useMemo(() => {
     const map = new Map<string, ProtocolInteraction>();
@@ -178,13 +179,14 @@ export default function InteractionsPanel({ results }: Props) {
       )}
 
       {/* ── View Switcher & Search Bar ── */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pt-2">
-        <div className="flex items-center gap-2">
+      <div className="flex min-w-0 flex-col items-start justify-between gap-4 pt-2 md:flex-row md:items-center">
+        <div className="grid w-full grid-cols-2 gap-2 md:flex md:w-auto">
           <button
+            type="button"
             onClick={() => setActiveView('protocols')}
             aria-pressed={activeView === 'protocols'}
             aria-controls="protocols-panel"
-            className={`min-h-11 md:min-h-9 px-4 md:px-3 py-2 md:py-1.5 text-xs font-black cursor-pointer ${
+            className={`min-h-11 min-w-0 w-full justify-center px-2 py-2 text-center text-xs font-black cursor-pointer md:min-h-9 md:w-auto md:justify-start md:px-3 md:py-1.5 ${
               activeView === 'protocols'
                 ? 'btn-3d-black text-white'
                 : 'btn-3d-neutral text-[#4b5563] hover:text-black'
@@ -193,10 +195,11 @@ export default function InteractionsPanel({ results }: Props) {
             Protocols & DApps ({protocols.length})
           </button>
           <button
+            type="button"
             onClick={() => setActiveView('counterparties')}
             aria-pressed={activeView === 'counterparties'}
             aria-controls="protocols-panel"
-            className={`min-h-11 md:min-h-9 px-4 md:px-3 py-2 md:py-1.5 text-xs font-black cursor-pointer ${
+            className={`min-h-11 min-w-0 w-full justify-center px-2 py-2 text-center text-xs font-black cursor-pointer md:min-h-9 md:w-auto md:justify-start md:px-3 md:py-1.5 ${
               activeView === 'counterparties'
                 ? 'btn-3d-black text-white'
                 : 'btn-3d-neutral text-[#4b5563] hover:text-black'
@@ -206,52 +209,86 @@ export default function InteractionsPanel({ results }: Props) {
           </button>
         </div>
 
-        <div className="relative w-full sm:w-64 well-recessed-light focus-within:border-[#963300] focus-within:ring-2 focus-within:ring-[#963300]/30 focus-within:ring-offset-1">
-          <Search size={14} className="absolute left-3 top-3 text-gray-500" />
+        <div className="relative w-full well-recessed-light focus-within:border-[#963300] focus-within:ring-2 focus-within:ring-[#963300]/30 focus-within:ring-offset-1 md:w-64">
+          <Search size={14} className="pointer-events-none absolute left-3 top-3.5 text-gray-500 md:top-3" aria-hidden="true" />
           <input
+            ref={searchInputRef}
             type="text"
             aria-label="Search protocols and counterparties"
             placeholder="Search Uniswap, Aave..."
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            className="w-full bg-transparent text-xs font-bold text-[#0a0a0a] pl-8 pr-3 py-2 focus:outline-none placeholder:text-gray-400"
+            className="min-h-11 w-full bg-transparent pl-8 pr-12 py-2 text-base font-bold text-[#0a0a0a] focus:outline-none placeholder:text-gray-400 md:min-h-9 md:pr-12 md:text-xs"
           />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => {
+                setSearchQuery('');
+                searchInputRef.current?.focus();
+              }}
+              aria-label="Clear protocol search"
+              className="btn-3d-neutral absolute right-0 top-0 inline-flex min-h-11 min-w-11 items-center justify-center text-[#4b5563] md:min-h-9 md:min-w-9"
+            >
+              <X size={14} aria-hidden="true" />
+            </button>
+          )}
         </div>
       </div>
 
       {/* ── Category Filter Pills ── */}
       {activeView === 'protocols' && (
-        <div className="flex items-center gap-2 flex-wrap pt-1">
-          <span className="text-xs font-bold text-[#4b5563] uppercase tracking-wider mr-1">
-            Filter Category:
-          </span>
-          {categories.map(cat => (
-            <button
-              key={cat}
-              onClick={() => setSelectedCategory(cat)}
-              aria-pressed={selectedCategory === cat}
-              className={`min-h-11 text-xs font-bold px-3 py-1 md:min-h-9 md:px-2.5 cursor-pointer uppercase ${
-                selectedCategory === cat
-                  ? 'btn-3d-orange text-[#0a0a0a]'
-                  : 'btn-3d-neutral text-[#4b5563]'
-              }`}
-            >
-              {cat === 'all' ? 'All' : formatCategoryLabel(cat)}
-            </button>
-          ))}
+        <div className="pt-1">
+          <label htmlFor="protocol-category-filter" className="mb-2 block text-xs font-bold uppercase tracking-wider text-[#4b5563] md:hidden">
+            Filter category
+          </label>
+          {/* Native select is the canonical mobile category control; desktop keeps the existing buttons. */}
+          <select
+            id="protocol-category-filter"
+            value={selectedCategory}
+            onChange={e => setSelectedCategory(e.target.value)}
+            className="min-h-11 w-full bg-[#f4f5f8] px-3 py-2 text-base font-bold uppercase text-[#0a0a0a] md:hidden"
+          >
+            {categories.map(cat => (
+              <option key={cat} value={cat}>
+                {cat === 'all' ? 'All' : formatCategoryLabel(cat)}
+              </option>
+            ))}
+          </select>
+
+          <div className="hidden flex-wrap items-center gap-2 md:flex">
+            <span className="mr-1 text-xs font-bold uppercase tracking-wider text-[#4b5563]">
+              Filter Category:
+            </span>
+            {categories.map(cat => (
+              <button
+                type="button"
+                key={cat}
+                onClick={() => setSelectedCategory(cat)}
+                aria-pressed={selectedCategory === cat}
+                className={`min-h-9 cursor-pointer px-2.5 py-1 text-xs font-bold uppercase ${
+                  selectedCategory === cat
+                    ? 'btn-3d-orange text-[#0a0a0a]'
+                    : 'btn-3d-neutral text-[#4b5563]'
+                }`}
+              >
+                {cat === 'all' ? 'All' : formatCategoryLabel(cat)}
+              </button>
+            ))}
+          </div>
         </div>
       )}
 
       {/* ── Data Table Well ── */}
       <div
         id="protocols-panel"
-        className="horizontal-scroll-region well-recessed-light overflow-hidden overflow-x-auto"
+        className="horizontal-scroll-region well-recessed-light min-w-0 max-w-full overflow-hidden overflow-x-auto"
         tabIndex={0}
         role="region"
         aria-label="Protocol and counterparty interactions; scroll horizontally for all columns"
       >
         {activeView === 'protocols' ? (
-          <table className="w-full text-left border-collapse">
+          <table className="w-full min-w-[900px] text-left border-collapse">
             <thead>
               <tr className="bg-[#d4d4d4] border-b border-[#cecece] text-[10px] font-extrabold text-[#555555] uppercase tracking-wider">
                 <th className="py-3 px-4">#</th>
@@ -380,7 +417,7 @@ export default function InteractionsPanel({ results }: Props) {
           </table>
         ) : (
           /* Counterparties Table */
-          <table className="w-full text-left border-collapse">
+          <table className="w-full min-w-[720px] text-left border-collapse">
             <thead>
               <tr className="bg-[#d4d4d4] border-b border-[#cecece] text-[10px] font-extrabold text-[#555555] uppercase tracking-wider">
                 <th className="py-3 px-4">#</th>

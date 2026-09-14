@@ -2,6 +2,7 @@ import assert from 'node:assert';
 import { describe, it } from 'node:test';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
+import { readFileSync } from 'node:fs';
 import SybilRadar from './SybilRadar';
 import { SybilReport } from '@/lib/types';
 
@@ -68,5 +69,17 @@ describe('Sybil and blacklist precedence', () => {
     assert.match(markup, /OFAC Sanctions[\s\S]*CLEAN/);
     assert.match(markup, /Behavioral Score Unavailable/);
     assert.match(markup, /Behavioral heuristic[\s\S]*UNAVAILABLE/);
+  });
+
+  it('keeps the risk summary and database statuses fluid on mobile', () => {
+    const source = readFileSync(new URL('./SybilRadar.tsx', import.meta.url), 'utf8');
+    const markup = renderToStaticMarkup(createElement(SybilRadar, { report }));
+
+    assert.match(source, /p-3 text-\[#0a0a0a\] sm:p-4 md:flex-row/);
+    assert.match(source, /grid w-full min-w-0 grid-cols-1 gap-2/);
+    assert.match(source, /w-full min-w-0 grid-cols-\[minmax\(0,1fr\)_max-content\]/);
+    assert.match(source, /min-w-0 break-words leading-snug/);
+    assert.doesNotMatch(source, /w-\[180px\] h-\[32px\]/);
+    assert.match(markup, /Behavioral heuristic/);
   });
 });

@@ -6,6 +6,13 @@ export interface DocumentationTopic {
   filePath: string;
 }
 
+export function shouldShowMobileTopicJump(entry: {
+  isIntersecting: boolean;
+  boundingClientRect: Pick<DOMRectReadOnly, 'bottom'>;
+}): boolean {
+  return !entry.isIntersecting && entry.boundingClientRect.bottom <= 0;
+}
+
 export function filterDocumentationTopics<T extends DocumentationTopic>(
   topics: readonly T[],
   query: string,

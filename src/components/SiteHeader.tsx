@@ -94,13 +94,13 @@ export default function SiteHeader({
       </div>
 
       <div className="flex w-full min-w-0 flex-col gap-2 md:w-auto md:flex-row md:items-center md:justify-end md:gap-2">
-        <AuthActions />
-
         <div
           id="primary-navigation-menu"
           data-open={isMenuOpen}
           className={`${isMenuOpen ? 'flex' : 'hidden'} mobile-navigation-disclosure w-full flex-col gap-2 md:flex md:w-auto md:flex-row md:items-center md:gap-2`}
         >
+          <AuthActions />
+
           {contextAction && (
             <div className="w-full md:w-auto" onClick={closeMenu}>
               {contextAction}

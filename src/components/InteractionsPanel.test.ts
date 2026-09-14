@@ -1,5 +1,6 @@
 import assert from 'node:assert';
 import { describe, it } from 'node:test';
+import { readFileSync } from 'node:fs';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import InteractionsPanel from './InteractionsPanel';
@@ -98,7 +99,20 @@ describe('Protocol interaction network rendering', () => {
     assert.match(markup, /3 calls across 1 unclassified contracts/);
     assert.match(markup, /3 calls · 1 contract/);
     assert.match(markup, /Contract calls/);
-    assert.doesNotMatch(markup, /contract_interaction/);
+    assert.doesNotMatch(markup, />contract_interaction</);
     assert.match(markup, /not mapped to a named protocol/);
+  });
+
+  it('renders a shared-state native category filter for the mobile protocols view', () => {
+    const source = readFileSync(new URL('./InteractionsPanel.tsx', import.meta.url), 'utf8');
+    const markup = renderToStaticMarkup(createElement(InteractionsPanel, { results: [chainResult(1)] }));
+
+    assert.match(source, /grid w-full grid-cols-2 gap-2 md:flex/);
+    assert.match(source, /htmlFor="protocol-category-filter"/);
+    assert.match(source, /id="protocol-category-filter"[\s\S]*value=\{selectedCategory\}/);
+    assert.match(source, /onChange=\{e => setSelectedCategory\(e\.target\.value\)\}/);
+    assert.match(markup, /Filter category/);
+    assert.match(markup, /<option value="contract_interaction">Contract calls<\/option>/);
+    assert.match(source, /min-w-\[900px\]/);
   });
 });

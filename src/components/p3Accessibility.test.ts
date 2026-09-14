@@ -96,7 +96,10 @@ describe('P3 accessibility contracts', () => {
     assert.match(footerSource, /target="_blank"[\s\S]*rel="noopener noreferrer"/);
     assert.match(transferSource, /grid grid-cols-3 gap-2 md:flex/);
     assert.match(transferSource, /min-h-11 w-full justify-center/);
-    assert.match(interactionSource, /min-h-11 text-xs font-bold px-3 py-1/);
+    assert.match(interactionSource, /grid w-full grid-cols-2 gap-2 md:flex md:w-auto/);
+    assert.match(interactionSource, /min-h-11 min-w-0 w-full justify-center/);
+    assert.match(interactionSource, /id="protocol-category-filter"/);
+    assert.match(interactionSource, /Filter category/);
   });
 
   it('documents the four supported EVM networks', () => {
@@ -125,7 +128,8 @@ describe('P3 accessibility contracts', () => {
     assert.match(docsSource, /href=\{`#\$\{s\.id\}`\}/);
     assert.match(docsSource, /addEventListener\('hashchange', syncActiveSectionFromHash\)/);
     assert.match(docsSource, /removeEventListener\('hashchange', syncActiveSectionFromHash\)/);
-    assert.match(docsSource, /pb-32 lg:pb-6/);
+    assert.match(docsSource, /safe-area-inset-bottom/);
+    assert.match(docsSource, /lg:pb-6/);
     assert.match(docsSource, /line-clamp-2 whitespace-normal break-words/);
     assert.match(docsSource, /setActiveSection\(visibleSection\.target\.id\)/);
     assert.match(docsSource, /rootMargin: '-96px 0px -65% 0px'/);

@@ -33,11 +33,11 @@ export default function SybilRadar({ report }: Props) {
   const scoreNote = 'Local MEDIA-style heuristic; not a live Trusta score.';
 
   return (
-    <section aria-labelledby="behavioral-sybil-risk-heading" className="card-3d p-5 text-[#0a0a0a] flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+    <section aria-labelledby="behavioral-sybil-risk-heading" className="card-3d flex min-w-0 flex-col items-start justify-between gap-4 p-3 text-[#0a0a0a] sm:p-4 md:flex-row md:items-center md:p-5">
       {/* Left: Behavioral Sybil Risk & Verdict */}
-      <div className="flex items-center gap-4">
+      <div className="flex min-w-0 w-full items-start gap-3 md:w-auto md:gap-4">
         <div
-          className={`w-11 h-11 border flex items-center justify-center flex-shrink-0 badge-3d ${
+          className={`flex h-11 w-11 flex-shrink-0 items-center justify-center border badge-3d ${
             hasBlacklistMatch
               ? 'bg-[#dc2626]/15 text-[#b91c1c] border-[#dc2626]/40'
               : isClean
@@ -49,16 +49,16 @@ export default function SybilRadar({ report }: Props) {
         >
           {isClean ? <ShieldCheck size={24} /> : <ShieldAlert size={24} />}
         </div>
-        <div>
-          <div className="flex items-center gap-2">
-            <span id="behavioral-sybil-risk-heading" className="text-[11px] font-extrabold text-[#4b5563] uppercase tracking-wider">
+        <div className="min-w-0 flex-1">
+          <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1 md:gap-2">
+            <span id="behavioral-sybil-risk-heading" className="basis-full text-[11px] font-extrabold uppercase tracking-wider text-[#4b5563] md:basis-auto">
               BEHAVIORAL SYBIL RISK
             </span>
-            <span className="text-sm font-black text-[#0a0a0a] font-mono">
+            <span className="shrink-0 text-sm font-black text-[#0a0a0a] font-mono">
               {sybilProb === null ? 'Unavailable' : `${sybilProb}%`}
             </span>
             <span
-              className={`badge-3d text-[11px] font-bold px-2 py-0.5 border ${
+              className={`badge-3d shrink-0 border px-2 py-0.5 text-[11px] font-bold ${
                 hasBlacklistMatch
                   ? 'bg-[#dc2626]/15 text-[#b91c1c] border-[#dc2626]/40'
                   : isClean
@@ -71,26 +71,26 @@ export default function SybilRadar({ report }: Props) {
               {verdictLabel}
             </span>
           </div>
-          <p className="text-xs text-[#374151] max-w-xl pt-0.5 leading-normal font-medium text-pretty">
+          <p className="w-full max-w-xl pt-1 text-xs font-medium leading-normal text-[#374151] text-pretty">
             {explanation}
           </p>
-          <p className="text-[10px] text-[#6b7280] max-w-xl leading-normal font-mono">
+          <p className="w-full max-w-xl text-[10px] leading-normal text-[#6b7280] font-mono">
             {scoreNote}
           </p>
         </div>
       </div>
 
-      {/* Right: Database Sync 3D Pills (Uniform Sized Boxes) */}
-      <div className="flex items-center gap-2 flex-wrap justify-start md:justify-end">
+      {/* Right: Database Sync 3D Pills */}
+      <div className="grid w-full min-w-0 grid-cols-1 gap-2 md:flex md:w-auto md:flex-wrap md:justify-end">
         {report.matches.map(m => {
           const isFlagged = m.flagged;
           const isBehaviorUnavailable = m.databaseId === 'trusta' && sybilProb === null;
           return (
             <div
               key={m.databaseId}
-              className="btn-3d-neutral w-[180px] h-[32px] inline-flex items-center justify-between px-3 text-xs font-bold text-[#0a0a0a]"
+              className="btn-3d-neutral grid w-full min-w-0 grid-cols-[minmax(0,1fr)_max-content] items-center gap-2 px-3 py-2 text-xs font-bold text-[#0a0a0a] md:h-8 md:w-[180px] md:min-h-0 md:grid-cols-[minmax(0,1fr)_max-content] md:px-3 md:py-0"
             >
-              <div className="flex items-center gap-1.5 min-w-0">
+              <div className="flex min-w-0 items-start gap-1.5">
                 {isFlagged ? (
                   <span className="w-2 h-2 rounded-full bg-[#dc2626] shadow-sm animate-pulse flex-shrink-0" />
                 ) : isBehaviorUnavailable ? (
@@ -98,9 +98,9 @@ export default function SybilRadar({ report }: Props) {
                 ) : (
                   <span className="led-clean rounded-full flex-shrink-0" />
                 )}
-                <span className="truncate">{formatDbName(m.databaseId)}</span>
+                <span className="min-w-0 break-words leading-snug">{formatDbName(m.databaseId)}</span>
               </div>
-              <span className={`text-[10px] font-mono font-bold flex-shrink-0 ${
+              <span className={`shrink-0 text-right text-[10px] font-mono font-bold ${
                 isFlagged ? 'text-[#dc2626]' : isBehaviorUnavailable ? 'text-[#6b7280]' : 'text-[#047857]'
               }`}>
                 {isFlagged ? 'FLAGGED' : isBehaviorUnavailable ? 'UNAVAILABLE' : 'CLEAN'}

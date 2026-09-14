@@ -27,7 +27,7 @@ import {
 } from 'lucide-react';
 import { REPORTING_METRIC_DEFINITIONS } from '@/lib/reportingContract';
 import { RISK_GRADE_BANDS, RISK_MODEL } from '@/lib/analysis/riskModel';
-import { filterDocumentationTopics, getFirstMatchingDocumentationTopicId } from './docsNavigation';
+import { filterDocumentationTopics, getFirstMatchingDocumentationTopicId, shouldShowMobileTopicJump } from './docsNavigation';
 import SiteHeader from '@/components/SiteHeader';
 
 interface DocSection {
@@ -164,12 +164,23 @@ export default function DocsPage() {
     const mobileDocsIndex = mobileDocsIndexRef.current;
     if (!mobileDocsIndex || typeof IntersectionObserver === 'undefined') return;
 
+    const updateMobileTopicJump = () => {
+      const shouldShow = mobileDocsIndex.getBoundingClientRect().bottom <= 0;
+      setShowMobileTopicJump(current => current === shouldShow ? current : shouldShow);
+    };
+
     const observer = new IntersectionObserver(([entry]) => {
-      if (entry) setShowMobileTopicJump(!entry.isIntersecting);
+      if (entry) setShowMobileTopicJump(shouldShowMobileTopicJump(entry));
+      updateMobileTopicJump();
     }, { threshold: 0 });
     observer.observe(mobileDocsIndex);
+    window.addEventListener('scroll', updateMobileTopicJump, { passive: true });
+    updateMobileTopicJump();
 
-    return () => observer.disconnect();
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('scroll', updateMobileTopicJump);
+    };
   }, []);
 
   useEffect(() => {
@@ -274,7 +285,7 @@ export default function DocsPage() {
   };
 
   return (
-    <main className="max-w-[1400px] mx-auto p-4 sm:p-6 lg:p-8 pb-32 lg:pb-6 space-y-4 sm:space-y-8">
+    <main className="max-w-[1400px] mx-auto space-y-4 p-4 pb-[calc(8rem+env(safe-area-inset-bottom))] sm:space-y-8 sm:p-6 lg:space-y-8 lg:p-8 lg:pb-6">
       <SiteHeader activePage="docs" />
       <div aria-live="polite" className="sr-only" role="status">{copyStatus}</div>
 
@@ -402,7 +413,7 @@ export default function DocsPage() {
       </details>
 
       {showMobileTopicJump && (
-        <div className="pointer-events-none fixed inset-x-4 bottom-4 z-30 flex justify-end lg:hidden">
+        <div className="pointer-events-none fixed inset-x-4 bottom-[calc(1rem+env(safe-area-inset-bottom))] z-30 flex justify-end lg:hidden">
           <button
             type="button"
             onClick={handleJumpToTopic}

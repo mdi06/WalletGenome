@@ -39,6 +39,16 @@ test('renders a single mobile navigation disclosure without a header state indic
   assert.match(markup, /Open navigation/);
 });
 
+test('keeps authentication inside the responsive navigation disclosure', () => {
+  const source = readSource('./SiteHeader.tsx');
+  const disclosureStart = source.indexOf('id="primary-navigation-menu"');
+  const authStart = source.indexOf('<AuthActions />');
+
+  assert.ok(disclosureStart >= 0);
+  assert.ok(authStart > disclosureStart, 'auth should render inside the disclosure');
+  assert.doesNotMatch(source.slice(0, disclosureStart), /<AuthActions \/>/);
+});
+
 test('keeps sign-in and scanner controls on the same type and height scale', () => {
   const headerSource = readSource('./SiteHeader.tsx');
   const authSource = readSource('./auth/AuthActions.tsx');

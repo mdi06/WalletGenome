@@ -18,7 +18,7 @@ export default function AuthActions() {
   if (!isConfigured) return null;
 
   return (
-    <div className="flex flex-col items-end gap-1">
+    <div className="flex flex-col items-start gap-1 md:items-end">
       {user ? (
         <div className="flex items-center gap-1.5">
           <span className="hidden max-w-36 truncate text-[10px] font-bold text-[#4b5563] lg:inline">{user.email}</span>
