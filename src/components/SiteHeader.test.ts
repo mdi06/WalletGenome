@@ -49,10 +49,19 @@ test('keeps authentication inside the responsive navigation disclosure', () => {
   assert.doesNotMatch(source.slice(0, disclosureStart), /<AuthActions \/>/);
 });
 
-test('keeps sign-in and scanner controls on the same type and height scale', () => {
+test('keeps mobile auth and navigation controls visually aligned', () => {
   const headerSource = readSource('./SiteHeader.tsx');
   const authSource = readSource('./auth/AuthActions.tsx');
 
-  assert.match(headerSource, /inline-flex min-h-11 md:min-h-9 items-center gap-1\.5 px-3 py-1\.5 md:py-1 text-xs font-bold uppercase/);
-  assert.match(authSource, /inline-flex min-h-11 items-center gap-1\.5 px-3 py-1\.5 text-xs font-bold uppercase[^\"]*md:min-h-9 md:py-1/);
+  assert.match(headerSource, /btn-3d-black inline-flex min-h-11 w-full items-center justify-start gap-1\.5 px-3 py-1\.5 text-xs font-bold uppercase text-white md:min-h-9 md:w-auto md:py-1/);
+  assert.match(headerSource, /isActive\s+\? 'md:text-white'\s+: 'md:text-\[#0a0a0a\] md:border-\[#d9dbe1\] md:\[background:linear-gradient/);
+  assert.match(headerSource, /flex w-full flex-col gap-2 md:w-auto md:flex-row/);
+  assert.match(headerSource, /text-\[#ff5500\] md:text-orange-ink/);
+  assert.doesNotMatch(headerSource, /activePage === 'scanner' && <span className="h-1\.5 w-1\.5 shrink-0 rounded-full bg-\[#ff5500\] md:hidden"/);
+  assert.match(headerSource, /h-1\.5 w-1\.5 shrink-0 rounded-full bg-\[#ff5500\] md:hidden/);
+  assert.match(authSource, /flex w-full flex-col items-start gap-1 md:w-auto md:items-end/);
+  assert.match(authSource, /btn-3d-black inline-flex min-h-11 w-full items-center justify-start gap-1\.5 px-3 py-1\.5 text-xs font-bold uppercase text-white md:min-h-9 md:w-auto md:py-1/);
+  assert.match(authSource, /flex w-full items-center gap-1\.5 md:w-auto/);
+  assert.match(authSource, /btn-3d-black inline-flex min-h-11 w-full items-center justify-start gap-1\.5 px-3 py-1\.5 text-xs font-bold uppercase text-white md:min-h-9 md:w-auto md:py-1 md:text-\[#0a0a0a\] md:border-\[#d9dbe1\] md:\[background:linear-gradient/);
+  assert.match(authSource, /LogOut size=\{12\} className="text-\[#ff5500\] md:text-current"/);
 });

@@ -78,6 +78,7 @@ describe('Sybil and blacklist precedence', () => {
     assert.match(source, /p-3 text-\[#0a0a0a\] sm:p-4 md:flex-row/);
     assert.match(source, /grid w-full min-w-0 grid-cols-1 gap-2/);
     assert.match(source, /w-full min-w-0 grid-cols-\[minmax\(0,1fr\)_max-content\]/);
+    assert.match(source, /flex min-w-0 items-center gap-1\.5/);
     assert.match(source, /min-w-0 break-words leading-snug/);
     assert.doesNotMatch(source, /w-\[180px\] h-\[32px\]/);
     assert.match(markup, /Behavioral heuristic/);

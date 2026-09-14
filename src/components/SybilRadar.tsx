@@ -90,7 +90,7 @@ export default function SybilRadar({ report }: Props) {
               key={m.databaseId}
               className="btn-3d-neutral grid w-full min-w-0 grid-cols-[minmax(0,1fr)_max-content] items-center gap-2 px-3 py-2 text-xs font-bold text-[#0a0a0a] md:h-8 md:w-[180px] md:min-h-0 md:grid-cols-[minmax(0,1fr)_max-content] md:px-3 md:py-0"
             >
-              <div className="flex min-w-0 items-start gap-1.5">
+              <div className="flex min-w-0 items-center gap-1.5">
                 {isFlagged ? (
                   <span className="w-2 h-2 rounded-full bg-[#dc2626] shadow-sm animate-pulse flex-shrink-0" />
                 ) : isBehaviorUnavailable ? (

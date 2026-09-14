@@ -5,6 +5,7 @@ import JsonLd, { type JsonLdObject } from "@/components/JsonLd";
 import SiteFooter from "@/components/SiteFooter";
 import { absoluteUrl, getSiteUrl, SITE_DESCRIPTION, SITE_NAME } from "@/lib/seo";
 import { WebVitals } from "@/components/WebVitals";
+import VercelAnalytics from "@/components/VercelAnalytics";
 import BackgroundNodes from "@/components/BackgroundNodes";
 import CursorGlow from "@/components/CursorGlow";
 import { AuthProvider } from "@/components/auth/AuthProvider";
@@ -91,6 +92,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <AuthProvider>
           <div data-app-shell>
             <WebVitals />
+            <VercelAnalytics />
             <JsonLd data={applicationJsonLd} />
             <BackgroundNodes />
             <CursorGlow />
