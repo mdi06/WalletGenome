@@ -6,6 +6,7 @@ import {
   getBoundedElapsedMs,
   shouldDrawFrame,
   shouldRunDecorativeLoop,
+  subscribeToMediaQueryChange,
 } from './uiEffectRuntime';
 
 export interface ParticlePosition {
@@ -236,7 +237,10 @@ export default function BackgroundNodes() {
 
     window.addEventListener('resize', handleResize);
     document.addEventListener('visibilitychange', handleVisibilityChange);
-    reducedMotionQuery.addEventListener('change', handleReducedMotionChange);
+    const unsubscribeReducedMotion = subscribeToMediaQueryChange(
+      reducedMotionQuery,
+      handleReducedMotionChange,
+    );
     resize();
     init();
     drawFrame(0);
@@ -245,7 +249,7 @@ export default function BackgroundNodes() {
     return () => {
       window.removeEventListener('resize', handleResize);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
-      reducedMotionQuery.removeEventListener('change', handleReducedMotionChange);
+      unsubscribeReducedMotion();
       resizeObserver?.disconnect();
       if (resizeFrameId !== null) {
         cancelAnimationFrame(resizeFrameId);

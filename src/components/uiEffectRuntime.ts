@@ -8,6 +8,33 @@ export interface DecorativeEffectState {
   documentHidden: boolean;
 }
 
+export type MediaQueryChangeListener = (event: MediaQueryListEvent) => void;
+
+export interface MediaQueryChangeSource {
+  addEventListener?: (type: 'change', listener: MediaQueryChangeListener) => void;
+  removeEventListener?: (type: 'change', listener: MediaQueryChangeListener) => void;
+  addListener: (listener: MediaQueryChangeListener) => void;
+  removeListener: (listener: MediaQueryChangeListener) => void;
+}
+
+/**
+ * iOS Safari before 14 exposes the deprecated MediaQueryList listener API but
+ * not EventTarget's addEventListener API. Decorative effects must subscribe to
+ * both without allowing that capability gap to abort their setup.
+ */
+export function subscribeToMediaQueryChange(
+  mediaQuery: MediaQueryChangeSource,
+  listener: MediaQueryChangeListener,
+): () => void {
+  if (typeof mediaQuery.addEventListener === 'function') {
+    mediaQuery.addEventListener('change', listener);
+    return () => mediaQuery.removeEventListener?.('change', listener);
+  }
+
+  mediaQuery.addListener(listener);
+  return () => mediaQuery.removeListener(listener);
+}
+
 export function shouldRunDecorativeLoop({
   reducedMotion,
   documentHidden,

@@ -10,6 +10,8 @@ import {
   isFinePointerType,
   shouldDrawFrame,
   shouldRunDecorativeLoop,
+  subscribeToMediaQueryChange,
+  type MediaQueryChangeListener,
 } from './uiEffectRuntime';
 
 describe('decorative UI effect runtime contracts', () => {
@@ -41,5 +43,45 @@ describe('decorative UI effect runtime contracts', () => {
     assert.strictEqual(shouldDrawFrame(0, null), true);
     assert.strictEqual(shouldDrawFrame(16, 0), false);
     assert.strictEqual(shouldDrawFrame(BACKGROUND_FRAME_INTERVAL_MS, 0), true);
+  });
+
+  it('uses the standard media-query event listener API when available', () => {
+    let added: MediaQueryChangeListener | undefined;
+    let removed: MediaQueryChangeListener | undefined;
+    const listener: MediaQueryChangeListener = () => {};
+
+    const unsubscribe = subscribeToMediaQueryChange({
+      addEventListener: (_type, nextListener) => {
+        added = nextListener;
+      },
+      removeEventListener: (_type, nextListener) => {
+        removed = nextListener;
+      },
+      addListener: () => assert.fail('legacy listener API should not be used'),
+      removeListener: () => assert.fail('legacy listener API should not be used'),
+    }, listener);
+
+    assert.strictEqual(added, listener);
+    unsubscribe();
+    assert.strictEqual(removed, listener);
+  });
+
+  it('falls back to the legacy iOS media-query listener API', () => {
+    let added: MediaQueryChangeListener | undefined;
+    let removed: MediaQueryChangeListener | undefined;
+    const listener: MediaQueryChangeListener = () => {};
+
+    const unsubscribe = subscribeToMediaQueryChange({
+      addListener: (nextListener) => {
+        added = nextListener;
+      },
+      removeListener: (nextListener) => {
+        removed = nextListener;
+      },
+    }, listener);
+
+    assert.strictEqual(added, listener);
+    unsubscribe();
+    assert.strictEqual(removed, listener);
   });
 });
