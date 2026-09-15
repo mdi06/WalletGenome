@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 // Both app-wide font choices live in ./fonts.ts.
 import { mainFont, monoFont } from "./fonts";
 import JsonLd, { type JsonLdObject } from "@/components/JsonLd";
@@ -10,7 +11,11 @@ import BackgroundNodes from "@/components/BackgroundNodes";
 import CursorGlow from "@/components/CursorGlow";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import { AuthDialogProvider } from "@/components/auth/AuthDialogProvider";
+import GoogleAnalyticsPageViews from "@/components/GoogleAnalyticsPageViews";
+import { createGoogleAnalyticsBootstrap, getGoogleAnalyticsMeasurementId } from "@/lib/googleAnalytics";
 import "./globals.css";
+
+const googleAnalyticsMeasurementId = getGoogleAnalyticsMeasurementId();
 
 export const metadata: Metadata = {
   metadataBase: getSiteUrl(),
@@ -78,6 +83,19 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <AuthProvider>
           <AuthDialogProvider>
             <div data-app-shell>
+              {googleAnalyticsMeasurementId ? (
+                <>
+                  <Script id="google-analytics-bootstrap" strategy="beforeInteractive">
+                    {createGoogleAnalyticsBootstrap(googleAnalyticsMeasurementId)}
+                  </Script>
+                  <Script
+                    id="google-analytics-library"
+                    src={`https://www.googletagmanager.com/gtag/js?id=${googleAnalyticsMeasurementId}`}
+                    strategy="afterInteractive"
+                  />
+                  <GoogleAnalyticsPageViews measurementId={googleAnalyticsMeasurementId} />
+                </>
+              ) : null}
               <WebVitals />
               <VercelAnalytics />
               <JsonLd data={applicationJsonLd} />

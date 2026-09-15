@@ -149,11 +149,15 @@ describe('R10 public route and security contracts', () => {
     assert.equal(headers.has('X-Powered-By'), false);
   });
 
-  it('allows browser connections to only the configured Supabase origin', () => {
-    const policy = buildContentSecurityPolicy('https://project-ref.supabase.co/auth/v1');
+  it('allows browser connections to the configured Supabase origin and GA only when GA is configured', () => {
+    const policy = buildContentSecurityPolicy('https://project-ref.supabase.co/auth/v1', 'G-8GTTB08JJ2');
 
     assert.match(policy, /connect-src 'self' https:\/\/project-ref\.supabase\.co/);
     assert.doesNotMatch(policy, /\/auth\/v1/);
     assert.equal(buildContentSecurityPolicy('not a URL').includes('not a URL'), false);
+    assert.match(policy, /script-src[^;]*https:\/\/www\.googletagmanager\.com/);
+    assert.match(policy, /connect-src[^;]*https:\/\/www\.google-analytics\.com/);
+    assert.match(policy, /connect-src[^;]*https:\/\/region1\.google-analytics\.com/);
+    assert.doesNotMatch(buildContentSecurityPolicy(undefined, 'not-a-measurement-id'), /google-analytics|googletagmanager/);
   });
 });

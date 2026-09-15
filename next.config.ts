@@ -15,13 +15,30 @@ function configuredSupabaseOrigin(configuredUrl: string | undefined): string | n
   }
 }
 
-export function buildContentSecurityPolicy(supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL): string {
+function hasGoogleAnalyticsMeasurementId(value: string | undefined): boolean {
+  return /^G-[A-Z0-9]+$/i.test(value?.trim() ?? '');
+}
+
+export function buildContentSecurityPolicy(
+  supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL,
+  googleAnalyticsMeasurementId = process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID,
+): string {
   const supabaseOrigin = configuredSupabaseOrigin(supabaseUrl);
-  const connectSources = ["'self'", supabaseOrigin].filter((source): source is string => Boolean(source));
+  const googleAnalyticsEnabled = hasGoogleAnalyticsMeasurementId(googleAnalyticsMeasurementId);
+  const connectSources = [
+    "'self'",
+    supabaseOrigin,
+    ...(googleAnalyticsEnabled ? ['https://www.google-analytics.com', 'https://region1.google-analytics.com'] : []),
+  ].filter((source): source is string => Boolean(source));
+  const scriptSources = [
+    "'self'",
+    "'unsafe-inline'",
+    ...(googleAnalyticsEnabled ? ['https://www.googletagmanager.com'] : []),
+  ];
 
   return [
     "default-src 'self'",
-    `script-src 'self' 'unsafe-inline'${isDevelopment ? " 'unsafe-eval'" : ''}`,
+    `script-src ${scriptSources.join(' ')}${isDevelopment ? " 'unsafe-eval'" : ''}`,
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' blob: data: https:",
     "font-src 'self' data:",
