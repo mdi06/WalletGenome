@@ -82,7 +82,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="bg-[#ebebeb] text-[#0a0a0a] antialiased font-sans selection:bg-[#ff5500] selection:text-[#0a0a0a]">
         <AuthProvider>
           <AuthDialogProvider>
-            <div data-app-shell>
+            <div data-app-shell className="isolate">
               {googleAnalyticsMeasurementId ? (
                 <>
                   <Script id="google-analytics-bootstrap" strategy="beforeInteractive">
