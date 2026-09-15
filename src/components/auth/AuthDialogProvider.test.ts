@@ -39,7 +39,7 @@ test('the shared dialog is outside the mobile disclosure and restores to its fal
   const disclosureStart = headerSource.indexOf('id="primary-navigation-menu"');
   const authStart = headerSource.indexOf('<AuthActions ');
   assert.ok(authStart > disclosureStart);
-  assert.match(layoutSource, /<AuthProvider>[\s\S]*<AuthDialogProvider>[\s\S]*<div data-app-shell>/);
+  assert.match(layoutSource, /<AuthProvider>[\s\S]*<AuthDialogProvider>[\s\S]*<div data-app-shell(?:\s[^>]*)?>/);
   assert.match(providerSource, /setReturnFocusFallbackRef\(request\.returnFocusFallbackRef\)/);
   assert.match(readSource('../AppDialog.tsx'), /canRestoreFocus\(focusReturnTarget\)[\s\S]*canRestoreFocus\(focusFallbackTarget\)/);
 });
