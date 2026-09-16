@@ -12,6 +12,13 @@ interface SiteHeaderProps {
   contextAction?: React.ReactNode;
 }
 
+export const navItemClassName = (isActive: boolean) =>
+  `btn-3d-black inline-flex min-h-11 w-full items-center justify-start gap-1.5 px-3 py-1.5 text-xs font-bold uppercase text-white md:min-h-9 md:w-auto md:py-1 ${
+    isActive
+      ? 'md:text-white'
+      : 'md:text-[#0a0a0a] md:border-[#d9dbe1] md:[background:linear-gradient(180deg,_#ffffff_0%,_#f0f1f5_100%)] md:[box-shadow:var(--shadow-btn-neutral)] md:[transition:transform_0.12s_var(--ease-spring),_box-shadow_0.12s_ease,_background-color_0.12s_ease,_border-color_0.12s_ease] md:hover:border-[#b8bbc3] md:hover:[background:linear-gradient(180deg,_#ffffff_0%,_#f7f8fa_100%)] md:hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.72),_0_1px_0_#bfc2c9,_0_3px_6px_rgba(0,0,0,0.05)] md:active:border-[#b8bbc3] md:active:[background:#e8e9ee] md:active:shadow-[inset_0_1px_2px_rgba(0,0,0,0.08),_0_0.5px_0_#bfc2c9]'
+  }`;
+
 function Brand({ onClick }: { onClick?: () => void }) {
   const label = (
     <span className="inline-flex items-center gap-1.5">
@@ -70,12 +77,6 @@ export default function SiteHeader({
   }, [isMenuOpen]);
 
   const closeMenu = () => setIsMenuOpen(false);
-  const navItemClassName = (isActive: boolean) =>
-    `btn-3d-black inline-flex min-h-11 w-full items-center justify-start gap-1.5 px-3 py-1.5 text-xs font-bold uppercase text-white md:min-h-9 md:w-auto md:py-1 ${
-      isActive
-        ? 'md:text-white'
-        : 'md:text-[#0a0a0a] md:border-[#d9dbe1] md:[background:linear-gradient(180deg,_#ffffff_0%,_#f0f1f5_100%)] md:[box-shadow:var(--shadow-btn-neutral)] md:[transition:transform_0.12s_var(--ease-spring),_box-shadow_0.12s_ease,_background-color_0.12s_ease,_border-color_0.12s_ease] md:hover:border-[#b8bbc3] md:hover:[background:linear-gradient(180deg,_#ffffff_0%,_#f7f8fa_100%)] md:hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.72),_0_1px_0_#bfc2c9,_0_3px_6px_rgba(0,0,0,0.05)] md:active:border-[#b8bbc3] md:active:[background:#e8e9ee] md:active:shadow-[inset_0_1px_2px_rgba(0,0,0,0.08),_0_0.5px_0_#bfc2c9]'
-    }`;
 
   return (
     <header className="flex flex-col items-start justify-between gap-3 md:flex-row md:items-center md:gap-4">

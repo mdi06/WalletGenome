@@ -78,13 +78,15 @@ describe('P3 accessibility contracts', () => {
 
   it('keeps navigation, footer links, and compact actions near 44px tap targets', () => {
     const pageSource = readSource('../app/page.tsx');
+    const headerSource = readSource('./SiteHeader.tsx');
     const docsSource = readSource('../app/docs/page.tsx');
     const landingSource = readSource('../app/[slug]/page.tsx');
     const footerSource = readSource('./SiteFooter.tsx');
     const transferSource = readSource('./TransferTable.tsx');
     const interactionSource = readSource('./InteractionsPanel.tsx');
 
-    assert.match(pageSource, /btn-3d-neutral min-h-11/);
+    assert.match(pageSource, /className=\{navItemClassName\(false\)\}/);
+    assert.match(headerSource, /btn-3d-black inline-flex min-h-11 w-full/);
     assert.match(docsSource, /inline-flex min-h-11 min-w-11/);
     assert.match(landingSource, /inline-flex min-h-11 items-center/);
     assert.match(footerSource, /inline-flex min-h-11 w-full items-center justify-start/);

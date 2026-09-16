@@ -12,7 +12,7 @@ import { useWalletScanner } from '@/hooks/useWalletScanner';
 import { getNextTabIndex } from '@/lib/accessibility/tabs';
 import DemoSnapshotNotice from '@/components/DemoSnapshotNotice';
 import { getIndexingStatus, shouldShowDemoSnapshotNotice } from '@/lib/indexingStatus';
-import SiteHeader from '@/components/SiteHeader';
+import SiteHeader, { navItemClassName } from '@/components/SiteHeader';
 import LoadedScanSummary from '@/components/LoadedScanSummary';
 import { CLUSTER_SAMPLE_ADDRESSES, CLUSTER_SAMPLE_SNAPSHOT } from '@/lib/clusterDemoSnapshot';
 import BetaUpdatesCard from '@/components/auth/BetaUpdatesCard';
@@ -220,16 +220,16 @@ export default function Home() {
           <button
             type="button"
             onClick={() => setShowGuide(!showGuide)}
-            className="btn-3d-neutral min-h-11 inline-flex w-full items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-bold text-[#0a0a0a] cursor-pointer md:min-h-9 md:w-auto md:justify-start md:py-1"
+            className={navItemClassName(false)}
           >
             {showGuide ? (
               <>
-                <LayoutDashboard size={13} className="text-orange-ink" />
+                <LayoutDashboard size={13} className="text-[#ff5500] md:text-orange-ink" aria-hidden="true" />
                 <span>VIEW DASHBOARD</span>
               </>
             ) : (
               <>
-                <HelpCircle size={13} className="text-orange-ink" />
+                <HelpCircle size={13} className="text-[#ff5500] md:text-orange-ink" aria-hidden="true" />
                 <span>HOW IT WORKS</span>
               </>
             )}
