@@ -82,7 +82,7 @@ export default function IdentityCard({ identity, address, persona, accountClassi
   return (
     <div className="card-3d p-5 text-[#0a0a0a] space-y-4">
       {/* Identity summary */}
-      <div className="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-4 sm:grid-cols-[auto_minmax(0,1fr)_auto]">
+      <div className="grid grid-cols-[auto_minmax(0,1fr)] items-start gap-x-3 gap-y-3 sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:gap-4">
         <div className="w-14 h-14 btn-3d-orange flex items-center justify-center text-[#0a0a0a] font-black flex-shrink-0 overflow-hidden">
           {identity?.primaryAvatar && !avatarFailed ? (
             <Image
@@ -105,9 +105,9 @@ export default function IdentityCard({ identity, address, persona, accountClassi
             <h3 className="truncate text-lg font-black text-[#0a0a0a] tracking-tight" title={identity?.primaryName || address}>
               {identity?.primaryName ? identity.primaryName : `${address.slice(0, 6)}...${address.slice(-4)}`}
             </h3>
-          <div className="flex items-center gap-2 mt-1">
+          <div className="mt-1 flex flex-col items-start gap-2 sm:flex-row sm:items-center">
             {persona && (
-              <span className="badge-3d bg-black text-white px-2 py-0.5 text-[10px] font-extrabold tracking-widest uppercase">
+              <span className="badge-3d shrink-0 whitespace-nowrap bg-black px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-widest text-white">
                 {persona}
               </span>
             )}
@@ -134,7 +134,7 @@ export default function IdentityCard({ identity, address, persona, accountClassi
           )}
         </div>
 
-        <div className="col-start-2 flex min-w-0 items-center gap-2 sm:col-start-3 sm:row-start-1 sm:self-center sm:justify-self-end">
+        <div className="col-span-2 grid min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-2 sm:col-span-1 sm:col-start-3 sm:row-start-1 sm:flex sm:self-center sm:justify-self-end">
           <span className="min-w-0 truncate font-mono text-[11px] text-[#6b7280]" title={address}>
             {address}
           </span>

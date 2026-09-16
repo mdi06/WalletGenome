@@ -101,7 +101,8 @@ describe('P3 mobile layout contracts', () => {
 
     assert.match(markup, /Connected accounts/);
     assert.match(markup, /sm:grid-cols-\[auto_minmax\(0,1fr\)_auto\]/);
-    assert.match(markup, /sm:col-start-3 sm:row-start-1 sm:self-center sm:justify-self-end/);
+    assert.match(markup, /col-span-2 grid min-w-0 grid-cols-\[minmax\(0,1fr\)_auto\]/);
+    assert.match(markup, /sm:col-span-1 sm:col-start-3 sm:row-start-1 sm:flex sm:self-center sm:justify-self-end/);
     assert.match(markup, /grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-3/);
     assert.match(markup, /inline-flex min-h-11 min-w-0 w-full/);
     assert.doesNotMatch(markup, /LENS: kozak\.lens/, 'expected domain identities to appear only in the account grid');

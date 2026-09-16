@@ -30,6 +30,12 @@ function render(accountClassifications: WalletAccountClassification[]) {
 }
 
 describe('IdentityCard account type display', () => {
+  it('reflows the identity summary into deliberate mobile rows', () => {
+    assert.match(identityCardSource, /flex flex-col items-start gap-2 sm:flex-row sm:items-center/);
+    assert.match(identityCardSource, /badge-3d shrink-0 whitespace-nowrap/);
+    assert.match(identityCardSource, /col-span-2 grid min-w-0 grid-cols-\[minmax\(0,1fr\)_auto\]/);
+  });
+
   it('hides the classification section for a regular wallet on every checked chain', () => {
     const markup = render([
       classification(1, 'Ethereum', 'eoa'),

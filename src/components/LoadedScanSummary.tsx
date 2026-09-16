@@ -74,19 +74,19 @@ export default function LoadedScanSummary({
             {evidenceLabel}
           </span>
         </div>
-        <div className="flex min-w-0 flex-wrap items-center gap-2">
-          <h2 className="min-w-0 flex-1 break-all text-sm font-black text-[#0a0a0a] md:text-base" title={address}>
+        <div className="flex min-w-0 flex-col items-stretch gap-2 md:flex-row md:items-center">
+          <h2 className="min-w-0 break-all text-sm font-black text-[#0a0a0a] md:flex-1 md:text-base" title={address}>
             <span className="md:hidden">{shortAddress}</span>
             <span className="hidden md:inline">{address}</span>
           </h2>
-          <div className="flex shrink-0 items-center gap-1 md:hidden">
+          <div className="grid w-full shrink-0 grid-cols-[minmax(0,1fr)_2.75rem] items-center gap-2 md:hidden">
             <button
               type="button"
               aria-expanded={showFullAddress}
               aria-controls="loaded-scan-full-address"
               aria-label={showFullAddress ? 'Hide full wallet address' : 'View full wallet address'}
               onClick={() => setShowFullAddress(current => !current)}
-              className="btn-3d-neutral inline-flex min-h-11 items-center gap-1 px-2 text-[10px] font-black uppercase tracking-wider text-[#0a0a0a]"
+              className="btn-3d-neutral inline-flex min-h-11 w-full items-center justify-center gap-1 px-2 text-[10px] font-black uppercase tracking-wider text-[#0a0a0a]"
             >
               {showFullAddress ? <EyeOff size={13} aria-hidden="true" /> : <Eye size={13} aria-hidden="true" />}
               <span>{showFullAddress ? 'Hide address' : 'Full address'}</span>

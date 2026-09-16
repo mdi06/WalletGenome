@@ -26,6 +26,8 @@ test('renders the loaded wallet target, selected networks, evidence mode, and ed
   assert.doesNotMatch(markup, /Evidence:/);
   assert.match(markup, /Edit scan/);
   assert.match(markup, /min-h-11/);
+  assert.match(markup, /flex min-w-0 flex-col items-stretch gap-2 md:flex-row md:items-center/);
+  assert.match(markup, /grid w-full shrink-0 grid-cols-\[minmax\(0,1fr\)_2\.75rem\]/);
 });
 
 test('shows cached fetch time, history reuse, and refresh action', () => {
