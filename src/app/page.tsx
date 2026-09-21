@@ -99,6 +99,10 @@ export default function Home() {
     onLiveScanSuccess: handleLiveScanSuccess,
   });
   const [isScanEditorOpen, setIsScanEditorOpen] = React.useState(false);
+  const openSingleScanEditor = React.useCallback(() => {
+    setShowGuide(false);
+    setIsScanEditorOpen(true);
+  }, [setShowGuide]);
 
   React.useEffect(() => {
     const userId = user?.id ?? null;
@@ -216,6 +220,7 @@ export default function Home() {
       <SiteHeader
         activePage="scanner"
         onBrandClick={showGuide ? undefined : () => setShowGuide(true)}
+        onScannerClick={singleResult || clusterResult ? openSingleScanEditor : undefined}
         contextAction={(singleResult || clusterResult) ? (
           <button
             type="button"
@@ -317,7 +322,7 @@ export default function Home() {
               data={singleResult}
               isLoading={isLoading}
               onRefresh={() => requestSingleScan(currentAddress || singleResult.address, singleChainIds, { forceRefresh: true })}
-              onEdit={() => setIsScanEditorOpen(true)}
+              onEdit={openSingleScanEditor}
             />
           ) : (
             <WalletInput

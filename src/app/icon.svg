@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" role="img" aria-labelledby="title desc">
+  <title id="title">WalletGenome browser tab icon</title>
+  <desc id="desc">A centered orange scan path inside a sharp orange frame on black.</desc>
+
+  <rect width="400" height="400" fill="#0a0a0a"/>
+  <rect x="76" y="76" width="248" height="248" fill="none" stroke="#ff5500" stroke-width="32"/>
+  <path fill="none" stroke="#ff5500" stroke-width="22" stroke-linecap="square" stroke-linejoin="miter" d="m108 252 42-42 34 22 108-86"/>
+</svg>

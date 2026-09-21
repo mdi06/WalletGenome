@@ -9,6 +9,7 @@ import AuthActions from '@/components/auth/AuthActions';
 interface SiteHeaderProps {
   activePage?: 'scanner' | 'docs' | string;
   onBrandClick?: () => void;
+  onScannerClick?: () => void;
   contextAction?: React.ReactNode;
 }
 
@@ -56,6 +57,7 @@ function Brand({ onClick }: { onClick?: () => void }) {
 export default function SiteHeader({
   activePage,
   onBrandClick,
+  onScannerClick,
   contextAction,
 }: SiteHeaderProps) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -111,14 +113,29 @@ export default function SiteHeader({
           )}
 
           <nav aria-label="Primary navigation" className="flex w-full flex-col gap-2 md:w-auto md:flex-row md:items-center" onClick={closeMenu}>
-            <Link
-              href="/"
-              aria-current={activePage === 'scanner' ? 'page' : undefined}
-              className={navItemClassName(activePage === 'scanner')}
-            >
-              <Search size={13} className="text-[#ff5500] md:text-orange-ink" aria-hidden="true" />
-              <span>Scanner</span>
-            </Link>
+            {onScannerClick ? (
+              <button
+                type="button"
+                aria-current={activePage === 'scanner' ? 'page' : undefined}
+                onClick={() => {
+                  onScannerClick();
+                  closeMenu();
+                }}
+                className={navItemClassName(activePage === 'scanner')}
+              >
+                <Search size={13} className="text-[#ff5500] md:text-orange-ink" aria-hidden="true" />
+                <span>Scanner</span>
+              </button>
+            ) : (
+              <Link
+                href="/"
+                aria-current={activePage === 'scanner' ? 'page' : undefined}
+                className={navItemClassName(activePage === 'scanner')}
+              >
+                <Search size={13} className="text-[#ff5500] md:text-orange-ink" aria-hidden="true" />
+                <span>Scanner</span>
+              </Link>
+            )}
             <Link
               href="/docs"
               aria-current={activePage === 'docs' ? 'page' : undefined}

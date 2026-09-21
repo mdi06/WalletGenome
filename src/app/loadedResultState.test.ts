@@ -8,9 +8,17 @@ test('collapses the loaded single-wallet form while keeping edit values availabl
   const pageSource = readSource('./page.tsx');
   assert.match(pageSource, /LoadedScanSummary/);
   assert.match(pageSource, /!showGuide && singleResult && !isLoading && !isScanEditorOpen/);
-  assert.match(pageSource, /onEdit=\{\(\) => setIsScanEditorOpen\(true\)\}/);
+  assert.match(pageSource, /onEdit=\{openSingleScanEditor\}/);
   assert.match(pageSource, /initialAddress=\{currentAddress\}/);
   assert.match(pageSource, /initialChainIds=\{singleChainIds\}/);
+});
+
+test('wires loaded-result Scanner navigation to the existing single-wallet editor', () => {
+  const pageSource = readSource('./page.tsx');
+
+  assert.match(pageSource, /const openSingleScanEditor = React\.useCallback\(\(\) => \{[\s\S]*setShowGuide\(false\);[\s\S]*setIsScanEditorOpen\(true\);/);
+  assert.match(pageSource, /onScannerClick=\{singleResult \|\| clusterResult \? openSingleScanEditor : undefined\}/);
+  assert.match(pageSource, /onEdit=\{openSingleScanEditor\}/);
 });
 
 test('clears single-wallet state when switching into cluster mode', () => {

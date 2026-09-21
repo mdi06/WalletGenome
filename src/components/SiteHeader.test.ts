@@ -39,6 +39,19 @@ test('renders a single mobile navigation disclosure without a header state indic
   assert.match(markup, /Open navigation/);
 });
 
+test('renders Scanner as an action button when a scanner callback is provided', () => {
+  const markup = renderToStaticMarkup(createElement(SiteHeader, {
+    activePage: 'scanner',
+    onScannerClick: () => {},
+  }));
+  const source = readSource('./SiteHeader.tsx');
+
+  assert.match(markup, /<button type="button" aria-current="page" class="[^"]*">[\s\S]*<span>Scanner<\/span>[\s\S]*<\/button>/);
+  assert.doesNotMatch(markup, /<a href="\/"[^>]*>[\s\S]*<span>Scanner<\/span>/);
+  assert.match(source, /onScannerClick\?: \(\) => void/);
+  assert.match(source, /onScannerClick\(\);[\s\S]*closeMenu\(\);/);
+});
+
 test('keeps authentication inside the responsive navigation disclosure', () => {
   const source = readSource('./SiteHeader.tsx');
   const disclosureStart = source.indexOf('id="primary-navigation-menu"');
