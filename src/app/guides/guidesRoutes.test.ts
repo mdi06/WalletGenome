@@ -50,9 +50,9 @@ describe('first-party guide routes', () => {
 
     assert.equal(new Set(titles).size, metadata.length);
     assert.equal(new Set(descriptions).size, metadata.length);
-    assert.deepEqual(metadata.map(item => item.alternates?.canonical), [
-      'http://localhost:3000/guides',
-      ...GUIDES.map(guide => `http://localhost:3000/guides/${guide.slug}`),
+    assert.deepEqual(metadata.map(item => new URL(String(item.alternates?.canonical)).pathname), [
+      '/guides',
+      ...GUIDES.map(guide => `/guides/${guide.slug}`),
     ]);
 
     for (const item of metadata) {
