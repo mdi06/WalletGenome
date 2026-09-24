@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
-import { BookOpen, Menu, Search, X } from 'lucide-react';
+import { BookOpen, FileText, Menu, Search, X } from 'lucide-react';
 import AuthActions from '@/components/auth/AuthActions';
 
 interface SiteHeaderProps {
@@ -136,6 +136,15 @@ export default function SiteHeader({
                 <span>Scanner</span>
               </Link>
             )}
+            <Link
+              href="/guides"
+              aria-current={activePage === 'guides' ? 'page' : undefined}
+              className={navItemClassName(activePage === 'guides')}
+            >
+              <FileText size={13} className="text-[#ff5500] md:text-orange-ink" aria-hidden="true" />
+              {activePage === 'guides' && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#ff5500] md:hidden" aria-hidden="true" />}
+              <span>Guides</span>
+            </Link>
             <Link
               href="/docs"
               aria-current={activePage === 'docs' ? 'page' : undefined}

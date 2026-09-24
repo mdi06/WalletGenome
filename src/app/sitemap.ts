@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next';
 import { absoluteUrl, SEO_LANDING_PAGES } from '@/lib/seo';
+import { GUIDES, GUIDES_CONTENT_LAST_REVIEWED } from '@/lib/guides';
 
 // Fixed to the latest repository-backed public-content change. Do not replace
 // this with the request time or advance it without a real content update.
@@ -25,6 +26,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'yearly',
       priority: 0.6,
     },
+    {
+      url: absoluteUrl('/guides'),
+      lastModified: GUIDES_CONTENT_LAST_REVIEWED,
+      changeFrequency: 'monthly',
+      priority: 0.8,
+    },
+    ...GUIDES.map(guide => ({
+      url: absoluteUrl(`/guides/${guide.slug}`),
+      lastModified: GUIDES_CONTENT_LAST_REVIEWED,
+      changeFrequency: 'monthly' as const,
+      priority: 0.75,
+    })),
     ...SEO_LANDING_PAGES.map(page => ({
       url: absoluteUrl(`/${page.slug}`),
       lastModified: LAST_CONTENT_CHANGE,

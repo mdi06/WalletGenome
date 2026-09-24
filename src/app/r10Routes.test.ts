@@ -9,9 +9,10 @@ import { metadata as confirmationMetadata } from './updates/confirmation/page';
 import robots from './robots';
 import sitemap from './sitemap';
 import { absoluteUrl, SEO_LANDING_PAGES } from '@/lib/seo';
+import { GUIDES, GUIDES_CONTENT_LAST_REVIEWED } from '@/lib/guides';
 
 describe('R10 public route and security contracts', () => {
-  it('generates the eight public sitemap URLs from one HTTPS origin without query or status routes', () => {
+  it('generates the public sitemap URLs from one HTTPS origin without query or status routes', () => {
     const previousSiteUrl = process.env.SITE_URL;
     process.env.SITE_URL = 'https://wallet.example/preview?source=test';
 
@@ -21,12 +22,16 @@ describe('R10 public route and security contracts', () => {
         absoluteUrl('/'),
         absoluteUrl('/docs'),
         absoluteUrl('/privacy'),
+        absoluteUrl('/guides'),
+        ...GUIDES.map(guide => absoluteUrl(`/guides/${guide.slug}`)),
         ...SEO_LANDING_PAGES.map(page => absoluteUrl(`/${page.slug}`)),
       ]);
-      assert.equal(entries.length, 8);
+      assert.equal(entries.length, 11);
       assert.ok(entries.every(entry => entry.url.startsWith('https://wallet.example/')));
       assert.ok(entries.every(entry => !new URL(entry.url).search));
-      assert.ok(entries.every(entry => entry.lastModified === '2026-09-14'));
+      assert.ok(entries.slice(0, 3).every(entry => entry.lastModified === '2026-09-14'));
+      assert.ok(entries.slice(3, 6).every(entry => entry.lastModified === GUIDES_CONTENT_LAST_REVIEWED));
+      assert.ok(entries.slice(6).every(entry => entry.lastModified === '2026-09-14'));
       assert.ok(entries.every(entry => !entry.url.includes('/api/')));
       assert.ok(entries.every(entry => !entry.url.includes('/auth/')));
       assert.ok(entries.every(entry => !entry.url.includes('/updates/')));
@@ -62,7 +67,9 @@ describe('R10 public route and security contracts', () => {
     assert.match(docsPage, /href=\{`\//);
     assert.match(landingPage, /href="\/"[\s\S]*OPEN WALLET SCANNER/);
     assert.match(landingPage, /href="\/docs"[\s\S]*REVIEW THE METHODOLOGY/);
-    assert.match(landingPage, /Continue with a focused guide/);
+    assert.match(landingPage, /Continue the investigation/);
+    assert.match(landingPage, /getGuidesForLandingSlug\(page\.slug\)/);
+    assert.match(docsPage, /href="\/guides"[\s\S]*Read practical guides/);
     assert.match(privacyPage, /href="\/"[\s\S]*Return to scanner/);
     assert.match(privacyPage, /href="\/docs"[\s\S]*Read methodology/);
   });

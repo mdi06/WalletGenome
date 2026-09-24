@@ -9,6 +9,7 @@ import {
   SEO_LANDING_PAGES,
 } from '@/lib/seo';
 import SiteHeader from '@/components/SiteHeader';
+import { getGuidesForLandingSlug } from '@/lib/guides';
 
 // Keep the known SEO pages statically generated, but let unknown slugs reach
 // the explicit notFound() branch below. With dynamicParams=false, Next.js
@@ -38,6 +39,7 @@ export default async function SeoLandingPage({ params }: LandingPageProps) {
   const relatedPages = page.relatedSlugs
     .map(slug => getSeoLandingPage(slug))
     .filter((item): item is typeof page => Boolean(item));
+  const relatedGuides = getGuidesForLandingSlug(page.slug);
 
   return (
     <main className="max-w-[1120px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
@@ -123,21 +125,37 @@ export default async function SeoLandingPage({ params }: LandingPageProps) {
           </div>
         </section>
 
-        <aside aria-labelledby="related-heading" className="bg-[#121318] p-6 space-y-4">
+        <aside aria-labelledby="related-heading" className="bg-[#121318] p-6 space-y-6">
           <h2 id="related-heading" className="text-sm font-black uppercase tracking-wider text-white">
-            Continue with a focused guide
+            Continue the investigation
           </h2>
-          <div className="grid gap-3 sm:grid-cols-2">
-            {relatedPages.map(item => (
+          <div className="space-y-3">
+            <p className="text-[10px] font-black uppercase tracking-wider text-[#ff8a50]">Practical guide</p>
+            {relatedGuides.map(guide => (
               <Link
-                key={item.slug}
-                href={`/${item.slug}`}
-                className="border border-[#4b5563] p-3 text-white hover:border-[#ff5500]"
+                key={guide.slug}
+                href={`/guides/${guide.slug}`}
+                className="block border border-[#ff8a50] p-4 text-white hover:border-white"
               >
-                <span className="block text-xs font-black uppercase text-white">{item.title}</span>
-                <span className="mt-1 block text-xs leading-relaxed text-[#d1d5db]">{item.primaryIntent}</span>
+                <span className="block text-sm font-black uppercase text-white">{guide.title}</span>
+                <span className="mt-1 block text-xs leading-relaxed text-[#d1d5db]">{guide.primaryIntent}</span>
               </Link>
             ))}
+          </div>
+          <div className="space-y-3">
+            <p className="text-[10px] font-black uppercase tracking-wider text-[#d1d5db]">Related product pages</p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {relatedPages.map(item => (
+                <Link
+                  key={item.slug}
+                  href={`/${item.slug}`}
+                  className="border border-[#4b5563] p-3 text-white hover:border-[#ff5500]"
+                >
+                  <span className="block text-xs font-black uppercase text-white">{item.title}</span>
+                  <span className="mt-1 block text-xs leading-relaxed text-[#d1d5db]">{item.primaryIntent}</span>
+                </Link>
+              ))}
+            </div>
           </div>
         </aside>
       </article>

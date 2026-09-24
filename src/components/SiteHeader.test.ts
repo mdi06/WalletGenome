@@ -37,6 +37,16 @@ test('renders a single mobile navigation disclosure without a header state indic
   assert.match(markup, /id="primary-navigation-menu" data-open="false" class="hidden [^"]*md:flex/);
   assert.doesNotMatch(markup, /Indexing status:/);
   assert.match(markup, /Open navigation/);
+  assert.match(markup, /href="\/guides"/);
+  assert.match(markup, />Guides<\/span>/);
+});
+
+test('marks the Guides route as the current shared navigation destination', () => {
+  const markup = renderToStaticMarkup(createElement(SiteHeader, {
+    activePage: 'guides',
+  }));
+
+  assert.match(markup, /aria-current="page"[^>]*href="\/guides"/);
 });
 
 test('renders Scanner as an action button when a scanner callback is provided', () => {

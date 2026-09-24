@@ -305,14 +305,23 @@ export default function DocsPage() {
           The scanner currently examines observable public activity on four supported EVM networks: Ethereum, Base, Arbitrum, and Optimism. Provider gaps remain explicitly partial or unavailable in the report.
         </p>
 
-        <Link
-          href="/"
-          aria-label="Live scanner available — Open Live Scanner"
-          className="btn-3d-orange min-h-11 px-5 py-2 inline-flex items-center justify-center gap-2 text-xs font-black uppercase tracking-wider text-white mt-2"
-        >
-          <Search size={14} aria-hidden="true" />
-          <span>Open Live Scanner</span>
-        </Link>
+        <div className="mt-2 flex flex-wrap justify-center gap-3">
+          <Link
+            href="/"
+            aria-label="Live scanner available — Open Live Scanner"
+            className="btn-3d-orange min-h-11 px-5 py-2 inline-flex items-center justify-center gap-2 text-xs font-black uppercase tracking-wider text-white"
+          >
+            <Search size={14} aria-hidden="true" />
+            <span>Open Live Scanner</span>
+          </Link>
+          <Link
+            href="/guides"
+            className="btn-3d-neutral min-h-11 px-5 py-2 inline-flex items-center justify-center gap-2 text-xs font-black uppercase tracking-wider text-[#0a0a0a]"
+          >
+            <BookOpen size={14} aria-hidden="true" />
+            <span>Read practical guides</span>
+          </Link>
+        </div>
 
         <div className="max-w-4xl text-xs leading-relaxed text-[#4b5563]">
           <span className="font-bold text-[#0a0a0a]">Focused guides: </span>
