@@ -14,9 +14,10 @@ export const metadata = buildGuideIndexMetadata();
 
 export default function GuidesPage() {
   return (
-    <main className="mx-auto max-w-[1120px] space-y-8 px-4 py-6 sm:px-6 lg:px-8">
+    <main className="mx-auto max-w-[1400px] p-4 sm:p-6 lg:p-8">
       <JsonLd data={buildGuideIndexStructuredData()} />
       <SiteHeader activePage="guides" />
+      <div className="mx-auto mt-8 max-w-[1056px] space-y-8">
 
       <nav aria-label="Breadcrumb" className="flex items-center gap-2 border-b border-[#c8c8c8] pb-3 text-xs font-bold text-[#4b5563]">
         <Link href="/" className="hover:text-orange-ink">Scanner</Link>
@@ -72,6 +73,7 @@ export default function GuidesPage() {
         </div>
         <Link href="/docs" className="btn-3d-neutral inline-flex min-h-11 items-center justify-center px-5 py-2.5 text-xs font-black uppercase text-[#0a0a0a]">Review the methodology</Link>
       </aside>
+      </div>
     </main>
   );
 }

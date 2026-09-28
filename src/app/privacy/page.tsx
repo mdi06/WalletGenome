@@ -47,8 +47,9 @@ export const metadata: Metadata = {
 
 export default function PrivacyPage() {
   return (
-    <main className="mx-auto max-w-3xl space-y-6 p-4 sm:p-6 lg:p-8">
+    <main className="mx-auto max-w-[1400px] space-y-8 p-4 sm:p-6 lg:p-8">
       <SiteHeader activePage="privacy" />
+      <div className="mx-auto max-w-[704px] space-y-6">
       <article className="card-3d space-y-5 p-5 text-sm leading-relaxed text-[#374151] sm:p-7">
         <div>
           <p className="text-[10px] font-black uppercase tracking-[0.16em] text-orange-ink">WalletGenome beta</p>
@@ -64,6 +65,7 @@ export default function PrivacyPage() {
           <Link href="/docs" className="underline underline-offset-2 hover:text-orange-ink">Read methodology</Link>
         </nav>
       </article>
+      </div>
     </main>
   );
 }

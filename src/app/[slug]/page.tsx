@@ -42,10 +42,11 @@ export default async function SeoLandingPage({ params }: LandingPageProps) {
   const relatedGuides = getGuidesForLandingSlug(page.slug);
 
   return (
-    <main className="max-w-[1120px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-8">
+    <main className="mx-auto max-w-[1400px] p-4 sm:p-6 lg:p-8">
       <JsonLd data={pageJsonLd} />
 
       <SiteHeader activePage="" />
+      <div className="mx-auto mt-8 max-w-[1056px] space-y-8">
 
       <article className="space-y-8">
         <section className="well-recessed-light p-6 sm:p-10 space-y-5">
@@ -159,6 +160,7 @@ export default async function SeoLandingPage({ params }: LandingPageProps) {
           </div>
         </aside>
       </article>
+      </div>
     </main>
   );
 }

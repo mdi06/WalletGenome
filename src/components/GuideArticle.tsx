@@ -106,9 +106,10 @@ function formatReviewDate(value: string): string {
 
 export default function GuideArticle({ guide }: { guide: GuidePage }) {
   return (
-    <main className="mx-auto max-w-[1120px] space-y-8 px-4 py-6 sm:px-6 lg:px-8">
+    <main className="mx-auto max-w-[1400px] p-4 sm:p-6 lg:p-8">
       <JsonLd data={buildGuideStructuredData(guide)} />
       <SiteHeader activePage="guides" />
+      <div className="mx-auto mt-8 max-w-[1056px] space-y-8">
 
       <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-2 border-b border-[#c8c8c8] pb-3 text-xs font-bold text-[#4b5563]">
         <Link href="/" className="hover:text-orange-ink">Scanner</Link>
@@ -203,6 +204,7 @@ export default function GuideArticle({ guide }: { guide: GuidePage }) {
           </Link>
         </aside>
       </article>
+      </div>
     </main>
   );
 }

@@ -55,8 +55,9 @@ export default async function UpdateConfirmationPage({ searchParams }: { searchP
   const params = await searchParams;
   const copy = getCopy(params.status);
   return (
-    <main className="mx-auto max-w-3xl space-y-6 p-4 sm:p-6 lg:p-8">
+    <main className="mx-auto max-w-[1400px] space-y-8 p-4 sm:p-6 lg:p-8">
       <SiteHeader activePage="privacy" />
+      <div className="mx-auto max-w-[704px] space-y-6">
       <article className="card-3d space-y-5 p-5 text-sm leading-relaxed text-[#374151] sm:p-7">
         <div>
           <p className="text-[10px] font-black uppercase tracking-[0.16em] text-orange-ink">{copy.eyebrow}</p>
@@ -65,6 +66,7 @@ export default async function UpdateConfirmationPage({ searchParams }: { searchP
         <p>{copy.body}</p>
         <Link href="/" className="btn-3d-orange inline-flex min-h-11 items-center justify-center px-4 py-2 text-xs font-black uppercase text-[#0a0a0a]">Return to scanner</Link>
       </article>
+      </div>
     </main>
   );
 }
