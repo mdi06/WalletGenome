@@ -123,6 +123,28 @@ describe('first-party guide routes', () => {
     }
   });
 
+  it('publishes the illustrated walkthrough on the existing canonical guide route', () => {
+    const guide = GUIDES[0];
+    const markup = renderToStaticMarkup(createElement(GuideArticle, { guide }));
+    const imageBlocks = guide.sections.flatMap(section => section.blocks.filter(block => block.type === 'image'));
+
+    assert.equal(guide.heading, 'How to Analyze an EVM Wallet with WalletGenome');
+    assert.equal(new URL(String(buildGuideMetadata(guide).alternates?.canonical)).pathname, '/guides/how-to-analyze-an-evm-wallet');
+    assert.equal(guide.lastReviewed, '2026-09-28');
+    assert.equal(GUIDES[1].lastReviewed, '2026-09-24');
+    assert.equal(imageBlocks.length, 5);
+    assert.equal(markup.match(/<figure\b/g)?.length, 5);
+    assert.match(markup, /saved vitalik\.eth demo dated 26 August 2026/);
+    assert.match(markup, /overall risk grade is withheld/);
+
+    for (const image of imageBlocks) {
+      assert.ok(image.alt.trim().length > 20);
+      assert.ok(image.caption.trim().length > 30);
+      assert.ok(existsSync(join(process.cwd(), 'public', image.src)));
+      assert.match(markup, new RegExp(`alt="${image.alt.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`));
+    }
+  });
+
   it('states the supported networks and required factual limits in visible guide copy', () => {
     const analyzeCopy = collectStrings(GUIDES[0]).join(' ');
     const riskCopy = collectStrings(GUIDES[1]).join(' ');

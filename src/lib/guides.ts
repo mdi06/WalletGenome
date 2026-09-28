@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import type { JsonLdObject } from '@/components/JsonLd';
 import { absoluteUrl, SITE_NAME } from '@/lib/seo';
 
-export const GUIDES_CONTENT_LAST_REVIEWED = '2026-09-24';
+export const GUIDES_CONTENT_LAST_REVIEWED = '2026-09-28';
 
 export interface GuideLinkPart {
   text: string;
@@ -20,6 +20,7 @@ export type GuideBlock =
   | { type: 'paragraph'; content: readonly GuideTextPart[] }
   | { type: 'list'; items: readonly (readonly GuideTextPart[])[] }
   | { type: 'steps'; items: readonly GuideStep[] }
+  | { type: 'image'; src: string; alt: string; caption: string; width: number; height: number }
   | { type: 'callout'; label: string; content: readonly GuideTextPart[] };
 
 export interface GuideSection {
@@ -36,6 +37,7 @@ export interface GuideResource {
 
 export interface GuidePage {
   slug: string;
+  lastReviewed: string;
   title: string;
   metaDescription: string;
   eyebrow: string;
@@ -64,11 +66,12 @@ export const GUIDE_INDEX = {
 export const GUIDES = [
   {
     slug: 'how-to-analyze-an-evm-wallet',
-    title: 'How to Analyze an EVM Wallet',
+    lastReviewed: '2026-09-28',
+    title: 'How to Analyze an EVM Wallet with WalletGenome',
     metaDescription:
-      'Learn how to investigate observable EVM wallet activity, data coverage, transfers, approvals, risk signals, and Sybil signals with WalletGenome.',
+      'A visual WalletGenome walkthrough for investigating EVM wallet behavior, transfer flows, approvals, risk signals, and incomplete data across four networks.',
     eyebrow: 'FIELD GUIDE 01 · WALLET INVESTIGATION',
-    heading: 'How to Analyze an EVM Wallet',
+    heading: 'How to Analyze an EVM Wallet with WalletGenome',
     summary:
       'A disciplined wallet review starts with data coverage, moves through observable activity, and keeps every interpretation tied to the evidence that supports it.',
     primaryIntent:
@@ -97,12 +100,32 @@ export const GUIDES = [
               'A wallet report is a point-in-time view of public records returned by the configured providers. It is an investigation aid. It does not establish ownership, intent, safety, or wrongdoing.',
             ],
           },
+          {
+            type: 'paragraph',
+            content: [
+              'The screenshots below were captured from the public WalletGenome site on 27 September 2026. The report example uses the saved vitalik.eth demo dated 26 August 2026. Its history is partial, and the images illustrate the interface. They make no finding about the person named in the demo.',
+            ],
+          },
         ],
       },
       {
         id: 'start-scan',
         title: 'Start a scan with a clear scope',
         blocks: [
+          {
+            type: 'paragraph',
+            content: [
+              'Begin with one question: which protocols and recurring counterparties appear in the returned history, or which observed approvals need a current on-chain check? The question tells you which parts of the report to inspect and keeps the charts in context.',
+            ],
+          },
+          {
+            type: 'image',
+            src: '/guides/walletgenome/wallet-scanner.jpg',
+            alt: 'WalletGenome scanner with an address field, four network selectors, and saved demo wallets.',
+            caption: 'The scanner supports Ethereum, Base, Arbitrum, and Optimism. Saved demos can be opened without a fresh provider request.',
+            width: 1269,
+            height: 714,
+          },
           {
             type: 'steps',
             items: [
@@ -147,6 +170,14 @@ export const GUIDES = [
             ],
           },
           {
+            type: 'image',
+            src: '/guides/walletgenome/saved-report.jpg',
+            alt: 'Saved wallet report showing selected networks, snapshot date, and partial history notice.',
+            caption: 'The saved demo is dated 26 August 2026 and marks its returned history as partial. Open Review Data Quality before interpreting totals.',
+            width: 1269,
+            height: 714,
+          },
+          {
             type: 'list',
             items: [
               ['Complete means the required returned dataset passed the report’s completeness rule. It does not mean every real-world action by the wallet is known.'],
@@ -177,8 +208,36 @@ export const GUIDES = [
           {
             type: 'paragraph',
             content: [
+              'Behavioral DNA summarizes DeFi diversity, activity, capital efficiency, risk appetite, maturity, and network breadth. Use the radar and chain activity panel to choose follow-up questions. A calculated dimension or protocol badge describes returned records; it does not identify an operator or establish intent.',
+            ],
+          },
+          {
+            type: 'image',
+            src: '/guides/walletgenome/behavioral-radar.jpg',
+            alt: 'Behavioral radar beside protocol badges, observed gas costs, and chain activity marked as partial.',
+            caption: 'The saved demo shows calculated behavior dimensions beside protocol badges and chain activity. The Base transaction count is marked as a lower bound.',
+            width: 1269,
+            height: 714,
+          },
+          {
+            type: 'paragraph',
+            content: [
               'Next, inspect transfers and capital flows. Separate inbound from outbound legs, identify recurring counterparties, and check whether labels connect an address to a known exchange, bridge, or protocol. A label describes a configured address match. It does not prove the purpose of every transfer. Verified inflow, outflow, and protocol volume depend on historical or stablecoin price coverage; spot estimates and unpriced legs remain outside definitive historical totals.',
             ],
+          },
+          {
+            type: 'paragraph',
+            content: [
+              'Use the Flow Graph network and minimum-volume filters to narrow visible relationships. Historically priced transfer volume can count assets as they move repeatedly. It does not establish wallet balance or profit. When pricing or history is incomplete, the summary labels its values as lower bounds and identifies excluded transfer legs.',
+            ],
+          },
+          {
+            type: 'image',
+            src: '/guides/walletgenome/capital-flow.jpg',
+            alt: 'Detail of a capital flow graph connecting a wallet with observed sources, protocols, and destinations.',
+            caption: 'This graph detail shows returned connections under the selected filters. Some dollar values are unavailable; use transaction records to verify an important path.',
+            width: 1269,
+            height: 714,
           },
           {
             type: 'paragraph',
@@ -215,6 +274,14 @@ export const GUIDES = [
             content: [
               'Sybil analysis has two evidence families. Public-list and blacklist checks report source-specific matches. A separate local MEDIA-style behavioral heuristic evaluates engagement, diversity, cross-chain breadth, wallet age, and a monetary dimension when pricing permits. These states answer different questions. Neither one proves common ownership, coordinated control, malicious intent, or wrongdoing.',
             ],
+          },
+          {
+            type: 'image',
+            src: '/guides/walletgenome/activity-and-coverage.jpg',
+            alt: 'Saved report heatmap and security panels with unavailable overall risk grade and separate list statuses.',
+            caption: 'In this partial saved snapshot, the overall risk grade is withheld. The source-list match shown is separate from the unavailable behavioral heuristic and establishes no finding of intent or wrongdoing.',
+            width: 1269,
+            height: 714,
           },
           {
             type: 'paragraph',
@@ -328,6 +395,7 @@ export const GUIDES = [
   },
   {
     slug: 'understanding-wallet-risk-signals',
+    lastReviewed: '2026-09-24',
     title: 'Understanding Wallet Risk Signals',
     metaDescription:
       'Learn how WalletGenome calculates and presents wallet risk, approval, blacklist, and Sybil signals, including the limits created by missing data.',

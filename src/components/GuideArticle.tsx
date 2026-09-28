@@ -1,10 +1,10 @@
 import Link from 'next/link';
+import Image from 'next/image';
 import { ArrowRight } from 'lucide-react';
 import JsonLd from '@/components/JsonLd';
 import SiteHeader from '@/components/SiteHeader';
 import {
   buildGuideStructuredData,
-  GUIDES_CONTENT_LAST_REVIEWED,
   type GuideBlock,
   type GuidePage,
   type GuideTextPart,
@@ -67,6 +67,24 @@ function GuideBlockView({ block }: { block: GuideBlock }) {
     );
   }
 
+  if (block.type === 'image') {
+    return (
+      <figure className="border border-[#c8c8c8] bg-white p-2 sm:p-3">
+        <Image
+          src={block.src}
+          alt={block.alt}
+          width={block.width}
+          height={block.height}
+          sizes="(max-width: 1024px) calc(100vw - 3rem), 800px"
+          className="h-auto w-full"
+        />
+        <figcaption className="px-2 pb-1 pt-3 text-xs leading-relaxed text-[#4b5563] sm:text-sm">
+          {block.caption}
+        </figcaption>
+      </figure>
+    );
+  }
+
   return (
     <aside className="border-l-4 border-[#ff5500] bg-[#fff7f2] p-5 sm:p-6">
       <p className="font-mono text-[10px] font-black uppercase tracking-[0.18em] text-orange-ink">
@@ -107,7 +125,7 @@ export default function GuideArticle({ guide }: { guide: GuidePage }) {
               {guide.eyebrow}
             </p>
             <p className="font-mono text-[10px] font-bold uppercase tracking-wider text-[#6b7280]">
-              Content reviewed {formatReviewDate(GUIDES_CONTENT_LAST_REVIEWED)}
+              Content reviewed {formatReviewDate(guide.lastReviewed)}
             </p>
           </div>
           <h1 className="max-w-4xl text-balance text-3xl font-black uppercase leading-tight tracking-tight text-[#0a0a0a] sm:text-5xl">

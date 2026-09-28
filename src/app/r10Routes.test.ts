@@ -30,7 +30,10 @@ describe('R10 public route and security contracts', () => {
       assert.ok(entries.every(entry => entry.url.startsWith('https://wallet.example/')));
       assert.ok(entries.every(entry => !new URL(entry.url).search));
       assert.ok(entries.slice(0, 3).every(entry => entry.lastModified === '2026-09-14'));
-      assert.ok(entries.slice(3, 6).every(entry => entry.lastModified === GUIDES_CONTENT_LAST_REVIEWED));
+      assert.deepEqual(entries.slice(3, 6).map(entry => entry.lastModified), [
+        GUIDES_CONTENT_LAST_REVIEWED,
+        ...GUIDES.map(guide => guide.lastReviewed),
+      ]);
       assert.ok(entries.slice(6).every(entry => entry.lastModified === '2026-09-14'));
       assert.ok(entries.every(entry => !entry.url.includes('/api/')));
       assert.ok(entries.every(entry => !entry.url.includes('/auth/')));
