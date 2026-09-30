@@ -521,8 +521,13 @@ async function coalesced<T>(key: string, operation: () => Promise<T>): Promise<T
 async function fetchDefiLlamaCurrentPrices(
   assets: readonly NormalizedPriceRequest[],
   signal?: AbortSignal,
+  includeStablecoins = false,
 ): Promise<ProviderFailure[]> {
-  const candidates = assets.filter(item => !item.stablecoin);
+  // A wallet can have thousands of transfer dates for one asset. Current
+  // prices are keyed by asset and currency, so fetch and cache each once.
+  const candidates = [...new Map(assets
+    .filter(item => includeStablecoins || !item.stablecoin)
+    .map(item => [`${item.asset.assetId}:${item.quoteCurrency}`, item])).values()];
   if (candidates.length === 0) return [];
 
   const failures: ProviderFailure[] = [];
@@ -1121,6 +1126,7 @@ export function getCachedPriceQuote(
 export function getCachedCurrentPriceQuote(
   assetReference: PriceAssetReference | string,
   quoteCurrency = 'usd',
+  requireMarketQuote = false,
 ): PriceQuote {
   const reference: PriceAssetReference = typeof assetReference === 'string'
     ? { coingeckoId: assetReference }
@@ -1130,7 +1136,7 @@ export function getCachedCurrentPriceQuote(
   if (!asset) return { priceUSD: null, provenance: 'unpriced' };
   const timestamp = Math.floor(Date.now() / 1000);
   const normalized = normalizeRequest({ ...reference, timestamp, quoteCurrency: normalizedCurrency });
-  if (normalized?.stablecoin) return quoteFromStablecoin(asset, timestamp, normalizedCurrency);
+  if (normalized?.stablecoin && !requireMarketQuote) return quoteFromStablecoin(asset, timestamp, normalizedCurrency);
   if (normalized?.dynamicContract && !isResolved(normalized)) return { priceUSD: null, provenance: 'unpriced' };
   const current = currentPriceCache.get(currentCacheKey(asset.assetId, normalizedCurrency));
   if (current) return recordToQuote(current);
@@ -1197,8 +1203,9 @@ function isDeadlineCancellation(signal: AbortSignal): boolean {
 function appendBudgetFailure(
   failures: ProviderFailure[],
   requests: readonly NormalizedPriceRequest[],
+  currentOnly = false,
 ): void {
-  const missingDates = requests
+  const missingDates = currentOnly ? [] : requests
     .filter(request => !loadHistoricalFromMemory(request))
     .map(request => request.dateKey);
   failures.push({
@@ -1212,7 +1219,7 @@ function appendBudgetFailure(
 export async function batchFetchPrices(
   requests: PriceRequest[],
   apiKey?: string,
-  options: { signal?: AbortSignal; budgetMs?: number } = {},
+  options: { signal?: AbortSignal; budgetMs?: number; currentOnly?: boolean } = {},
 ): Promise<PriceAvailabilityResult> {
   throwIfAborted(options.signal);
   const normalizedRequests = deduplicateRequests(requests);
@@ -1224,38 +1231,41 @@ export async function batchFetchPrices(
   }, budgetMilliseconds(options));
   const failures: ProviderFailure[] = [];
   try {
-    const resolutions = normalizedRequests.filter(request => request.dynamicContract);
-    await runBounded(resolutions, 8, async request => {
+    const uniqueAssets = [...groupByAsset(normalizedRequests).values()].map(group => group[0]);
+    await runBounded(uniqueAssets.filter(request => request.dynamicContract), 8, async request => {
       await loadResolution(request.asset, linked.signal);
     }, linked.signal);
     const activeRequests = normalizedRequests.filter(request => !hasUnsupportedResolution(request));
 
-    const currentLoads = activeRequests.filter(request => !request.stablecoin);
+    const currentLoads = [...new Map(activeRequests
+      .filter(request => options.currentOnly || !request.stablecoin)
+      .map(request => [`${request.asset.assetId}:${request.quoteCurrency}`, request])).values()];
     await runBounded(currentLoads, 8, async request => {
       await loadCurrentRecord(request.asset, request.quoteCurrency, linked.signal);
     }, linked.signal);
-    const historicalLoads = activeRequests.filter(request => !request.stablecoin);
-    await runBounded(historicalLoads, 8, async request => {
-      await loadHistoricalRecord(request.asset, request.dateKey, request.quoteCurrency, linked.signal);
-    }, linked.signal);
+    failures.push(...await fetchDefiLlamaCurrentPrices(activeRequests, linked.signal, options.currentOnly));
+    if (!options.currentOnly) {
+      const historicalLoads = activeRequests.filter(request => !request.stablecoin);
+      await runBounded(historicalLoads, 8, async request => {
+        await loadHistoricalRecord(request.asset, request.dateKey, request.quoteCurrency, linked.signal);
+      }, linked.signal);
+      failures.push(...await fetchDefiLlamaHistoricalPrices(activeRequests, linked.signal));
 
-    failures.push(...await fetchDefiLlamaCurrentPrices(activeRequests, linked.signal));
-    failures.push(...await fetchDefiLlamaHistoricalPrices(activeRequests, linked.signal));
-
-    const grouped = groupByAsset(activeRequests);
-    const fallbackGroups = [...grouped.values()]
-      .map(group => ({ group, missingCount: group.filter(request => !loadHistoricalFromMemory(request)).length }))
-      .filter(item => item.missingCount > 0)
-      .sort((a, b) => b.missingCount - a.missingCount)
-      .slice(0, COINGECKO_FALLBACK_TOKEN_LIMIT);
-    const fallbackFailures = await Promise.all(fallbackGroups.map(item => (
-      prefetchTokenPrices(item.group[0], item.group, apiKey, COINGECKO_FALLBACK_RANGE_LIMIT, linked.signal)
-    )));
-    failures.push(...fallbackFailures.flat());
+      const grouped = groupByAsset(activeRequests);
+      const fallbackGroups = [...grouped.values()]
+        .map(group => ({ group, missingCount: group.filter(request => !loadHistoricalFromMemory(request)).length }))
+        .filter(item => item.missingCount > 0)
+        .sort((a, b) => b.missingCount - a.missingCount)
+        .slice(0, COINGECKO_FALLBACK_TOKEN_LIMIT);
+      const fallbackFailures = await Promise.all(fallbackGroups.map(item => (
+        prefetchTokenPrices(item.group[0], item.group, apiKey, COINGECKO_FALLBACK_RANGE_LIMIT, linked.signal)
+      )));
+      failures.push(...fallbackFailures.flat());
+    }
   } catch (error) {
     if (options.signal?.aborted) throwIfAborted(options.signal);
     if (!isDeadlineCancellation(linked.signal)) throw error;
-    appendBudgetFailure(failures, normalizedRequests);
+    appendBudgetFailure(failures, normalizedRequests, options.currentOnly);
   } finally {
     clearTimeout(budgetTimeout);
     linked.dispose();
@@ -1268,7 +1278,7 @@ export async function batchFetchPrices(
   for (const [assetId, group] of grouped) {
     const first = group[0];
     const confirmedUnsupported = hasUnsupportedResolution(first);
-    const missingDates = [...new Set(group
+    const missingDates = options.currentOnly ? [] : [...new Set(group
       .filter(request => !request.stablecoin && !loadHistoricalFromMemory(request))
       .map(request => request.dateKey))];
     for (const dateKey of missingDates) {
@@ -1286,7 +1296,7 @@ export async function batchFetchPrices(
         ));
       }
     }
-    if (!group.some(request => request.stablecoin) && group.some(request => !currentPriceCache.has(
+    if ((options.currentOnly || !group.some(request => request.stablecoin)) && group.some(request => !currentPriceCache.has(
       currentCacheKey(request.asset.assetId, request.quoteCurrency),
     ))) {
       const currentFailure = finalFailures.some(failure => failure.asset === assetId && !failure.dates);
@@ -1301,13 +1311,13 @@ export async function batchFetchPrices(
     }
   }
 
-  const historicalStates = normalizedRequests.map(request => request.stablecoin || loadHistoricalFromMemory(request));
+  const historicalStates = options.currentOnly ? [] : normalizedRequests.map(request => request.stablecoin || loadHistoricalFromMemory(request));
   const currentStates = normalizedRequests
-    .filter(request => !request.stablecoin)
+    .filter(request => options.currentOnly || !request.stablecoin)
     .map(request => currentPriceCache.has(currentCacheKey(request.asset.assetId, request.quoteCurrency)));
-  const historicalStatus = statusForCoverage(historicalStates);
+  const historicalStatus = options.currentOnly ? 'unavailable' : statusForCoverage(historicalStates);
   const currentStatus = statusForCoverage(currentStates);
-  const status = historicalStatus === 'complete' && currentStatus === 'complete'
+  const status = options.currentOnly ? currentStatus : historicalStatus === 'complete' && currentStatus === 'complete'
     ? 'complete'
     : historicalStates.some(Boolean) || currentStates.some(Boolean)
       ? 'partial'
@@ -1318,8 +1328,10 @@ export async function batchFetchPrices(
       const chainRequests = normalizedRequests.filter(request => request.asset.chainId === chainId);
       return {
         chainId,
-        historicalStatus: statusForCoverage(chainRequests.map(request => request.stablecoin || loadHistoricalFromMemory(request))),
-        currentStatus: statusForCoverage(chainRequests.filter(request => !request.stablecoin).map(request => (
+        historicalStatus: options.currentOnly
+          ? 'unavailable' as const
+          : statusForCoverage(chainRequests.map(request => request.stablecoin || loadHistoricalFromMemory(request))),
+        currentStatus: statusForCoverage(chainRequests.filter(request => options.currentOnly || !request.stablecoin).map(request => (
           currentPriceCache.has(currentCacheKey(request.asset.assetId, request.quoteCurrency))
         ))),
         errors: finalFailures

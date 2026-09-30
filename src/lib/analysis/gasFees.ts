@@ -7,7 +7,10 @@ import {
   PriceProvenanceSummary,
 } from '../types';
 
-function summarizeGasPrices(transactions: ProcessedTransaction[]): PriceProvenanceSummary {
+function summarizeGasPrices(
+  transactions: ProcessedTransaction[],
+  valuationBasis: 'historical' | 'current',
+): PriceProvenanceSummary {
   const summary: PriceProvenanceSummary = {
     historical: 0,
     spotEstimate: 0,
@@ -27,17 +30,20 @@ function summarizeGasPrices(transactions: ProcessedTransaction[]): PriceProvenan
 
   if (pricedTransactions.length > 0 && summary.unpriced === pricedTransactions.length) {
     summary.status = 'unavailable';
-  } else if (summary.spotEstimate > 0 || summary.unpriced > 0) {
+  } else if (summary.unpriced > 0 || (valuationBasis === 'historical' && summary.spotEstimate > 0)) {
     summary.status = 'partial';
   }
   return summary;
 }
 
-export function analyzeGasFees(transactions: ProcessedTransaction[]): GasSummary {
+export function analyzeGasFees(
+  transactions: ProcessedTransaction[],
+  valuationBasis: 'historical' | 'current' = 'historical',
+): GasSummary {
   if (transactions.length === 0) {
     return {
       totalGasETH: 0, totalGasUSD: 0, transactionCount: 0,
-      priceProvenance: summarizeGasPrices([]),
+      priceProvenance: summarizeGasPrices([], valuationBasis),
       failedTransactionCount: 0, failedGasETH: 0, failedGasUSD: 0,
       monthlyBreakdown: [], categoryBreakdown: [], worstDay: null, averageGasPerTx: 0,
     };
@@ -113,7 +119,7 @@ export function analyzeGasFees(transactions: ProcessedTransaction[]): GasSummary
   return {
     totalGasETH,
     totalGasUSD,
-    priceProvenance: summarizeGasPrices(transactions),
+    priceProvenance: summarizeGasPrices(transactions, valuationBasis),
     transactionCount: transactions.length,
     failedTransactionCount: failedCount,
     failedGasETH,

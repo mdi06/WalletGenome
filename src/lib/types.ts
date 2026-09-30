@@ -304,6 +304,16 @@ export interface TransferSummary {
   totalInboundUSD: number;
   totalOutboundUSD: number;
   capitalFlowCoverage: CapitalFlowCoverage;
+  currentPriceFlow?: {
+    inboundUSD: number | null;
+    outboundUSD: number | null;
+    pricedLegs: number;
+    totalLegs: number;
+    inboundLegs: number;
+    outboundLegs: number;
+    pricedInboundLegs: number;
+    pricedOutboundLegs: number;
+  };
 }
 
 export type LossType =
@@ -405,6 +415,7 @@ export interface ScanResult {
   activityProfile: ActivityProfile;
   interactionsSummary: InteractionsSummary;
   priceProvenance: PriceProvenanceSummary;
+  valuationBasis?: 'historical' | 'current';
   scannedAt: number;
   transactionCount: number;
   tokenTransferCount: number;

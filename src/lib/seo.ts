@@ -316,13 +316,13 @@ export const SEO_LANDING_PAGES = [
       {
         title: 'Coverage reporting',
         description:
-          'Distinguish complete, partial, and unavailable datasets and label historical, estimated, assumed, and unpriced values.',
+          'Distinguish complete, partial, and unavailable datasets and label current-price estimates, assumptions, and unpriced values.',
       },
     ],
     usefulFor: [
       'Building an initial cross-chain picture of an address',
       'Finding high-frequency counterparties and protocol interactions',
-      'Separating verified historical values from estimates and unpriced activity',
+      'Separating current-price estimates from unpriced activity',
     ],
     limitations: [
       'The scanner currently covers four EVM networks rather than every blockchain.',
@@ -338,12 +338,12 @@ export const SEO_LANDING_PAGES = [
       {
         question: 'Does WalletGenome calculate current portfolio value?',
         answer:
-          'No. Its verified inflow, outflow, and protocol-volume metrics describe supported historical transfer evidence and should not be interpreted as current portfolio value.',
+          'No. Inflow, outflow, and protocol volume revalue recorded transfers at current prices; they are transfer-volume estimates, not current holdings or profit.',
       },
       {
         question: 'How are missing prices handled?',
         answer:
-          'Missing historical values remain estimated or unpriced with explicit provenance; they are not silently presented as exact historical dollars or zero.',
+          'A transfer without a reliable current quote remains unpriced and excluded from USD subtotals; it is never silently converted to zero.',
       },
     ],
     relatedSlugs: ['evm-wallet-analytics', 'sybil-wallet-analysis'],

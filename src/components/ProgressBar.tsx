@@ -14,7 +14,7 @@ interface ProgressBarProps {
 const PHASE_LABELS: Record<LiveScanProgress['phase'], string> = {
   resolving: 'Preparing scan',
   fetching: 'Fetching wallet history',
-  pricing: 'Checking historical prices',
+  pricing: 'Checking current prices',
   analyzing: 'Building forensic report',
   finalizing: 'Running final checks',
 };

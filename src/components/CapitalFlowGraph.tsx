@@ -196,6 +196,28 @@ export default function CapitalFlowGraph({ results, metrics }: Props) {
 
   const userAddress = results[0]?.address?.toLowerCase() || '';
   const coverage = metrics.capitalFlowCoverage;
+  const currentBasis = results.length > 0 && results.every(result => result.valuationBasis === 'current');
+  const hasCurrentPriceFlow = results.length > 0
+    && results.every(result => result.transferSummary.currentPriceFlow !== undefined);
+  const currentFlows = results.map(result => result.transferSummary.currentPriceFlow).filter(
+    (flow): flow is NonNullable<typeof flow> => flow !== undefined,
+  );
+  const currentSubtotal = (direction: 'inboundUSD' | 'outboundUSD'): number | null => {
+    const values = currentFlows.map(flow => flow[direction]);
+    const countKey = direction === 'inboundUSD' ? 'inboundLegs' : 'outboundLegs';
+    const pricedKey = direction === 'inboundUSD' ? 'pricedInboundLegs' : 'pricedOutboundLegs';
+    return currentFlows.reduce((sum, flow) => sum + flow[countKey], 0) > 0
+      && currentFlows.reduce((sum, flow) => sum + flow[pricedKey], 0) === 0
+      ? null
+      : values.reduce<number>((sum, value) => sum + (value ?? 0), 0);
+  };
+  const currentInflowUSD = currentSubtotal('inboundUSD');
+  const currentOutflowUSD = currentSubtotal('outboundUSD');
+  const currentNetUSD = currentInflowUSD === null || currentOutflowUSD === null
+    ? null
+    : currentInflowUSD - currentOutflowUSD;
+  const currentPricedLegs = currentFlows.reduce((sum, flow) => sum + flow.pricedLegs, 0);
+  const currentTotalLegs = currentFlows.reduce((sum, flow) => sum + flow.totalLegs, 0);
   const observedInflowUSD = results.reduce(
     (sum, result) => sum + result.transferSummary.totalInboundUSD,
     0,
@@ -476,6 +498,40 @@ export default function CapitalFlowGraph({ results, metrics }: Props) {
 
   return (
     <div className="space-y-7">
+      {currentBasis && hasCurrentPriceFlow && currentTotalLegs > 0 && (
+        <section aria-labelledby="current-flow-heading" className="card-3d space-y-4 p-4 text-[#0a0a0a] sm:p-5">
+          <div>
+            <h3 id="current-flow-heading" className="text-xs font-black uppercase tracking-wider">Recorded transfers at current prices</h3>
+            <p className="mt-1 text-[11px] font-bold text-[#4b5563]">
+              Each returned transfer amount valued using a recent current quote available during the scan. This is transfer volume, not wallet balance or profit.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <div className="well-recessed-light p-4">
+              <div className="text-[10px] font-black uppercase text-[#4b5563]">Current-price inflow</div>
+              <div className="mt-1 font-mono text-xl font-black text-[#047857]">{formatGraphSummaryValue(currentInflowUSD)}</div>
+            </div>
+            <div className="well-recessed-light p-4">
+              <div className="text-[10px] font-black uppercase text-[#4b5563]">Current-price outflow</div>
+              <div className="mt-1 font-mono text-xl font-black text-orange-ink">{formatGraphSummaryValue(currentOutflowUSD)}</div>
+            </div>
+            <div className="well-recessed-light p-4">
+              <div className="text-[10px] font-black uppercase text-[#4b5563]">Current-price net flow</div>
+              <div className="mt-1 font-mono text-xl font-black">{formatGraphSummaryValue(currentNetUSD)}</div>
+            </div>
+          </div>
+          <p className="text-[11px] font-bold text-[#4b5563]">
+            {currentPricedLegs.toLocaleString('en-US')} of {currentTotalLegs.toLocaleString('en-US')} returned transfer values priced.{' '}
+            {currentTotalLegs - currentPricedLegs} without a reliable current quote are excluded. Missing transaction history is also excluded.
+          </p>
+        </section>
+      )}
+      {currentBasis && currentTotalLegs === 0 && (
+        <section className="card-3d p-4 text-[11px] font-bold text-[#4b5563] sm:p-5">
+          No returned transfers have a USD value to estimate at current prices.
+        </section>
+      )}
+      {!currentBasis && (
       <section aria-labelledby="flow-summary-heading" className="card-3d space-y-4 p-4 text-[#0a0a0a] sm:p-5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
@@ -554,6 +610,7 @@ export default function CapitalFlowGraph({ results, metrics }: Props) {
           </div>
         )}
       </section>
+      )}
 
       {/* ── Highlighted recipient evidence ── */}
       {highlightedRecipients.length > 0 ? (

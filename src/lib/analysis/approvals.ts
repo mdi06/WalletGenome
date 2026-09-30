@@ -10,7 +10,8 @@ export function analyzeApprovals(
   transactions: ProcessedTransaction[] = [],
   tokenTransfers: EtherscanTokenTransfer[] = [],
   walletAddress: string,
-  chainId: number
+  chainId: number,
+  valuationBasis: 'historical' | 'current' = 'historical',
 ): ApprovalSummary {
   const lower = (walletAddress || '').toLowerCase();
   const approvalMap = new Map<string, TokenApproval>();
@@ -44,11 +45,11 @@ export function analyzeApprovals(
     }
 
     if (existing.currentPriceUSD === null) {
-      if (isStablecoinContract(chainId, cAddr)) {
+      if (valuationBasis === 'historical' && isStablecoinContract(chainId, cAddr)) {
         existing.currentPriceUSD = 1.0;
         existing.provenance = 'stablecoin_assumption';
       } else {
-        const quote = getCachedCurrentPriceQuote({ chainId, contractAddress: cAddr });
+        const quote = getCachedCurrentPriceQuote({ chainId, contractAddress: cAddr }, 'usd', valuationBasis === 'current');
         existing.currentPriceUSD = quote.priceUSD;
         existing.provenance = quote.provenance;
       }

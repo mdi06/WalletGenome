@@ -41,6 +41,6 @@ it('keeps loaded evidence concise and snapshot warnings restrained', () => {
   assert.match(noticeSource, /Saved snapshot · Non-live/);
   assert.doesNotMatch(noticeSource, /Demo snapshot · Evidence status · Saved snapshot/);
   assert.match(noticeSource, /border border-\[#d6b48f\] border-l-4 border-l-\[#b33c00\] bg-\[#fff7ed\] shadow-none/);
-  assert.match(noticeSource, /History evidence: \{data\.status\}/);
+  assert.match(noticeSource, /Transaction history: \{data\.status\}/);
   assert.match(noticeSource, /border-t border-\[#d6b48f\]/);
 });

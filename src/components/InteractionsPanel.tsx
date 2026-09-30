@@ -22,6 +22,7 @@ function isUnclassifiedProtocol(protocol: ProtocolInteraction): boolean {
 }
 
 export default function InteractionsPanel({ results }: Props) {
+  const currentBasis = results.length > 0 && results.every(result => result.valuationBasis === 'current');
   const [activeView, setActiveView] = useState<'protocols' | 'counterparties'>('protocols');
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [expandedProtocols, setExpandedProtocols] = useState<Set<string>>(new Set());
@@ -115,7 +116,9 @@ export default function InteractionsPanel({ results }: Props) {
       {/* ── Top Summary Header Metrics ── */}
       <section className="card-3d space-y-4 p-4 text-[#0a0a0a] sm:p-5">
         <div className="text-xs font-bold text-[#4b5563]">
-          USD gas and volume values use timestamp-matched historical prices or explicit stablecoin assumptions. Estimated or unpriced scans are withheld before this view renders.
+          {currentBasis
+            ? 'USD gas and volume values use recent current market quotes, including for stablecoins. They estimate the present-day value of recorded activity, not its value when it happened.'
+            : 'USD gas and volume values use timestamp-matched historical prices or explicit stablecoin assumptions. Estimated or unpriced scans are withheld before this view renders.'}
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div className="well-recessed-light p-4 space-y-1 text-[#0a0a0a]">

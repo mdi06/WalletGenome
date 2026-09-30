@@ -14,6 +14,90 @@ import {
 } from './prices';
 
 describe('Historical price provenance', () => {
+  it('fetches current prices without requesting historical provider data in current-only mode', async () => {
+    clearPriceCachesForTests();
+    const providerPaths: string[] = [];
+    const fetchMock = mock.method(globalThis, 'fetch', async (input: string | URL | Request) => {
+      const url = new URL(String(input));
+      providerPaths.push(url.pathname);
+      if (url.pathname.startsWith('/prices/current/')) {
+        return Response.json({ coins: { 'coingecko:ethereum': { price: 2500 } } });
+      }
+      return new Response('', { status: 503 });
+    });
+    try {
+      const result = await batchFetchPrices([{ chainId: 1, timestamp: 1_600_000_000 }], undefined, {
+        currentOnly: true,
+      });
+      assert.strictEqual(result.currentStatus, 'complete');
+      assert.strictEqual(result.status, 'complete');
+      assert.ok(providerPaths.some(path => path.startsWith('/prices/current/')));
+      assert.ok(providerPaths.every(path => !path.includes('Historical') && !path.includes('market_chart')));
+      assert.strictEqual(result.errors.some(error => error.code === 'unavailable_historical_date'), false);
+    } finally {
+      fetchMock.mock.restore();
+    }
+  });
+
+  it('uses a market quote rather than a one-dollar assumption for stablecoins in current-only mode', async () => {
+    clearPriceCachesForTests();
+    const usdc = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
+    const fetchMock = mock.method(globalThis, 'fetch', async () => Response.json({
+      coins: { 'coingecko:usd-coin': { price: 0.997 } },
+    }));
+    try {
+      const result = await batchFetchPrices([{ chainId: 1, contractAddress: usdc, timestamp: 1_700_000_000 }], undefined, {
+        currentOnly: true,
+      });
+      assert.strictEqual(result.currentStatus, 'complete');
+      const quote = getCachedCurrentPriceQuote({ chainId: 1, contractAddress: usdc }, 'usd', true);
+      assert.strictEqual(quote.priceUSD, 0.997);
+      assert.strictEqual(quote.provenance, 'spot_estimate');
+    } finally {
+      fetchMock.mock.restore();
+    }
+  });
+
+  it('loads and writes one current quote for many historical dates of the same asset', async () => {
+    clearPriceCachesForTests();
+    const tokenId = 'many-dates-price-test-token';
+    const timestamps = Array.from({ length: 20 }, (_, index) => 1_700_000_000 + index * 86_400);
+    const cacheReads: string[] = [];
+    const cacheWrites: string[] = [];
+    const getMock = mock.method(sharedCache, 'get', async (key: string) => {
+      cacheReads.push(key);
+      return null;
+    });
+    const setMock = mock.method(sharedCache, 'set', async (key: string) => {
+      cacheWrites.push(key);
+    });
+    const fetchMock = mock.method(globalThis, 'fetch', async (input: string | URL | Request) => {
+      const url = new URL(String(input));
+      if (url.pathname.startsWith('/prices/current/')) {
+        return Response.json({ coins: { [`coingecko:${tokenId}`]: { price: 3 } } });
+      }
+      if (url.pathname === '/batchHistorical') {
+        const requested = JSON.parse(url.searchParams.get('coins') ?? '{}') as Record<string, number[]>;
+        return Response.json({ coins: Object.fromEntries(Object.entries(requested).map(([key, days]) => [
+          key,
+          { prices: days.map(timestamp => ({ timestamp, price: 2 })) },
+        ])) });
+      }
+      return new Response('', { status: 404 });
+    });
+
+    try {
+      const result = await batchFetchPrices(timestamps.map(timestamp => ({ coingeckoId: tokenId, timestamp })));
+      assert.strictEqual(result.historicalStatus, 'complete');
+      assert.strictEqual(cacheReads.filter(key => key.includes(':current:')).length, 1);
+      assert.strictEqual(cacheWrites.filter(key => key.includes(':current:')).length, 1);
+    } finally {
+      getMock.mock.restore();
+      setMock.mock.restore();
+      fetchMock.mock.restore();
+    }
+  });
+
   it('requires a trusted token contract instead of pricing from a ticker', () => {
     assert.strictEqual(
       resolveCoingeckoId(1, '0x978a77ef76f23c06d951d2e827741ed334e2ff2f'),

@@ -9,7 +9,7 @@
 
 **Wallet Forensics & Analytics** moves beyond simple balance checkers into **deep on-chain behavioral intelligence and quantitative portfolio auditing**.
 
-Built with Next.js 16, TypeScript, and Recharts, this tool ingests raw transaction histories and token transfers across **Ethereum, Base, Arbitrum, and Optimism**, enriching them with historical USD pricing, protocol contract labels, and quantitative risk heuristics.
+Built with Next.js 16, TypeScript, and Recharts, this tool ingests raw transaction histories and token transfers across **Ethereum, Base, Arbitrum, and Optimism**, enriching them with current USD price estimates, protocol contract labels, and quantitative risk heuristics.
 
 ### Design reference
 
@@ -57,7 +57,7 @@ Read [DESIGN.md](DESIGN.md) before changing the UI. It defines the current light
 ### 5. 🗺️ Arkham-Style Capital Flow Graph
 - **3-Column Liquidity Network Topology**: Maps fund origins (CEXs, bridges, funding wallets) through core user address to active DeFi protocols and destination wallets.
 - **Animated SVG Flow Particles**: Particle-traced directed lines with volume-weighted stroke widths.
-- **Flow Summary**: Shows verified inflow, outflow, and net flow when history is complete. When history is incomplete but returned transfer legs have historical or stablecoin prices, the Flow Graph shows a separately labelled observed lower bound with missing-history and excluded-value warnings; it is not presented as a complete lifetime total or promoted as a Behavioral DNA headline.
+- **Flow Summary**: Shows returned inflow, outflow, and net transfer amounts valued at current prices. Coverage counts missing current quotes. Incomplete transaction history prevents a complete lifetime claim, and the figures are never presented as current holdings or profit.
 - **Evidence-Backed Cluster Links**: Batch mode detects direct submitted-wallet transfers from full native, internal, and ERC-20 evidence, preserving direction, chain, unique transaction hashes, and USD completeness. Shared hubs use full counterparty sets; display truncation does not change conclusions. These are observed linkage signals, not proof of common control; the Arbitrum Foundation check recognizes published sample addresses and does not reproduce its full graph model.
 
 ### 6. 🔓 Approval & Exposure Audit
@@ -111,11 +111,12 @@ Read [DESIGN.md](DESIGN.md) before changing the UI. It defines the current light
 
 ### Historical USD price policy
 
-- Timestamp-matched daily prices are labeled `historical`.
-- Stablecoins use an explicit `stablecoin_assumption` of $1.
-- If a daily price is missing but a current price exists, the transaction or transfer valuation is labeled `spot_estimate`. It uses the token's price at scan time, is not an exact historical value, and is excluded from definitive historical USD metrics.
+- Fresh scans use recent current quotes as the USD basis for recorded activity; saved snapshots retain their original valuation basis.
+- Fresh scans request current market quotes for stablecoins too; they do not assume a $1 peg. Older saved snapshots may contain a labeled `stablecoin_assumption`.
+- Current-quote valuations are labeled `spot_estimate`. They show the present-day equivalent of returned transfer amounts, not wallet balance, profit, or their value when transferred.
+- The Flow Graph includes only returned transfers with a recent reliable current quote. Assets without one stay excluded and are counted in coverage; saved demo snapshots retain their original results until regenerated.
 - If neither price is available, the USD value remains `null`/unavailable rather than becoming `$0`.
-- Historical price completeness is tracked independently per chain. A missing historical quote withholds only historical USD and price-backed risk/Sybil metrics; complete transaction history can still produce definitive non-price activity, approval-count, and blacklist metrics.
+- Current-price completeness is tracked independently per chain. A missing current quote reduces USD coverage and can withhold price-backed risk/Sybil metrics; complete transaction history can still produce definitive non-price activity, approval-count, and blacklist metrics.
 - Approval exposure uses the current spot cache rather than a transfer-time historical quote. The approval state is reconstructed from the latest non-revoked states observed in returned approval history, not from a live allowance query. An absent current quote leaves exposure unavailable instead of substituting an older price or `$0`.
 
 ### Canonical reporting contract
@@ -124,18 +125,18 @@ Every single-wallet API response exposes a typed `metrics` object. The methodolo
 
 | Field | Canonical meaning |
 | --- | --- |
-| `inflowUSD` / `outflowUSD` | Verified historical subtotal of inbound/outbound native, internal, and ERC-20 transfer legs across selected chains. Current-price estimates and unpriced legs are excluded. |
+| `inflowUSD` / `outflowUSD` | Current-price estimate of returned inbound/outbound native, internal, and ERC-20 transfer legs across selected chains. Unpriced legs are excluded and counted in coverage. |
 | `netFlowUSD` | `inflowUSD - outflowUSD`. |
 | `grossVolumeUSD` | `inflowUSD + outflowUSD`; not portfolio value. |
 | `protocolVolumeUSD` | Priced legs attributed to recognized protocol transactions/contracts, preserving chain provenance. |
 | `approvalExposureUSD` | Estimated positive balances covered by latest non-revoked observed approvals using current prices; unknown balance/price is unavailable, not zero. |
 | `riskScore` / `riskGrade` | Maximum (worst) chain risk score and its grade; withheld when wallet history is incomplete. |
-| `sybilProbability` | Cross-chain local MEDIA-style behavioral risk heuristic; separate from blacklist status and not a live Trusta score. If historical pricing is incomplete, the price-dependent monetary dimension is omitted and the remaining behavioral dimensions are reweighted. |
+| `sybilProbability` | Cross-chain local MEDIA-style behavioral risk heuristic; separate from blacklist status and not a live Trusta score. If current pricing is incomplete, the price-dependent monetary dimension is omitted and the remaining behavioral dimensions are reweighted. |
 | `blacklistStatus` | `flagged`, `clear`, or `unavailable` from non-behavioral blacklist checks. |
 | `activeDays` / `longestStreakDays` | Union and longest consecutive run of UTC activity dates across selected chains. |
 | `totalUnlimitedApprovals` | Count of unlimited approvals in the latest observed state across selected chains. |
 
-Capital Flow also publishes `capitalFlowCoverage`: verified transfer legs, total eligible legs, excluded current-price estimates, unpriced legs, coverage percentage, and `complete`/`partial`/`unavailable` status. When wallet history is complete, partial price coverage is presented as a verified lower bound with count coverage. When wallet history itself is incomplete, the canonical metrics remain unavailable, but the Flow Graph may show an observed priced lower bound calculated only from returned historical or stablecoin-priced legs. Missing history, current-price estimates, and unpriced values are excluded and called out explicitly. Other USD metrics continue to follow their own completeness contracts.
+Capital Flow also publishes `capitalFlowCoverage`: priced transfer legs, total eligible legs, unpriced legs, coverage percentage, and `complete`/`partial`/`unavailable` status. Partial current-price coverage produces a labeled subtotal from priced returned legs. When wallet history itself is incomplete, lifetime metrics remain unavailable while the Flow Graph can show the value of returned, priced transfers. Missing history and unpriced assets stay explicit. This is transfer volume at current prices, not wallet balance or profit.
 
 ### Live scan request policy
 
@@ -152,7 +153,7 @@ Capital Flow also publishes `capitalFlowCoverage`: verified transfer legs, total
 - The application is intentionally stateless: each scan is a point-in-time, provider-dependent report and is not saved as durable history.
 - Scanned wallet addresses and generated reports are retained only for the active request. There are no saved-wallet, saved-report, or historical-comparison features. The only durable user-related record is the optional update-subscription preference described on `/privacy`.
 - Identity, price, blacklist, rate-limit, and concurrency caches remain process-local, best-effort optimizations. Report and successful history-dataset caches use the optional shared Upstash Redis adapter, with process memory as a fallback when it is not configured.
-- Complete-history single-wallet reports may be reused for five minutes and are marked `cached`; their original fetch time, history-cache sources, and all missing-data warnings are retained. Complete transaction, token-transfer, and internal-transaction datasets are cached independently for one hour, so a missing historical price does not force another history download.
+- Complete-history single-wallet reports may be reused for five minutes and are marked `cached`; their original fetch time, history-cache sources, and all missing-data warnings are retained. Complete transaction, token-transfer, and internal-transaction datasets are cached independently for one hour, so a missing current quote does not force another history download.
 - A forced refresh skips reads from the report and history caches, fetches from providers, and replaces each successfully complete transaction, token-transfer, or internal-transaction dataset with a new one-hour entry. Partial or failed refresh responses do not overwrite the previous complete dataset; the fresh report is then cached for five minutes and retains provider failure warnings. Refreshes are limited to once every five minutes per caller.
 - Simultaneous identical scans are coalesced only within one server process. Shared Redis caches and quotas do not coordinate in-flight work across processes; verify those deployment-wide behaviors against real Redis from two processes before claiming them.
 - When a shared report is copied into process memory, its original fetch time and remaining lifetime are preserved; expired reports are rejected instead of receiving a new full five-minute lifetime. Shared daily scan quotas require the Upstash variables; without them, the existing per-instance limits still apply.

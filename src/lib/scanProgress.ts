@@ -70,7 +70,7 @@ export function formatScanProgress(
       break;
     }
     case 'pricing':
-      message = `Checking historical prices for supported assets; ${recordsFound.toLocaleString('en-US')} history records loaded.`;
+      message = `Checking current prices for supported assets; ${recordsFound.toLocaleString('en-US')} history records loaded.`;
       progressPercent = 76;
       break;
     case 'analyzing':

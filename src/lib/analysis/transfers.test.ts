@@ -1,6 +1,7 @@
 import assert from 'node:assert';
-import { describe, it } from 'node:test';
+import { describe, it, mock } from 'node:test';
 import type { ProcessedTokenTransfer, ProcessedTransaction } from '../types';
+import { batchFetchPrices, clearPriceCachesForTests } from '../prices';
 import { analyzeTransfers, deduplicateTokenTransfers } from './transfers';
 
 const wallet = '0x1111111111111111111111111111111111111111';
@@ -59,6 +60,42 @@ function tokenTransfer(
 }
 
 describe('Verified capital flow', () => {
+  it('values recorded transfer amounts at current prices independently of historical prices', async () => {
+    clearPriceCachesForTests();
+    const fetchMock = mock.method(globalThis, 'fetch', async (input: string | URL | Request) => {
+      const url = new URL(String(input));
+      if (url.pathname.startsWith('/prices/current/')) {
+        return Response.json({ coins: { 'coingecko:ethereum': { price: 5 } } });
+      }
+      if (url.pathname === '/batchHistorical') {
+        return Response.json({ coins: { 'coingecko:ethereum': { prices: [{ timestamp: 1_699_963_200, price: 2 }] } } });
+      }
+      return new Response('', { status: 404 });
+    });
+    try {
+      await batchFetchPrices([{ chainId: 1, timestamp: 1_700_000_000 }]);
+      const inbound = nativeTransfer('in', 2, 'historical');
+      const outbound = nativeTransfer('out', 2, 'historical');
+      const unsupported = tokenTransfer('in', null, 'unpriced');
+      const summary = analyzeTransfers([inbound, outbound], [unsupported], wallet);
+      assert.strictEqual(summary.totalInboundUSD, 2);
+      assert.strictEqual(summary.currentPriceFlow?.inboundUSD, 5);
+      assert.strictEqual(summary.currentPriceFlow?.outboundUSD, 5);
+      assert.strictEqual(summary.currentPriceFlow?.pricedLegs, 2);
+      assert.strictEqual(summary.currentPriceFlow?.totalLegs, 3);
+    } finally {
+      fetchMock.mock.restore();
+    }
+  });
+
+  it('keeps a direction unavailable when none of its transfers has a current quote', () => {
+    clearPriceCachesForTests();
+    const summary = analyzeTransfers([], [tokenTransfer('in', null, 'unpriced')], wallet);
+    assert.strictEqual(summary.currentPriceFlow?.inboundUSD, null);
+    assert.strictEqual(summary.currentPriceFlow?.outboundUSD, 0);
+    assert.strictEqual(summary.currentPriceFlow?.pricedLegs, 0);
+  });
+
   it('deduplicates repeated token events without collapsing distinct legs in one transaction', () => {
     const first = tokenTransfer('in', 100, 'historical');
     const distinctLeg = {

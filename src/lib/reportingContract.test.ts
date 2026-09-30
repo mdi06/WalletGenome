@@ -134,6 +134,61 @@ const blacklistReport: SybilReport = {
 };
 
 describe('Canonical reporting contract', () => {
+  it('publishes current-price flow for fresh scans without historical quotes', () => {
+    const current = scan(1, ['2026-08-20']);
+    current.valuationBasis = 'current';
+    current.transferSummary.currentPriceFlow = {
+      inboundUSD: 500,
+      outboundUSD: 200,
+      pricedLegs: 2,
+      totalLegs: 3,
+      inboundLegs: 2,
+      outboundLegs: 1,
+      pricedInboundLegs: 1,
+      pricedOutboundLegs: 1,
+    };
+    const metrics = buildReportingMetrics([current], 'complete', {
+      historical: 0,
+      spotEstimate: 2,
+      stablecoinAssumption: 0,
+      unpriced: 1,
+      status: 'partial',
+    });
+    assert.strictEqual(metrics.inflowUSD, 500);
+    assert.strictEqual(metrics.outflowUSD, 200);
+    assert.strictEqual(metrics.netFlowUSD, 300);
+    assert.strictEqual(metrics.grossVolumeUSD, 700);
+    assert.deepStrictEqual(metrics.capitalFlowCoverage, {
+      verifiedLegs: 2,
+      totalLegs: 3,
+      excludedSpotEstimateLegs: 0,
+      unpricedLegs: 1,
+      coveragePercent: 67,
+      status: 'partial',
+    });
+    assert.strictEqual(metrics.protocolVolumeUSD, null);
+  });
+
+  it('does not turn an unpriced inbound direction into zero across chains', () => {
+    const empty = scan(1, ['2026-08-20']);
+    empty.valuationBasis = 'current';
+    empty.transferSummary.currentPriceFlow = {
+      inboundUSD: 0, outboundUSD: 0, pricedLegs: 0, totalLegs: 0,
+      inboundLegs: 0, outboundLegs: 0, pricedInboundLegs: 0, pricedOutboundLegs: 0,
+    };
+    const unpriced = scan(8453, ['2026-08-21']);
+    unpriced.valuationBasis = 'current';
+    unpriced.transferSummary.currentPriceFlow = {
+      inboundUSD: null, outboundUSD: 0, pricedLegs: 0, totalLegs: 1,
+      inboundLegs: 1, outboundLegs: 0, pricedInboundLegs: 0, pricedOutboundLegs: 0,
+    };
+    const metrics = buildReportingMetrics([empty, unpriced], 'complete', {
+      historical: 0, spotEstimate: 0, stablecoinAssumption: 0, unpriced: 1, status: 'unavailable',
+    });
+    assert.strictEqual(metrics.inflowUSD, null);
+    assert.strictEqual(metrics.netFlowUSD, null);
+  });
+
   it('publishes one definition for every typed public metric', () => {
     const fields = REPORTING_METRIC_DEFINITIONS.map(definition => definition.field);
     assert.strictEqual(new Set(fields).size, 13);

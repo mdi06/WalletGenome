@@ -17,6 +17,8 @@ export default function DemoSnapshotNotice({
 }: DemoSnapshotNoticeProps) {
   const availabilityMessage = data ? getAvailabilityMessage(data.status) : null;
   const chainWarnings = data?.chainWarnings ?? [];
+  const priceGapCount = data?.availability.filter(chain => chain.prices !== 'complete').length ?? 0;
+  const priceGapLabel = `${priceGapCount} network${priceGapCount === 1 ? '' : 's'}`;
 
   return (
     <section
@@ -33,7 +35,7 @@ export default function DemoSnapshotNotice({
           </p>
           {data && (
             <p className="mt-0.5 md:mt-0 text-xs font-bold text-[#4b5563]">
-              History evidence: {data.status}. {availabilityMessage ? 'Review data quality details below.' : 'No history completeness warning was reported.'}
+              Transaction history: {data.status}. Historical prices: {priceGapCount > 0 ? `incomplete on ${priceGapLabel}` : 'complete on all selected networks'}. {(availabilityMessage || priceGapCount > 0) ? 'Review data quality details below.' : 'No history or historical price gap was reported.'}
             </p>
           )}
         </div>
@@ -51,10 +53,12 @@ export default function DemoSnapshotNotice({
         <details className="border-t border-[#d6b48f] bg-white/60">
           <summary className="flex min-h-11 md:min-h-9 cursor-pointer list-none items-center justify-between gap-3 px-3 py-2 md:py-1.5 text-xs font-black uppercase tracking-wider text-[#0a0a0a] outline-none focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-[#963300] [&::-webkit-details-marker]:hidden">
             <span>Review data quality</span>
-            <span className="font-mono text-[10px] text-[#4b5563]">{data.status}</span>
+            <span className="font-mono text-[10px] text-[#4b5563]">{data.status === 'complete' && priceGapCount > 0 ? 'Price gaps' : data.status}</span>
           </summary>
           <div className="space-y-3 md:space-y-2 border-t border-[#c8c8c8] p-3 md:p-2.5 text-xs font-bold text-[#4b5563]" role="region" aria-label="Saved snapshot data quality details">
-            <p>{availabilityMessage ?? 'All returned chain datasets are marked complete.'}</p>
+            <p>{availabilityMessage ?? (priceGapCount > 0
+              ? `Transaction history is complete. Historical prices are incomplete on ${priceGapLabel}; affected USD metrics may be unavailable.`
+              : 'History and historical prices are complete on all selected networks.')}</p>
             {chainWarnings.length > 0 && (
               <div>
                 <h3 className="font-black uppercase tracking-wider text-[#0a0a0a]">Provider warnings</h3>

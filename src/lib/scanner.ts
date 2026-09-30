@@ -13,7 +13,7 @@ import {
 } from './types';
 import { getChainConfig } from './chains';
 import { isDEXAddress, isBridgeAddress, getAddressLabel } from './labels';
-import { getCachedPriceQuote } from './prices';
+import { getCachedCurrentPriceQuote, getCachedPriceQuote } from './prices';
 import { analyzeGasFees } from './analysis/gasFees';
 import { analyzeTransfers } from './analysis/transfers';
 import { analyzeApprovals } from './analysis/approvals';
@@ -39,6 +39,7 @@ function emptyPriceProvenanceSummary(): PriceProvenanceSummary {
 export function summarizePriceProvenance(
   transactions: ProcessedTransaction[],
   tokenTransfers: ProcessedTokenTransfer[],
+  valuationBasis: 'historical' | 'current' = 'historical',
 ): PriceProvenanceSummary {
   const summary = emptyPriceProvenanceSummary();
   const provenances: PriceProvenance[] = [];
@@ -60,7 +61,7 @@ export function summarizePriceProvenance(
 
   if (provenances.length > 0 && summary.unpriced === provenances.length) {
     summary.status = 'unavailable';
-  } else if (summary.spotEstimate > 0 || summary.unpriced > 0) {
+  } else if (summary.unpriced > 0 || (valuationBasis === 'historical' && summary.spotEstimate > 0)) {
     summary.status = 'partial';
   }
 
@@ -136,6 +137,7 @@ export function processTransactions(
   chainId: number,
   knownWallets: Record<string, string> = {},
   analysisTime = Date.now(),
+  valuationBasis: 'historical' | 'current' = 'historical',
 ): ProcessedTransaction[] {
   const chain = getChainConfig(chainId);
   return rawTxs.map(tx => {
@@ -146,7 +148,9 @@ export function processTransactions(
     const timestamp = parseInt(tx.timeStamp || '0') || Math.floor(analysisTime / 1000);
     const valueFormatted = formatSafeUnits(tx.value || '0', chain.nativeToken.decimals);
 
-    const ethQuote = getCachedPriceQuote({ chainId }, timestamp);
+    const ethQuote = valuationBasis === 'current'
+      ? getCachedCurrentPriceQuote({ chainId }, 'usd', true)
+      : getCachedPriceQuote({ chainId }, timestamp);
     const ethPrice = ethQuote.priceUSD;
 
     return {
@@ -182,6 +186,7 @@ export function processTokenTransfers(
   chainId: number,
   knownWallets: Record<string, string> = {},
   analysisTime = Date.now(),
+  valuationBasis: 'historical' | 'current' = 'historical',
 ): ProcessedTokenTransfer[] {
   const lower = (walletAddress || '').toLowerCase();
 
@@ -196,7 +201,9 @@ export function processTokenTransfers(
     const tokenSym = t.tokenSymbol || '???';
     const tokenNm = t.tokenName || 'Unknown Token';
 
-    const quote = getCachedPriceQuote({ chainId, contractAddress: tokenContract }, timestamp);
+    const quote = valuationBasis === 'current'
+      ? getCachedCurrentPriceQuote({ chainId, contractAddress: tokenContract }, 'usd', true)
+      : getCachedPriceQuote({ chainId, contractAddress: tokenContract }, timestamp);
     const price = quote.priceUSD;
     const valueUSD = price !== null && isFinite(valueFormatted * price) && valueFormatted * price < 1e11
       ? valueFormatted * price
@@ -232,13 +239,16 @@ export function processInternalTransactions(
   chainId: number,
   knownWallets: Record<string, string> = {},
   analysisTime = Date.now(),
+  valuationBasis: 'historical' | 'current' = 'historical',
 ): ProcessedTransaction[] {
   const chain = getChainConfig(chainId);
 
   return rawInternals.map(itx => {
     const timestamp = parseInt(itx.timeStamp || '0') || Math.floor(analysisTime / 1000);
     const valueFormatted = formatSafeUnits(itx.value || '0', chain.nativeToken.decimals);
-    const ethQuote = getCachedPriceQuote({ chainId }, timestamp);
+    const ethQuote = valuationBasis === 'current'
+      ? getCachedCurrentPriceQuote({ chainId }, 'usd', true)
+      : getCachedPriceQuote({ chainId }, timestamp);
     const ethPrice = ethQuote.priceUSD;
 
     return {
@@ -274,6 +284,7 @@ export function collectPriceRequests(
   chainId: number,
   rawInternalTxs: EtherscanInternalTransaction[] = [],
   analysisTime = Date.now(),
+  valuationBasis: 'historical' | 'current' = 'historical',
 ): Array<{ chainId: number; contractAddress?: string; timestamp: number }> {
   const requests: Array<{ chainId: number; contractAddress?: string; timestamp: number }> = [];
   const seen = new Set<string>();
@@ -281,10 +292,10 @@ export function collectPriceRequests(
   for (const tx of [...rawTxs, ...rawInternalTxs]) {
     const ts = parseInt(tx.timeStamp || '0') || Math.floor(analysisTime / 1000);
     const dateKey = timestampToDate(ts);
-    const key = `native:${chainId}-${dateKey}`;
+    const key = valuationBasis === 'current' ? `native:${chainId}` : `native:${chainId}-${dateKey}`;
     if (!seen.has(key)) {
       seen.add(key);
-      requests.push({ chainId, timestamp: ts });
+      requests.push({ chainId, timestamp: valuationBasis === 'current' ? Math.floor(analysisTime / 1000) : ts });
     }
   }
 
@@ -293,10 +304,12 @@ export function collectPriceRequests(
     const dateKey = timestampToDate(ts);
     const contractAddress = (t.contractAddress || '').toLowerCase();
     if (!/^0x[a-f0-9]{40}$/.test(contractAddress)) continue;
-    const key = `token:${chainId}:${contractAddress}-${dateKey}`;
+    const key = valuationBasis === 'current'
+      ? `token:${chainId}:${contractAddress}`
+      : `token:${chainId}:${contractAddress}-${dateKey}`;
     if (!seen.has(key)) {
       seen.add(key);
-      requests.push({ chainId, contractAddress, timestamp: ts });
+      requests.push({ chainId, contractAddress, timestamp: valuationBasis === 'current' ? Math.floor(analysisTime / 1000) : ts });
     }
   }
 
@@ -311,13 +324,14 @@ export async function runAnalysis(
   knownWallets: Record<string, string> = {},
   rawInternalTxs: EtherscanInternalTransaction[] = [],
   analysisTime = Date.now(),
+  valuationBasis: 'historical' | 'current' = 'historical',
 ): Promise<ScanResult> {
   const chain = getChainConfig(chainId);
   const lower = (walletAddress || '').toLowerCase();
 
-  const processedTxs = processTransactions(rawTxs, chainId, knownWallets, analysisTime);
-  const processedTransfers = processTokenTransfers(rawTokenTransfers, walletAddress, chainId, knownWallets, analysisTime);
-  const processedInternals = processInternalTransactions(rawInternalTxs, walletAddress, chainId, knownWallets, analysisTime);
+  const processedTxs = processTransactions(rawTxs, chainId, knownWallets, analysisTime, valuationBasis);
+  const processedTransfers = processTokenTransfers(rawTokenTransfers, walletAddress, chainId, knownWallets, analysisTime, valuationBasis);
+  const processedInternals = processInternalTransactions(rawInternalTxs, walletAddress, chainId, knownWallets, analysisTime, valuationBasis);
 
   // Combine external normal transactions and smart contract internal transfers for cashflow & counterparties
   const allTxs = [...processedTxs, ...processedInternals];
@@ -326,10 +340,10 @@ export async function runAnalysis(
     tx => (tx.from || '').toLowerCase() === lower
   );
 
-  const gasSummary = analyzeGasFees(outboundTxs);
+  const gasSummary = analyzeGasFees(outboundTxs, valuationBasis);
   const transferSummary = analyzeTransfers(allTxs, processedTransfers, walletAddress);
-  const approvalSummary = analyzeApprovals(processedTxs, rawTokenTransfers, walletAddress, chainId);
-  const priceProvenance = summarizePriceProvenance(allTxs, processedTransfers);
+  const approvalSummary = analyzeApprovals(processedTxs, rawTokenTransfers, walletAddress, chainId, valuationBasis);
+  const priceProvenance = summarizePriceProvenance(allTxs, processedTransfers, valuationBasis);
 
   return {
     address: walletAddress,
@@ -343,6 +357,7 @@ export async function runAnalysis(
     activityProfile: analyzeActivityProfile(processedTxs),
     interactionsSummary: analyzeInteractions(allTxs, processedTransfers, walletAddress, chainId, knownWallets),
     priceProvenance,
+    valuationBasis,
     scannedAt: analysisTime,
     transactionCount: rawTxs.length,
     tokenTransferCount: rawTokenTransfers.length,

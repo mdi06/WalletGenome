@@ -189,7 +189,7 @@ describe('Scan availability aggregation', () => {
     }
   });
 
-  it('withholds historical USD metrics without degrading complete history', async () => {
+  it('uses current USD prices without requiring historical quotes', async () => {
     const timestamp = '1600000000';
     const transaction = {
       blockNumber: '1',
@@ -217,7 +217,7 @@ describe('Scan availability aggregation', () => {
       const url = String(input);
       if (url.includes('api.web3.bio')) return new Response('[]', { status: 200 });
       if (url.includes('coins.llama.fi')) {
-        return new Response(JSON.stringify({ coins: { 'coingecko:ethereum': { price: 3000 } } }), {
+        return new Response(JSON.stringify({ coins: { 'coingecko:ethereum': { price: 3000 }, 'coingecko:usd-coin': { price: 0.999 } } }), {
           status: 200,
           headers: { 'Content-Type': 'application/json' },
         });
@@ -239,30 +239,28 @@ describe('Scan availability aggregation', () => {
         'spot-estimate-test-key',
       );
       assert.strictEqual(result.status, 'complete');
-      assert.strictEqual(result.availability[0]?.prices, 'partial');
+      assert.strictEqual(result.availability[0]?.prices, 'complete');
       assert.strictEqual(result.aggregated.worstChainRiskScore, 0);
-      assert.strictEqual(result.metrics.inflowUSD, null);
+      assert.strictEqual(result.metrics.inflowUSD, 0);
+      assert.strictEqual(result.metrics.outflowUSD, 3000);
       assert.strictEqual(result.metrics.riskScore, 0);
       assert.notStrictEqual(result.metrics.sybilProbability, null);
-      assert.strictEqual(result.sybilReport?.mediaScore?.monetaryIncluded, false);
+      assert.strictEqual(result.sybilReport?.mediaScore?.monetaryIncluded, true);
       assert.strictEqual(result.metrics.activeDays, 1);
       assert.strictEqual(result.metrics.totalUnlimitedApprovals, 0);
       assert.notStrictEqual(result.metrics.blacklistStatus, 'unavailable');
       assert.strictEqual(result.aggregated.priceProvenance.spotEstimate > 0, true);
       assert.strictEqual(
         result.availability[0]?.errors.some(error => error.code === 'spot_estimate'),
-        true,
+        false,
       );
-      assert.match(
-        result.availability[0]?.errors.find(error => error.code === 'spot_estimate')?.message ?? '',
-        /transaction or transfer valuations used current token prices/i,
-      );
+      assert.strictEqual(result.chains[0]?.valuationBasis, 'current');
     } finally {
       fetchMock.mock.restore();
     }
   });
 
-  it('isolates historical price completeness by chain', async () => {
+  it('does not report historical price gaps when current quotes cover both chains', async () => {
     const wallet = '0x7777777777777777777777777777777777777777';
     const ethereumTransaction = {
       blockNumber: '1', timeStamp: '1600000000', hash: '0xeth-price-gap', nonce: '0',
@@ -286,7 +284,7 @@ describe('Scan availability aggregation', () => {
       if (url.includes('api.web3.bio')) return new Response('[]', { status: 200 });
       if (url.includes('raw.githubusercontent.com')) return new Response('', { status: 200 });
       if (url.includes('coins.llama.fi')) {
-        return new Response(JSON.stringify({ coins: { 'coingecko:ethereum': { price: 3000 } } }), {
+        return new Response(JSON.stringify({ coins: { 'coingecko:ethereum': { price: 3000 }, 'coingecko:usd-coin': { price: 0.999 } } }), {
           status: 200,
           headers: { 'Content-Type': 'application/json' },
         });
@@ -309,7 +307,7 @@ describe('Scan availability aggregation', () => {
     try {
       const result = await processWalletScan(wallet, [1, 8453], 'cross-chain-price-test-key');
       assert.strictEqual(result.status, 'complete');
-      assert.strictEqual(result.availability.find(item => item.chainId === 1)?.prices, 'partial');
+      assert.strictEqual(result.availability.find(item => item.chainId === 1)?.prices, 'complete');
       assert.strictEqual(result.availability.find(item => item.chainId === 8453)?.prices, 'complete');
     } finally {
       fetchMock.mock.restore();
@@ -564,7 +562,7 @@ describe('Scan availability aggregation', () => {
     try {
       const first = await processWalletScan(wallet, [1]);
       assert.equal(first.cached, undefined);
-      const reportKey = `wallet-analytics:report:v3:${wallet}:1`;
+      const reportKey = `wallet-analytics:report:v4:${wallet}:1`;
       scanResultCache.delete(reportKey);
       sharedCache.clearLocal();
 

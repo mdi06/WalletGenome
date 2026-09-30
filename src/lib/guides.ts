@@ -183,7 +183,7 @@ export const GUIDES = [
               ['Complete means the required returned dataset passed the report’s completeness rule. It does not mean every real-world action by the wallet is known.'],
               ['Partial means some usable records were returned and a stated part of the requested evidence is missing.'],
               ['Unavailable means the report cannot publish that result from the available inputs.'],
-              ['A lower bound counts verified returned evidence while explicitly excluding missing history, spot estimates, or unpriced transfer legs.'],
+              ['A current-price subtotal counts only returned transfer legs with reliable quotes. Missing history and unpriced legs remain outside that subtotal.'],
             ],
           },
           {
@@ -222,7 +222,7 @@ export const GUIDES = [
           {
             type: 'paragraph',
             content: [
-              'Next, inspect transfers and capital flows. Separate inbound from outbound legs, identify recurring counterparties, and check whether labels connect an address to a known exchange, bridge, or protocol. A label describes a configured address match. It does not prove the purpose of every transfer. Verified inflow, outflow, and protocol volume depend on historical or stablecoin price coverage; spot estimates and unpriced legs remain outside definitive historical totals.',
+              'Next, inspect transfers and capital flows. Separate inbound from outbound legs, identify recurring counterparties, and check whether labels connect an address to a known exchange, bridge, or protocol. A label describes a configured address match. It does not prove the purpose of every transfer. USD flow and protocol volume value returned activity at current prices; missing quotes reduce coverage, and these figures are not wallet holdings or profit.',
             ],
           },
           {
@@ -308,7 +308,7 @@ export const GUIDES = [
             items: [
               ['Observation: the returned Optimism history contains five failed contract calls within one hour. Interpretation: the pattern may deserve review for automation or repeated execution errors.'],
               ['Observation: an unlimited approval to an unidentified spender remains the latest observed state in returned history. Interpretation: current allowance state should be verified on-chain before any remediation decision.'],
-              ['Observation: historical prices cover 64 of 80 eligible transfer legs. Interpretation: the verified USD total is a lower bound for the returned transfers.'],
+              ['Observation: current quotes cover 64 of 80 eligible transfer legs. Interpretation: the current-price USD subtotal excludes 16 unpriced legs.'],
             ],
           },
         ],
@@ -509,7 +509,7 @@ export const GUIDES = [
             items: [
               ['Missing transactions can hide failures, approvals, revocations, or unknown-contract interactions.'],
               ['Missing token balances or current prices can make approval exposure unavailable.'],
-              ['Missing historical prices can remove the monetary dimension from the behavioral Sybil heuristic; the remaining dimensions are reweighted.'],
+              ['Missing current prices can remove the monetary dimension from the behavioral Sybil heuristic; the remaining dimensions are reweighted.'],
               ['An unavailable list check supplies no clear or flagged conclusion for that source.'],
             ],
           },

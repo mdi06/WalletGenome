@@ -65,7 +65,7 @@ const SECTIONS: DocSection[] = [
     category: '2. Normalization & Gas',
     title: 'Calldata Decoding & Transaction Categorization Engine',
     badge: 'METHOD DISPATCHER',
-    summary: 'Calldata method signature matching, function heuristic classification, and historical USD gas calculation.',
+    summary: 'Calldata method signature matching, function heuristic classification, and gas cost estimates at current prices.',
     icon: Code2,
     filePath: 'src/lib/scanner.ts · src/lib/labels.ts',
   },
@@ -567,13 +567,13 @@ export default function DocsPage() {
               <div className="card-3d p-4 space-y-1.5">
                 <div className="font-black text-[#0a0a0a] uppercase">Concurrency</div>
                 <p className="text-[#4b5563] leading-relaxed text-[11px] text-pretty">
-                  Historical asset-days are deduplicated and sent through DefiLlama batch requests. CoinGecko receives only a small bounded fallback workload. Provider failures remain explicit partial or unavailable results.
+                  Fresh scans deduplicate assets before requesting current DefiLlama quotes. They do not request historical price ranges. Provider failures remain explicit partial or unavailable results.
                 </p>
               </div>
               <div className="card-3d p-4 space-y-1.5">
                 <div className="font-black text-[#0a0a0a] uppercase">Contract & price controls</div>
                 <p className="text-[#4b5563] leading-relaxed text-[11px] text-pretty">
-                  Known contract labels and token-asset allowlists limit attribution and pricing inputs. Every calculated USD value carries historical, spot-estimate, stablecoin-assumption, or unpriced provenance.
+                  Known contract labels and token-asset allowlists limit attribution and pricing inputs. Fresh scans use current market quotes, including for stablecoins; missing quotes remain unpriced. Saved snapshots retain their original price provenance.
                 </p>
               </div>
             </div>
@@ -664,10 +664,10 @@ export default function DocsPage() {
               </div>
               <div className="well-recessed-light p-3.5 font-mono text-xs text-[#0a0a0a] space-y-1">
                 <div>{'Gas Cost (ETH) = (gasUsed × gasPrice) / 10^18'}</div>
-                <div>{'Gas Cost (USD) = Gas Cost (Native) × Price(t, provenance)'}</div>
+                <div>{'Gas Cost (USD estimate) = Gas Cost (Native) × Current Price'}</div>
               </div>
               <p className="text-[11px] text-[#4b5563] font-mono leading-relaxed">
-                Timestamp-matched daily prices are requested in DefiLlama batches, with bounded CoinGecko ranges as fallback. Missing daily prices remain unavailable or are explicitly marked as current-price estimates; they never appear as exact historical values.
+                Fresh scans use recent current quotes for USD estimates. A gas fee paid years ago is shown at today’s native-token price, not its value when paid. If no reliable current quote is available, its USD estimate remains unavailable.
               </p>
             </div>
             <MobileTopicReturn onJumpToTopic={handleJumpToTopic} topicTitle={activeSectionDefinition.title} />

@@ -38,6 +38,34 @@ function emptyRecipient(address: string, label: string): AddressInteraction {
 }
 
 describe('Capital Flow Graph verified summary', () => {
+  it('shows current-price transfer estimates as the sole flow summary for fresh scans', () => {
+    const data = getMockScanResult();
+    data.chains = [data.chains[0]];
+    data.chains[0].valuationBasis = 'current';
+    data.chains[0].transferSummary.currentPriceFlow = {
+      inboundUSD: 500,
+      outboundUSD: 300,
+      pricedLegs: 2,
+      totalLegs: 3,
+      inboundLegs: 2,
+      outboundLegs: 1,
+      pricedInboundLegs: 1,
+      pricedOutboundLegs: 1,
+    };
+    const markup = renderToStaticMarkup(createElement(CapitalFlowGraph, {
+      results: data.chains,
+      metrics: data.metrics,
+    }));
+
+    assert.match(markup, /Recorded transfers at current prices/);
+    assert.match(markup, /Current-price inflow/);
+    assert.match(markup, /Current-price outflow/);
+    assert.match(markup, /Current-price net flow/);
+    assert.match(markup, /2 of 3 returned transfer values priced/);
+    assert.match(markup, /not wallet balance or profit/);
+    assert.doesNotMatch(markup, /Verified Flow Summary/);
+  });
+
   it('does not draw a direction with zero transfers even when the volume filter is zero', () => {
     const markup = renderWithOutboundRecipients([
       emptyRecipient('0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa', 'Empty Recipient'),

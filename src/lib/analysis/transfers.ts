@@ -1,4 +1,5 @@
 import { ProcessedTransaction, ProcessedTokenTransfer, TransferSummary } from '../types';
+import { getCachedCurrentPriceQuote } from '../prices';
 
 function hasVerifiedHistoricalValue(
   leg: ProcessedTransaction | ProcessedTokenTransfer,
@@ -91,6 +92,29 @@ export function analyzeTransfers(
   const unpricedLegs = eligibleLegs.filter(leg => leg.valueUSDProvenance === 'unpriced').length;
   const totalLegs = eligibleLegs.length;
 
+  const currentQuotes = new Map<string, number | null>();
+  const currentValue = (leg: ProcessedTransaction | ProcessedTokenTransfer): number | null => {
+    const contractAddress = 'contractAddress' in leg ? leg.contractAddress : undefined;
+    const key = `${leg.chainId}:${contractAddress?.toLowerCase() ?? 'native'}`;
+    if (!currentQuotes.has(key)) {
+      currentQuotes.set(key, getCachedCurrentPriceQuote({ chainId: leg.chainId, contractAddress }, 'usd', true).priceUSD);
+    }
+    const price = currentQuotes.get(key);
+    if (price === null || price === undefined) return null;
+    const value = leg.valueFormatted * price;
+    return Number.isFinite(value) && value < 1e11 ? value : null;
+  };
+  const inboundAtCurrent = [...eligibleNativeInbound, ...eligibleTokenInbound].map(currentValue);
+  const outboundAtCurrent = [...eligibleNativeOutbound, ...eligibleTokenOutbound].map(currentValue);
+  const pricedInboundLegs = inboundAtCurrent.filter((value): value is number => value !== null).length;
+  const pricedOutboundLegs = outboundAtCurrent.filter((value): value is number => value !== null).length;
+  const pricedLegs = pricedInboundLegs + pricedOutboundLegs;
+  const currentSubtotal = (values: readonly (number | null)[]): number | null => (
+    values.length > 0 && values.every(value => value === null)
+      ? null
+      : values.reduce<number>((sum, value) => sum + (value ?? 0), 0)
+  );
+
   const totalInboundUSD = [...eligibleNativeInbound, ...eligibleTokenInbound]
     .filter(hasVerifiedHistoricalValue)
     .reduce((sum, leg) => sum + (leg.valueUSD ?? 0), 0);
@@ -121,6 +145,16 @@ export function analyzeTransfers(
       unpricedLegs,
       coveragePercent,
       status,
+    },
+    currentPriceFlow: {
+      inboundUSD: currentSubtotal(inboundAtCurrent),
+      outboundUSD: currentSubtotal(outboundAtCurrent),
+      pricedLegs,
+      totalLegs,
+      inboundLegs: inboundAtCurrent.length,
+      outboundLegs: outboundAtCurrent.length,
+      pricedInboundLegs,
+      pricedOutboundLegs,
     },
   };
 }

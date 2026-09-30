@@ -119,7 +119,7 @@ function subscribeToSharedScan(
 }
 
 function reportCacheKey(address: string, chains: readonly number[]): string {
-  return `wallet-analytics:report:v3:${address.toLowerCase()}:${[...chains].sort((a, b) => a - b).join(',')}`;
+  return `wallet-analytics:report:v4:${address.toLowerCase()}:${[...chains].sort((a, b) => a - b).join(',')}`;
 }
 
 function reportExpiresAt(response: WalletScanResponse, fetchedAt: number): number {
@@ -413,7 +413,8 @@ async function runWalletScan(
   };
   options.onProgress?.({ phase: 'pricing', ...finishedProgress });
 
-  // Consolidate price fetching once across all chains with DefiLlama + CoinGecko batching
+  // Current quotes are the default USD basis. No historical price requests are
+  // needed for fresh scans; saved snapshots keep their original valuation basis.
   const allPriceRequests = rawChainsData.flatMap(chain => (
     chain.transactions.status === 'unavailable' && chain.tokenTransfers.status === 'unavailable'
       ? []
@@ -423,11 +424,15 @@ async function runWalletScan(
         chain.chainId,
         chain.internalTransactions.data,
         analysisTime,
+        'current',
       )
   ));
   let priceResult: PriceAvailabilityResult;
   try {
-    priceResult = await batchFetchPrices(allPriceRequests, coingeckoKey, { signal: options.signal });
+    priceResult = await batchFetchPrices(allPriceRequests, coingeckoKey, {
+      signal: options.signal,
+      currentOnly: true,
+    });
   } catch (error) {
     throwIfAborted(options.signal);
     priceResult = {
@@ -451,7 +456,7 @@ async function runWalletScan(
       transactions: chain.transactions.status,
       tokenTransfers: chain.tokenTransfers.status,
       internalTransactions: chain.internalTransactions.status,
-      prices: chainPriceAvailability?.historicalStatus ?? 'complete',
+      prices: chainPriceAvailability?.currentStatus ?? 'complete',
       errors: [
         ...sourceErrors('transactions', chain.transactions.errors, chain.chainId, chain.chainName),
         ...sourceErrors('tokenTransfers', chain.tokenTransfers.errors, chain.chainId, chain.chainName),
@@ -478,10 +483,10 @@ async function runWalletScan(
       const normalTxs = transactions.data;
       const internalTxs = internalTransactions.data;
       const rawTokenTransfers = tokenTransfers.data;
-      const analysis = await runAnalysis(normalTxs, rawTokenTransfers, address, chainId, knownWallets, internalTxs, analysisTime);
-      const processedTxs = processTransactions(normalTxs, chainId, knownWallets, analysisTime);
-      const processedTransfers = processTokenTransfers(rawTokenTransfers, address, chainId, knownWallets, analysisTime);
-      const processedInternals = processInternalTransactions(internalTxs, address, chainId, knownWallets, analysisTime);
+      const analysis = await runAnalysis(normalTxs, rawTokenTransfers, address, chainId, knownWallets, internalTxs, analysisTime, 'current');
+      const processedTxs = processTransactions(normalTxs, chainId, knownWallets, analysisTime, 'current');
+      const processedTransfers = processTokenTransfers(rawTokenTransfers, address, chainId, knownWallets, analysisTime, 'current');
+      const processedInternals = processInternalTransactions(internalTxs, address, chainId, knownWallets, analysisTime, 'current');
       return { analysis, processedTxs, processedInternals, processedTransfers };
     },
     { signal: options.signal },
@@ -497,19 +502,9 @@ async function runWalletScan(
   for (const result of validResults) {
     const chainAvailability = availability.find(item => item.chainId === result.chainId);
     if (!chainAvailability) continue;
-    // Historical availability is the initial status, but analysis may also
-    // use bounded spot estimates. Keep a usable scan at partial rather than
-    // leaving it marked unavailable when only date-specific prices are absent.
+    // Count only missing current quotes as incomplete price coverage.
     if (result.priceProvenance.status !== 'complete') {
       chainAvailability.prices = result.priceProvenance.status;
-    }
-    if (result.priceProvenance.spotEstimate > 0) {
-      chainAvailability.errors.push({
-        source: 'prices',
-        code: 'spot_estimate',
-        count: result.priceProvenance.spotEstimate,
-        message: `${result.priceProvenance.spotEstimate} transaction or transfer valuations used current token prices because date-specific prices were unavailable. These estimates are excluded from verified historical capital flow and definitive historical USD metrics.`,
-      });
     }
     if (result.priceProvenance.unpriced > 0) {
       chainAvailability.errors.push({
@@ -529,25 +524,14 @@ async function runWalletScan(
       chainName: item.chainName,
       message: `${item.chainName} has incomplete history data. Conclusions that require full wallet history are unavailable.`,
     }));
-  const priceWarnings = availability
+  const currentPriceWarnings = availability
     .filter(item => item.prices !== 'complete')
     .map(item => ({
       chainId: item.chainId,
       chainName: item.chainName,
-      message: `${item.chainName} has incomplete historical prices. Verified capital flow includes historically priced legs only; excluded values and coverage are shown separately. Other price-dependent USD metrics may remain unavailable.`,
+      message: `${item.chainName} has incomplete current prices. USD estimates include only returned transfers with reliable current quotes; missing values and coverage are shown separately.`,
     }));
-  const currentPriceWarnings = priceResult.byChain
-    .filter(item => item.currentStatus !== 'complete')
-    .map(item => {
-      const chainName = availability.find(availabilityItem => availabilityItem.chainId === item.chainId)?.chainName
-        ?? `Chain ${item.chainId}`;
-      return {
-        chainId: item.chainId,
-        chainName,
-        message: `${chainName} has incomplete current spot prices. Current-price-dependent views remain unavailable where no quote was returned; this does not replace verified historical USD values.`,
-      };
-    });
-  const chainWarnings = [...historyWarnings, ...priceWarnings, ...currentPriceWarnings];
+  const chainWarnings = [...historyWarnings, ...currentPriceWarnings];
 
   const GRADE_ORDER: Record<string, number> = { F: 5, D: 4, C: 3, B: 2, A: 1 };
   const worstRiskGrade = validResults.reduce<RiskGrade>((worst, r) => {
@@ -598,8 +582,8 @@ async function runWalletScan(
     priceProvenance,
   };
 
-  const allInboundUSD = validResults.reduce((sum, r) => sum + (r.transferSummary?.totalInboundUSD || 0), 0);
-  const allOutboundUSD = validResults.reduce((sum, r) => sum + (r.transferSummary?.totalOutboundUSD || 0), 0);
+  const allInboundUSD = validResults.reduce((sum, r) => sum + (r.transferSummary.currentPriceFlow?.inboundUSD ?? 0), 0);
+  const allOutboundUSD = validResults.reduce((sum, r) => sum + (r.transferSummary.currentPriceFlow?.outboundUSD ?? 0), 0);
   const totalVolumeUSD = allInboundUSD + allOutboundUSD;
   const uniqueContracts = validResults.reduce((sum, r) => sum + (r.fingerprint?.uniqueContracts || 0), 0);
   const activeChainsCount = countActiveChains(rawChainsData);
@@ -620,7 +604,7 @@ async function runWalletScan(
   options.onProgress?.({ phase: 'finalizing', ...finishedProgress });
 
   // Address-list checks do not depend on explorer or price completeness. The
-  // Behavioral scoring requires complete history. When historical prices are
+  // Behavioral scoring requires complete history. When current quotes are
   // incomplete, its monetary dimension is omitted and the remaining behavioral
   // dimensions are reweighted instead of treating a price failure as a Sybil failure.
   const sybilReport = await checkSybilStatus(address, mediaScore, options.signal);

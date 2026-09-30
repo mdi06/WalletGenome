@@ -29,10 +29,10 @@ export const REPORTING_METRIC_DEFINITIONS: readonly ReportingMetricDefinition[] 
     unit: 'USD',
     timeWindow: 'Full history returned by the selected explorers.',
     dataSources: 'Successful native, internal, and ERC-20 transfers to the scanned wallet.',
-    inclusionExclusion: 'Includes priced inbound transfer legs; excludes failed and unpriced legs.',
+    inclusionExclusion: 'Includes inbound transfer legs with a reliable current quote; excludes failed and unpriced legs.',
     aggregation: 'Sum across selected chains; each transfer leg is counted once.',
-    completeness: 'Publishes a verified subtotal when history is complete and at least one eligible leg is historically priced; otherwise unavailable.',
-    priceProvenance: 'Historical or stablecoin assumption only. Spot estimates and unpriced legs are excluded and reported in capitalFlowCoverage.',
+    completeness: 'Publishes a current-price subtotal when history is complete and at least one eligible leg is priced; missing quotes reduce coverage.',
+    priceProvenance: 'Current market quotes, including stablecoins, for fresh scans. Unpriced legs are excluded and reported in capitalFlowCoverage.',
   },
   {
     field: 'outflowUSD',
@@ -40,10 +40,10 @@ export const REPORTING_METRIC_DEFINITIONS: readonly ReportingMetricDefinition[] 
     unit: 'USD',
     timeWindow: 'Full history returned by the selected explorers.',
     dataSources: 'Successful native, internal, and ERC-20 transfers from the scanned wallet.',
-    inclusionExclusion: 'Includes priced outbound transfer legs; excludes failed and unpriced legs.',
+    inclusionExclusion: 'Includes outbound transfer legs with a reliable current quote; excludes failed and unpriced legs.',
     aggregation: 'Sum across selected chains; each transfer leg is counted once.',
-    completeness: 'Publishes a verified subtotal when history is complete and at least one eligible leg is historically priced; otherwise unavailable.',
-    priceProvenance: 'Historical or stablecoin assumption only. Spot estimates and unpriced legs are excluded and reported in capitalFlowCoverage.',
+    completeness: 'Publishes a current-price subtotal when history is complete and at least one eligible leg is priced; missing quotes reduce coverage.',
+    priceProvenance: 'Current market quotes, including stablecoins, for fresh scans. Unpriced legs are excluded and reported in capitalFlowCoverage.',
   },
   {
     field: 'netFlowUSD',
@@ -53,7 +53,7 @@ export const REPORTING_METRIC_DEFINITIONS: readonly ReportingMetricDefinition[] 
     dataSources: 'Canonical inflowUSD and outflowUSD fields.',
     inclusionExclusion: 'No additional records are introduced.',
     aggregation: 'inflowUSD minus outflowUSD.',
-    completeness: 'Available when both verified flow subtotals are available; inherits their partial coverage status.',
+    completeness: 'Available when both current-price flow subtotals are available; inherits their partial coverage status.',
     priceProvenance: 'Combined provenance of the inflow and outflow inputs.',
   },
   {
@@ -64,7 +64,7 @@ export const REPORTING_METRIC_DEFINITIONS: readonly ReportingMetricDefinition[] 
     dataSources: 'Canonical inflowUSD and outflowUSD fields.',
     inclusionExclusion: 'Counts both directions; it is not net flow or portfolio value.',
     aggregation: 'inflowUSD plus outflowUSD.',
-    completeness: 'Available when both verified flow subtotals are available; inherits their partial coverage status.',
+    completeness: 'Available when both current-price flow subtotals are available; inherits their partial coverage status.',
     priceProvenance: 'Combined provenance of the inflow and outflow inputs.',
   },
   {
@@ -76,7 +76,7 @@ export const REPORTING_METRIC_DEFINITIONS: readonly ReportingMetricDefinition[] 
     inclusionExclusion: 'Excludes unpriced legs and ordinary counterparty transfers.',
     aggregation: 'Sum by protocol contract and chain, then across chains without removing chain provenance.',
     completeness: 'Unavailable unless transaction, transfer, and price inputs are complete.',
-    priceProvenance: 'Combined provenance of attributed protocol transfer legs.',
+    priceProvenance: 'Current quotes for fresh scans; unavailable when required quotes are missing.',
   },
   {
     field: 'approvalExposureUSD',
@@ -120,7 +120,7 @@ export const REPORTING_METRIC_DEFINITIONS: readonly ReportingMetricDefinition[] 
     inclusionExclusion: 'A local behavioral heuristic, not a live Trusta score and not a blacklist verdict.',
     aggregation: 'Computed once from the combined selected-chain dataset.',
     completeness: 'Unavailable when wallet history or the behavioral report is incomplete.',
-    priceProvenance: 'When historical prices are incomplete, the monetary dimension is omitted and the remaining behavioral dimensions are reweighted.',
+    priceProvenance: 'When current prices are incomplete, the monetary dimension is omitted and the remaining behavioral dimensions are reweighted.',
   },
   {
     field: 'blacklistStatus',
@@ -207,10 +207,33 @@ export function buildReportingMetrics(
   sybilReport?: SybilReport,
 ): ReportingMetrics {
   const historyComplete = status === 'complete';
-  const historicalPricesComplete = priceProvenance.status === 'complete';
-  const inflowUSD = chains.reduce((sum, chain) => sum + chain.transferSummary.totalInboundUSD, 0);
-  const outflowUSD = chains.reduce((sum, chain) => sum + chain.transferSummary.totalOutboundUSD, 0);
+  const currentBasis = chains.length > 0 && chains.every(chain => chain.valuationBasis === 'current');
+  const pricesComplete = priceProvenance.status === 'complete';
+  const historicalInflowUSD = chains.reduce((sum, chain) => sum + chain.transferSummary.totalInboundUSD, 0);
+  const historicalOutflowUSD = chains.reduce((sum, chain) => sum + chain.transferSummary.totalOutboundUSD, 0);
+  const currentFlows = chains.map(chain => chain.transferSummary.currentPriceFlow).filter(
+    (flow): flow is NonNullable<typeof flow> => flow !== undefined,
+  );
+  const sumCurrent = (direction: 'inboundUSD' | 'outboundUSD'): number | null => {
+    if (currentFlows.length !== chains.length) return null;
+    const values = currentFlows.map(flow => flow[direction]);
+    const countKey = direction === 'inboundUSD' ? 'inboundLegs' : 'outboundLegs';
+    const pricedKey = direction === 'inboundUSD' ? 'pricedInboundLegs' : 'pricedOutboundLegs';
+    return currentFlows.reduce((sum, flow) => sum + flow[countKey], 0) > 0
+      && currentFlows.reduce((sum, flow) => sum + flow[pricedKey], 0) === 0
+      ? null
+      : values.reduce<number>((sum, value) => sum + (value ?? 0), 0);
+  };
+  const inflowUSD = currentBasis ? sumCurrent('inboundUSD') : historicalInflowUSD;
+  const outflowUSD = currentBasis ? sumCurrent('outboundUSD') : historicalOutflowUSD;
   const capitalFlowCounts = chains.reduce((summary, chain) => {
+    if (currentBasis) {
+      const current = chain.transferSummary.currentPriceFlow;
+      summary.verifiedLegs += current?.pricedLegs ?? 0;
+      summary.totalLegs += current?.totalLegs ?? 0;
+      summary.unpricedLegs += (current?.totalLegs ?? 0) - (current?.pricedLegs ?? 0);
+      return summary;
+    }
     summary.verifiedLegs += chain.transferSummary.capitalFlowCoverage.verifiedLegs;
     summary.totalLegs += chain.transferSummary.capitalFlowCoverage.totalLegs;
     summary.excludedSpotEstimateLegs += chain.transferSummary.capitalFlowCoverage.excludedSpotEstimateLegs;
@@ -222,8 +245,8 @@ export function buildReportingMetrics(
     excludedSpotEstimateLegs: 0,
     unpricedLegs: 0,
   });
-  const hasVerifiedCapitalFlow = capitalFlowCounts.totalLegs === 0 || capitalFlowCounts.verifiedLegs > 0;
-  const capitalFlowAvailable = historyComplete && hasVerifiedCapitalFlow;
+  const hasPricedCapitalFlow = capitalFlowCounts.totalLegs === 0 || capitalFlowCounts.verifiedLegs > 0;
+  const capitalFlowAvailable = historyComplete && hasPricedCapitalFlow;
   const capitalFlowCoverage = {
     ...capitalFlowCounts,
     coveragePercent: historyComplete
@@ -231,7 +254,7 @@ export function buildReportingMetrics(
         ? 100
         : Math.round((capitalFlowCounts.verifiedLegs / capitalFlowCounts.totalLegs) * 100)
       : null,
-    status: !historyComplete || !hasVerifiedCapitalFlow
+    status: !historyComplete || !hasPricedCapitalFlow
       ? 'unavailable' as const
       : capitalFlowCounts.verifiedLegs < capitalFlowCounts.totalLegs
         ? 'partial' as const
@@ -246,9 +269,9 @@ export function buildReportingMetrics(
   return {
     inflowUSD: capitalFlowAvailable ? inflowUSD : null,
     outflowUSD: capitalFlowAvailable ? outflowUSD : null,
-    netFlowUSD: capitalFlowAvailable ? inflowUSD - outflowUSD : null,
-    grossVolumeUSD: capitalFlowAvailable ? inflowUSD + outflowUSD : null,
-    protocolVolumeUSD: historyComplete && historicalPricesComplete
+    netFlowUSD: capitalFlowAvailable && inflowUSD !== null && outflowUSD !== null ? inflowUSD - outflowUSD : null,
+    grossVolumeUSD: capitalFlowAvailable && inflowUSD !== null && outflowUSD !== null ? inflowUSD + outflowUSD : null,
+    protocolVolumeUSD: historyComplete && pricesComplete
       ? chains.reduce((sum, chain) => sum + chain.interactionsSummary.protocolVolumeUSD, 0)
       : null,
     approvalExposureUSD: historyComplete && approvalExposureIsComplete
